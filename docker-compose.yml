@@ -4,125 +4,221 @@
 version: '3.8'
 
 services:
-  # Main application
+  # Main Agentic AI Application
   agentic-ai:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PYTHON_VERSION=3.12
+    container_name: agentic-ai-system
     ports:
       - "5000:5000"
     environment:
       - FLASK_ENV=production
-      - AGENTIC_SECRET_KEY=${AGENTIC_SECRET_KEY:-default-secret-key}
-      - AGENTIC_DATABASE_URL=${AGENTIC_DATABASE_URL:-sqlite:///data/agentic.db}
-      - AGENTIC_REDIS_URL=${AGENTIC_REDIS_URL:-redis://redis:6379}
+      - DATABASE_URL=postgresql://agentic_user:agentic_pass@postgres:5432/agentic_db
+      - REDIS_URL=redis://redis:6379
+      - CREDENTIAL_DB_PATH=/app/data/credentials.db
+      - ENABLE_DYNAMIC_AGENTS=true
+      - MAX_CONCURRENT_AGENTS=20
+      - SELENIUM_HEADLESS=true
+      - LOG_LEVEL=INFO
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
-      - ./reports:/app/reports
+      - ./config:/app/config
     depends_on:
-      - redis
-      - postgres
-    restart: unless-stopped
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - agentic-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/system/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-  # Redis for caching and session storage
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: agentic-postgres
+    environment:
+      - POSTGRES_DB=agentic_db
+      - POSTGRES_USER=agentic_user
+      - POSTGRES_PASSWORD=agentic_pass
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - agentic-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentic_user -d agentic_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache & Session Store
   redis:
     image: redis:7-alpine
-    command: redis-server --appendonly yes
+    container_name: agentic-redis
+    command: redis-server --appendonly yes --requirepass agentic_redis_pass
     volumes:
       - redis_data:/data
     ports:
       - "6379:6379"
-    restart: unless-stopped
     networks:
       - agentic-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
-  # PostgreSQL database
-  postgres:
-    image: postgres:15-alpine
+  # Selenium Hub for Web Automation
+  selenium-hub:
+    image: selenium/hub:latest
+    container_name: agentic-selenium-hub
+    ports:
+      - "4444:4444"
+      - "4442:4442"
+      - "4443:4443"
     environment:
-      - POSTGRES_DB=${POSTGRES_DB:-agentic_ai}
-      - POSTGRES_USER=${POSTGRES_USER:-agentic}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-agentic_password}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    restart: unless-stopped
+      - GRID_MAX_SESSION=16
+      - GRID_BROWSER_TIMEOUT=300
+      - GRID_TIMEOUT=300
     networks:
       - agentic-network
+    restart: unless-stopped
 
-  # Nginx reverse proxy (optional)
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
+  # Chrome Browser for Selenium
+  selenium-chrome:
+    image: selenium/node-chrome:latest
+    container_name: agentic-selenium-chrome
+    shm_size: 2gb
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=4
+      - NODE_MAX_SESSION=4
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
+      - /dev/shm:/dev/shm
     depends_on:
-      - agentic-ai
-    restart: unless-stopped
+      - selenium-hub
     networks:
       - agentic-network
-    profiles:
-      - production
+    restart: unless-stopped
+    deploy:
+      replicas: 2
 
-  # Monitoring with Prometheus (optional)
+  # Monitoring with Prometheus
   prometheus:
     image: prom/prometheus:latest
+    container_name: agentic-prometheus
     ports:
       - "9090:9090"
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
-    restart: unless-stopped
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
     networks:
       - agentic-network
-    profiles:
-      - monitoring
+    restart: unless-stopped
 
-  # Grafana for visualization (optional)
+  # Grafana Dashboard
   grafana:
     image: grafana/grafana:latest
+    container_name: agentic-grafana
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=agentic_grafana_pass
+      - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - prometheus
-    restart: unless-stopped
     networks:
       - agentic-network
-    profiles:
-      - monitoring
+    restart: unless-stopped
+
+  # NGINX Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: agentic-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./web_interface/static:/var/www/static
+    depends_on:
+      - agentic-ai
+    networks:
+      - agentic-network
+    restart: unless-stopped
 
 volumes:
-  redis_data:
   postgres_data:
+    driver: local
+  redis_data:
+    driver: local
   prometheus_data:
+    driver: local
   grafana_data:
+    driver: local
 
 networks:
   agentic-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
-# Environment variables template
-# Create a .env file with these variables:
-#
-# AGENTIC_SECRET_KEY=your-super-secret-key-here
-# AGENTIC_DATABASE_URL=postgresql://agentic:agentic_password@postgres:5432/agentic_ai
-# AGENTIC_REDIS_URL=redis://redis:6379
-# POSTGRES_DB=agentic_ai
-# POSTGRES_USER=agentic
-# POSTGRES_PASSWORD=agentic_password
-# GRAFANA_PASSWORD=admin
+# Development override
+# Use: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+---
+# docker-compose.dev.yml content
+version: '3.8'
+
+services:
+  agentic-ai:
+    build:
+      target: development
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=true
+    volumes:
+      - .:/app
+    command: python start_system.py --development
+    
+  postgres:
+    environment:
+      - POSTGRES_DB=agentic_dev_db
+      
+  redis:
+    command: redis-server --appendonly yes
+
+# Production security additions
+# labels:
+#   - "traefik.enable=true"
+#   - "traefik.http.routers.agentic.rule=Host(`agentic-ai.example.com`)"
+#   - "traefik.http.routers.agentic.tls=true"
+#   - "traefik.http.routers.agentic.tls.certresolver=letsencrypt"
