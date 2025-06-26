@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional, Type
 from datetime import datetime
 
-from .base_agent import BaseAgent
+from .agent_base import BaseAgent
 
 # Dynamic imports for AI capabilities
 try:
