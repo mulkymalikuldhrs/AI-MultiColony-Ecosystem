@@ -54,6 +54,14 @@ try:
 except ImportError as e:
     print(f"⚠️  Launcher Agent not available: {e}")
 
+# Import and add web automation agent
+try:
+    from src.agents.web_automation_agent import WebAutomationAgent
+    agents['web_automation_agent'] = WebAutomationAgent()
+    print("🌐 Web Automation Agent loaded successfully")
+except ImportError as e:
+    print(f"⚠️  Web Automation Agent not available: {e}")
+
 # Initialize platform integrator
 try:
     from src.core.platform_integrator import platform_integrator
@@ -103,6 +111,11 @@ def monitoring():
 def integrations():
     """Platform integrations page"""
     return render_template('platform_integrations.html')
+
+@app.route('/credentials')
+def credentials():
+    """Credential management page"""
+    return render_template('credentials.html')
 
 @app.route('/api/system/status')
 def get_system_status():
