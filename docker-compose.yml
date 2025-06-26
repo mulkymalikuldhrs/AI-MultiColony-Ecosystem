@@ -1,0 +1,128 @@
+# Agentic AI System - Docker Compose Configuration
+# Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
+
+version: '3.8'
+
+services:
+  # Main application
+  agentic-ai:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - AGENTIC_SECRET_KEY=${AGENTIC_SECRET_KEY:-default-secret-key}
+      - AGENTIC_DATABASE_URL=${AGENTIC_DATABASE_URL:-sqlite:///data/agentic.db}
+      - AGENTIC_REDIS_URL=${AGENTIC_REDIS_URL:-redis://redis:6379}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    networks:
+      - agentic-network
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - agentic-network
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-agentic_ai}
+      - POSTGRES_USER=${POSTGRES_USER:-agentic}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-agentic_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - agentic-network
+
+  # Nginx reverse proxy (optional)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - agentic-ai
+    restart: unless-stopped
+    networks:
+      - agentic-network
+    profiles:
+      - production
+
+  # Monitoring with Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+    networks:
+      - agentic-network
+    profiles:
+      - monitoring
+
+  # Grafana for visualization (optional)
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - agentic-network
+    profiles:
+      - monitoring
+
+volumes:
+  redis_data:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  agentic-network:
+    driver: bridge
+
+# Environment variables template
+# Create a .env file with these variables:
+#
+# AGENTIC_SECRET_KEY=your-super-secret-key-here
+# AGENTIC_DATABASE_URL=postgresql://agentic:agentic_password@postgres:5432/agentic_ai
+# AGENTIC_REDIS_URL=redis://redis:6379
+# POSTGRES_DB=agentic_ai
+# POSTGRES_USER=agentic
+# POSTGRES_PASSWORD=agentic_password
+# GRAFANA_PASSWORD=admin
