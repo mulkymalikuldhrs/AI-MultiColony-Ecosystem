@@ -103,6 +103,115 @@ http://localhost:5000
 
 ---
 
+## 🇮🇩 PANDUAN OPERASI LENGKAP (Indonesian Guide)
+
+### Persiapan Sistem
+
+**Langkah 1: Download dan Setup**
+```bash
+# Download sistem
+git clone https://github.com/eemdeexyz/Agentic-AI-System.git
+cd Agentic-AI-System
+
+# Install dependencies otomatis
+python start_system.py
+```
+
+**Langkah 2: Akses Dashboard**
+- Buka browser dan kunjungi: `http://localhost:5000`
+- Dashboard akan menampilkan status semua agent
+
+### Operasi Dasar
+
+**🤖 Menggunakan Agent:**
+1. **Dashboard Utama**: Lihat status semua agent secara real-time
+2. **Agent Management**: Kelola dan assign task ke specific agent
+3. **Workflows**: Buat dan jalankan workflow multi-agent
+4. **Monitoring**: Pantau performance dan system health
+5. **Integrations**: Kelola koneksi ke platform eksternal
+
+**📋 Contoh Penggunaan:**
+
+1. **Membuat Rencana Proyek:**
+   - Pilih "Agent 03 (Planner)" di dashboard
+   - Input task: "Buat rencana pengembangan aplikasi mobile"
+   - Set priority dan deadline
+   - Klik "Execute Task"
+
+2. **Menjalankan Workflow Lengkap:**
+   - Klik "Create Workflow" di dashboard
+   - Pilih template "Software Development"
+   - Input requirements dan specifications
+   - Monitor progress secara real-time
+
+3. **Integrasi Platform:**
+   - Akses halaman "Integrations"
+   - Konfigurasikan GitHub, Google Services, atau AI platforms
+   - Test koneksi dan aktivasi fitur
+
+### Fitur-Fitur Utama
+
+**🧠 Memory System:** 
+- Semua interaksi agent tersimpan dan dapat diakses
+- Knowledge learning antar agent
+- Context sharing untuk hasil yang lebih baik
+
+**🌐 External Knowledge:**
+- Otomatis mengambil informasi dari Wikipedia
+- Quotes dan facts untuk inspiration
+- Real-time data dari berbagai free APIs
+
+**🚀 Launcher Agent:**
+- Orchestrates seluruh system workflow
+- Manages platform integrations
+- System health monitoring
+
+**🔌 Platform Integrations:**
+- GitHub: Repository management dan automation
+- Google Services: Drive, Sheets, Gmail, Calendar
+- AI Platforms: OpenAI, HuggingFace, dan free APIs
+- External Knowledge: Wikipedia, quotes, facts, news
+
+### Troubleshooting
+
+**Problem**: Port 5000 sudah digunakan
+```bash
+# Gunakan port lain
+export PORT=8000
+python start_system.py
+```
+
+**Problem**: Dependencies error
+```bash
+# Install manual
+pip install flask flask_socketio pandas numpy pyyaml requests aiohttp
+```
+
+**Problem**: Memory sistem tidak aktif
+```bash
+# Check database
+ls -la data/agent_memory.db
+# Restart system jika perlu
+```
+
+### Tips Optimasi
+
+1. **Performance:** Gunakan minimum 8GB RAM untuk workflow kompleks
+2. **Browser:** Chrome atau Firefox untuk pengalaman terbaik
+3. **Network:** Koneksi internet diperlukan untuk external knowledge
+4. **Monitoring:** Check system health secara berkala di dashboard
+
+### Bantuan dan Support
+
+- **Indonesian Community**: Join Discord server untuk diskusi
+- **Documentation**: Baca dokumentasi lengkap di `/docs`
+- **Issues**: Report bugs di GitHub issues
+- **Email**: Contact untuk enterprise support
+
+**Dibuat dengan ❤️ oleh Mulky Malikul Dhaher di Indonesia 🇮🇩**
+
+---
+
 ## 🖥️ Web Interface
 
 ### Dashboard Features

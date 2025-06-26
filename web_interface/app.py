@@ -34,7 +34,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # Initialize Agent Manager and Agents
 agent_manager = AgentManager()
 
-# Initialize all agents
+# Initialize all agents including launcher
 agents = {
     'agent_base': AgentBase(),
     'dynamic_agent_factory': DynamicAgentFactory(),
@@ -45,6 +45,22 @@ agents = {
     'agent_06_specialist': Agent06Specialist(),
     'output_handler': OutputHandler()
 }
+
+# Import and add launcher agent
+try:
+    from src.agents.launcher_agent import LauncherAgent
+    agents['launcher_agent'] = LauncherAgent()
+    print("🚀 Launcher Agent loaded successfully")
+except ImportError as e:
+    print(f"⚠️  Launcher Agent not available: {e}")
+
+# Initialize platform integrator
+try:
+    from src.core.platform_integrator import platform_integrator
+    asyncio.run(platform_integrator.initialize_all())
+    print("🔌 Platform integrations initialized")
+except ImportError as e:
+    print(f"⚠️  Platform integrator not available: {e}")
 
 # Register agents with manager
 for agent in agents.values():
@@ -82,6 +98,11 @@ def workflows():
 def monitoring():
     """System monitoring page"""
     return render_template('monitoring.html')
+
+@app.route('/integrations')
+def integrations():
+    """Platform integrations page"""
+    return render_template('platform_integrations.html')
 
 @app.route('/api/system/status')
 def get_system_status():
