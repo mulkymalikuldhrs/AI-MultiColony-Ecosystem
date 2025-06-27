@@ -39,11 +39,39 @@ class BaseAgent(abc.ABC):
     def _load_config(self, config_path: str) -> Dict:
         """Load configuration from YAML file"""
         try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f)
+            import os
+            # Try to find config file in different locations
+            possible_paths = [
+                config_path,
+                os.path.join(os.path.dirname(os.path.dirname(__file__)), '..', config_path),
+                os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), config_path)
+            ]
+            
+            for path in possible_paths:
+                if os.path.exists(path):
+                    with open(path, 'r', encoding='utf-8') as f:
+                        return yaml.safe_load(f)
+            
+            # If config not found, return default config
+            logging.warning(f"Config file not found at any of: {possible_paths}. Using default config.")
+            return self._get_default_config()
+            
         except Exception as e:
             logging.error(f"Failed to load config: {e}")
-            return {}
+            return self._get_default_config()
+    
+    def _get_default_config(self) -> Dict:
+        """Get default configuration when config file is not available"""
+        return {
+            'agents': {
+                self.agent_id: {
+                    'name': self.agent_id.replace('_', ' ').title(),
+                    'role': 'AI Agent',
+                    'emoji': '🤖',
+                    'description': 'Multi-purpose AI agent'
+                }
+            }
+        }
     
     @abc.abstractmethod
     def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:

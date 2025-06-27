@@ -13,6 +13,7 @@ import os
 from datetime import datetime
 import threading
 import time
+import asyncio
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -26,6 +27,7 @@ from src.agents.agent_04_executor import Agent04Executor
 from src.agents.agent_05_designer import Agent05Designer
 from src.agents.agent_06_specialist import Agent06Specialist
 from src.agents.output_handler import OutputHandler
+from src.agents.advanced_agent_creator import advanced_agent_creator
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'agentic_ai_system_secret_key_indonesia'
@@ -43,7 +45,8 @@ agents = {
     'agent_04_executor': Agent04Executor(),
     'agent_05_designer': Agent05Designer(),
     'agent_06_specialist': Agent06Specialist(),
-    'output_handler': OutputHandler()
+    'output_handler': OutputHandler(),
+    'advanced_agent_creator': advanced_agent_creator
 }
 
 # Import and add launcher agent

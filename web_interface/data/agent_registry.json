@@ -1,0 +1,37 @@
+{
+  "template_data_scientist_1751038301": {
+    "agent_id": "template_data_scientist_1751038301",
+    "name": "AI Data Scientist",
+    "specialization": "Data Science & Machine Learning",
+    "emoji": "\ud83d\udcca",
+    "skills": [
+      "python",
+      "pandas",
+      "numpy",
+      "scikit-learn",
+      "tensorflow",
+      "data_visualization",
+      "statistics"
+    ],
+    "capabilities": [
+      "data_analysis",
+      "ml_modeling",
+      "statistical_analysis",
+      "data_visualization",
+      "predictive_analytics"
+    ],
+    "ai_model": "gpt-4",
+    "learning_enabled": true,
+    "memory_enabled": true,
+    "knowledge_sources": [
+      "wikipedia",
+      "research_papers",
+      "data_science_blogs"
+    ],
+    "creation_time": "2025-06-27T15:31:41.906051",
+    "tasks_handled": 0,
+    "success_count": 0,
+    "failure_count": 0,
+    "learning_progress": 0.0
+  }
+}
