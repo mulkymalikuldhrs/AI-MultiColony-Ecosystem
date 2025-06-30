@@ -13,6 +13,14 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    print("✅ Environment variables loaded from .env file")
+except ImportError:
+    print("⚠️  python-dotenv not available, using system environment variables only")
+
 def print_banner():
     """Print deployment banner"""
     banner = """

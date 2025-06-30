@@ -24,17 +24,26 @@ class NetlifyIntegration:
         self.client_secret = os.getenv('NETLIFY_CLIENT_SECRET')
         self.base_url = "https://api.netlify.com/api/v1"
         
-        if not self.access_token:
-            raise ValueError("Netlify access token is required")
-        
-        self.headers = {
-            'Authorization': f'Bearer {self.access_token}',
-            'Content-Type': 'application/json'
-        }
+        self.headers = None
+        if self.access_token:
+            self.headers = {
+                'Authorization': f'Bearer {self.access_token}',
+                'Content-Type': 'application/json'
+            }
+    
+    def _check_credentials(self):
+        """Check if credentials are available"""
+        if not self.access_token or not self.headers:
+            return False
+        return True
     
     def get_sites(self) -> List[Dict]:
         """Get all sites in the account"""
         try:
+            if not self._check_credentials():
+                print("Error: Netlify credentials not configured")
+                return []
+            
             response = requests.get(f"{self.base_url}/sites", headers=self.headers)
             response.raise_for_status()
             return response.json()
@@ -207,6 +216,13 @@ class NetlifyIntegration:
     def test_connection(self) -> Dict[str, Any]:
         """Test Netlify connection"""
         try:
+            if not self._check_credentials():
+                return {
+                    'connected': False,
+                    'error': 'Netlify access token not configured',
+                    'test_timestamp': datetime.now().isoformat()
+                }
+            
             sites = self.get_sites()
             usage = self.get_usage_stats()
             
