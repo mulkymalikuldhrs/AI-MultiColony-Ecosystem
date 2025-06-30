@@ -1,0 +1,14 @@
+# Netlify redirects for Agentic AI System
+
+# SPA fallback
+/*    /index.html   200
+
+# API redirects (if needed)
+/api/*  /.netlify/functions/:splat  200
+
+# Security headers
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Powered-By: Agentic AI System - Made by Mulky Malikul Dhaher 🇮🇩
