@@ -1,100 +1,116 @@
-# Agentic AI System - Docker Configuration
+# 🐳 Agentic AI System - Production Docker Image
+# Multi-stage build for optimized production deployment
 # Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 
-FROM python:3.12-slim as base
+# Build stage
+FROM python:3.11-slim as builder
+
+# Set build arguments
+ARG BUILD_DATE
+ARG VERSION
+ARG COMMIT_SHA
+
+# Add labels
+LABEL maintainer="Mulky Malikul Dhaher <mulkymalikul@gmail.com>"
+LABEL description="Agentic AI System - Autonomous Multi-Agent Intelligence Platform"
+LABEL version=${VERSION}
+LABEL build-date=${BUILD_DATE}
+LABEL commit-sha=${COMMIT_SHA}
+LABEL org.opencontainers.image.title="Agentic AI System"
+LABEL org.opencontainers.image.description="🇮🇩 Made with ❤️ in Indonesia"
+LABEL org.opencontainers.image.source="https://github.com/jakForever/Agentic-AI-Ecosystem"
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements first for better caching
+COPY requirements.txt /tmp/requirements.txt
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Production stage
+FROM python:3.11-slim as production
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    chromium \
+    chromium-driver \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app user
+RUN groupadd -r agentic && useradd -r -g agentic agentic
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    wget \
-    gnupg \
-    unzip \
-    xvfb \
-    libxi6 \
-    libgconf-2-4 \
-    libxss1 \
-    libxrandr2 \
-    libasound2 \
-    libpangocairo-1.0-0 \
-    libatk1.0-0 \
-    libcairo-gobject2 \
-    libgtk-3-0 \
-    libgdk-pixbuf2.0-0 \
-    fonts-liberation \
-    libappindicator3-1 \
-    libdrm2 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxrandr2 \
-    libgbm1 \
-    libxss1 \
-    libnss3 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Chrome for Selenium
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install ChromeDriver
-RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` \
-    && wget -N http://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip \
-    && unzip chromedriver_linux64.zip \
-    && rm chromedriver_linux64.zip \
-    && mv chromedriver /usr/local/bin/chromedriver \
-    && chmod +x /usr/local/bin/chromedriver
-
-# Copy requirements first for better caching
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
-
 # Copy application code
-COPY . .
+COPY --chown=agentic:agentic . .
 
 # Create necessary directories
-RUN mkdir -p data logs temp reports config \
-    && chmod 755 data logs temp reports config
+RUN mkdir -p data logs reports projects ui/generated && \
+    chown -R agentic:agentic /app
 
-# Set environment variables
+# Environment variables
 ENV PYTHONPATH=/app
-ENV FLASK_APP=web_interface/app.py
-ENV SELENIUM_DRIVER_PATH=/usr/local/bin/chromedriver
-ENV DISPLAY=:99
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV FLASK_ENV=production
+ENV WEB_INTERFACE_HOST=0.0.0.0
+ENV WEB_INTERFACE_PORT=5000
 
-# Expose port
-EXPOSE 5000
+# Chrome/Selenium configuration
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROME_PATH=/usr/lib/chromium/
+ENV SELENIUM_HEADLESS=true
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:5000/api/system/status || exit 1
 
-# Development stage
-FROM base as development
-ENV FLASK_ENV=development
-ENV FLASK_DEBUG=true
-CMD ["python", "start_system.py", "--development"]
-
-# Production stage
-FROM base as production
-ENV FLASK_ENV=production
-ENV FLASK_DEBUG=false
-
-# Create non-root user for security
-RUN groupadd -r agentic && useradd -r -g agentic agentic \
-    && chown -R agentic:agentic /app
+# Switch to app user
 USER agentic
 
-# Start application
-CMD ["python", "start_system.py", "--production"]
+# Expose ports
+EXPOSE 5000 8765
 
-# Multi-architecture support
-# docker buildx build --platform linux/amd64,linux/arm64 -t agentic-ai:latest .
+# Volume for persistent data
+VOLUME ["/app/data", "/app/logs"]
+
+# Default command
+CMD ["python", "main.py"]
+
+# Development stage (optional)
+FROM production as development
+
+USER root
+
+# Install development dependencies
+RUN pip install --no-cache-dir \
+    pytest \
+    pytest-asyncio \
+    pytest-cov \
+    black \
+    flake8 \
+    ipython \
+    notebook
+
+USER agentic
+
+# Override command for development
+CMD ["python", "main.py", "--debug"]
