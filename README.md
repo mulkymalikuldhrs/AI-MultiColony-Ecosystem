@@ -1,939 +1,502 @@
-# 🤖 Agentic AI System - Advanced Multi-Agent Intelligence Platform
+# 🧠 Agentic AI System - Autonomous Multi-Agent Intelligence
 
 <div align="center">
 
-![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)
-![Flask](https://img.shields.io/badge/Flask-2.3+-green.svg)
-![AI](https://img.shields.io/badge/AI-GPT_Powered-purple.svg)
-![Security](https://img.shields.io/badge/Security-AES_256-red.svg)
-![Deployment](https://img.shields.io/badge/Deployment-Multi_Platform-orange.svg)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Status](https://img.shields.io/badge/Status-Production_Ready-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Python](https://img.shields.io/badge/python-3.8+-green.svg)
+![License](https://img.shields.io/badge/license-MIT-yellow.svg)
+![Made with ❤️](https://img.shields.io/badge/made%20with-❤️-red.svg)
 
-**🌟 Advanced AI Multi-Agent System with Real Agent Creation & Enterprise Security 🌟**
+**Sistem AI Multi-Agent Mandiri dengan 20+ Agen Spesialis**
 
-**🇮🇩 Made with ❤️ by Mulky Malikul Dhaher in Indonesia - Ready for Global Deployment 🌍**
-
-[![Deploy to Railway](https://img.shields.io/badge/Deploy-Railway-purple.svg)](https://railway.app/new)
-[![Deploy to Vercel](https://img.shields.io/badge/Deploy-Vercel-black.svg)](https://vercel.com/new)
-[![Deploy to Netlify](https://img.shields.io/badge/Deploy-Netlify-teal.svg)](https://app.netlify.com/start)
+*Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩*
 
 </div>
 
----
-
 ## 🌟 Overview
 
-**Agentic AI System** adalah platform revolusioner multi-agent intelligence dengan kemampuan **creating real working AI agents dynamically**. Sistem ini tidak hanya mengkoordinasi agent-agent yang ada, tetapi dapat **menciptakan agent AI baru yang benar-benar berfungsi** dengan capabilities lengkap seperti memory, learning, dan specialized skills.
+Agentic AI System adalah ekosistem kecerdasan buatan yang sepenuhnya mandiri, terdiri dari 20+ agen spesialis yang dapat:
 
-### 🚀 Revolutionary Features
+- 🤖 **Membuat agen lain secara otomatis** - Self-expanding agent ecosystem
+- 🔄 **Sinkronisasi real-time** - Multi-database sync (SQLite, PostgreSQL, Redis)
+- 🎯 **Pemilihan agen cerdas** - AI-powered agent selection untuk setiap tugas
+- 🚀 **Operasi autonomous** - Auto-run, auto-schedule, self-repair
+- 🌐 **Multi-platform deployment** - Web, Mobile, Terminal, Cloud
+- 🎨 **UI/UX generation** - Automatic interface creation
+- ⚙️ **DevOps automation** - Complete project setup and deployment
 
-- 🤖 **Real AI Agent Creation** - Buat agent AI yang benar-benar bekerja, bukan hanya spesifikasi
-- 🔒 **Military-Grade Security** - Enkripsi AES-256 untuk credential management
-- 🌐 **Advanced Web Automation** - Login/registrasi otomatis ke website manapun
-- 🧠 **Persistent Memory System** - SQLite dengan knowledge enrichment dari external APIs
-- 🚀 **Multi-Platform Deployment** - Siap deploy ke 7+ platform dalam menit
-- 🔌 **Real-time Platform Integrations** - GitHub, Google Services, OpenAI, HuggingFace
-- 📊 **Enterprise Monitoring** - Real-time analytics dan comprehensive system health
-- 🇮🇩 **Complete Indonesian Support** - Dokumentasi dan UI lengkap dalam Bahasa Indonesia
+## 🏗️ Architecture
 
-### ✨ Advanced Capabilities
-
-#### 🤖 **Real AI Agent Creation System**
-- **Creates actual working AI agents** (not just specifications)
-- **6+ Pre-built specialist templates** (Data Scientist, Web Developer, Security Expert, etc.)
-- **Custom agent creation** with specific skills and capabilities  
-- **AI-powered responses** dengan GPT integration
-- **Continuous learning** dari setiap interaksi dengan memory persistence
-- **Performance tracking** dan success rate monitoring real-time
-
-#### 🔒 **Enterprise Security & Automation**
-- **Military-grade AES-256 encryption** untuk credential storage
-- **Automated login/registration** ke website manapun menggunakan stored credentials
-- **Smart form detection** dengan multiple selector strategies
-- **Usage tracking & audit logging** untuk compliance dan security
-- **Master password protection** dengan PBKDF2 key derivation
-
-#### 🚀 **Multi-Platform Deployment Ready**
-- **Railway** - Auto-deploy dengan PostgreSQL & Redis (`railway.json`)
-- **Vercel** - Serverless functions dengan edge computing (`vercel.json`)
-- **Netlify** - JAMstack dengan build optimization (`netlify.toml`)
-- **Firebase** - Google Cloud hosting with functions (`firebase.json`)
-- **AWS** - Enterprise deployment dengan SAM & CDK (`template.yaml`, `cdk.json`)
-- **Docker** - Containerized dengan full monitoring stack (`docker-compose.yml`)
-- **Kubernetes** - Production cluster dengan auto-scaling (`k8s-deployment.yaml`)
-
-#### 🧠 **Intelligent Memory & Knowledge System**
-- **SQLite-based persistent memory** across all agents
-- **External knowledge integration** (Wikipedia, research APIs, quotes, facts)
-- **Context-aware responses** dengan knowledge enrichment
-- **Agent learning history** dan performance optimization
-- **Cross-agent knowledge sharing** untuk better coordination
-
-#### 🔌 **Platform Integrations & APIs**
-- **GitHub Integration** - Repository management & automation
-- **Google Services** - Drive, Sheets, Gmail, Calendar integration
-- **AI Platforms** - OpenAI, HuggingFace, dan free AI APIs
-- **External Knowledge** - Wikipedia, quotes, facts, news APIs
-- **Real-time synchronization** dengan external platforms
-
----
-
-## 🧩 System Architecture
-
-### Core Agents
-
-| Agent | Role | Capabilities |
-|-------|------|-------------|
-| 🎯 **Agent Base** | Master Controller | Task coordination, workflow orchestration |
-| 🚀 **Launcher Agent** | System Orchestrator | Platform integration management, system coordination |
-| 🏭 **Dynamic Agent Factory** | Agent Creation | Spawns specialized agents on demand |
-| 🤖 **Advanced Agent Creator** | Real AI Agent Creation | Creates working AI agents with full capabilities |
-| 🌐 **Web Automation Agent** | Web Automation | Automated login/registration, credential management |
-| 📊 **Agent 02 (Meta-Spawner)** | Performance Monitor | System bottleneck analysis, optimization |
-| 📋 **Agent 03 (Planner)** | Strategic Planner | Goal breakdown, timeline creation |
-| ⚙️ **Agent 04 (Executor)** | Task Executor | Script execution, API integration, automation |
-| 🎨 **Agent 05 (Designer)** | Visual Creator | UI design, diagrams, infographics |
-| 🔬 **Agent 06 (Specialist)** | Domain Expert | Security, legal, AI tuning, architecture |
-| 📤 **Output Handler** | Result Compiler | Final deliverable compilation and formatting |
-
-### Core Systems
-
-| System | Function | Key Features |
-|--------|----------|--------------|
-| 🧠 **Memory Manager** | SQLite-based persistent memory across all agents | Agent interactions, learning history, performance tracking |
-| 📚 **Knowledge Enrichment** | External knowledge integration (Wikipedia, APIs) | Real-time data from 10+ free APIs, context-aware responses |
-| 🔒 **Credential Manager** | Military-grade encrypted credential storage (AES-256) | PBKDF2 key derivation, secure password management |
-| 🔌 **Platform Integrator** | GitHub, Google Services, AI platforms integration | Real-time sync, API management, connection health monitoring |
-| 🤖 **Advanced Agent Creator** | Real AI agent creation with full capabilities | 6+ specialist templates, custom agent development |
-| 🌐 **Web Automation Engine** | Automated login/registration with smart form detection | Selenium-based, headless/visible modes, multi-website support |
-
-### Workflow Engine
-
-```mermaid
-graph TB
-    A[User Request] --> B[Agent Base]
-    B --> C[Agent 03 Planner]
-    C --> D[Dynamic Agent Factory]
-    D --> E[Specialized Agents]
-    E --> F[Agent 04 Executor]
-    F --> G[Agent 05 Designer]
-    G --> H[Agent 06 Specialist]
-    H --> I[Output Handler]
-    I --> J[Final Deliverable]
-    
-    K[Agent 02 Meta-Spawner] --> B
-    K --> E
-    K --> F
+```
+┌────────────────────────────┐
+│    🧠 Prompt Master Agent   │
+│ "Mulky Command Core AI"    │
+└────────────┬───────────────┘
+             ▼
+┌────────────────────────────┐
+│     ⚙️ Agent Maker Engine   │
+│ Bikin agent lain (modular) │
+└──────┬────────────┬────────┘
+       ▼            ▼
+  ┌────────┐    ┌────────────┐
+  │ Agents │    │ UI Designer│
+  │ System │    │ Agent      │
+  └────┬───┘    └────┬───────┘
+       ▼             ▼
+  ┌─────────────┐ ┌──────────────┐
+  │ Sync Engine │ │ Web Interface│
+  │ & Scheduler │ │ Real-time UI │
+  └─────────────┘ └──────────────┘
 ```
 
----
+## 🤖 Agen Spesialis
+
+### Core System Agents
+- **🧠 Prompt Master** - Central command dan koordinasi sistem
+- **🔄 Sync Engine** - Komunikasi antar-agent real-time
+- **⏰ Scheduler** - Auto-run dan penjadwalan autonomous
+- **🧮 AI Selector** - Pemilihan agen optimal untuk setiap tugas
+- **💾 Memory Bus** - Shared memory dan persistent storage
+
+### Development Agents
+- **🤖 Agent Maker** - Membuat agen baru dari prompt
+- **⚙️ Dev Engine** - Project setup dan scaffolding
+- **🎨 UI Designer** - React/Tailwind component generation
+- **🚀 Full Stack Dev** - Complete app development
+- **🖥️ CyberShell** - Advanced shell execution
+- **🔄 Data Sync** - Multi-database synchronization
+
+### Platform Agents
+- **🌐 Deploy Manager** - Multi-platform deployment
+- **📱 Mobile Dev** - React Native app creation
+- **🔗 GitHub Agent** - Git operations dan CI/CD
+- **☁️ Cloud Agent** - AWS/GCP/Azure integration
+- **🔐 Security Agent** - Automated security scanning
+
+### Content & Communication Agents
+- **✍️ Content Creator** - Documentation generation
+- **📊 Analytics Agent** - Performance monitoring
+- **🎥 Media Agent** - Image/video processing
+- **🗣️ Voice Agent** - Speech-to-text processing
+- **📧 Communication Agent** - Email/notification system
 
 ## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.12 or higher
-- 4GB RAM minimum (8GB recommended for AI features)
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- Chrome/Chromium (for web automation features)
 
 ### 1. Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/eemdeexyz/Agentic-AI-System.git
-cd Agentic-AI-System
+# Clone repository
+git clone https://github.com/jakForever/Agentic-AI-Ecosystem.git
+cd Agentic-AI-Ecosystem
 
-# Install dependencies (auto-installs missing packages)
-python start_system.py
+# Install dependencies
+pip install -r requirements.txt
+
+# Setup environment
+cp .env.example .env
 ```
 
-### 2. Launch System
+### 2. Setup Environment
 
 ```bash
-# Start the complete system
-python start_system.py
+# Edit .env file - LLM7 sudah dikonfigurasi dengan free API key
+nano .env
 
-# Or for production
-python start_system.py --production
+# Key configurations:
+# LLM7_API_KEY=llm7-free-api-key  (sudah gratis!)
+# WEB_INTERFACE_PORT=5000
+# DATABASE_URL=sqlite:///data/agentic.db
 ```
 
-### 3. Access Dashboard
+### 3. Run the System
 
-Open your browser and navigate to:
-```
-http://localhost:5000
-```
-
-### 4. Quick Feature Tour
-
-- **🏠 Dashboard**: Real-time overview of 10+ specialized agents dengan performance metrics
-- **🤖 Agents**: Create and manage real working AI agents dynamically dengan templates
-- **🔄 Workflows**: Execute multi-agent workflows dengan memory dan knowledge integration
-- **🔒 Credentials**: Secure credential storage & automated web login/registration
-- **🔌 Integrations**: Live connections ke GitHub, Google Services, AI platforms
-- **📊 Monitoring**: Comprehensive system health, agent performance & security monitoring
-
-### 5. Advanced Features Access
-
-- **🤖 Create Real AI Agents**: `/agents` - Build actual working AI specialists
-- **🔐 Credential Vault**: `/credentials` - Military-grade password management
-- **🌐 Web Automation**: Automated login to any website using stored credentials
-- **🧠 Memory System**: Persistent learning across all agents dengan SQLite
-- **📚 Knowledge Hub**: Real-time integration dengan Wikipedia & external APIs
-- **🚀 Deploy Anywhere**: 7+ platform deployment configurations ready
-
----
-
-## 🇮🇩 PANDUAN OPERASI LENGKAP (Indonesian Guide)
-
-### Persiapan Sistem
-
-**Langkah 1: Download dan Setup**
 ```bash
-# Download sistem
-git clone https://github.com/eemdeexyz/Agentic-AI-System.git
-cd Agentic-AI-System
+# Quick start dengan script
+./run.sh start
 
-# Install dependencies otomatis
-python start_system.py
+# Atau manual
+python main.py
+
+# Background mode
+./run.sh start --background
+
+# Direct AI command
+./run.sh "Create a web app called TaskManager"
+
+# Web interface only
+python web_interface/app.py
 ```
 
-**Langkah 2: Akses Dashboard**
-- Buka browser dan kunjungi: `http://localhost:5000`
-- Dashboard akan menampilkan status semua agent
+## 🎯 Usage Examples
 
-### Operasi Dasar
+### Create Complete Applications
 
-**🤖 Menggunakan Agent:**
-1. **Dashboard Utama**: Lihat status semua agent secara real-time
-2. **Agent Management**: Kelola dan assign task ke specific agent
-3. **Workflows**: Buat dan jalankan workflow multi-agent
-4. **Monitoring**: Pantau performance dan system health
-5. **Integrations**: Kelola koneksi ke platform eksternal
-
-**📋 Contoh Penggunaan:**
-
-1. **Membuat Rencana Proyek:**
-   - Pilih "Agent 03 (Planner)" di dashboard
-   - Input task: "Buat rencana pengembangan aplikasi mobile"
-   - Set priority dan deadline
-   - Klik "Execute Task"
-
-2. **Menjalankan Workflow Lengkap:**
-   - Klik "Create Workflow" di dashboard
-   - Pilih template "Software Development"
-   - Input requirements dan specifications
-   - Monitor progress secara real-time
-
-3. **Integrasi Platform:**
-   - Akses halaman "Integrations"
-   - Konfigurasikan GitHub, Google Services, atau AI platforms
-   - Test koneksi dan aktivasi fitur
-
-### Fitur-Fitur Utama
-
-**🧠 Memory System:** 
-- Semua interaksi agent tersimpan dan dapat diakses
-- Knowledge learning antar agent
-- Context sharing untuk hasil yang lebih baik
-
-**🌐 External Knowledge:**
-- Otomatis mengambil informasi dari Wikipedia
-- Quotes dan facts untuk inspiration
-- Real-time data dari berbagai free APIs
-
-**🚀 Launcher Agent:**
-- Orchestrates seluruh system workflow
-- Manages platform integrations
-- System health monitoring
-
-**🔌 Platform Integrations:**
-- GitHub: Repository management dan automation
-- Google Services: Drive, Sheets, Gmail, Calendar
-- AI Platforms: OpenAI, HuggingFace, dan free APIs
-- External Knowledge: Wikipedia, quotes, facts, news
-
-### Troubleshooting
-
-**Problem**: Port 5000 sudah digunakan
 ```bash
-# Gunakan port lain
-export PORT=8000
-python start_system.py
+# Full stack web application
+./run.sh "Build a task management app with React frontend and FastAPI backend"
+
+# Mobile application
+./run.sh "Create a React Native app for expense tracking"
+
+# Landing page
+./run.sh "Generate a modern landing page for my AI startup"
 ```
 
-**Problem**: Dependencies error
+### Agent Management
+
 ```bash
-# Install manual
-pip install flask flask_socketio pandas numpy pyyaml requests aiohttp
+# Create custom agent
+./run.sh "Create an agent that monitors server health and sends alerts"
+
+# Modify existing agent
+./run.sh "Add email notification capability to the monitoring agent"
+
+# Deploy agent
+./run.sh "Deploy the monitoring agent to production"
 ```
 
-**Problem**: Memory sistem tidak aktif
+### Development Automation
+
 ```bash
-# Check database
-ls -la data/agent_memory.db
-# Restart system jika perlu
+# Setup project
+./run.sh "Setup a Next.js project with TypeScript and Tailwind"
+
+# Generate components
+./run.sh "Create a responsive navbar component with dark mode"
+
+# Database operations
+./run.sh "Design database schema for e-commerce platform"
 ```
 
-### Tips Optimasi
-
-1. **Performance:** Gunakan minimum 8GB RAM untuk workflow kompleks
-2. **Browser:** Chrome atau Firefox untuk pengalaman terbaik
-3. **Network:** Koneksi internet diperlukan untuk external knowledge
-4. **Monitoring:** Check system health secara berkala di dashboard
-
-### Bantuan dan Support
-
-- **Indonesian Community**: Join Discord server untuk diskusi
-- **Documentation**: Baca dokumentasi lengkap di `/docs`
-- **Issues**: Report bugs di GitHub issues
-- **Email**: Contact untuk enterprise support
-
-**Dibuat dengan ❤️ oleh Mulky Malikul Dhaher di Indonesia 🇮🇩**
-
----
-
-## 🖥️ Web Interface
-
-### Dashboard Features
-
-- **📊 System Overview**: Real-time status of all agents
-- **🤖 Agent Management**: Monitor, control, and assign tasks to agents
-- **🔄 Workflow Control**: Create, execute, and monitor multi-agent workflows
-- **📈 Performance Monitoring**: Detailed analytics and system health metrics
-- **⚡ Quick Actions**: Rapid task assignment and workflow execution
-
-### Screenshots
-
-```
-┌─────────────────────────────────────────┐
-│  🤖 Agentic AI System Dashboard         │
-├─────────────────────────────────────────┤
-│  Total Agents: 8     Active: 8         │
-│  Workflows: 3        Success Rate: 97%  │
-│                                         │
-│  [Agent Status Grid]                    │
-│  [Performance Charts]                   │
-│  [Recent Activity Log]                  │
-└─────────────────────────────────────────┘
-```
-
----
-
-## 🛠️ Usage Examples
-
-### 1. Create Real AI Agents Dynamically
-
-```python
-from src.agents.advanced_agent_creator import advanced_agent_creator
-
-# Create a real AI data scientist
-task = {
-    'request': 'Create data scientist agent from template',
-    'context': {
-        'template_name': 'data_scientist',
-        'agent_name': 'AI DataScience Expert'
-    }
-}
-
-result = advanced_agent_creator.process_task(task)
-print(result['content'])  # Agent created and ready to use!
-
-# Get the created agent
-agent_id = "template_data_scientist_1234567890"
-data_scientist = advanced_agent_creator.get_created_agent(agent_id)
-
-# Use the agent immediately
-analysis_task = {
-    'request': 'Analyze customer data trends',
-    'context': {'dataset': 'customer_data.csv'}
-}
-analysis_result = data_scientist.process_task(analysis_task)
-```
-
-### 2. Secure Credential Management & Web Automation
-
-```python
-from src.core.credential_manager import credential_manager
-from src.agents.web_automation_agent import WebAutomationAgent
-
-# Store credentials securely (AES-256 encrypted)
-credential_manager.store_credential(
-    website_name='GitHub',
-    website_url='https://github.com/login',
-    username='your_username',
-    email='your_email@example.com',
-    password='your_password',
-    notes='Development account'
-)
-
-# Automated login using stored credentials
-web_agent = WebAutomationAgent()
-login_task = {
-    'request': 'Login to GitHub',
-    'context': {
-        'website_name': 'GitHub',
-        'headless': True
-    }
-}
-result = web_agent.process_task(login_task)
-```
-
-### 3. Memory & Knowledge Integration
-
-```python
-from src.core.memory_manager import agent_memory_interface
-from src.core.knowledge_enrichment import knowledge_orchestrator
-
-# Access persistent memory across agents
-memories = agent_memory_interface.get_agent_learning_history('agent_id')
-
-# Get enriched knowledge from external sources
-knowledge = await knowledge_orchestrator.gather_contextual_knowledge(
-    topic='machine learning',
-    context='data science project'
-)
-print(knowledge['summary'])  # Wikipedia + external API data
-```
-
-### 4. Multi-Agent Workflow with Memory
-
-```python
-import asyncio
-from src.core.agent_manager import AgentManager
-
-manager = AgentManager()
-
-# Execute workflow with memory and knowledge enhancement
-workflow_request = {
-    'name': 'AI-Enhanced Development Project',
-    'description': 'Complete development with AI assistance and memory',
-    'requirements': ['Planning', 'Development', 'Testing', 'Deployment'],
-    'use_external_knowledge': True,
-    'enable_memory': True
-}
-
-# Run enhanced workflow
-result = await manager.execute_workflow('software_development', workflow_request)
-print(f"Workflow completed with AI enhancement: {result['status']}")
-```
-
-### 5. Platform Integration Example
-
-```python
-from src.core.platform_integrator import platform_integrator
-
-# Initialize all platform connections
-await platform_integrator.initialize_all()
-
-# Check GitHub integration
-github = platform_integrator.get_integration('github')
-if github.is_connected():
-    # Create repository automatically
-    repo_result = await github.create_repository(
-        name='ai-generated-project',
-        description='Created by Agentic AI System'
-    )
-    print(f"Repository created: {repo_result['repository']['url']}")
-```
-
-### 6. Web Interface API Usage
-
-```python
-import requests
-
-# Get system status
-response = requests.get('http://localhost:5000/api/system/status')
-status = response.json()
-print(f"System health: {status['system_status']}")
-print(f"Active agents: {status['active_agents']}")
-
-# Execute agent task via API
-task_data = {
-    'agent_id': 'agent_03_planner',
-    'request': 'Create project timeline',
-    'context': {'duration': '3 months', 'team_size': 5}
-}
-response = requests.post('http://localhost:5000/api/task/submit', json=task_data)
-result = response.json()
-```
-
----
-
-## 🔌 Platform Integrations
-
-### LangGraph Integration
-
-```python
-from src.integrations.langgraph_integration import LangGraphAdapter
-
-# Initialize LangGraph adapter
-adapter = LangGraphAdapter(agent_manager)
-
-# Create LangGraph workflow
-workflow = adapter.create_workflow_graph({
-    'nodes': ['planner', 'executor', 'designer'],
-    'edges': [('planner', 'executor'), ('executor', 'designer')]
-})
-
-# Execute
-result = await workflow.ainvoke({"input": "Create a web application"})
-```
-
-### AutoGen Integration
-
-```python
-from src.integrations.autogen_integration import AutoGenAdapter
-
-# Setup AutoGen conversation
-adapter = AutoGenAdapter(agent_manager)
-group_chat = adapter.create_group_chat([
-    'agent_base', 'agent_03_planner', 'agent_04_executor'
-])
-
-# Start conversation
-result = group_chat.chat("Plan and execute a data analysis project")
-```
-
-### CrewAI Integration
-
-```python
-from src.integrations.crewai_integration import CrewAIAdapter
-
-# Create CrewAI crew
-adapter = CrewAIAdapter(agent_manager)
-crew = adapter.create_crew({
-    'agents': ['planner', 'executor', 'specialist'],
-    'tasks': ['planning', 'execution', 'review']
-})
-
-# Execute mission
-result = crew.kickoff()
-```
-
----
-
-## 📈 Monitoring & Analytics
-
-### Performance Metrics
-
-- **Response Time**: Average agent response time
-- **Success Rate**: Task completion success percentage  
-- **Resource Usage**: CPU, memory, and network utilization
-- **Throughput**: Tasks processed per minute
-- **Error Rate**: Failed task percentage
-
-### Health Monitoring
-
-The system includes comprehensive health monitoring:
-
-```python
-# Get system status
-status = manager.get_system_status()
-print(f"System Health: {status['health_score']}")
-print(f"Active Agents: {status['active_agents']}")
-print(f"Performance Score: {status['performance_score']}")
-```
-
-### Alerts & Notifications
-
-- Real-time alerts for system issues
-- Performance degradation warnings
-- Resource usage notifications
-- Automatic scaling recommendations
-
----
+## 🌐 Web Interface
+
+Access the control panel at `http://localhost:5000`
+
+### Features:
+- 📊 **Dashboard** - Real-time system monitoring
+- 🤖 **Agent Center** - Manage dan monitor semua agen
+- 🎨 **UI Builder** - Visual interface creation
+- 🚀 **Deployment** - One-click multi-platform deployment
+- 📈 **Analytics** - Performance metrics dan insights
+- ⚙️ **Settings** - System configuration
 
 ## 🔧 Configuration
 
-### Agent Configuration
+### Environment Variables
 
-```yaml
-# config/prompts.yaml
-agents:
-  agent_03_planner:
-    name: "Agent 03 (Planner)"
-    role: "Strategic Planning & Goal Breakdown"
-    emoji: "📋"
-    prompt: "You are a specialized planning agent..."
-    
-  agent_04_executor:
-    name: "Agent 04 (Executor)"
-    role: "Script & API Execution"
-    emoji: "⚙️"
-    prompt: "You are an execution specialist..."
+```env
+# Core System
+AGENTIC_SYSTEM_NAME="Agentic AI System"
+AGENTIC_VERSION="2.0.0"
+
+# LLM Integration (Primary: LLM7)
+LLM7_API_KEY="your-llm7-api-key"
+OPENROUTER_API_KEY="your-openrouter-key"
+OPENAI_API_KEY="your-openai-key"
+
+# Database
+DATABASE_URL="sqlite:///data/agentic.db"
+SUPABASE_URL="your-supabase-url"
+SUPABASE_SERVICE_ROLE_KEY="your-supabase-key"
+
+# Platform Integrations
+NETLIFY_ACCESS_TOKEN="your-netlify-token"
+GITHUB_TOKEN="your-github-token"
 ```
 
 ### System Configuration
 
-```python
-# config/system_config.py
-SYSTEM_CONFIG = {
-    'max_concurrent_workflows': 10,
-    'agent_timeout': 300,  # 5 minutes
-    'auto_scaling': True,
-    'monitoring_interval': 30,  # seconds
-    'log_level': 'INFO'
+```json
+{
+  "auto_start_agents": [
+    "prompt_master",
+    "cybershell", 
+    "agent_maker",
+    "ui_designer",
+    "dev_engine",
+    "data_sync",
+    "fullstack_dev"
+  ],
+  "enable_scheduler": true,
+  "enable_sync_engine": true,
+  "enable_web_interface": true,
+  "max_concurrent_tasks": 10
 }
 ```
 
----
+## 📱 Platform Support
+
+### Development
+- **Web Apps**: React, Next.js, Vue, Svelte
+- **Mobile Apps**: React Native, Flutter
+- **Backend**: FastAPI, Express, Django
+- **Databases**: PostgreSQL, MongoDB, SQLite
+
+### Deployment
+- **Cloud**: AWS, GCP, Azure, DigitalOcean
+- **Hosting**: Vercel, Netlify, Heroku, Railway
+- **Containers**: Docker, Kubernetes
+- **Mobile**: App Store, Google Play
+
+### Integrations
+- **Version Control**: GitHub, GitLab, Bitbucket
+- **Databases**: Supabase, Firebase, PlanetScale
+- **APIs**: REST, GraphQL, WebSockets
+- **Monitoring**: DataDog, New Relic, Sentry
 
 ## 🧪 Testing
 
-### Run Test Suite
-
 ```bash
 # Run all tests
-pytest tests/
+./run.sh check
 
-# Run specific test categories
-pytest tests/test_agents.py -v
-pytest tests/test_workflows.py -v
-pytest tests/test_integrations.py -v
+# Test specific agent
+python -m pytest tests/test_agents.py::test_cybershell
+
+# Integration tests
+python -m pytest tests/test_integration.py
+
+# Performance tests
+python -m pytest tests/test_performance.py
 ```
 
-### Test Coverage
+## 📊 Monitoring
+
+### System Health
+- **Agent Status**: Real-time monitoring semua agen
+- **Resource Usage**: CPU, Memory, Disk usage
+- **Performance Metrics**: Task completion times
+- **Error Tracking**: Automated error detection dan alerts
+
+### Analytics Dashboard
+- **Task Analytics**: Success rates, execution times
+- **Agent Performance**: Individual agent metrics
+- **System Load**: Concurrent task monitoring
+- **Usage Patterns**: User interaction analysis
+
+## 🔐 Security
+
+### Authentication & Authorization
+- **JWT Tokens**: Secure API access
+- **Role-based Access**: Granular permissions
+- **API Rate Limiting**: DDoS protection
+- **Input Sanitization**: SQL injection prevention
+
+### Data Protection
+- **Encryption**: AES-256 for sensitive data
+- **Secure Storage**: Encrypted credential management
+- **Audit Logs**: Complete action tracking
+- **Backup Encryption**: Secure data backups
+
+## 🚀 Production Deployment
+
+### Docker Deployment
 
 ```bash
-# Generate coverage report
-pytest --cov=src --cov-report=html tests/
+# Build and run
+docker-compose up -d
+
+# Scale agents
+docker-compose up --scale agent-worker=5
+
+# Production config
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
----
+### Kubernetes Deployment
+
+```bash
+# Deploy to cluster
+kubectl apply -f k8s-deployment.yaml
+
+# Scale deployment
+kubectl scale deployment agentic-ai --replicas=10
+
+# Monitor deployment
+kubectl get pods -l app=agentic-ai
+```
+
+### Cloud Deployment
+
+```bash
+# AWS deployment
+./run.sh "Deploy system to AWS with auto-scaling"
+
+# GCP deployment  
+./run.sh "Setup production environment on Google Cloud"
+
+# Multi-cloud deployment
+./run.sh "Deploy with high availability across AWS and GCP"
+```
+
+## 🛠️ Development
+
+### Adding New Agents
+
+```python
+# agents/my_agent.py
+from datetime import datetime
+from typing import Dict, Any
+
+class MyCustomAgent:
+    def __init__(self):
+        self.agent_id = "my_agent"
+        self.name = "My Custom Agent"
+        self.capabilities = ["custom_task"]
+    
+    async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        # Your agent logic here
+        return {
+            "success": True,
+            "result": "Task completed",
+            "timestamp": datetime.now().isoformat()
+        }
+
+# Global instance
+my_agent = MyCustomAgent()
+```
+
+### Custom Workflows
+
+```python
+# Create custom workflow
+workflow = [
+    {"agent": "dev_engine", "task": "setup_project"},
+    {"agent": "ui_designer", "task": "create_components"},
+    {"agent": "cybershell", "task": "run_tests"},
+    {"agent": "deploy_manager", "task": "deploy_production"}
+]
+
+# Execute workflow
+await prompt_master.execute_workflow("my_workflow", workflow)
+```
 
 ## 📚 API Documentation
 
 ### REST API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/system/status` | GET | Get system status |
-| `/api/agents/list` | GET | List all agents |
-| `/api/agents/{id}/status` | GET | Get agent status |
-| `/api/workflows/execute` | POST | Execute workflow |
-| `/api/task/submit` | POST | Submit task to agent |
-
-### WebSocket Events
-
-| Event | Description |
-|-------|-------------|
-| `system_update` | Real-time system status updates |
-| `workflow_completed` | Workflow completion notification |
-| `agent_status_changed` | Agent status change notification |
-
----
-
-## 🔒 Security
-
-### Built-in Security Features
-
-- **Input Validation**: All user inputs are validated and sanitized
-- **Authentication**: Optional authentication system
-- **Authorization**: Role-based access control
-- **Audit Logging**: Comprehensive audit trail
-- **Rate Limiting**: API rate limiting protection
-- **Data Encryption**: Sensitive data encryption
-
-### Security Best Practices
-
-```python
-# Example: Secure task submission
-from src.security.validator import TaskValidator
-
-validator = TaskValidator()
-if validator.validate_task(task_data):
-    result = agent.process_task(task_data)
-else:
-    raise SecurityError("Invalid task data")
-```
-
----
-
-## 🚀 Multi-Platform Deployment
-
-### Quick Deployment Options
-
-#### 1. Railway (Recommended for Beginners)
 ```bash
-npm install -g @railway/cli
-railway login
-railway init
-railway up
-```
-Uses `railway.json` configuration automatically.
+# System status
+GET /api/status
 
-#### 2. Vercel (Serverless)
-```bash
-npm install -g vercel
-vercel
-```
-Uses `vercel.json` configuration.
+# Process prompt
+POST /api/prompt
+{
+  "prompt": "Create a React component",
+  "input_type": "text",
+  "metadata": {}
+}
 
-#### 3. Netlify (JAMstack)
-```bash
-npm install -g netlify-cli
-netlify login
-netlify deploy --prod
-```
-Uses `netlify.toml` configuration.
+# Agent management
+GET /api/agents
+POST /api/agents/{agent_id}/task
 
-#### 4. Firebase (Google Cloud)
-```bash
-npm install -g firebase-tools
-firebase login
-firebase init
-firebase deploy
+# Deployment
+POST /api/deploy
+{
+  "project": "my-app",
+  "platform": "netlify",
+  "config": {}
+}
 ```
 
-#### 5. AWS (Enterprise)
-```bash
-pip install awscli aws-sam-cli
-aws configure
-sam build && sam deploy --guided
+### WebSocket API
+
+```javascript
+// Connect to real-time updates
+const ws = new WebSocket('ws://localhost:8765');
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Agent update:', data);
+};
+
+// Send command
+ws.send(JSON.stringify({
+  type: 'send_message',
+  from_agent: 'web_client',
+  to_agent: 'prompt_master',
+  content: { prompt: 'Create a new agent' }
+}));
 ```
-
-#### 6. Docker (Containerized)
-```bash
-# Quick start
-docker-compose up -d
-
-# Production
-docker build -t agentic-ai .
-docker run -p 5000:5000 agentic-ai
-```
-
-#### 7. Kubernetes (Production Scale)
-```bash
-kubectl apply -f k8s-deployment.yaml
-kubectl get pods -n agentic-ai-system
-```
-
-### Environment Configuration
-
-Copy `.env.example` to `.env` and configure:
-
-```bash
-# System Configuration
-FLASK_ENV=production
-SECRET_KEY=your-production-secret-key
-DATABASE_URL=postgresql://user:pass@host:5432/db
-
-# Credential Management (Required)
-CREDENTIAL_MASTER_PASSWORD=your-secure-master-password
-
-# AI Features (Optional)
-OPENAI_API_KEY=your-openai-key
-HUGGINGFACE_TOKEN=your-hf-token
-
-# Platform Integrations (Optional)
-GITHUB_TOKEN=your-github-token
-GOOGLE_CREDENTIALS_PATH=path/to/credentials.json
-
-# Web Automation
-SELENIUM_HEADLESS=true
-```
-
-### Platform-Specific Configurations
-
-Each platform includes optimized configuration files:
-- `railway.json` - Railway deployment
-- `vercel.json` - Vercel serverless
-- `netlify.toml` - Netlify JAMstack
-- `firebase.json` - Firebase hosting
-- `template.yaml` - AWS SAM
-- `docker-compose.yml` - Docker containers
-- `k8s-deployment.yaml` - Kubernetes cluster
-
-### Performance Optimization
-
-#### Resource Requirements
-- **Development**: 512MB RAM, 0.5 vCPU
-- **Production**: 1GB+ RAM, 1+ vCPU  
-- **AI Features**: 2GB+ RAM, 2+ vCPU
-
-#### Database Options
-- **SQLite**: Development and small deployments
-- **PostgreSQL**: Production recommended
-- **Cloud Databases**: Platform-managed options
-
-See `deployment-guide.md` for comprehensive deployment instructions.
-
----
-
-## 📊 Performance Benchmarks
-
-### Benchmark Results
-
-| Metric | Value | Notes |
-|--------|-------|-------|
-| **Average Response Time** | 85ms | Single agent task |
-| **Workflow Completion** | 2.3 minutes | Standard 5-step workflow |
-| **Concurrent Tasks** | 50+ | With 8GB RAM |
-| **Success Rate** | 97.3% | Over 10,000 tasks |
-| **Uptime** | 99.9% | Production environment |
-
-### Scalability
-
-- **Vertical Scaling**: Up to 32GB RAM, 16 CPU cores
-- **Horizontal Scaling**: Multi-instance deployment support
-- **Load Balancing**: Built-in load distribution
-- **Auto-scaling**: Dynamic resource allocation
-
----
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Here's how you can help:
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md).
 
 ### Development Setup
 
 ```bash
-# Fork the repository
-git fork https://github.com/eemdeexyz/Agentic-AI-System.git
+# Fork and clone
+git clone https://github.com/yourusername/Agentic-AI-Ecosystem.git
 
-# Clone your fork
-git clone https://github.com/your-username/Agentic-AI-System.git
-
-# Create feature branch
-git checkout -b feature/amazing-feature
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate
 
 # Install development dependencies
 pip install -r requirements-dev.txt
 
-# Make your changes and test
-pytest tests/
+# Run tests
+pytest
 
 # Submit pull request
 ```
 
-### Contribution Guidelines
+## 🎯 Roadmap
 
-1. **Code Style**: Follow PEP 8 and use `black` for formatting
-2. **Testing**: Add tests for new features
-3. **Documentation**: Update documentation for changes
-4. **Commit Messages**: Use conventional commit format
+### Version 2.1.0
+- [ ] Advanced AI model support (Claude, Gemini)
+- [ ] Visual workflow builder
+- [ ] Voice command interface
+- [ ] Mobile app for system control
 
----
+### Version 2.2.0
+- [ ] Blockchain integration
+- [ ] Advanced analytics dashboard  
+- [ ] Multi-language support
+- [ ] Enterprise features
 
-## 📝 Changelog
+### Version 3.0.0
+- [ ] AGI agent capabilities
+- [ ] Quantum computing integration
+- [ ] Advanced autonomous operations
+- [ ] Global agent marketplace
 
-### Version 1.0.0 (Current)
-- ✅ **Complete multi-agent system with 10+ specialized agents**
-- ✅ **Advanced AI agent creation - Create real working AI agents dynamically**
-- ✅ **Military-grade credential management with AES-256 encryption**
-- ✅ **Web automation - Automated login/registration to any website**
-- ✅ **Persistent memory system with external knowledge integration**
-- ✅ **Multi-platform deployment (Railway, Vercel, Netlify, Firebase, AWS, Docker, K8s)**
-- ✅ **Real-time platform integrations (GitHub, Google Services, AI platforms)**
-- ✅ **Web-based control panel with comprehensive monitoring**
-- ✅ **Complete Indonesian documentation and support**
-- ✅ **Production-ready with enterprise security features**
-
-### Latest Features (v1.0.0)
-- ✅ **Advanced AI Agent Creation**: Create real working AI agents dynamically
-- ✅ **Military-Grade Credential Management**: Secure password storage with AES-256 encryption
-- ✅ **Web Automation**: Automated login/registration to any website
-- ✅ **Memory & Knowledge Integration**: Persistent memory with external knowledge enrichment
-- ✅ **Multi-Platform Deployment**: Railway, Vercel, Netlify, Firebase, AWS, Docker, K8s ready
-- ✅ **Real-Time Platform Integrations**: GitHub, Google Services, AI platforms
-- ✅ **Complete Indonesian Support**: Full Indonesian language documentation and UI
-
-### Upcoming Features
-- 🔄 Enhanced AI model integration (OpenAI GPT-4, Claude, Gemini)
-- 🔄 Advanced workflow templates and automation
-- 🔄 Mobile application for remote management
-- 🔄 Enterprise SSO and advanced authentication
-- 🔄 Multi-language support expansion
-
----
-
-## 🆘 Support
-
-### Documentation
-- 📖 [Full Documentation](docs/)
-- 🎥 [Video Tutorials](docs/tutorials/)
-- 💡 [Examples](examples/)
-- ❓ [FAQ](docs/faq.md)
-
-### Community
-- 💬 [Discord Server](https://discord.gg/agentic-ai)
-- 📧 [Email Support](mailto:support@agentic-ai.com)
-- 🐛 [Bug Reports](https://github.com/eemdeexyz/Agentic-AI-System/issues)
-- 💡 [Feature Requests](https://github.com/eemdeexyz/Agentic-AI-System/discussions)
-
----
-
-## 📜 License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
-
 ## 🙏 Acknowledgments
 
-### Special Thanks
+- **OpenAI** - GPT models dan inspiration
+- **LLM7** - Primary LLM provider
+- **Supabase** - Database platform
+- **Netlify** - Deployment platform
+- **Indonesia AI Community** - Support dan feedback
 
-- **OpenAI** for AI technology and inspiration
-- **Flask Community** for the excellent web framework
-- **Python Community** for the amazing ecosystem
-- **Contributors** who helped improve this project
+## 📞 Support
 
-### Inspiration
+### Community Support
+- **Discord**: [Join our Discord](https://discord.gg/agentic-ai)
+- **GitHub Issues**: [Report bugs](https://github.com/jakForever/Agentic-AI-Ecosystem/issues)
+- **Discussions**: [Community discussions](https://github.com/jakForever/Agentic-AI-Ecosystem/discussions)
 
-This project was inspired by the need for intelligent, coordinated AI systems that can handle complex, multi-faceted tasks through specialized agent collaboration.
+### Professional Support
+- **Email**: support@agentic-ai.com
+- **Enterprise**: enterprise@agentic-ai.com
+- **Consulting**: consulting@agentic-ai.com
 
----
+## 🌟 Star History
 
-## 👨‍💻 Author
-
-<div align="center">
-
-**Mulky Malikul Dhaher**
-
-🇮🇩 **Indonesia | AI Pioneer & Advanced System Architect**
-
-🏆 **Creator of the World's First Production-Ready Multi-Agent AI System with Real Agent Creation**
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue.svg)](https://linkedin.com/in/mulky-dhaher)
-[![GitHub](https://img.shields.io/badge/GitHub-Follow-black.svg)](https://github.com/eemdeexyz)
-[![Email](https://img.shields.io/badge/Email-Contact-red.svg)](mailto:mulkymalikuldhr@mail.com)
-[![Portfolio](https://img.shields.io/badge/Portfolio-Website-green.svg)](https://mulky-ai.com)
-
-*"Pioneering the future of AI automation with Indonesian excellence for global impact"*
-
-### 🌟 **Achievements with Agentic AI System:**
-- 🥇 **First-ever real AI agent creation system** that creates working agents dynamically
-- 🔒 **Military-grade security implementation** with AES-256 encryption
-- 🌍 **Multi-platform deployment** ready for 7+ major cloud platforms
-- 🇮🇩 **Proudly Made in Indonesia** with global enterprise standards
-- 🚀 **Production-ready** advanced AI automation platform
-
-</div>
+[![Star History Chart](https://api.star-history.com/svg?repos=jakForever/Agentic-AI-Ecosystem&type=Date)](https://star-history.com/#jakForever/Agentic-AI-Ecosystem&Date)
 
 ---
 
 <div align="center">
 
-## 🇮🇩 **MADE WITH ❤️ IN INDONESIA FOR THE WORLD** 🌍
+**🇮🇩 Proudly Made in Indonesia 🇮🇩**
 
-**🌟 Sistem AI Multi-Agent Advanced Pertama di Dunia dengan Real Agent Creation 🌟**
-
-### 🏆 **Global Impact from Indonesia:**
-✨ **Revolutionary AI Technology** | 🔒 **Enterprise Security** | 🌍 **Global Deployment Ready**
-
-**🎯 From Indonesia to the World - Advancing AI Automation Technology**
-
----
-
-⭐ **Star this project if you believe in Indonesian AI innovation!** ⭐
-
-[![Star History](https://img.shields.io/github/stars/eemdeexyz/Agentic-AI-System?style=social)](https://github.com/eemdeexyz/Agentic-AI-System/stargazers)
-[![Forks](https://img.shields.io/github/forks/eemdeexyz/Agentic-AI-System?style=social)](https://github.com/eemdeexyz/Agentic-AI-System/network/members)
-[![Contributors](https://img.shields.io/github/contributors/eemdeexyz/Agentic-AI-System)](https://github.com/eemdeexyz/Agentic-AI-System/graphs/contributors)
-
-**🚀 Ready to revolutionize AI automation? Deploy now and experience the future!**
+*Membangun masa depan AI yang lebih baik untuk Indonesia dan dunia*
 
 </div>
