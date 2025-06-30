@@ -62,13 +62,46 @@ try:
 except ImportError as e:
     print(f"⚠️  Web Automation Agent not available: {e}")
 
+# Import and add deployment agent
+try:
+    from src.agents.deployment_agent import deployment_agent
+    agents['deployment_agent'] = deployment_agent
+    print("🚀 Deployment Agent loaded successfully")
+except ImportError as e:
+    print(f"⚠️  Deployment Agent not available: {e}")
+
 # Initialize platform integrator
 try:
     from src.core.platform_integrator import platform_integrator
+    import asyncio
     asyncio.run(platform_integrator.initialize_all())
     print("🔌 Platform integrations initialized")
 except ImportError as e:
     print(f"⚠️  Platform integrator not available: {e}")
+
+# Test platform integrations on startup
+try:
+    from src.integrations.netlify_integration import netlify_integration
+    from src.integrations.supabase_integration import supabase_integration
+    
+    print("🔍 Testing platform connections...")
+    
+    # Test Netlify
+    netlify_status = netlify_integration.test_connection()
+    if netlify_status['connected']:
+        print("✅ Netlify integration connected")
+    else:
+        print(f"❌ Netlify integration failed: {netlify_status.get('error', 'Unknown error')}")
+    
+    # Test Supabase
+    supabase_status = supabase_integration.test_connection()
+    if supabase_status['connected']:
+        print("✅ Supabase integration connected")
+    else:
+        print(f"❌ Supabase integration failed: {supabase_status.get('error', 'Unknown error')}")
+        
+except ImportError as e:
+    print(f"⚠️  Platform integration tests skipped: {e}")
 
 # Register agents with manager
 for agent in agents.values():
@@ -269,6 +302,181 @@ def get_performance_metrics():
             'success': False,
             'error': 'Meta-spawner agent not available'
         }), 500
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/deployment/netlify', methods=['POST'])
+def deploy_to_netlify():
+    """Deploy to Netlify"""
+    try:
+        data = request.get_json()
+        
+        deployment_agent = agent_manager.get_agent('deployment_agent')
+        if not deployment_agent:
+            return jsonify({
+                'success': False,
+                'error': 'Deployment agent not available'
+            }), 500
+        
+        # Prepare deployment task
+        deploy_task = {
+            'task_type': 'deploy',
+            'platform': 'netlify',
+            'site_name': data.get('site_name', 'agentic-ai-system'),
+            'build_dir': data.get('build_dir', 'web_interface')
+        }
+        
+        result = deployment_agent.process_task(deploy_task)
+        
+        return jsonify({
+            'success': result.get('success', False),
+            'data': result
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/deployment/supabase', methods=['POST'])
+def setup_supabase():
+    """Setup Supabase database"""
+    try:
+        deployment_agent = agent_manager.get_agent('deployment_agent')
+        if not deployment_agent:
+            return jsonify({
+                'success': False,
+                'error': 'Deployment agent not available'
+            }), 500
+        
+        # Prepare database setup task
+        setup_task = {
+            'task_type': 'setup_database',
+            'platform': 'supabase'
+        }
+        
+        result = deployment_agent.process_task(setup_task)
+        
+        return jsonify({
+            'success': result.get('success', False),
+            'data': result
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/deployment/status')
+def get_deployment_status():
+    """Get deployment status for all platforms"""
+    try:
+        deployment_agent = agent_manager.get_agent('deployment_agent')
+        if not deployment_agent:
+            return jsonify({
+                'success': False,
+                'error': 'Deployment agent not available'
+            }), 500
+        
+        # Test all connections
+        test_task = {
+            'task_type': 'test_connections'
+        }
+        
+        result = deployment_agent.process_task(test_task)
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/platforms/netlify/sites')
+def get_netlify_sites():
+    """Get Netlify sites"""
+    try:
+        from src.integrations.netlify_integration import netlify_integration
+        sites = netlify_integration.get_sites()
+        
+        return jsonify({
+            'success': True,
+            'data': sites
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/platforms/supabase/status')
+def get_supabase_status():
+    """Get Supabase connection status"""
+    try:
+        from src.integrations.supabase_integration import supabase_integration
+        status = supabase_integration.test_connection()
+        
+        return jsonify({
+            'success': True,
+            'data': status
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/credentials/list')
+def list_stored_credentials():
+    """List stored credentials (without passwords)"""
+    try:
+        from src.core.credential_manager import credential_manager
+        credentials = credential_manager.list_credentials()
+        
+        return jsonify({
+            'success': True,
+            'data': credentials
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/credentials/add', methods=['POST'])
+def add_credential():
+    """Add new credential"""
+    try:
+        from src.core.credential_manager import credential_manager
+        data = request.get_json()
+        
+        result = credential_manager.store_credential(
+            website_name=data.get('website_name'),
+            website_url=data.get('website_url'),
+            username=data.get('username'),
+            email=data.get('email'),
+            password=data.get('password'),
+            additional_fields=data.get('additional_fields', {}),
+            notes=data.get('notes')
+        )
+        
+        return jsonify({
+            'success': result,
+            'message': 'Credential stored successfully' if result else 'Failed to store credential'
+        })
         
     except Exception as e:
         return jsonify({
