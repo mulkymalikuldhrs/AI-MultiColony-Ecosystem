@@ -2,12 +2,16 @@
 
 <div align="center">
 
+![Agentic AI System Cover](agentic-ai-cover.svg)
+
 ![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-green.svg)
+![PWA](https://img.shields.io/badge/PWA-enabled-purple.svg)
+![Voice](https://img.shields.io/badge/voice-interaction-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-yellow.svg)
 ![Made with ❤️](https://img.shields.io/badge/made%20with-❤️-red.svg)
 
-**Sistem AI Multi-Agent Mandiri dengan 20+ Agen Spesialis**
+**Advanced Multi-Agent AI System with Voice Interaction & PWA Support**
 
 *Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩*
 
@@ -15,9 +19,27 @@
 
 ## 🌟 Overview
 
-Agentic AI System adalah ekosistem kecerdasan buatan yang sepenuhnya mandiri, terdiri dari 20+ agen spesialis yang dapat:
+Agentic AI System adalah ekosistem kecerdasan buatan yang sepenuhnya mandiri dan canggih, terdiri dari 20+ agen spesialis dengan kemampuan:
 
-- 🤖 **Membuat agen lain secara otomatis** - Self-expanding agent ecosystem
+### 🎤 **NEW: Advanced Voice Interaction**
+- **Gemini-like conversation** - Natural voice commands in multiple languages
+- **Real-time speech processing** - Instant voice-to-action conversion
+- **Offline voice support** - Works even without internet connection
+- **Multi-language support** - Indonesian, English, Japanese, Korean, Chinese, Spanish, French, German, Portuguese
+
+### 📱 **NEW: Progressive Web App (PWA)**
+- **Install as native app** - Add to home screen on mobile/desktop
+- **Offline functionality** - Continue working without internet
+- **Responsive design** - Perfect on mobile, tablet, and desktop
+- **Push notifications** - Real-time updates and alerts
+
+### 🤖 **Advanced Agent Capabilities**
+- **Meta Agent Creator** - AI that creates other specialized AI agents
+- **Self-expanding ecosystem** - Automatically grows based on needs
+- **Dynamic UI updates** - Interface adapts when new agents are added
+- **Real-time collaboration** - Agents work together seamlessly
+
+### 🌐 **Enhanced Multi-Platform Support**
 - 🔄 **Sinkronisasi real-time** - Multi-database sync (SQLite, PostgreSQL, Redis)
 - 🎯 **Pemilihan agen cerdas** - AI-powered agent selection untuk setiap tugas
 - 🚀 **Operasi autonomous** - Auto-run, auto-schedule, self-repair
@@ -59,12 +81,14 @@ Agentic AI System adalah ekosistem kecerdasan buatan yang sepenuhnya mandiri, te
 - **💾 Memory Bus** - Shared memory dan persistent storage
 
 ### Development Agents
-- **🤖 Agent Maker** - Membuat agen baru dari prompt
+- **🤖 Meta Agent Creator** - Creates specialized AI agents dynamically
+- **🤖 Agent Maker** - Membuat agen baru dari prompt  
 - **⚙️ Dev Engine** - Project setup dan scaffolding
 - **🎨 UI Designer** - React/Tailwind component generation
 - **🚀 Full Stack Dev** - Complete app development
 - **🖥️ CyberShell** - Advanced shell execution
 - **🔄 Data Sync** - Multi-database synchronization
+- **🎤 Voice Command Agent** - Processes natural language voice commands
 
 ### Platform Agents
 - **🌐 Deploy Manager** - Multi-platform deployment
@@ -77,8 +101,10 @@ Agentic AI System adalah ekosistem kecerdasan buatan yang sepenuhnya mandiri, te
 - **✍️ Content Creator** - Documentation generation
 - **📊 Analytics Agent** - Performance monitoring
 - **🎥 Media Agent** - Image/video processing
-- **🗣️ Voice Agent** - Speech-to-text processing
+- **🗣️ Voice Interaction Agent** - Advanced speech-to-text and text-to-speech
 - **📧 Communication Agent** - Email/notification system
+- **🌐 PWA Manager** - Progressive Web App optimization
+- **📱 Device Integration Agent** - Camera, microphone, location access
 
 ## 🚀 Quick Start
 
@@ -106,12 +132,14 @@ nano .env
 # LLM7_API_KEY=llm7-free-api-key  (sudah gratis!)
 # WEB_INTERFACE_PORT=5000
 # DATABASE_URL=sqlite:///data/agentic.db
+# ENABLE_VOICE_INTERACTION=true
+# ENABLE_PWA=true
 ```
 
 ### 3. Run the System
 
 ```bash
-# Quick start dengan script
+# Quick start dengan script  
 ./run.sh start
 
 # Atau manual
@@ -120,12 +148,32 @@ python main.py
 # Background mode
 ./run.sh start --background
 
-# Direct AI command
+# Direct AI command dengan voice
 ./run.sh "Create a web app called TaskManager"
 
-# Web interface only
+# Web interface dengan PWA support
 python web_interface/app.py
+
+# Voice-only mode
+python main.py --voice-only
 ```
+
+### 4. Install as PWA
+
+1. **Desktop (Chrome/Edge)**:
+   - Open http://localhost:5000
+   - Click install button or use Ctrl+Shift+A
+   - App akan muncul di desktop dan Start Menu
+
+2. **Mobile (Android/iOS)**:
+   - Buka browser dan navigate ke URL
+   - Tap "Add to Home Screen" 
+   - App akan tersedia seperti native app
+
+3. **Voice Commands**:
+   - Press Ctrl+Space untuk aktivasi voice
+   - Katakan "Create agent", "Build app", etc.
+   - Bekerja offline dengan sync otomatis
 
 ## 🎯 Usage Examples
 
