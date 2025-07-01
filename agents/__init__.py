@@ -90,6 +90,36 @@ try:
 except ImportError:
     clone_connector_agent = None
 
+try:
+    from .idea_generator import idea_generator_agent
+except ImportError:
+    idea_generator_agent = None
+
+try:
+    from .emergency_caller import emergency_caller_agent
+except ImportError:
+    emergency_caller_agent = None
+
+try:
+    from .self_improver import self_improver_agent
+except ImportError:
+    self_improver_agent = None
+
+try:
+    from .planning_engine import planning_engine_agent
+except ImportError:
+    planning_engine_agent = None
+
+try:
+    from .colony_expansion import colony_expansion_agent
+except ImportError:
+    colony_expansion_agent = None
+
+try:
+    from .memory_engine_bot import memory_engine_agent
+except ImportError:
+    memory_engine_agent = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -128,6 +158,18 @@ if agent_general_factory:
     AGENTS_REGISTRY['general'] = agent_general_factory
 if clone_connector_agent:
     AGENTS_REGISTRY['clone_connector'] = clone_connector_agent
+if idea_generator_agent:
+    AGENTS_REGISTRY['idea_generator'] = idea_generator_agent
+if emergency_caller_agent:
+    AGENTS_REGISTRY['emergency_caller'] = emergency_caller_agent
+if self_improver_agent:
+    AGENTS_REGISTRY['self_improver'] = self_improver_agent
+if planning_engine_agent:
+    AGENTS_REGISTRY['planning_engine'] = planning_engine_agent
+if colony_expansion_agent:
+    AGENTS_REGISTRY['colony_expansion'] = colony_expansion_agent
+if memory_engine_agent:
+    AGENTS_REGISTRY['memory_engine'] = memory_engine_agent
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -232,6 +274,42 @@ AGENTS_METADATA = {
         'emoji': '🔗',
         'description': 'Discovers and connects remote Agentic AI nodes to build mesh network',
         'category': 'network'
+    },
+    'idea_generator': {
+        'name': 'Idea Generator',
+        'emoji': '💡',
+        'description': 'Generates revenue ideas from trends',
+        'category': 'business'
+    },
+    'emergency_caller': {
+        'name': 'Emergency Caller',
+        'emoji': '📞',
+        'description': 'Offline monitor & alert system',
+        'category': 'system'
+    },
+    'self_improver': {
+        'name': 'Self Improver',
+        'emoji': '🧬',
+        'description': 'Analyzes logs and suggests improvements',
+        'category': 'ai'
+    },
+    'planning_engine': {
+        'name': 'Planning Engine',
+        'emoji': '🧠',
+        'description': 'ReAct + Tree-of-Thoughts planner',
+        'category': 'ai'
+    },
+    'colony_expansion': {
+        'name': 'Colony Expansion',
+        'emoji': '📦',
+        'description': 'Duplicates node & syncs mesh',
+        'category': 'network'
+    },
+    'memory_engine': {
+        'name': 'Memory Engine',
+        'emoji': '💾',
+        'description': 'Long-term memory storage wrapper',
+        'category': 'system'
     }
 }
 
