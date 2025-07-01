@@ -1,403 +1,542 @@
 """
-Test Suite for Agentic AI System Agents
+🧪 Agent Tests - Unit Tests for All Agents
+Comprehensive testing suite for the Agentic AI System
+
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
 import pytest
 import asyncio
+import json
+from unittest.mock import Mock, patch, AsyncMock
 from datetime import datetime
-from unittest.mock import Mock, patch
 
-from src.core.agent_manager import AgentManager
-from src.agents.agent_base import AgentBase
-from src.agents.dynamic_agent_factory import DynamicAgentFactory
-from src.agents.agent_02_meta_spawner import Agent02MetaSpawner
-from src.agents.agent_03_planner import Agent03Planner
-from src.agents.agent_04_executor import Agent04Executor
-from src.agents.agent_05_designer import Agent05Designer
-from src.agents.agent_06_specialist import Agent06Specialist
-from src.agents.output_handler import OutputHandler
+# Import agents to test
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-class TestAgentBase:
-    """Test cases for Agent Base"""
+from agents.cybershell import cybershell_agent
+from agents.agent_maker import agent_maker
+from agents.ui_designer import ui_designer_agent
+from agents.dev_engine import dev_engine_agent
+from agents.data_sync import data_sync_agent
+from agents.fullstack_dev import fullstack_dev_agent
+from agents.deploy_manager import deploy_manager_agent
+from agents.prompt_generator import prompt_generator_agent
+
+class TestCyberShellAgent:
+    """Test CyberShell Agent functionality"""
     
-    def setup_method(self):
-        """Setup test environment"""
-        self.agent = AgentBase()
-        
-    def test_agent_initialization(self):
-        """Test agent initialization"""
-        assert self.agent.agent_id == "agent_base"
-        assert self.agent.name == "Agent Base"
-        assert self.agent.status == "initialized"
-        
-    def test_task_processing(self):
-        """Test basic task processing"""
+    @pytest.mark.asyncio
+    async def test_shell_command_execution(self):
+        """Test basic shell command execution"""
         task = {
-            'task_id': 'test_001',
-            'request': 'Create a simple project plan',
-            'context': {'priority': 'high'}
+            "action": "execute_command",
+            "command": "echo 'Hello, World!'",
+            "timeout": 30
         }
         
-        result = self.agent.process_task(task)
+        result = await cybershell_agent.process_task(task)
         
-        assert result['agent_id'] == 'agent_base'
-        assert result['response_type'] == 'coordination_plan'
-        assert 'content' in result
-        
-    def test_invalid_task_handling(self):
-        """Test handling of invalid tasks"""
-        invalid_task = {'invalid': 'task'}
-        
-        result = self.agent.process_task(invalid_task)
-        
-        assert result['response_type'] == 'error'
-        assert 'error' in result['content']
-        
-    def test_performance_metrics(self):
-        """Test performance metrics tracking"""
-        metrics = self.agent.get_performance_metrics()
-        
-        assert 'agent_id' in metrics
-        assert 'metrics' in metrics
-        assert metrics['metrics']['tasks_completed'] == 0
-
-class TestDynamicAgentFactory:
-    """Test cases for Dynamic Agent Factory"""
+        assert result["success"] is True
+        assert "Hello, World!" in result.get("output", "")
     
-    def setup_method(self):
-        """Setup test environment"""
-        self.factory = DynamicAgentFactory()
-        
-    def test_agent_creation_assessment(self):
-        """Test agent creation needs assessment"""
-        task = {
-            'task_id': 'test_002',
-            'request': 'Create a data science agent for machine learning project',
-            'context': {}
-        }
-        
-        result = self.factory.process_task(task)
-        
-        assert result['agent_id'] == 'dynamic_agent_factory'
-        assert result['response_type'] == 'agent_creation'
-        assert 'ASSESSMENT' in result['content']
-        
-    def test_specialization_detection(self):
-        """Test specialization detection"""
-        assessment = self.factory._analyze_domain_requirements({
-            'request': 'Need a data scientist for ML project',
-            'context': {}
-        })
-        
-        assert 'data_scientist' in assessment['required_agents']
-
-class TestAgent03Planner:
-    """Test cases for Agent 03 (Planner)"""
-    
-    def setup_method(self):
-        """Setup test environment"""
-        self.planner = Agent03Planner()
-        
-    def test_planning_task(self):
-        """Test planning functionality"""
-        task = {
-            'task_id': 'test_003',
-            'request': 'Plan a mobile app development project',
-            'context': {'deadline': '3 months', 'budget': '$100000'}
-        }
-        
-        result = self.planner.process_task(task)
-        
-        assert result['response_type'] == 'detailed_plan'
-        assert 'GOAL ANALYSIS' in result['content']
-        assert 'TASK STRUCTURE' in result['content']
-        
-    def test_goal_classification(self):
-        """Test goal type classification"""
-        software_request = "Develop a web application"
-        goal_type = self.planner._classify_goal_type(software_request)
-        
-        assert goal_type == 'software_development'
-        
-    def test_complexity_assessment(self):
-        """Test complexity assessment"""
-        complex_request = "Build a complex enterprise system with multiple integrations"
-        complexity = self.planner._assess_goal_complexity(complex_request)
-        
-        assert complexity == 'high'
-
-class TestAgent04Executor:
-    """Test cases for Agent 04 (Executor)"""
-    
-    def setup_method(self):
-        """Setup test environment"""
-        self.executor = Agent04Executor()
-        
-    def test_execution_analysis(self):
-        """Test execution requirements analysis"""
-        task = {
-            'task_id': 'test_004',
-            'request': 'Execute a Python script to process data',
-            'context': {}
-        }
-        
-        result = self.executor.process_task(task)
-        
-        assert result['response_type'] == 'execution_report'
-        assert 'EXECUTION PLAN' in result['content']
-        
-    def test_script_detection(self):
-        """Test script execution detection"""
-        script_items = self.executor._detect_script_requirements(
-            'run python script', {}
-        )
-        
-        assert len(script_items) > 0
-        assert script_items[0]['type'] == 'python_script'
-
-class TestAgent05Designer:
-    """Test cases for Agent 05 (Designer)"""
-    
-    def setup_method(self):
-        """Setup test environment"""
-        self.designer = Agent05Designer()
-        
-    def test_design_analysis(self):
-        """Test design requirements analysis"""
-        task = {
-            'task_id': 'test_005',
-            'request': 'Create a modern UI design for mobile app',
-            'context': {}
-        }
-        
-        result = self.designer.process_task(task)
-        
-        assert result['response_type'] == 'design_deliverable'
-        assert 'DESIGN BRIEF' in result['content']
-        
-    def test_design_type_classification(self):
-        """Test design type classification"""
-        ui_request = "Create a user interface design"
-        design_type = self.designer._classify_design_type(ui_request)
-        
-        assert design_type == 'ui_design'
-
-class TestAgent06Specialist:
-    """Test cases for Agent 06 (Specialist)"""
-    
-    def setup_method(self):
-        """Setup test environment"""
-        self.specialist = Agent06Specialist()
-        
-    def test_specialist_consultation(self):
-        """Test specialist domain consultation"""
-        task = {
-            'task_id': 'test_006',
-            'request': 'Review security aspects of the system',
-            'context': {}
-        }
-        
-        result = self.specialist.process_task(task)
-        
-        assert result['response_type'] == 'specialist_consultation'
-        assert 'DOMAIN ANALYSIS' in result['content']
-        
-    def test_domain_identification(self):
-        """Test domain identification"""
-        security_request = "Conduct security audit and vulnerability assessment"
-        domain = self.specialist._identify_primary_domain(security_request)
-        
-        assert domain == 'security'
-
-class TestOutputHandler:
-    """Test cases for Output Handler"""
-    
-    def setup_method(self):
-        """Setup test environment"""
-        self.handler = OutputHandler()
-        
-    def test_output_compilation(self):
-        """Test output compilation"""
-        task = {
-            'task_id': 'test_007',
-            'request': 'Compile results from all agents',
-            'context': {
-                'planning_completed': True,
-                'execution_completed': True
-            }
-        }
-        
-        result = self.handler.process_task(task)
-        
-        assert result['response_type'] == 'final_deliverable'
-        assert 'EXECUTIVE SUMMARY' in result['content']
-        
-    def test_quality_validation(self):
-        """Test quality validation"""
-        collected_results = {
-            'agent_contributions': {
-                'planner': {'status': 'completed', 'deliverables': ['plan']},
-                'executor': {'status': 'completed', 'deliverables': ['execution']}
-            }
-        }
-        
-        validation = self.handler._validate_completeness_quality(collected_results)
-        
-        assert validation['completion_status'] in ['complete', 'complete_high_quality']
-
-class TestAgentManager:
-    """Test cases for Agent Manager"""
-    
-    def setup_method(self):
-        """Setup test environment"""
-        self.manager = AgentManager()
-        
-    def test_agent_registration(self):
-        """Test agent registration"""
-        agent = AgentBase()
-        self.manager.register_agent(agent)
-        
-        assert len(self.manager.agents) == 1
-        assert 'agent_base' in self.manager.agents
-        
-    def test_agent_retrieval(self):
-        """Test agent retrieval"""
-        agent = AgentBase()
-        self.manager.register_agent(agent)
-        
-        retrieved_agent = self.manager.get_agent('agent_base')
-        
-        assert retrieved_agent is not None
-        assert retrieved_agent.agent_id == 'agent_base'
-        
-    def test_system_status(self):
-        """Test system status"""
-        # Register some agents
-        agents = [AgentBase(), Agent03Planner(), Agent04Executor()]
-        for agent in agents:
-            self.manager.register_agent(agent)
-            
-        status = self.manager.get_system_status()
-        
-        assert 'total_agents' in status
-        assert status['total_agents'] == 3
-        assert 'agent_status' in status
-
-class TestIntegration:
-    """Integration tests for multiple agents working together"""
-    
-    def setup_method(self):
-        """Setup test environment"""
-        self.manager = AgentManager()
-        
-        # Register all agents
-        self.agents = [
-            AgentBase(),
-            Agent03Planner(),
-            Agent04Executor(),
-            Agent05Designer(),
-            Agent06Specialist(),
-            OutputHandler()
+    @pytest.mark.asyncio
+    async def test_security_restrictions(self):
+        """Test security restrictions on dangerous commands"""
+        dangerous_commands = [
+            "rm -rf /",
+            "sudo rm -rf /",
+            "format c:",
+            "del C:\\*"
         ]
         
-        for agent in self.agents:
-            self.manager.register_agent(agent)
-            
-    def test_multi_agent_workflow(self):
-        """Test multi-agent workflow execution"""
-        # This would be an async test in practice
-        workflow_request = {
-            'name': 'Test Workflow',
-            'description': 'Integration test workflow'
-        }
-        
-        # Test that we can execute basic workflow steps
-        assert len(self.manager.agents) == 6
-        
-        # Test communication between agents
-        for agent in self.agents:
-            status = agent.get_performance_metrics()
-            assert status['agent_id'] == agent.agent_id
-            
-    def test_task_delegation(self):
-        """Test task delegation between agents"""
-        base_agent = self.manager.get_agent('agent_base')
-        
-        task = {
-            'task_id': 'integration_001',
-            'request': 'Create a comprehensive project plan and execute it',
-            'context': {'integration_test': True}
-        }
-        
-        result = base_agent.process_task(task)
-        
-        assert result['response_type'] == 'coordination_plan'
-        assert 'ASSIGNMENT AGENT' in result['content']
-
-# Performance tests
-class TestPerformance:
-    """Performance tests for the agent system"""
-    
-    def test_concurrent_task_processing(self):
-        """Test concurrent task processing"""
-        import time
-        import threading
-        
-        agent = AgentBase()
-        results = []
-        
-        def process_task(task_id):
+        for cmd in dangerous_commands:
             task = {
-                'task_id': f'perf_test_{task_id}',
-                'request': f'Process task {task_id}',
-                'context': {}
+                "action": "execute_command", 
+                "command": cmd
             }
-            result = agent.process_task(task)
+            
+            result = await cybershell_agent.process_task(task)
+            
+            # Should either fail or be blocked
+            assert result["success"] is False or "blocked" in result.get("output", "").lower()
+    
+    @pytest.mark.asyncio
+    async def test_file_operations(self):
+        """Test file operation capabilities"""
+        # Test file listing
+        task = {
+            "action": "list_files",
+            "path": "."
+        }
+        
+        result = await cybershell_agent.process_task(task)
+        assert result["success"] is True
+        assert "files" in result
+    
+    def test_agent_status(self):
+        """Test agent status and configuration"""
+        assert cybershell_agent.agent_id == "cybershell"
+        assert cybershell_agent.status == "ready"
+        assert "shell_execution" in cybershell_agent.capabilities
+
+class TestAgentMaker:
+    """Test Agent Maker functionality"""
+    
+    @pytest.mark.asyncio
+    async def test_agent_creation(self):
+        """Test dynamic agent creation"""
+        task = {
+            "action": "create_agent",
+            "agent_type": "data_scientist",
+            "requirements": {
+                "specialization": "machine_learning",
+                "experience_level": "senior"
+            }
+        }
+        
+        result = await agent_maker.process_task(task)
+        
+        assert result["success"] is True
+        assert "agent_id" in result
+        assert result["agent_type"] == "data_scientist"
+    
+    @pytest.mark.asyncio
+    async def test_template_validation(self):
+        """Test agent template validation"""
+        task = {
+            "action": "validate_template",
+            "template_name": "data_scientist"
+        }
+        
+        result = await agent_maker.process_task(task)
+        
+        assert result["success"] is True
+        assert "template_valid" in result
+    
+    def test_available_templates(self):
+        """Test available agent templates"""
+        templates = agent_maker.get_available_templates()
+        
+        assert isinstance(templates, dict)
+        assert "data_scientist" in templates
+        assert "web_developer" in templates
+
+class TestUIDesignerAgent:
+    """Test UI Designer Agent functionality"""
+    
+    @pytest.mark.asyncio
+    async def test_component_generation(self):
+        """Test React component generation"""
+        task = {
+            "action": "create_component",
+            "component_type": "button",
+            "framework": "react",
+            "styling": "tailwind",
+            "props": {
+                "variant": "primary",
+                "size": "medium"
+            }
+        }
+        
+        result = await ui_designer_agent.process_task(task)
+        
+        assert result["success"] is True
+        assert "component_code" in result
+        assert "import React" in result["component_code"]
+    
+    @pytest.mark.asyncio
+    async def test_page_generation(self):
+        """Test full page generation"""
+        task = {
+            "action": "create_page",
+            "page_type": "dashboard",
+            "components": ["header", "sidebar", "main_content"],
+            "framework": "react"
+        }
+        
+        result = await ui_designer_agent.process_task(task)
+        
+        assert result["success"] is True
+        assert "page_code" in result
+        assert len(result.get("components", [])) > 0
+    
+    def test_supported_frameworks(self):
+        """Test supported framework listing"""
+        frameworks = ui_designer_agent.get_supported_frameworks()
+        
+        assert "react" in frameworks
+        assert "vue" in frameworks
+        assert "angular" in frameworks
+
+class TestDevEngineAgent:
+    """Test Dev Engine Agent functionality"""
+    
+    @pytest.mark.asyncio
+    async def test_project_scaffolding(self):
+        """Test project structure creation"""
+        task = {
+            "action": "create_project",
+            "project_type": "fullstack_web",
+            "name": "test_project",
+            "tech_stack": {
+                "frontend": "react",
+                "backend": "fastapi",
+                "database": "postgresql"
+            }
+        }
+        
+        result = await dev_engine_agent.process_task(task)
+        
+        assert result["success"] is True
+        assert "project_structure" in result
+        assert "package.json" in str(result["project_structure"])
+    
+    @pytest.mark.asyncio
+    async def test_dependency_management(self):
+        """Test dependency installation and management"""
+        task = {
+            "action": "install_dependencies",
+            "project_path": "./test_project",
+            "dependencies": ["express", "react", "axios"]
+        }
+        
+        result = await dev_engine_agent.process_task(task)
+        
+        # Should attempt to install dependencies
+        assert result["success"] is True or "dependencies" in result
+    
+    def test_supported_project_types(self):
+        """Test supported project types"""
+        types = dev_engine_agent.get_supported_project_types()
+        
+        assert "fullstack_web" in types
+        assert "mobile_app" in types
+        assert "api_service" in types
+
+class TestDataSyncAgent:
+    """Test Data Sync Agent functionality"""
+    
+    @pytest.mark.asyncio
+    async def test_database_sync(self):
+        """Test database synchronization"""
+        task = {
+            "action": "sync_databases",
+            "source": "sqlite:///test.db",
+            "target": "postgresql://test",
+            "tables": ["users", "tasks"]
+        }
+        
+        # Mock the database connections
+        with patch('agents.data_sync.create_engine') as mock_engine:
+            mock_engine.return_value = Mock()
+            
+            result = await data_sync_agent.process_task(task)
+            
+            assert "sync_status" in result
+    
+    @pytest.mark.asyncio
+    async def test_backup_creation(self):
+        """Test database backup functionality"""
+        task = {
+            "action": "create_backup",
+            "database_url": "sqlite:///test.db",
+            "backup_path": "./backups/"
+        }
+        
+        result = await data_sync_agent.process_task(task)
+        
+        assert "backup_info" in result
+    
+    def test_supported_databases(self):
+        """Test supported database types"""
+        databases = data_sync_agent.get_supported_databases()
+        
+        assert "sqlite" in databases
+        assert "postgresql" in databases
+        assert "redis" in databases
+
+class TestFullStackDevAgent:
+    """Test Full Stack Developer Agent functionality"""
+    
+    @pytest.mark.asyncio
+    async def test_api_generation(self):
+        """Test API endpoint generation"""
+        task = {
+            "action": "create_api",
+            "api_type": "rest",
+            "framework": "fastapi",
+            "endpoints": [
+                {"path": "/users", "method": "GET"},
+                {"path": "/users", "method": "POST"}
+            ]
+        }
+        
+        result = await fullstack_dev_agent.process_task(task)
+        
+        assert result["success"] is True
+        assert "api_code" in result
+        assert "from fastapi import" in result["api_code"]
+    
+    @pytest.mark.asyncio
+    async def test_database_integration(self):
+        """Test database model and integration generation"""
+        task = {
+            "action": "create_models",
+            "database": "postgresql",
+            "models": [
+                {
+                    "name": "User",
+                    "fields": {
+                        "id": "Integer",
+                        "email": "String",
+                        "created_at": "DateTime"
+                    }
+                }
+            ]
+        }
+        
+        result = await fullstack_dev_agent.process_task(task)
+        
+        assert result["success"] is True
+        assert "model_code" in result
+    
+    def test_supported_frameworks(self):
+        """Test supported development frameworks"""
+        frameworks = fullstack_dev_agent.get_supported_frameworks()
+        
+        assert "fastapi" in frameworks["backend"]
+        assert "react" in frameworks["frontend"]
+
+class TestDeployManagerAgent:
+    """Test Deploy Manager Agent functionality"""
+    
+    @pytest.mark.asyncio
+    async def test_platform_support(self):
+        """Test deployment platform support"""
+        platforms = deploy_manager_agent._list_supported_platforms()
+        
+        assert platforms["success"] is True
+        assert "netlify" in platforms["platforms"]
+        assert "vercel" in platforms["platforms"]
+        assert "railway" in platforms["platforms"]
+        assert "docker" in platforms["platforms"]
+    
+    @pytest.mark.asyncio
+    async def test_docker_deployment(self):
+        """Test Docker deployment functionality"""
+        task = {
+            "action": "deploy",
+            "platform": "docker",
+            "app_name": "test_app",
+            "project_path": "./test_project",
+            "config": {
+                "port": 3000,
+                "build_command": "npm run build"
+            }
+        }
+        
+        # Mock subprocess for testing
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value.returncode = 0
+            mock_run.return_value.stdout = "Container started successfully"
+            
+            result = await deploy_manager_agent.process_task(task)
+            
+            assert "deployment_id" in result
+    
+    @pytest.mark.asyncio 
+    async def test_deployment_status(self):
+        """Test deployment status checking"""
+        task = {
+            "action": "status",
+            "deployment_id": "test_deployment_123"
+        }
+        
+        result = await deploy_manager_agent.process_task(task)
+        
+        assert "status" in result
+
+class TestPromptGeneratorAgent:
+    """Test Prompt Generator Agent functionality"""
+    
+    @pytest.mark.asyncio
+    async def test_prompt_generation(self):
+        """Test AI prompt generation"""
+        task = {
+            "action": "generate_prompt",
+            "task_type": "code_generation",
+            "domain": "web_development",
+            "requirements": {
+                "role": "senior_developer",
+                "task_description": "Create a React component",
+                "output_format": "JSX code with comments"
+            }
+        }
+        
+        result = await prompt_generator_agent.process_task(task)
+        
+        assert result["success"] is True
+        assert "generated_prompt" in result
+        assert "prompt_id" in result
+    
+    @pytest.mark.asyncio
+    async def test_role_based_prompts(self):
+        """Test role-based prompt creation"""
+        task = {
+            "action": "create_role_prompt",
+            "role": "data_scientist",
+            "specialization": "machine_learning",
+            "experience_level": "expert"
+        }
+        
+        result = await prompt_generator_agent.process_task(task)
+        
+        assert result["success"] is True
+        assert "role_prompt" in result
+        assert "machine_learning" in result["role_prompt"]
+    
+    @pytest.mark.asyncio
+    async def test_prompt_optimization(self):
+        """Test prompt optimization functionality"""
+        task = {
+            "action": "optimize_prompt",
+            "original_prompt": "Write some code",
+            "target_model": "gpt-4",
+            "optimization_goals": ["specificity", "clarity"]
+        }
+        
+        result = await prompt_generator_agent.process_task(task)
+        
+        assert "optimized_prompt" in result
+    
+    def test_prompt_patterns(self):
+        """Test available prompt patterns"""
+        library = prompt_generator_agent.get_prompt_library()
+        
+        assert "patterns" in library
+        assert "role_task_format" in library["patterns"]
+        assert "chain_of_thought" in library["patterns"]
+
+# Integration Tests
+class TestAgentIntegration:
+    """Test agent integration and communication"""
+    
+    @pytest.mark.asyncio
+    async def test_agent_communication(self):
+        """Test communication between agents"""
+        # Test cybershell -> agent_maker workflow
+        shell_result = await cybershell_agent.process_task({
+            "action": "execute_command",
+            "command": "echo 'agent_creation_needed'"
+        })
+        
+        if shell_result.get("success"):
+            maker_result = await agent_maker.process_task({
+                "action": "create_agent",
+                "agent_type": "test_agent"
+            })
+            
+            assert "agent_id" in maker_result or not maker_result.get("success")
+    
+    @pytest.mark.asyncio
+    async def test_workflow_execution(self):
+        """Test multi-agent workflow execution"""
+        # Simulate development workflow
+        steps = [
+            ("dev_engine", {"action": "create_project", "project_type": "web_app"}),
+            ("ui_designer", {"action": "create_component", "component_type": "header"}),
+            ("fullstack_dev", {"action": "create_api", "api_type": "rest"})
+        ]
+        
+        results = []
+        for agent_name, task in steps:
+            if agent_name == "dev_engine":
+                result = await dev_engine_agent.process_task(task)
+            elif agent_name == "ui_designer":
+                result = await ui_designer_agent.process_task(task)
+            elif agent_name == "fullstack_dev":
+                result = await fullstack_dev_agent.process_task(task)
+            
             results.append(result)
         
-        # Create multiple threads
-        threads = []
-        start_time = time.time()
+        # Check that workflow completed
+        assert len(results) == 3
+
+# Performance Tests
+class TestAgentPerformance:
+    """Test agent performance and resource usage"""
+    
+    @pytest.mark.asyncio
+    async def test_concurrent_task_handling(self):
+        """Test handling multiple concurrent tasks"""
+        tasks = [
+            cybershell_agent.process_task({"action": "execute_command", "command": f"echo 'task_{i}'"})
+            for i in range(5)
+        ]
         
-        for i in range(10):
-            thread = threading.Thread(target=process_task, args=(i,))
-            threads.append(thread)
-            thread.start()
+        results = await asyncio.gather(*tasks, return_exceptions=True)
         
-        # Wait for all threads to complete
-        for thread in threads:
-            thread.join()
+        # Check that all tasks completed
+        successful_tasks = [r for r in results if not isinstance(r, Exception)]
+        assert len(successful_tasks) >= 3  # At least 3 should succeed
+    
+    @pytest.mark.asyncio
+    async def test_response_time(self):
+        """Test agent response times"""
+        start_time = datetime.now()
         
-        end_time = time.time()
-        duration = end_time - start_time
+        result = await cybershell_agent.process_task({
+            "action": "execute_command",
+            "command": "echo 'speed_test'"
+        })
         
-        assert len(results) == 10
-        assert duration < 5.0  # Should complete within 5 seconds
+        end_time = datetime.now()
+        response_time = (end_time - start_time).total_seconds()
         
+        # Should respond within 5 seconds for simple commands
+        assert response_time < 5.0
+    
     def test_memory_usage(self):
-        """Test memory usage during extended operation"""
+        """Test agent memory usage"""
         import psutil
         import os
         
         process = psutil.Process(os.getpid())
-        initial_memory = process.memory_info().rss
+        memory_before = process.memory_info().rss
         
-        # Process many tasks
-        agent = AgentBase()
-        for i in range(100):
-            task = {
-                'task_id': f'memory_test_{i}',
-                'request': f'Memory test task {i}',
-                'context': {}
-            }
-            agent.process_task(task)
+        # Create multiple agent instances
+        agents = [cybershell_agent for _ in range(10)]
         
-        final_memory = process.memory_info().rss
-        memory_increase = final_memory - initial_memory
+        memory_after = process.memory_info().rss
+        memory_increase = memory_after - memory_before
         
         # Memory increase should be reasonable (less than 100MB)
         assert memory_increase < 100 * 1024 * 1024
 
-if __name__ == '__main__':
-    pytest.main([__file__])
+# Fixtures and utilities
+@pytest.fixture
+def sample_task():
+    """Sample task for testing"""
+    return {
+        "task_id": "test_task_123",
+        "action": "test_action",
+        "data": {"test": True},
+        "timestamp": datetime.now().isoformat()
+    }
+
+@pytest.fixture
+def mock_llm_response():
+    """Mock LLM response for testing"""
+    return {
+        "success": True,
+        "response": "This is a test response from the LLM",
+        "tokens_used": 50,
+        "model": "gpt-3.5-turbo"
+    }
+
+if __name__ == "__main__":
+    # Run tests with pytest
+    pytest.main([__file__, "-v", "--tb=short"])

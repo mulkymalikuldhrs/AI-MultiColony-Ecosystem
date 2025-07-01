@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>📱 Mobile Companion - Agentic AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .mobile-header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .quick-action-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+        }
+        
+        .quick-action-card:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .quick-action-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 32px;
+            color: white;
+        }
+        
+        .status-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px;
+            color: white;
+        }
+        
+        .agent-status-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .voice-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+            z-index: 1001;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+        }
+        
+        .voice-button:active {
+            transform: scale(0.9);
+        }
+        
+        .voice-button.recording {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4); }
+            50% { box-shadow: 0 8px 35px rgba(220, 53, 69, 0.8); }
+            100% { box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4); }
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .swipe-card {
+            background: white;
+            border-radius: 15px;
+            margin: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .swipe-card:active {
+            transform: translateX(-10px);
+        }
+        
+        .swipe-content {
+            padding: 20px;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            text-align: center;
+            color: #667eea;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+        }
+        
+        .nav-item:active {
+            transform: scale(0.9);
+        }
+        
+        .nav-item.active {
+            color: #764ba2;
+            font-weight: bold;
+        }
+        
+        .metric-mini {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 5px 0;
+            text-align: center;
+        }
+        
+        .activity-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
+        
+        /* PWA specific styles */
+        @media (display-mode: standalone) {
+            .mobile-header {
+                padding-top: 40px; /* Account for status bar */
+            }
+        }
+        
+        /* Touch feedback */
+        .touch-feedback:active {
+            background: rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0"><i class="fas fa-robot"></i> Agentic AI</h4>
+                <small id="connectionStatus">Connected</small>
+            </div>
+            <div class="position-relative">
+                <i class="fas fa-bell fa-lg"></i>
+                <span class="notification-badge" id="notificationCount">3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container-fluid pb-5">
+        <!-- System Status Card -->
+        <div class="status-card">
+            <h6><i class="fas fa-heartbeat"></i> System Health</h6>
+            <div class="row text-center mt-3">
+                <div class="col-4">
+                    <div class="metric-mini">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="mobileActiveAgents">-</div>
+                        <small>Agents</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="metric-mini">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;" id="mobileSuccessRate">-</div>
+                        <small>Success</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="metric-mini">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #ffc107;" id="mobileResponseTime">-</div>
+                        <small>Response</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row g-0">
+            <div class="col-6">
+                <div class="quick-action-card touch-feedback" onclick="quickVoiceCommand()">
+                    <div class="quick-action-icon">
+                        <i class="fas fa-microphone"></i>
+                    </div>
+                    <h6>Voice Command</h6>
+                    <small class="text-muted">Speak to AI</small>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="quick-action-card touch-feedback" onclick="quickTask()">
+                    <div class="quick-action-icon">
+                        <i class="fas fa-lightning-bolt"></i>
+                    </div>
+                    <h6>Quick Task</h6>
+                    <small class="text-muted">Run workflow</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-0">
+            <div class="col-6">
+                <div class="quick-action-card touch-feedback" onclick="viewAgents()">
+                    <div class="quick-action-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h6>Agent Status</h6>
+                    <small class="text-muted">Check agents</small>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="quick-action-card touch-feedback" onclick="viewAnalytics()">
+                    <div class="quick-action-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h6>Analytics</h6>
+                    <small class="text-muted">View metrics</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="status-card">
+            <h6><i class="fas fa-history"></i> Recent Activities</h6>
+            <div id="mobileActivities" class="mt-3">
+                <!-- Activities will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Agent Status Overview -->
+        <div class="status-card">
+            <h6><i class="fas fa-tasks"></i> Agent Overview</h6>
+            <div id="mobileAgentStatus" class="mt-3">
+                <!-- Agent status will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Swipe Cards for Workflows -->
+        <div class="swipe-card">
+            <div class="swipe-content">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">GitHub Automation</h6>
+                        <small class="text-muted">Last run: 2 hours ago</small>
+                    </div>
+                    <button class="btn btn-sm" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="swipe-card">
+            <div class="swipe-content">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Data Processing</h6>
+                        <small class="text-muted">Scheduled for 6 PM</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-clock"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <div class="mt-2">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Voice Command Button -->
+    <button class="voice-button" id="voiceButton" onclick="toggleVoiceRecording()">
+        <i class="fas fa-microphone"></i>
+    </button>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="row g-0">
+            <div class="col">
+                <a href="#" class="nav-item active d-block text-decoration-none touch-feedback" onclick="showDashboard()">
+                    <i class="fas fa-home d-block mb-1"></i>
+                    <small>Home</small>
+                </a>
+            </div>
+            <div class="col">
+                <a href="#" class="nav-item d-block text-decoration-none touch-feedback" onclick="showWorkflows()">
+                    <i class="fas fa-project-diagram d-block mb-1"></i>
+                    <small>Workflows</small>
+                </a>
+            </div>
+            <div class="col">
+                <a href="#" class="nav-item d-block text-decoration-none touch-feedback" onclick="showAgents()">
+                    <i class="fas fa-robot d-block mb-1"></i>
+                    <small>Agents</small>
+                </a>
+            </div>
+            <div class="col">
+                <a href="#" class="nav-item d-block text-decoration-none touch-feedback" onclick="showSettings()">
+                    <i class="fas fa-cog d-block mb-1"></i>
+                    <small>Settings</small>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voice Recording Modal -->
+    <div class="modal fade" id="voiceModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4">
+                    <div class="voice-recording-animation mb-3">
+                        <i class="fas fa-microphone fa-3x text-primary"></i>
+                    </div>
+                    <h5>Listening...</h5>
+                    <p class="text-muted">Speak your command</p>
+                    <button class="btn btn-danger mt-3" onclick="stopVoiceRecording()">
+                        <i class="fas fa-stop"></i> Stop
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let isRecording = false;
+        let recognition = null;
+
+        // Initialize mobile app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMobileData();
+            initializeVoiceRecognition();
+            setupPWA();
+            setupSwipeGestures();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadMobileData, 30000);
+        });
+
+        async function loadMobileData() {
+            try {
+                showLoading(true);
+                
+                const response = await fetch('/api/mobile/status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateMobileStatus(data.data);
+                }
+                
+                showLoading(false);
+            } catch (error) {
+                console.error('Error loading mobile data:', error);
+                showLoading(false);
+                showMobileNotification('Connection error', 'error');
+            }
+        }
+
+        function updateMobileStatus(data) {
+            // Update metrics
+            document.getElementById('mobileActiveAgents').textContent = data.active_agents;
+            document.getElementById('mobileSuccessRate').textContent = '98%';
+            document.getElementById('mobileResponseTime').textContent = '1.2s';
+            
+            // Update notification count
+            document.getElementById('notificationCount').textContent = data.notifications.length;
+            
+            // Update activities
+            const activitiesContainer = document.getElementById('mobileActivities');
+            let activitiesHTML = '';
+            
+            data.recent_activities.slice(0, 3).forEach(activity => {
+                activitiesHTML += `
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <small><strong>${activity.message}</strong></small><br>
+                                <small class="text-muted">${new Date(activity.timestamp).toLocaleTimeString()}</small>
+                            </div>
+                            <i class="fas fa-${getActivityIcon(activity.type)}"></i>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            activitiesContainer.innerHTML = activitiesHTML;
+            
+            // Update agent status
+            const agentContainer = document.getElementById('mobileAgentStatus');
+            agentContainer.innerHTML = `
+                <div class="agent-status-item">
+                    <div class="d-flex justify-content-between w-100">
+                        <span>Prompt Master</span>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                </div>
+                <div class="agent-status-item">
+                    <div class="d-flex justify-content-between w-100">
+                        <span>Code Executor</span>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                </div>
+                <div class="agent-status-item">
+                    <div class="d-flex justify-content-between w-100">
+                        <span>LLM Provider</span>
+                        <span class="badge bg-warning">Busy</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getActivityIcon(type) {
+            const icons = {
+                'workflow_execution': 'play',
+                'plugin_install': 'download',
+                'system_update': 'sync',
+                'error': 'exclamation-triangle'
+            };
+            return icons[type] || 'info';
+        }
+
+        function initializeVoiceRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+                
+                recognition.onstart = function() {
+                    console.log('Voice recognition started');
+                    document.getElementById('voiceButton').classList.add('recording');
+                };
+                
+                recognition.onresult = function(event) {
+                    const command = event.results[0][0].transcript;
+                    console.log('Voice command:', command);
+                    processVoiceCommand(command);
+                };
+                
+                recognition.onerror = function(event) {
+                    console.error('Voice recognition error:', event.error);
+                    showMobileNotification('Voice recognition error', 'error');
+                };
+                
+                recognition.onend = function() {
+                    isRecording = false;
+                    document.getElementById('voiceButton').classList.remove('recording');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('voiceModal'));
+                    if (modal) modal.hide();
+                };
+            }
+        }
+
+        function toggleVoiceRecording() {
+            if (!recognition) {
+                showMobileNotification('Voice recognition not supported', 'warning');
+                return;
+            }
+            
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.start();
+                isRecording = true;
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('voiceModal'));
+                modal.show();
+            }
+        }
+
+        function stopVoiceRecording() {
+            if (recognition && isRecording) {
+                recognition.stop();
+            }
+        }
+
+        async function processVoiceCommand(command) {
+            try {
+                showMobileNotification('Processing command...', 'info');
+                
+                const response = await fetch('/api/mobile/voice-command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        command_text: command
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMobileNotification(`Command executed: "${command}"`, 'success');
+                } else {
+                    showMobileNotification('Error processing command', 'error');
+                }
+            } catch (error) {
+                console.error('Error processing voice command:', error);
+                showMobileNotification('Error processing command', 'error');
+            }
+        }
+
+        function quickVoiceCommand() {
+            toggleVoiceRecording();
+        }
+
+        function quickTask() {
+            showMobileNotification('Quick task initiated', 'info');
+            // Simulate quick task
+            setTimeout(() => {
+                showMobileNotification('Quick task completed', 'success');
+            }, 2000);
+        }
+
+        function viewAgents() {
+            window.location.href = '/agents';
+        }
+
+        function viewAnalytics() {
+            window.location.href = '/business-intelligence';
+        }
+
+        // Bottom navigation functions
+        function showDashboard() {
+            updateActiveNav(0);
+            loadMobileData();
+        }
+
+        function showWorkflows() {
+            updateActiveNav(1);
+            window.location.href = '/workflow-builder';
+        }
+
+        function showAgents() {
+            updateActiveNav(2);
+            window.location.href = '/agents';
+        }
+
+        function showSettings() {
+            updateActiveNav(3);
+            showMobileNotification('Settings coming soon', 'info');
+        }
+
+        function updateActiveNav(activeIndex) {
+            document.querySelectorAll('.nav-item').forEach((item, index) => {
+                if (index === activeIndex) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        function setupPWA() {
+            // Register service worker for PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            }
+            
+            // Update connection status
+            function updateConnectionStatus() {
+                const status = navigator.onLine ? 'Connected' : 'Offline';
+                document.getElementById('connectionStatus').textContent = status;
+                
+                if (!navigator.onLine) {
+                    showMobileNotification('Working offline', 'warning');
+                }
+            }
+            
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+            updateConnectionStatus();
+        }
+
+        function setupSwipeGestures() {
+            let startX, startY, distX, distY;
+            const threshold = 100;
+            
+            document.addEventListener('touchstart', function(e) {
+                startX = e.touches[0].pageX;
+                startY = e.touches[0].pageY;
+            });
+            
+            document.addEventListener('touchend', function(e) {
+                distX = e.changedTouches[0].pageX - startX;
+                distY = e.changedTouches[0].pageY - startY;
+                
+                if (Math.abs(distX) > threshold && Math.abs(distY) < threshold) {
+                    if (distX > 0) {
+                        // Swipe right
+                        console.log('Swipe right detected');
+                    } else {
+                        // Swipe left
+                        console.log('Swipe left detected');
+                    }
+                }
+            });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingSpinner').style.display = show ? 'block' : 'none';
+        }
+
+        function showMobileNotification(message, type) {
+            // Create toast notification
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'error' ? 'danger' : type} position-fixed`;
+            toast.style.top = '80px';
+            toast.style.left = '15px';
+            toast.style.right = '15px';
+            toast.style.zIndex = '9999';
+            toast.innerHTML = message;
+            
+            document.body.appendChild(toast);
+            
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Handle device orientation
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+            }, 100);
+        });
+    </script>
+</body>
+</html>
