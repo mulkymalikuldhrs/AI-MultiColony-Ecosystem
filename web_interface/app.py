@@ -51,6 +51,8 @@ try:
     from agents.system_optimizer import system_optimizer
     from agents.code_executor import code_executor
     from agents.ai_research_agent import ai_research_agent
+    from agents.credential_manager import credential_manager
+    from agents.authentication_agent import authentication_agent
     
     # Available agents
     agents_registry = {
@@ -64,7 +66,9 @@ try:
         'meta_agent_creator': meta_agent_creator,
         'system_optimizer': system_optimizer,
         'code_executor': code_executor,
-        'ai_research_agent': ai_research_agent
+        'ai_research_agent': ai_research_agent,
+        'credential_manager': credential_manager,
+        'authentication_agent': authentication_agent
     }
     
     print("✅ All core components loaded successfully")
