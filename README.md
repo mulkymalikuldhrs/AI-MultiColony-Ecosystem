@@ -50,6 +50,11 @@
 - **Compliance Ready**: GDPR, HIPAA, SOC2 compliant
 - **Threat Detection**: Real-time security monitoring
 
+### 🛡️ **Security & Revenue Expansion (v5.0.1)**
+- **🐞 BugHunter Bot**: Autonomous ethical-hacking agent that scans websites, builds PoC reports, and emails owners while marketing the project.
+- **🤝 Security Orchestrator**: Coordinates a team of BugHunter agents, auto-assigns targets, and utilises idle workers for continuous bug bounty hunting.
+- **💸 Wallet Manager**: Unified multi-chain balance tracker that records income from bug-bounty rewards, DeFi yield, trading bots, etc., and prepares withdrawals to a main wallet.
+
 ---
 
 ## 💡 Revolutionary Features
