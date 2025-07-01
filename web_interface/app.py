@@ -47,6 +47,12 @@ try:
     from agents.dev_engine import dev_engine_agent
     from agents.data_sync import data_sync_agent
     from agents.fullstack_dev import fullstack_dev_agent
+    from agents.meta_agent_creator import meta_agent_creator
+    from agents.system_optimizer import system_optimizer
+    from agents.code_executor import code_executor
+    from agents.ai_research_agent import ai_research_agent
+    from agents.credential_manager import credential_manager
+    from agents.authentication_agent import authentication_agent
     
     # Available agents
     agents_registry = {
@@ -56,7 +62,13 @@ try:
         'ui_designer': ui_designer_agent,
         'dev_engine': dev_engine_agent,
         'data_sync': data_sync_agent,
-        'fullstack_dev': fullstack_dev_agent
+        'fullstack_dev': fullstack_dev_agent,
+        'meta_agent_creator': meta_agent_creator,
+        'system_optimizer': system_optimizer,
+        'code_executor': code_executor,
+        'ai_research_agent': ai_research_agent,
+        'credential_manager': credential_manager,
+        'authentication_agent': authentication_agent
     }
     
     print("✅ All core components loaded successfully")
@@ -68,7 +80,7 @@ except ImportError as e:
 @app.route('/')
 def index():
     """Main dashboard"""
-    return render_template('index.html')
+    return render_template('enhanced_index.html')
 
 @app.route('/dashboard')
 def dashboard():
