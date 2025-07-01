@@ -1,20 +1,263 @@
-<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-        <linearGradient id="coverGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
-        </linearGradient>
-    </defs>
-    <rect width="1200" height="630" fill="url(#coverGrad)"/>
+<svg width="1200" height="600" viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#16213e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f3460;stop-opacity:1" />
+    </linearGradient>
     
-    <text x="600" y="200" text-anchor="middle" fill="white" font-family="Arial" font-size="72" font-weight="bold">🧠 Agentic AI System</text>
-    <text x="600" y="280" text-anchor="middle" fill="white" font-family="Arial" font-size="36" opacity="0.9">Autonomous Multi-Agent Intelligence with Voice Interaction</text>
+    <linearGradient id="title-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#4ecdc4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#45b7d1;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#96ceb4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#feca57;stop-opacity:1" />
+    </linearGradient>
     
-    <text x="600" y="340" text-anchor="middle" fill="white" font-family="Arial" font-size="24" opacity="0.8">✨ 20+ Specialized AI Agents</text>
-    <text x="600" y="380" text-anchor="middle" fill="white" font-family="Arial" font-size="24" opacity="0.8">🎤 Advanced Voice Interaction</text>
-    <text x="600" y="420" text-anchor="middle" fill="white" font-family="Arial" font-size="24" opacity="0.8">📱 Progressive Web App (PWA)</text>
-    <text x="600" y="460" text-anchor="middle" fill="white" font-family="Arial" font-size="24" opacity="0.8">🚀 Auto-Deploy to Multiple Platforms</text>
-    <text x="600" y="500" text-anchor="middle" fill="white" font-family="Arial" font-size="24" opacity="0.8">🔄 Real-time Agent Creation</text>
+    <linearGradient id="version-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff8c00;stop-opacity:1" />
+    </linearGradient>
     
-    <text x="600" y="580" text-anchor="middle" fill="white" font-family="Arial" font-size="20" opacity="0.7">🇮🇩 Made with ❤️ by Mulky Malikul Dhaher in Indonesia</text>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="shadow">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="600" fill="url(#bg-gradient)" />
+  
+  <!-- Geometric background pattern -->
+  <g opacity="0.1">
+    <polygon points="100,100 200,50 300,100 250,200" fill="#4ecdc4" />
+    <polygon points="800,150 900,100 1000,150 950,250" fill="#ff6b6b" />
+    <polygon points="150,400 250,350 350,400 300,500" fill="#45b7d1" />
+    <polygon points="850,450 950,400 1050,450 1000,550" fill="#96ceb4" />
+    <circle cx="500" cy="200" r="80" fill="#feca57" />
+    <circle cx="700" cy="400" r="60" fill="#ff9ff3" />
+  </g>
+  
+  <!-- Neural network pattern -->
+  <g opacity="0.2" stroke="#4ecdc4" stroke-width="1" fill="none">
+    <line x1="200" y1="300" x2="400" y2="200" />
+    <line x1="400" y1="200" x2="600" y2="250" />
+    <line x1="600" y1="250" x2="800" y2="180" />
+    <line x1="800" y1="180" x2="1000" y2="220" />
+    <line x1="200" y1="300" x2="350" y2="400" />
+    <line x1="350" y1="400" x2="550" y2="380" />
+    <line x1="550" y1="380" x2="750" y2="420" />
+    <line x1="750" y1="420" x2="1000" y2="400" />
+    <circle cx="200" cy="300" r="5" fill="#4ecdc4" />
+    <circle cx="400" cy="200" r="5" fill="#4ecdc4" />
+    <circle cx="600" cy="250" r="5" fill="#4ecdc4" />
+    <circle cx="800" cy="180" r="5" fill="#4ecdc4" />
+    <circle cx="1000" cy="220" r="5" fill="#4ecdc4" />
+    <circle cx="350" cy="400" r="5" fill="#4ecdc4" />
+    <circle cx="550" cy="380" r="5" fill="#4ecdc4" />
+    <circle cx="750" cy="420" r="5" fill="#4ecdc4" />
+    <circle cx="1000" cy="400" r="5" fill="#4ecdc4" />
+  </g>
+  
+  <!-- Main Title -->
+  <text x="600" y="160" 
+        font-family="'Arial Black', Arial, sans-serif" 
+        font-size="72" 
+        font-weight="bold" 
+        text-anchor="middle" 
+        fill="url(#title-gradient)"
+        filter="url(#glow)">
+    ULTIMATE AGENTIC AI
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="600" y="220" 
+        font-family="'Arial', sans-serif" 
+        font-size="36" 
+        font-weight="600" 
+        text-anchor="middle" 
+        fill="#ffffff"
+        opacity="0.9">
+    Revolutionary Intelligence System
+  </text>
+  
+  <!-- Version Badge -->
+  <g transform="translate(450, 260)">
+    <rect width="300" height="60" rx="30" fill="url(#version-gradient)" filter="url(#shadow)" />
+    <text x="150" y="40" 
+          font-family="'Arial Black', Arial, sans-serif" 
+          font-size="28" 
+          font-weight="bold" 
+          text-anchor="middle" 
+          fill="#000000">
+      VERSION 5.0.0 ULTIMATE
+    </text>
+  </g>
+  
+  <!-- Feature Icons and Labels -->
+  <g transform="translate(100, 380)">
+    <!-- AI Brain Icon -->
+    <circle cx="50" cy="50" r="35" fill="#ff6b6b" opacity="0.8" filter="url(#glow)" />
+    <text x="50" y="57" 
+          font-family="'Arial', sans-serif" 
+          font-size="24" 
+          font-weight="bold" 
+          text-anchor="middle" 
+          fill="#ffffff">🧠</text>
+    <text x="50" y="90" 
+          font-family="'Arial', sans-serif" 
+          font-size="14" 
+          font-weight="600" 
+          text-anchor="middle" 
+          fill="#ffffff">Multi-LLM</text>
+    
+    <!-- Voice Icon -->
+    <circle cx="200" cy="50" r="35" fill="#4ecdc4" opacity="0.8" filter="url(#glow)" />
+    <text x="200" y="57" 
+          font-family="'Arial', sans-serif" 
+          font-size="24" 
+          font-weight="bold" 
+          text-anchor="middle" 
+          fill="#ffffff">🔊</text>
+    <text x="200" y="90" 
+          font-family="'Arial', sans-serif" 
+          font-size="14" 
+          font-weight="600" 
+          text-anchor="middle" 
+          fill="#ffffff">Voice AI</text>
+    
+    <!-- Blockchain Icon -->
+    <circle cx="350" cy="50" r="35" fill="#45b7d1" opacity="0.8" filter="url(#glow)" />
+    <text x="350" y="57" 
+          font-family="'Arial', sans-serif" 
+          font-size="24" 
+          font-weight="bold" 
+          text-anchor="middle" 
+          fill="#ffffff">💎</text>
+    <text x="350" y="90" 
+          font-family="'Arial', sans-serif" 
+          font-size="14" 
+          font-weight="600" 
+          text-anchor="middle" 
+          fill="#ffffff">Blockchain</text>
+    
+    <!-- Cloud Icon -->
+    <circle cx="500" cy="50" r="35" fill="#96ceb4" opacity="0.8" filter="url(#glow)" />
+    <text x="500" y="57" 
+          font-family="'Arial', sans-serif" 
+          font-size="24" 
+          font-weight="bold" 
+          text-anchor="middle" 
+          fill="#ffffff">☁️</text>
+    <text x="500" y="90" 
+          font-family="'Arial', sans-serif" 
+          font-size="14" 
+          font-weight="600" 
+          text-anchor="middle" 
+          fill="#ffffff">Cloud Native</text>
+    
+    <!-- Security Icon -->
+    <circle cx="650" cy="50" r="35" fill="#feca57" opacity="0.8" filter="url(#glow)" />
+    <text x="650" y="57" 
+          font-family="'Arial', sans-serif" 
+          font-size="24" 
+          font-weight="bold" 
+          text-anchor="middle" 
+          fill="#ffffff">🛡️</text>
+    <text x="650" y="90" 
+          font-family="'Arial', sans-serif" 
+          font-size="14" 
+          font-weight="600" 
+          text-anchor="middle" 
+          fill="#ffffff">Security</text>
+    
+    <!-- Analytics Icon -->
+    <circle cx="800" cy="50" r="35" fill="#ff9ff3" opacity="0.8" filter="url(#glow)" />
+    <text x="800" y="57" 
+          font-family="'Arial', sans-serif" 
+          font-size="24" 
+          font-weight="bold" 
+          text-anchor="middle" 
+          fill="#ffffff">📊</text>
+    <text x="800" y="90" 
+          font-family="'Arial', sans-serif" 
+          font-size="14" 
+          font-weight="600" 
+          text-anchor="middle" 
+          fill="#ffffff">Analytics</text>
+    
+    <!-- Automation Icon -->
+    <circle cx="950" cy="50" r="35" fill="#a8e6cf" opacity="0.8" filter="url(#glow)" />
+    <text x="950" y="57" 
+          font-family="'Arial', sans-serif" 
+          font-size="24" 
+          font-weight="bold" 
+          text-anchor="middle" 
+          fill="#ffffff">🤖</text>
+    <text x="950" y="90" 
+          font-family="'Arial', sans-serif" 
+          font-size="14" 
+          font-weight="600" 
+          text-anchor="middle" 
+          fill="#ffffff">Automation</text>
+  </g>
+  
+  <!-- Performance Indicators -->
+  <g transform="translate(50, 50)">
+    <rect width="200" height="40" rx="20" fill="#000000" opacity="0.6" />
+    <text x="100" y="28" 
+          font-family="'Arial', sans-serif" 
+          font-size="16" 
+          font-weight="bold" 
+          text-anchor="middle" 
+          fill="#00ff00">
+      ⚡ 300% Performance Boost
+    </text>
+  </g>
+  
+  <g transform="translate(950, 50)">
+    <rect width="200" height="40" rx="20" fill="#000000" opacity="0.6" />
+    <text x="100" y="28" 
+          font-family="'Arial', sans-serif" 
+          font-size="16" 
+          font-weight="bold" 
+          text-anchor="middle" 
+          fill="#ff6b6b">
+      🇮🇩 Made in Indonesia
+    </text>
+  </g>
+  
+  <!-- Bottom tagline -->
+  <text x="600" y="560" 
+        font-family="'Arial', sans-serif" 
+        font-size="20" 
+        font-weight="600" 
+        text-anchor="middle" 
+        fill="#ffffff"
+        opacity="0.8">
+    Revolutionizing AI • Empowering Intelligence • Building the Future
+  </text>
+  
+  <!-- Decorative elements -->
+  <g opacity="0.3">
+    <circle cx="100" cy="100" r="2" fill="#4ecdc4">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="1100" cy="150" r="2" fill="#ff6b6b">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2.5s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="150" cy="500" r="2" fill="#feca57">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="3s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="1050" cy="520" r="2" fill="#96ceb4">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2.2s" repeatCount="indefinite" />
+    </circle>
+  </g>
 </svg>
