@@ -1,4 +1,4 @@
-THIS SHOULD BE A LINTER ERROR"""
+"""
 🤖 Agentic AI System - Agents Module
 Centralized agent imports and registry
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
@@ -74,6 +74,11 @@ try:
 except ImportError:
     llm_provider_manager = None
 
+try:
+    from .bug_hunter import bug_hunter_agent
+except ImportError:
+    bug_hunter_agent = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -104,6 +109,8 @@ if authentication_agent:
     AGENTS_REGISTRY['authentication_agent'] = authentication_agent
 if llm_provider_manager:
     AGENTS_REGISTRY['llm_provider_manager'] = llm_provider_manager
+if bug_hunter_agent:
+    AGENTS_REGISTRY['bug_hunter'] = bug_hunter_agent
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -184,6 +191,12 @@ AGENTS_METADATA = {
         'emoji': '🧠',
         'description': 'Multi-provider AI gateway with automatic failover and cost optimization',
         'category': 'ai'
+    },
+    'bug_hunter': {
+        'name': 'Bug Hunter Bot',
+        'emoji': '🐞',
+        'description': 'Autonomous ethical-hacking agent that discovers vulnerabilities & emails site owners',
+        'category': 'security'
     }
 }
 
