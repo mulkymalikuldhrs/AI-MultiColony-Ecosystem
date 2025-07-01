@@ -59,6 +59,16 @@ try:
 except ImportError:
     ai_research_agent = None
 
+try:
+    from .credential_manager import credential_manager
+except ImportError:
+    credential_manager = None
+
+try:
+    from .authentication_agent import authentication_agent
+except ImportError:
+    authentication_agent = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -83,6 +93,10 @@ if code_executor:
     AGENTS_REGISTRY['code_executor'] = code_executor
 if ai_research_agent:
     AGENTS_REGISTRY['ai_research_agent'] = ai_research_agent
+if credential_manager:
+    AGENTS_REGISTRY['credential_manager'] = credential_manager
+if authentication_agent:
+    AGENTS_REGISTRY['authentication_agent'] = authentication_agent
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -145,6 +159,18 @@ AGENTS_METADATA = {
         'emoji': '🔬',
         'description': 'Research and analyze cutting-edge AI technologies',
         'category': 'ai'
+    },
+    'credential_manager': {
+        'name': 'Credential Manager',
+        'emoji': '🔐',
+        'description': 'Secure storage and management of credentials with enterprise encryption',
+        'category': 'security'
+    },
+    'authentication_agent': {
+        'name': 'Authentication Agent',
+        'emoji': '🔑',
+        'description': 'Automatic login and registration across multiple platforms',
+        'category': 'security'
     }
 }
 
