@@ -145,6 +145,11 @@ try:
 except ImportError:
     future_manager_agent = None
 
+try:
+    from .rnd_planner import rnd_planner_agent
+except ImportError:
+    rnd_planner_agent = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -205,6 +210,8 @@ if keep_sync_agent:
     AGENTS_REGISTRY['keep_sync'] = keep_sync_agent
 if future_manager_agent:
     AGENTS_REGISTRY['future_manager'] = future_manager_agent
+if rnd_planner_agent:
+    AGENTS_REGISTRY['rnd_planner'] = rnd_planner_agent
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -375,6 +382,12 @@ AGENTS_METADATA = {
         'emoji': '🪐',
         'description': 'Advances simulation time & coordinates foresight agents',
         'category': 'simulation'
+    },
+    'rnd_planner': {
+        'name': 'R&D Planner',
+        'emoji': '📚',
+        'description': 'Researches future upgrades and forms sprint backlog',
+        'category': 'research'
     },
 }
 
