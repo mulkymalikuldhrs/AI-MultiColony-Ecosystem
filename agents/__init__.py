@@ -79,6 +79,12 @@ try:
 except ImportError:
     bug_hunter_agent = None
 
+try:
+    from .colony_agents import colony_agent_factory, agent_general_factory
+except ImportError:
+    colony_agent_factory = None
+    agent_general_factory = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -111,6 +117,10 @@ if llm_provider_manager:
     AGENTS_REGISTRY['llm_provider_manager'] = llm_provider_manager
 if bug_hunter_agent:
     AGENTS_REGISTRY['bug_hunter'] = bug_hunter_agent
+if colony_agent_factory:
+    AGENTS_REGISTRY['colony'] = colony_agent_factory
+if agent_general_factory:
+    AGENTS_REGISTRY['general'] = agent_general_factory
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -197,6 +207,18 @@ AGENTS_METADATA = {
         'emoji': '🐞',
         'description': 'Autonomous ethical-hacking agent that discovers vulnerabilities & emails site owners',
         'category': 'security'
+    },
+    'colony': {
+        'name': 'Colony Agent',
+        'emoji': '🌍',
+        'description': 'Self-governing AI colony node with its own Mayor & elites',
+        'category': 'ai'
+    },
+    'general': {
+        'name': 'Agent General',
+        'emoji': '🎖️',
+        'description': 'High-level strategist supervising multiple colonies',
+        'category': 'ai'
     }
 }
 
