@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔌 Plugin Marketplace - Agentic AI System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .marketplace-header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .plugin-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+        
+        .plugin-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .plugin-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .plugin-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        
+        .plugin-body {
+            padding: 25px;
+        }
+        
+        .rating-stars {
+            color: #ffc107;
+        }
+        
+        .price-tag {
+            background: #28a745;
+            color: white;
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .price-tag.free {
+            background: #17a2b8;
+        }
+        
+        .btn-install {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            color: white;
+            border-radius: 25px;
+            padding: 12px 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-install:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+            color: white;
+        }
+        
+        .btn-installed {
+            background: #6c757d;
+            border: none;
+            color: white;
+            border-radius: 25px;
+            padding: 12px 25px;
+        }
+        
+        .search-box {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 25px;
+            color: white;
+            width: 100%;
+        }
+        
+        .search-box::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .category-filter {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            padding: 10px 20px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .category-filter:hover,
+        .category-filter.active {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .featured-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ffc107;
+            color: #000;
+            border-radius: 15px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .stats-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+        
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.5);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: white;
+            background: rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-4">
+        <!-- Header -->
+        <div class="marketplace-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-store"></i> Plugin Marketplace</h1>
+                    <p class="mb-0">Discover powerful extensions for your AI agents. Build, share, and monetize plugins.</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light me-2" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                        <i class="fas fa-upload"></i> Upload Plugin
+                    </button>
+                    <button class="btn btn-outline-light" onclick="window.location.href='/workflows'">
+                        <i class="fas fa-arrow-left"></i> Back to Workflows
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <input type="text" class="search-box" placeholder="🔍 Search plugins..." id="pluginSearch">
+            </div>
+            <div class="col-md-6">
+                <div class="text-end">
+                    <button class="category-filter active" onclick="filterByCategory('all')">All</button>
+                    <button class="category-filter" onclick="filterByCategory('communication')">Communication</button>
+                    <button class="category-filter" onclick="filterByCategory('automation')">Automation</button>
+                    <button class="category-filter" onclick="filterByCategory('data')">Data</button>
+                    <button class="category-filter" onclick="filterByCategory('ai')">AI/ML</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h3><i class="fas fa-puzzle-piece"></i> 1,247</h3>
+                    <p>Total Plugins</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h3><i class="fas fa-download"></i> 125K</h3>
+                    <p>Downloads</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h3><i class="fas fa-users"></i> 3,456</h3>
+                    <p>Developers</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h3><i class="fas fa-dollar-sign"></i> $45K</h3>
+                    <p>Revenue Shared</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plugin Grid -->
+        <div class="row" id="pluginGrid">
+            <!-- Plugins will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Upload Plugin Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                    <h5 class="modal-title"><i class="fas fa-upload"></i> Upload Your Plugin</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Plugin Name *</label>
+                                    <input type="text" class="form-control" name="name" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Version *</label>
+                                    <input type="text" class="form-control" name="version" placeholder="1.0.0" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Category *</label>
+                                    <select class="form-control" name="category" required>
+                                        <option value="">Select Category</option>
+                                        <option value="communication">Communication</option>
+                                        <option value="automation">Automation</option>
+                                        <option value="data">Data Processing</option>
+                                        <option value="ai">AI/ML</option>
+                                        <option value="security">Security</option>
+                                        <option value="productivity">Productivity</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Price</label>
+                                    <input type="text" class="form-control" name="price" placeholder="Free or $X.XX">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Description *</label>
+                                    <textarea class="form-control" name="description" rows="4" required></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Author Email *</label>
+                                    <input type="email" class="form-control" name="author_email" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">GitHub Repository</label>
+                                    <input type="url" class="form-control" name="github_repo" placeholder="https://github.com/user/repo">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Plugin File (ZIP) *</label>
+                            <div class="upload-area" style="color: #333; border-color: #dee2e6;" onclick="document.getElementById('pluginFile').click()">
+                                <i class="fas fa-cloud-upload-alt fa-2x mb-3"></i>
+                                <p>Click to select plugin file or drag & drop</p>
+                                <input type="file" id="pluginFile" name="plugin_file" accept=".zip,.tar.gz" style="display: none;" required>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Plugin Requirements:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Package your plugin as ZIP file</li>
+                                <li>Include plugin.json with metadata</li>
+                                <li>Follow our Plugin SDK guidelines</li>
+                                <li>Revenue sharing: 70% developer, 30% platform</li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;" onclick="uploadPlugin()">
+                        <i class="fas fa-upload"></i> Upload Plugin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let plugins = [];
+        let currentFilter = 'all';
+
+        // Load plugins on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPlugins();
+            
+            // Setup search
+            document.getElementById('pluginSearch').addEventListener('input', function() {
+                filterPlugins();
+            });
+        });
+
+        async function loadPlugins() {
+            try {
+                const response = await fetch('/api/plugins');
+                const data = await response.json();
+                
+                if (data.success) {
+                    plugins = data.data;
+                    displayPlugins(plugins);
+                }
+            } catch (error) {
+                console.error('Error loading plugins:', error);
+                showNotification('Error loading plugins', 'error');
+            }
+        }
+
+        function displayPlugins(pluginsToShow) {
+            const grid = document.getElementById('pluginGrid');
+            grid.innerHTML = '';
+
+            pluginsToShow.forEach(plugin => {
+                const pluginCard = createPluginCard(plugin);
+                grid.appendChild(pluginCard);
+            });
+        }
+
+        function createPluginCard(plugin) {
+            const col = document.createElement('div');
+            col.className = 'col-md-4';
+            
+            const isFeatured = plugin.downloads > 1000;
+            const isInstalled = plugin.installed;
+            
+            col.innerHTML = `
+                <div class="plugin-card" data-category="${plugin.category}">
+                    <div class="plugin-header">
+                        ${isFeatured ? '<div class="featured-badge">⭐ Featured</div>' : ''}
+                        <div class="plugin-icon">
+                            <i class="fas fa-puzzle-piece"></i>
+                        </div>
+                        <h5>${plugin.name}</h5>
+                        <small>v${plugin.version} by ${plugin.author}</small>
+                    </div>
+                    <div class="plugin-body">
+                        <p class="text-muted">${plugin.description}</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="rating-stars">
+                                ${generateStars(plugin.rating)}
+                                <small class="text-muted ms-1">(${plugin.rating})</small>
+                            </div>
+                            <span class="price-tag ${plugin.price === 'Free' ? 'free' : ''}">${plugin.price}</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-download"></i> ${plugin.downloads.toLocaleString()} downloads
+                            </small>
+                            <small class="text-muted">
+                                <i class="fas fa-tag"></i> ${plugin.category}
+                            </small>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            ${isInstalled ? 
+                                '<button class="btn btn-installed flex-grow-1" disabled><i class="fas fa-check"></i> Installed</button>' :
+                                `<button class="btn btn-install flex-grow-1" onclick="installPlugin('${plugin.id}')"><i class="fas fa-download"></i> Install</button>`
+                            }
+                            <button class="btn btn-outline-primary" onclick="viewPluginDetails('${plugin.id}')">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return col;
+        }
+
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 !== 0;
+            let stars = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star"></i>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            }
+            
+            const emptyStars = 5 - Math.ceil(rating);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="far fa-star"></i>';
+            }
+            
+            return stars;
+        }
+
+        function filterByCategory(category) {
+            currentFilter = category;
+            
+            // Update active button
+            document.querySelectorAll('.category-filter').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            filterPlugins();
+        }
+
+        function filterPlugins() {
+            const searchTerm = document.getElementById('pluginSearch').value.toLowerCase();
+            
+            let filteredPlugins = plugins.filter(plugin => {
+                const matchesSearch = plugin.name.toLowerCase().includes(searchTerm) ||
+                                    plugin.description.toLowerCase().includes(searchTerm) ||
+                                    plugin.author.toLowerCase().includes(searchTerm);
+                
+                const matchesCategory = currentFilter === 'all' || plugin.category === currentFilter;
+                
+                return matchesSearch && matchesCategory;
+            });
+            
+            displayPlugins(filteredPlugins);
+        }
+
+        async function installPlugin(pluginId) {
+            try {
+                showNotification('Installing plugin...', 'info');
+                
+                const response = await fetch(`/api/plugins/${pluginId}/install`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Plugin installed successfully!', 'success');
+                    
+                    // Update plugin status
+                    const plugin = plugins.find(p => p.id === pluginId);
+                    if (plugin) {
+                        plugin.installed = true;
+                    }
+                    
+                    // Refresh display
+                    filterPlugins();
+                } else {
+                    showNotification('Error installing plugin: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error installing plugin:', error);
+                showNotification('Error installing plugin', 'error');
+            }
+        }
+
+        function viewPluginDetails(pluginId) {
+            const plugin = plugins.find(p => p.id === pluginId);
+            if (plugin) {
+                alert(`Plugin Details:\n\nName: ${plugin.name}\nVersion: ${plugin.version}\nAuthor: ${plugin.author}\nCategory: ${plugin.category}\nDownloads: ${plugin.downloads}\nRating: ${plugin.rating}/5\n\nDescription:\n${plugin.description}`);
+            }
+        }
+
+        async function uploadPlugin() {
+            const form = document.getElementById('uploadForm');
+            const formData = new FormData(form);
+            
+            try {
+                showNotification('Uploading plugin...', 'info');
+                
+                const response = await fetch('/api/plugins/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Plugin uploaded successfully! It will be reviewed and published soon.', 'success');
+                    
+                    // Close modal and reset form
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('uploadModal'));
+                    modal.hide();
+                    form.reset();
+                    
+                    // Reload plugins
+                    loadPlugins();
+                } else {
+                    showNotification('Error uploading plugin: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error uploading plugin:', error);
+                showNotification('Error uploading plugin', 'error');
+            }
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '9999';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // File upload drag & drop
+        const uploadArea = document.querySelector('.upload-area');
+        const fileInput = document.getElementById('pluginFile');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.background = 'rgba(102, 126, 234, 0.1)';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.background = 'transparent';
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.background = 'transparent';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                uploadArea.innerHTML = `
+                    <i class="fas fa-check-circle fa-2x mb-3" style="color: #28a745;"></i>
+                    <p>File selected: ${files[0].name}</p>
+                `;
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                uploadArea.innerHTML = `
+                    <i class="fas fa-check-circle fa-2x mb-3" style="color: #28a745;"></i>
+                    <p>File selected: ${e.target.files[0].name}</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

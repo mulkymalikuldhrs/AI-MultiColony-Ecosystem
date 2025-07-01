@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 AI Workflow Builder - Agentic AI System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .workflow-canvas {
+            background: #f8f9fa;
+            min-height: 600px;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .workflow-node {
+            position: absolute;
+            width: 200px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            cursor: move;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .workflow-node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+        
+        .node-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .node-body {
+            padding: 15px;
+        }
+        
+        .node-toolbox {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .node-item {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            cursor: grab;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .node-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .connection-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 1px;
+            z-index: 1;
+        }
+        
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            border-radius: 25px;
+            padding: 12px 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+        
+        .workflow-stats {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .connection-point {
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            position: absolute;
+            cursor: crosshair;
+        }
+        
+        .input-point {
+            top: 50%;
+            left: -6px;
+            transform: translateY(-50%);
+        }
+        
+        .output-point {
+            top: 50%;
+            right: -6px;
+            transform: translateY(-50%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-4">
+        <!-- Header -->
+        <div class="workflow-stats">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-project-diagram"></i> AI Workflow Builder</h1>
+                    <p class="mb-0">Revolutionary drag & drop automation platform</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-gradient me-2" onclick="saveWorkflow()">
+                        <i class="fas fa-save"></i> Save Workflow
+                    </button>
+                    <button class="btn btn-gradient" onclick="executeWorkflow()">
+                        <i class="fas fa-play"></i> Execute
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Node Toolbox -->
+            <div class="col-md-3">
+                <div class="node-toolbox">
+                    <h5><i class="fas fa-tools"></i> Agent Nodes</h5>
+                    <div class="node-item" draggable="true" data-node-type="prompt_master">
+                        <i class="fas fa-brain"></i> Prompt Master
+                    </div>
+                    <div class="node-item" draggable="true" data-node-type="code_executor">
+                        <i class="fas fa-code"></i> Code Executor
+                    </div>
+                    <div class="node-item" draggable="true" data-node-type="data_sync">
+                        <i class="fas fa-sync"></i> Data Sync
+                    </div>
+                    <div class="node-item" draggable="true" data-node-type="llm_provider">
+                        <i class="fas fa-robot"></i> LLM Provider
+                    </div>
+                    
+                    <h5 class="mt-4"><i class="fas fa-cogs"></i> Logic Nodes</h5>
+                    <div class="node-item" draggable="true" data-node-type="condition">
+                        <i class="fas fa-question-circle"></i> Condition
+                    </div>
+                    <div class="node-item" draggable="true" data-node-type="loop">
+                        <i class="fas fa-redo"></i> Loop
+                    </div>
+                    <div class="node-item" draggable="true" data-node-type="delay">
+                        <i class="fas fa-clock"></i> Delay
+                    </div>
+                    
+                    <h5 class="mt-4"><i class="fas fa-plug"></i> Integration</h5>
+                    <div class="node-item" draggable="true" data-node-type="github">
+                        <i class="fab fa-github"></i> GitHub
+                    </div>
+                    <div class="node-item" draggable="true" data-node-type="slack">
+                        <i class="fab fa-slack"></i> Slack
+                    </div>
+                    <div class="node-item" draggable="true" data-node-type="email">
+                        <i class="fas fa-envelope"></i> Email
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow Canvas -->
+            <div class="col-md-6">
+                <div class="workflow-canvas" id="workflowCanvas" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="text-center text-muted mt-5 pt-5">
+                        <i class="fas fa-mouse-pointer fa-3x mb-3"></i>
+                        <h4>Drag & Drop Agents to Create Workflow</h4>
+                        <p>Start building your AI automation by dragging nodes from the left panel</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Properties Panel -->
+            <div class="col-md-3">
+                <div class="control-panel">
+                    <h5><i class="fas fa-sliders-h"></i> Node Properties</h5>
+                    <div id="nodeProperties">
+                        <div class="text-muted text-center mt-4">
+                            <i class="fas fa-hand-pointer fa-2x mb-3"></i>
+                            <p>Select a node to edit its properties</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5><i class="fas fa-chart-line"></i> Workflow Stats</h5>
+                    <div class="stat-item d-flex justify-content-between mb-2">
+                        <span>Nodes:</span>
+                        <span id="nodeCount">0</span>
+                    </div>
+                    <div class="stat-item d-flex justify-content-between mb-2">
+                        <span>Connections:</span>
+                        <span id="connectionCount">0</span>
+                    </div>
+                    <div class="stat-item d-flex justify-content-between mb-2">
+                        <span>Estimated Time:</span>
+                        <span id="estimatedTime">-</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5><i class="fas fa-history"></i> Recent Workflows</h5>
+                    <div class="recent-workflow-item p-2 mb-2 border rounded">
+                        <small><strong>GitHub Auto Deploy</strong></small><br>
+                        <small class="text-muted">Last run: 2h ago</small>
+                    </div>
+                    <div class="recent-workflow-item p-2 mb-2 border rounded">
+                        <small><strong>Data Processing</strong></small><br>
+                        <small class="text-muted">Last run: 1d ago</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Node Template -->
+    <template id="nodeTemplate">
+        <div class="workflow-node">
+            <div class="connection-point input-point"></div>
+            <div class="node-header">
+                <i class="node-icon"></i>
+                <span class="node-title"></span>
+            </div>
+            <div class="node-body">
+                <small class="node-description"></small>
+                <div class="node-config mt-2"></div>
+            </div>
+            <div class="connection-point output-point"></div>
+        </div>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let workflowData = {
+            nodes: [],
+            connections: [],
+            metadata: {
+                name: 'Untitled Workflow',
+                description: '',
+                version: '1.0.0'
+            }
+        };
+        
+        let selectedNode = null;
+        let draggedElement = null;
+        let connectionMode = false;
+        let connectionStart = null;
+
+        // Node templates
+        const nodeTemplates = {
+            prompt_master: {
+                title: 'Prompt Master',
+                icon: 'fas fa-brain',
+                description: 'Process and route prompts',
+                color: '#667eea',
+                config: {
+                    prompt: '',
+                    temperature: 0.7,
+                    max_tokens: 1000
+                }
+            },
+            code_executor: {
+                title: 'Code Executor',
+                icon: 'fas fa-code',
+                description: 'Execute code in multiple languages',
+                color: '#28a745',
+                config: {
+                    language: 'python',
+                    code: '',
+                    timeout: 30
+                }
+            },
+            github: {
+                title: 'GitHub',
+                icon: 'fab fa-github',
+                description: 'GitHub integration',
+                color: '#333',
+                config: {
+                    action: 'create_pr',
+                    repository: '',
+                    branch: 'main'
+                }
+            }
+        };
+
+        // Drag and Drop functions
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const nodeType = ev.dataTransfer.getData("text");
+            
+            if (nodeType && nodeTemplates[nodeType]) {
+                createNode(nodeType, ev.offsetX, ev.offsetY);
+            }
+        }
+
+        // Add drag listeners to toolbox items
+        document.querySelectorAll('.node-item').forEach(item => {
+            item.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData("text", this.dataset.nodeType);
+                draggedElement = this;
+            });
+        });
+
+        function createNode(type, x, y) {
+            const template = nodeTemplates[type];
+            if (!template) return;
+
+            const nodeId = 'node_' + Date.now();
+            const canvas = document.getElementById('workflowCanvas');
+            
+            // Create node element
+            const nodeElement = document.createElement('div');
+            nodeElement.className = 'workflow-node';
+            nodeElement.style.left = x + 'px';
+            nodeElement.style.top = y + 'px';
+            nodeElement.dataset.nodeId = nodeId;
+            nodeElement.dataset.nodeType = type;
+            
+            nodeElement.innerHTML = `
+                <div class="connection-point input-point" onclick="startConnection(this, 'input')"></div>
+                <div class="node-header" style="background: ${template.color}">
+                    <i class="${template.icon}"></i>
+                    ${template.title}
+                </div>
+                <div class="node-body">
+                    <small>${template.description}</small>
+                </div>
+                <div class="connection-point output-point" onclick="startConnection(this, 'output')"></div>
+            `;
+            
+            // Add click listener
+            nodeElement.addEventListener('click', () => selectNode(nodeElement));
+            
+            // Make draggable
+            makeNodeDraggable(nodeElement);
+            
+            canvas.appendChild(nodeElement);
+            
+            // Add to workflow data
+            workflowData.nodes.push({
+                id: nodeId,
+                type: type,
+                position: { x, y },
+                config: { ...template.config }
+            });
+            
+            updateStats();
+            showNotification('Node added successfully!', 'success');
+        }
+
+        function makeNodeDraggable(element) {
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+
+            element.addEventListener('mousedown', dragStart);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', dragEnd);
+
+            function dragStart(e) {
+                if (e.target.classList.contains('connection-point')) return;
+                
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+
+                if (e.target === element || element.contains(e.target)) {
+                    isDragging = true;
+                }
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    element.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+                }
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+                
+                // Update position in workflow data
+                const nodeId = element.dataset.nodeId;
+                const node = workflowData.nodes.find(n => n.id === nodeId);
+                if (node) {
+                    node.position.x += currentX;
+                    node.position.y += currentY;
+                }
+            }
+        }
+
+        function selectNode(nodeElement) {
+            // Remove previous selection
+            document.querySelectorAll('.workflow-node').forEach(n => {
+                n.style.border = '2px solid #e9ecef';
+            });
+            
+            // Highlight selected node
+            nodeElement.style.border = '2px solid #667eea';
+            selectedNode = nodeElement;
+            
+            // Show properties
+            showNodeProperties(nodeElement);
+        }
+
+        function showNodeProperties(nodeElement) {
+            const nodeId = nodeElement.dataset.nodeId;
+            const nodeType = nodeElement.dataset.nodeType;
+            const node = workflowData.nodes.find(n => n.id === nodeId);
+            const template = nodeTemplates[nodeType];
+            
+            if (!node || !template) return;
+            
+            const propertiesPanel = document.getElementById('nodeProperties');
+            
+            let configHTML = `
+                <h6><i class="${template.icon}"></i> ${template.title}</h6>
+                <div class="mb-3">
+                    <label class="form-label">Node Name</label>
+                    <input type="text" class="form-control" value="${template.title}" 
+                           onchange="updateNodeConfig('${nodeId}', 'name', this.value)">
+                </div>
+            `;
+            
+            // Add specific config fields based on node type
+            Object.keys(template.config).forEach(key => {
+                const value = node.config[key];
+                configHTML += `
+                    <div class="mb-3">
+                        <label class="form-label">${key.charAt(0).toUpperCase() + key.slice(1)}</label>
+                        <input type="text" class="form-control" value="${value}" 
+                               onchange="updateNodeConfig('${nodeId}', '${key}', this.value)">
+                    </div>
+                `;
+            });
+            
+            configHTML += `
+                <button class="btn btn-danger btn-sm w-100" onclick="deleteNode('${nodeId}')">
+                    <i class="fas fa-trash"></i> Delete Node
+                </button>
+            `;
+            
+            propertiesPanel.innerHTML = configHTML;
+        }
+
+        function updateNodeConfig(nodeId, key, value) {
+            const node = workflowData.nodes.find(n => n.id === nodeId);
+            if (node) {
+                node.config[key] = value;
+                showNotification('Configuration updated', 'success');
+            }
+        }
+
+        function deleteNode(nodeId) {
+            const nodeElement = document.querySelector(`[data-node-id="${nodeId}"]`);
+            if (nodeElement) {
+                nodeElement.remove();
+            }
+            
+            // Remove from workflow data
+            workflowData.nodes = workflowData.nodes.filter(n => n.id !== nodeId);
+            workflowData.connections = workflowData.connections.filter(c => 
+                c.source !== nodeId && c.target !== nodeId
+            );
+            
+            updateStats();
+            document.getElementById('nodeProperties').innerHTML = `
+                <div class="text-muted text-center mt-4">
+                    <i class="fas fa-hand-pointer fa-2x mb-3"></i>
+                    <p>Select a node to edit its properties</p>
+                </div>
+            `;
+            showNotification('Node deleted', 'warning');
+        }
+
+        function updateStats() {
+            document.getElementById('nodeCount').textContent = workflowData.nodes.length;
+            document.getElementById('connectionCount').textContent = workflowData.connections.length;
+            document.getElementById('estimatedTime').textContent = 
+                (workflowData.nodes.length * 2) + 's';
+        }
+
+        function saveWorkflow() {
+            const workflowName = prompt('Enter workflow name:', workflowData.metadata.name);
+            if (workflowName) {
+                workflowData.metadata.name = workflowName;
+                
+                fetch('/api/workflows', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: workflowData.metadata.name,
+                        description: workflowData.metadata.description,
+                        nodes: workflowData.nodes,
+                        connections: workflowData.connections
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Workflow saved successfully!', 'success');
+                    } else {
+                        showNotification('Error saving workflow', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error saving workflow', 'error');
+                });
+            }
+        }
+
+        function executeWorkflow() {
+            if (workflowData.nodes.length === 0) {
+                showNotification('Add some nodes before executing', 'warning');
+                return;
+            }
+            
+            showNotification('Executing workflow...', 'info');
+            
+            // Simulate execution
+            setTimeout(() => {
+                showNotification('Workflow executed successfully!', 'success');
+            }, 2000);
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '9999';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Initialize
+        updateStats();
+    </script>
+</body>
+</html>
