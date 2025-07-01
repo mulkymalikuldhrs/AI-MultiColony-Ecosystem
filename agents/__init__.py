@@ -85,6 +85,11 @@ except ImportError:
     colony_agent_factory = None
     agent_general_factory = None
 
+try:
+    from .clone_connector import clone_connector_agent
+except ImportError:
+    clone_connector_agent = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -121,6 +126,8 @@ if colony_agent_factory:
     AGENTS_REGISTRY['colony'] = colony_agent_factory
 if agent_general_factory:
     AGENTS_REGISTRY['general'] = agent_general_factory
+if clone_connector_agent:
+    AGENTS_REGISTRY['clone_connector'] = clone_connector_agent
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -219,6 +226,12 @@ AGENTS_METADATA = {
         'emoji': '🎖️',
         'description': 'High-level strategist supervising multiple colonies',
         'category': 'ai'
+    },
+    'clone_connector': {
+        'name': 'Clone Connector',
+        'emoji': '🔗',
+        'description': 'Discovers and connects remote Agentic AI nodes to build mesh network',
+        'category': 'network'
     }
 }
 
