@@ -1,0 +1,20 @@
+[
+  {
+    "area": "Blockchain Smart Contract Generation",
+    "completion": 94.13630447430607,
+    "impact_score": 8.676627475266866,
+    "implementation_ready": true
+  },
+  {
+    "area": "Neural Architecture Search Automation",
+    "completion": 96.30019753623635,
+    "impact_score": 9.894293029302961,
+    "implementation_ready": true
+  },
+  {
+    "area": "Real-Time Market Prediction Algorithms",
+    "completion": 97.49719261538843,
+    "impact_score": 8.571112571013362,
+    "implementation_ready": true
+  }
+]
