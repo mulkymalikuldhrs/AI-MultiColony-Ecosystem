@@ -1,4 +1,4 @@
-THIS SHOULD BE A LINTER ERROR"""
+"""
 🤖 Agentic AI System - Agents Module
 Centralized agent imports and registry
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
@@ -130,6 +130,11 @@ try:
 except ImportError:
     inventor_agent = None
 
+try:
+    from .recognition_agent import recognition_agent
+except ImportError:
+    recognition_agent = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -184,6 +189,8 @@ if knight_emperor_agent:
     AGENTS_REGISTRY['knight_emperor'] = knight_emperor_agent
 if inventor_agent:
     AGENTS_REGISTRY['inventor'] = inventor_agent
+if recognition_agent:
+    AGENTS_REGISTRY['recognition'] = recognition_agent
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -336,6 +343,12 @@ AGENTS_METADATA = {
         'emoji': '🔬',
         'description': 'Continuously prototypes novel inventions and spawns specialist teams',
         'category': 'research'
+    },
+    'recognition': {
+        'name': 'Recognition Agent',
+        'emoji': '👁️',
+        'description': 'Multimodal recognition (image, audio, text entity)',
+        'category': 'ai'
     },
 }
 
