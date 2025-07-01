@@ -745,8 +745,8 @@ git push origin feature/amazing-feature
 *Visionary AI Engineer from Indonesia*
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Mulky%20Dhaher-blue.svg)](https://linkedin.com/in/mulky-dhaher)
-[![GitHub](https://img.shields.io/badge/GitHub-@tokenew6-black.svg)](https://github.com/tokenew6)
-[![Email](https://img.shields.io/badge/Email-Contact-red.svg)](mailto:mulkymalikuldhr@gmail.com)
+[![GitHub](https://img.shields.io/badge/GitHub-@tokenew6-black.svg)](https://github.com/mulkymalikuldhr)
+[![Email](https://img.shields.io/badge/Email-Contact-red.svg)](mailto:mulkymalikuldhr@mail.com)
 
 **🏆 Achievements:**
 - 🥇 **First-ever real AI agent creation system** with dynamic agent generation
@@ -820,9 +820,9 @@ SOFTWARE.
 
 ### 🔗 **Attribution Requirements**
 When using this software, please maintain attribution to:
-- **Creator**: Mulky Malikul Dhaher (Indonesia)
-- **Project**: Agentic AI System
-- **Source**: https://github.com/tokenew6/Agentic-AI-Ecosystem
+- **Creator**: Mulky Malikul Dhaher 
+- **Project**: Agentic AI Ecosystem 
+- **Source**: https://github.com/mulkymalikuldhrs/Agentic-AI-Ecosystem
 
 ---
 
@@ -831,16 +831,16 @@ When using this software, please maintain attribution to:
 ### 🆘 **Getting Help**
 
 #### **Community Support (Free)**
-- **📱 Discord**: [Join our Discord Server](https://discord.gg/agentic-ai)
-- **🐛 GitHub Issues**: [Report bugs and request features](https://github.com/tokenew6/Agentic-AI-Ecosystem/issues)
-- **💬 Discussions**: [Community Q&A and discussions](https://github.com/tokenew6/Agentic-AI-Ecosystem/discussions)
-- **📚 Documentation**: [Complete documentation wiki](https://github.com/tokenew6/Agentic-AI-Ecosystem/wiki)
+- **📱 Discord**: [Join our Discord Server](https://discord.gg/agentic-ai-ecosistem)
+- **🐛 GitHub Issues**: [Report bugs and request features](https://github.com/mulkymalikuldhrs/Agentic-AI-Ecosystem/issues)
+- **💬 Discussions**: [Community Q&A and discussions](https://github.com/mulkymalikuldhrs/Agentic-AI-Ecosystem/discussions)
+- **📚 Documentation**: [Complete documentation wiki](https://github.com/mulkymalikuldhrs/Agentic-AI-Ecosystem/wiki)
 
 #### **Professional Support (Paid)**
 - **📧 Email Support**: support@agentic-ai.com
-- **🏢 Enterprise Support**: enterprise@agentic-ai.com
-- **🎓 Training & Consulting**: consulting@agentic-ai.com
-- **🔧 Custom Development**: development@agentic-ai.com
+- **🏢 Enterprise Support**: -
+- **🎓 Training & Consulting**: -
+- **🔧 Custom Development**: -
 
 ### 🌍 **Global Community**
 
@@ -867,14 +867,14 @@ When using this software, please maintain attribution to:
 
 [![GitHub Stars](https://img.shields.io/github/stars/tokenew6/Agentic-AI-Ecosystem?style=social)](https://github.com/tokenew6/Agentic-AI-Ecosystem/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/tokenew6/Agentic-AI-Ecosystem?style=social)](https://github.com/tokenew6/Agentic-AI-Ecosystem/network/members)
-[![GitHub Watchers](https://img.shields.io/github/watchers/tokenew6/Agentic-AI-Ecosystem?style=social)](https://github.com/tokenew6/Agentic-AI-Ecosystem/watchers)
-[![GitHub Contributors](https://img.shields.io/github/contributors/tokenew6/Agentic-AI-Ecosystem)](https://github.com/tokenew6/Agentic-AI-Ecosystem/graphs/contributors)
+[![GitHub Watchers](https://img.shields.io/github/watchers/mulkymalikuldhrs/Agentic-AI-Ecosystem?style=social)](https://github.com/mulkymalikuldhr/Agentic-AI-Ecosystem/watchers)
+[![GitHub Contributors](https://img.shields.io/github/contributors/mulkymalikuldhrs/Agentic-AI-Ecosystem)](https://github.com/mulkymalikuldhrs/Agentic-AI-Ecosystem/graphs/contributors)
 
 ### **📊 Development Metrics**
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/tokenew6/Agentic-AI-Ecosystem)
-![GitHub last commit](https://img.shields.io/github/last-commit/tokenew6/Agentic-AI-Ecosystem)
-![GitHub code size](https://img.shields.io/github/languages/code-size/tokenew6/Agentic-AI-Ecosystem)
-![GitHub repo size](https://img.shields.io/github/repo-size/tokenew6/Agentic-AI-Ecosystem)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/mulkymalikuldhrs/Agentic-AI-Ecosystem)
+![GitHub last commit](https://img.shields.io/github/last-commit/mulkymalikuldhrs/Agentic-AI-Ecosystem)
+![GitHub code size](https://img.shields.io/github/languages/code-size/mulkymalikuldhrs/Agentic-AI-Ecosystem)
+![GitHub repo size](https://img.shields.io/github/repo-size/mulkymalikuldhrs/Agentic-AI-Ecosystem)
 
 ### **🔢 Technical Statistics**
 - **Total Lines of Code**: 30,000+
@@ -894,7 +894,7 @@ When using this software, please maintain attribution to:
 
 <div align="center">
 
-[![Star History Chart](https://api.star-history.com/svg?repos=tokenew6/Agentic-AI-Ecosystem&type=Date)](https://star-history.com/#tokenew6/Agentic-AI-Ecosystem&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=mulkymalikuldhrs/Agentic-AI-Ecosystem&type=Date)](https://star-history.com/mulkymalikuldhrs/Agentic-AI-Ecosystem&Date)
 
 </div>
 
@@ -908,8 +908,8 @@ When using this software, please maintain attribution to:
 
 **Choose your path to get started:**
 
-[![🔥 Quick Start](https://img.shields.io/badge/🔥-Quick%20Start-red.svg?style=for-the-badge)](https://github.com/tokenew6/Agentic-AI-Ecosystem#-quick-start-guide)
-[![📚 Documentation](https://img.shields.io/badge/📚-Documentation-blue.svg?style=for-the-badge)](https://github.com/tokenew6/Agentic-AI-Ecosystem/wiki)
+[![🔥 Quick Start](https://img.shields.io/badge/🔥-Quick%20Start-red.svg?style=for-the-badge)](https://github.com/mulkymalikuldhrs/Agentic-AI-Ecosystem#-quick-start-guide)
+[![📚 Documentation](https://img.shields.io/badge/📚-Documentation-blue.svg?style=for-the-badge)](https://github.com/mulkymalikuldhrs/Agentic-AI-Ecosystem/wiki)
 [![🚀 Deploy Now](https://img.shields.io/badge/🚀-Deploy%20Now-green.svg?style=for-the-badge)](https://railway.app/new)
 [![💬 Join Community](https://img.shields.io/badge/💬-Join%20Community-purple.svg?style=for-the-badge)](https://discord.gg/agentic-ai)
 
