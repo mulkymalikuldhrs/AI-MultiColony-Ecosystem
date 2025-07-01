@@ -125,6 +125,11 @@ try:
 except ImportError:
     knight_emperor_agent = None
 
+try:
+    from .inventor_agent import inventor_agent
+except ImportError:
+    inventor_agent = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -177,6 +182,8 @@ if memory_engine_agent:
     AGENTS_REGISTRY['memory_engine'] = memory_engine_agent
 if knight_emperor_agent:
     AGENTS_REGISTRY['knight_emperor'] = knight_emperor_agent
+if inventor_agent:
+    AGENTS_REGISTRY['inventor'] = inventor_agent
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -323,6 +330,12 @@ AGENTS_METADATA = {
         'emoji': '🛡️',
         'description': 'Supreme guardian & commander across colonies',
         'category': 'ai'
+    },
+    'inventor': {
+        'name': 'Inventor Agent',
+        'emoji': '🔬',
+        'description': 'Continuously prototypes novel inventions and spawns specialist teams',
+        'category': 'research'
     },
 }
 
