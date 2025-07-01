@@ -667,19 +667,19 @@ gcloud run deploy agentic-ai \
 
 ## 🔮 Roadmap
 
-### 🎯 **Version 2.1.0 (Q1 2024)**
+### 🎯 **Version 2.1.0 (Q1 2025)**
 - [ ] **Visual Workflow Builder** - Drag & drop agent workflows
 - [ ] **Mobile App** - Native iOS/Android companion
 - [ ] **Advanced Analytics** - ML-powered insights dashboard
 - [ ] **Plugin Marketplace** - Community-driven extensions
 
-### 🚀 **Version 2.2.0 (Q2 2024)**
+### 🚀 **Version 2.2.0 (Q2 2025)**
 - [ ] **Real-time Collaboration** - Multi-user workspaces
 - [ ] **Custom AI Training** - Fine-tuning for domain-specific models
 - [ ] **IoT Integration** - Smart home and device control
 - [ ] **Blockchain Features** - Web3 capabilities and NFT support
 
-### 🌟 **Version 3.0.0 (Q3 2024)**
+### 🌟 **Version 3.0.0 (Q3 2025)**
 - [ ] **AGI Agent Capabilities** - Advanced reasoning and planning
 - [ ] **Quantum Computing** - Integration with quantum processors
 - [ ] **Global Agent Network** - Distributed agent coordination
@@ -790,7 +790,7 @@ Special thanks to the AI tools and platforms that helped accelerate development:
 ```
 MIT License
 
-Copyright (c) 2024 Mulky Malikul Dhaher
+Copyright (c) 2025 Mulky Malikul Dhaher
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -988,7 +988,7 @@ graph TD
 
 ### **🎯 Future Roadmap Comparison**
 
-**🚀 Agentic AI Vision 2024-2025:**
+**🚀 Agentic AI Vision 2025-2026:**
 - 🌍 **Global expansion** while maintaining Indonesian roots
 - 🤖 **AGI-level agents** with advanced reasoning
 - 🔗 **Blockchain integration** for Web3 capabilities
@@ -1069,7 +1069,7 @@ graph TD
 
 <div align="center">
 
-**© 2024 Mulky Malikul Dhaher • Made with ❤️ in Indonesia 🇮🇩**
+**© 2025 Mulky Malikul Dhaher • Made with ❤️ in Indonesia 🇮🇩**
 
 *Advancing the future of AI-human collaboration, one agent at a time.*
 

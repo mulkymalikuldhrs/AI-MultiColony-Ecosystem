@@ -38,7 +38,7 @@ class SecureCredentialManager:
         """Initialize encryption system"""
         if not self.master_password:
             # Use default master password (should be changed in production)
-            self.master_password = "agentic_ai_indonesia_secure_2024"
+            self.master_password = "agentic_ai_indonesia_secure_2025"
         
         # Derive encryption key from master password
         password = self.master_password.encode()

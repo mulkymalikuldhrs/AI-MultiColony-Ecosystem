@@ -434,7 +434,7 @@ kubectl scale deployment agentic-ai --replicas=10
 
 <div align="center">
 
-**© 2024 Mulky Malikul Dhaher • Made with ❤️ in Indonesia 🇮🇩**
+**© 2025 Mulky Malikul Dhaher • Made with ❤️ in Indonesia 🇮🇩**
 
 *Your journey to AI mastery starts now. Welcome to the future!*
 
