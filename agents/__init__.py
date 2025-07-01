@@ -135,6 +135,11 @@ try:
 except ImportError:
     recognition_agent = None
 
+try:
+    from .google_keep_sync import keep_sync_agent
+except ImportError:
+    keep_sync_agent = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -191,6 +196,8 @@ if inventor_agent:
     AGENTS_REGISTRY['inventor'] = inventor_agent
 if recognition_agent:
     AGENTS_REGISTRY['recognition'] = recognition_agent
+if keep_sync_agent:
+    AGENTS_REGISTRY['keep_sync'] = keep_sync_agent
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -349,6 +356,12 @@ AGENTS_METADATA = {
         'emoji': '👁️',
         'description': 'Multimodal recognition (image, audio, text entity)',
         'category': 'ai'
+    },
+    'keep_sync': {
+        'name': 'Keep Sync Agent',
+        'emoji': '🗒️',
+        'description': 'Syncs Google Keep notes via OAuth for analysis',
+        'category': 'integration'
     },
 }
 
