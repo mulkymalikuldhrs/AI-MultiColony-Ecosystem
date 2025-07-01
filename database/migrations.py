@@ -264,7 +264,7 @@ def down(connection):
         pass
 ''',
     
-    "20240101_000003_add_workflow_templates": '''"""
+            "20250101_000003_add_workflow_templates": '''"""
 Add workflow template support
 Enables reusable workflow definitions
 """

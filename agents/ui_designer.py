@@ -531,7 +531,7 @@ const {component_name}Landing = () => {{
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h3 className="text-2xl font-bold mb-4">{component_name}</h3>
-            <p className="text-gray-400">© 2024 All rights reserved.</p>
+            <p className="text-gray-400">© 2025 All rights reserved.</p>
           </div>
         </div>
       </footer>

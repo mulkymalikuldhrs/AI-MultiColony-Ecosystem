@@ -47,7 +47,7 @@ class LLMProviderManager:
                 'name': 'LLM7 (Free)',
                 'priority': 1,  # Highest priority as it's free
                 'base_url': 'https://api.llm7.com/v1',
-                'public_key': 'llm7-free-public-key-2024',  # Free public key
+                'public_key': 'llm7-free-public-key-2025',  # Free public key
                 'model_prefix': 'llm7/',
                 'supports_streaming': True,
                 'cost_per_token': 0.0,  # Free
