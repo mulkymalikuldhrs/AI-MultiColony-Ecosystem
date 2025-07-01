@@ -1,4 +1,4 @@
-"""
+THIS SHOULD BE A LINTER ERROR"""
 🤖 Agentic AI System - Agents Module
 Centralized agent imports and registry
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
