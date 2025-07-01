@@ -140,6 +140,11 @@ try:
 except ImportError:
     keep_sync_agent = None
 
+try:
+    from .future_manager import future_manager_agent
+except ImportError:
+    future_manager_agent = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -198,6 +203,8 @@ if recognition_agent:
     AGENTS_REGISTRY['recognition'] = recognition_agent
 if keep_sync_agent:
     AGENTS_REGISTRY['keep_sync'] = keep_sync_agent
+if future_manager_agent:
+    AGENTS_REGISTRY['future_manager'] = future_manager_agent
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -362,6 +369,12 @@ AGENTS_METADATA = {
         'emoji': '🗒️',
         'description': 'Syncs Google Keep notes via OAuth for analysis',
         'category': 'integration'
+    },
+    'future_manager': {
+        'name': 'Future Manager',
+        'emoji': '🪐',
+        'description': 'Advances simulation time & coordinates foresight agents',
+        'category': 'simulation'
     },
 }
 
