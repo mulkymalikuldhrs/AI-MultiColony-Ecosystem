@@ -1,4 +1,4 @@
-# 🇮🇩 Agentic AI Indonesia v6.0.0 - Mobile-First AI Revolution
+# 🇮🇩 Agentic Artificial Intelligence Ecosystem v6.0.0 - Mobile-First AI Revolution
 
 <div align="center">
 
