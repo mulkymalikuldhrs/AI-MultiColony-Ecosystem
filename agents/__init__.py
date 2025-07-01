@@ -69,6 +69,11 @@ try:
 except ImportError:
     authentication_agent = None
 
+try:
+    from .llm_provider_manager import llm_provider_manager
+except ImportError:
+    llm_provider_manager = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -97,6 +102,8 @@ if credential_manager:
     AGENTS_REGISTRY['credential_manager'] = credential_manager
 if authentication_agent:
     AGENTS_REGISTRY['authentication_agent'] = authentication_agent
+if llm_provider_manager:
+    AGENTS_REGISTRY['llm_provider_manager'] = llm_provider_manager
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -171,6 +178,12 @@ AGENTS_METADATA = {
         'emoji': '🔑',
         'description': 'Automatic login and registration across multiple platforms',
         'category': 'security'
+    },
+    'llm_provider_manager': {
+        'name': 'LLM Provider Manager',
+        'emoji': '🧠',
+        'description': 'Multi-provider AI gateway with automatic failover and cost optimization',
+        'category': 'ai'
     }
 }
 

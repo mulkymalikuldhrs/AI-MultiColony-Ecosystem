@@ -53,6 +53,7 @@ try:
     from agents.ai_research_agent import ai_research_agent
     from agents.credential_manager import credential_manager
     from agents.authentication_agent import authentication_agent
+    from agents.llm_provider_manager import llm_provider_manager
     
     # Available agents
     agents_registry = {
@@ -68,7 +69,8 @@ try:
         'code_executor': code_executor,
         'ai_research_agent': ai_research_agent,
         'credential_manager': credential_manager,
-        'authentication_agent': authentication_agent
+        'authentication_agent': authentication_agent,
+        'llm_provider_manager': llm_provider_manager
     }
     
     print("✅ All core components loaded successfully")
