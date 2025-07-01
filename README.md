@@ -483,6 +483,8 @@ Found a bug? Please [create an issue](https://github.com/tokenew6/Agentic-AI-Eco
 - **Email**: support@agentic-ai.com
 - **Enterprise**: enterprise@agentic-ai.com
 - **Security**: security@agentic-ai.com
++For any inquiry please contact **Mulky Malikul Dhaher**
++<mulkymalikuldhr@technologist.com>
 
 ### 📱 **Social Media**
 - [Twitter](https://twitter.com/AgenticAI)
