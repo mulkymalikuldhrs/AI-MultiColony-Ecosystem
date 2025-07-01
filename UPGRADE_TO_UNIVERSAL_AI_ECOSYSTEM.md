@@ -170,5 +170,5 @@ class UIMaintenanceAgent:
 
 ---
 
-**Created by Mulky Malikul Dhaher - KTP: 1107151509970001**
+**Created by Mulky Malikul Dhaher - KTP: ████████████████**
 *Building the future of AI technology from Indonesia for global dominance.*

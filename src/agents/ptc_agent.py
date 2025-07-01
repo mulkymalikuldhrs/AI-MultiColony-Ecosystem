@@ -3,7 +3,7 @@
 Advanced automation for paid-to-click platforms worldwide
 
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
-KTP: 1107151509970001 (Developer Access - Free Forever)
+KTP: ████████████████ (Developer Access - Free Forever)
 """
 
 import asyncio

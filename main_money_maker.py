@@ -20,7 +20,7 @@ The World's Most Advanced AI Ecosystem for Automated Income Generation
 🇮🇩 Made with ❤️ in Indonesia
 
 Created by: Mulky Malikul Dhaher
-KTP: 1107151509970001 (Developer Access - Free Forever)
+KTP: ████████████████ (Developer Access - Free Forever)
 Location: Indonesia 🇮🇩
 """
 

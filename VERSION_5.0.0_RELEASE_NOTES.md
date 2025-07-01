@@ -90,7 +90,7 @@
 - **Features:** Unlimited tasks, priority support, advanced features
 
 #### **👨‍💻 Developer Access:**
-- **Mulky Malikul Dhaher (KTP: 1107151509970001)**
+- **Mulky Malikul Dhaher (KTP: ████████████████)**
 - **Status:** FREE FOREVER - Enterprise Level
 - **Reason:** System creator and architect
 

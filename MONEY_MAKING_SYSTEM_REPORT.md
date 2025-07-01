@@ -378,7 +378,7 @@ quit        - Exit the system
 - **Testing Coverage:** Comprehensive simulation testing
 
 ### Special Privileges
-As the creator and owner (KTP: 1107151509970001), Mulky Malikul Dhaher has:
+As the creator and owner (KTP: ████████████████), Mulky Malikul Dhaher has:
 - ✅ **FREE FOREVER** access to all features
 - ✅ **Priority support** and customization
 - ✅ **Admin privileges** in all systems
@@ -428,4 +428,4 @@ Sistem ini tidak hanya memenuhi permintaan awal untuk "memastikan semua money-ma
 ---
 
 *Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩*  
-*KTP: 1107151509970001 - Developer Access Forever*
+*KTP: ████████████████ - Developer Access Forever*

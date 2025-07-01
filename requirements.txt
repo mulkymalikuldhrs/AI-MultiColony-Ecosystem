@@ -293,7 +293,7 @@ charset-normalizer==3.3.2
 idna==3.6
 
 # Universal AI Money-Making System v5.0.0 - Dependencies
-# Created for Mulky Malikul Dhaher (KTP: 1107151509970001)
+# Created for Mulky Malikul Dhaher (KTP: ████████████████)
 
 # Core Python Libraries
 asyncio>=3.4.3

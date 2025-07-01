@@ -3,7 +3,7 @@
 Registration, KYC verification, payment processing, dan license management
 
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
-KTP: 1107151509970001 (Developer Access - Free Forever)
+KTP: ████████████████ (Developer Access - Free Forever)
 """
 
 import hashlib
@@ -886,7 +886,7 @@ def validate_license(license_key: str) -> Dict:
 if __name__ == "__main__":
     # Display system info
     print("💰 Premium User Management System")
-    print(f"   Developer: Mulky Malikul Dhaher (KTP: 1107151509970001)")
+    print(f"   Developer: Mulky Malikul Dhaher (KTP: ████████████████)")
     print(f"   Status: Free access forever for developer")
     
     stats = user_management.get_system_stats()
