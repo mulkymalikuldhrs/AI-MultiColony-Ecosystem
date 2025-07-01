@@ -120,6 +120,11 @@ try:
 except ImportError:
     memory_engine_agent = None
 
+try:
+    from .knight_emperor import knight_emperor_agent
+except ImportError:
+    knight_emperor_agent = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -170,6 +175,8 @@ if colony_expansion_agent:
     AGENTS_REGISTRY['colony_expansion'] = colony_expansion_agent
 if memory_engine_agent:
     AGENTS_REGISTRY['memory_engine'] = memory_engine_agent
+if knight_emperor_agent:
+    AGENTS_REGISTRY['knight_emperor'] = knight_emperor_agent
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -310,7 +317,13 @@ AGENTS_METADATA = {
         'emoji': '💾',
         'description': 'Long-term memory storage wrapper',
         'category': 'system'
-    }
+    },
+    'knight_emperor': {
+        'name': 'Knight Emperor',
+        'emoji': '🛡️',
+        'description': 'Supreme guardian & commander across colonies',
+        'category': 'ai'
+    },
 }
 
 def get_agent_by_id(agent_id: str):
