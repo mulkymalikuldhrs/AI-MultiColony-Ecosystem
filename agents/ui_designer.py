@@ -799,6 +799,111 @@ const CustomNavbar = ({
 export default CustomNavbar;
 """
     
+    def _get_form_component(self) -> str:
+        """Get form component template"""
+        return """
+import React, { useState } from 'react';
+
+const CustomForm = ({ 
+  onSubmit, 
+  fields = [], 
+  submitText = 'Submit',
+  className = '' 
+}) => {
+  const [formData, setFormData] = useState({});
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (onSubmit) onSubmit(formData);
+  };
+
+  const handleChange = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className={`space-y-4 ${className}`}>
+      {fields.map((field, index) => (
+        <div key={index}>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {field.label}
+          </label>
+          {field.type === 'textarea' ? (
+            <textarea
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={field.placeholder}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+            />
+          ) : (
+            <input
+              type={field.type || 'text'}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={field.placeholder}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+            />
+          )}
+        </div>
+      ))}
+      <button
+        type="submit"
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+      >
+        {submitText}
+      </button>
+    </form>
+  );
+};
+
+export default CustomForm;
+"""
+
+    def _get_table_component(self) -> str:
+        """Get table component template"""
+        return """
+import React from 'react';
+
+const CustomTable = ({ 
+  columns = [], 
+  data = [], 
+  className = '' 
+}) => {
+  return (
+    <div className={`overflow-x-auto ${className}`}>
+      <table className="min-w-full bg-white border border-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            {columns.map((column, index) => (
+              <th
+                key={index}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {column.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {data.map((row, rowIndex) => (
+            <tr key={rowIndex} className="hover:bg-gray-50">
+              {columns.map((column, colIndex) => (
+                <td
+                  key={colIndex}
+                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                >
+                  {row[column.accessor]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default CustomTable;
+"""
+
     def _get_hero_component(self) -> str:
         """Get hero section component"""
         return """
@@ -842,6 +947,41 @@ const HeroSection = ({
 export default HeroSection;
 """
     
+    def _get_modal_component(self) -> str:
+        """Get modal component for agent dialogs"""
+        return """
+import React, { useState } from 'react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+
+const AgentModal = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
+      
+      <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <XMarkIcon className="w-6 h-6" />
+          </button>
+        </div>
+        
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AgentModal;
+"""
+
     def _get_sidebar_component(self) -> str:
         """Get sidebar component for agent control dashboard"""
         return """

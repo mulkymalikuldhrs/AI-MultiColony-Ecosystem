@@ -1,0 +1,40 @@
+{
+  "agents": {
+    "prompt_master": {
+      "status": "running",
+      "start_time": "2025-07-02T14:36:19.466734",
+      "description": "",
+      "last_check": "2025-07-02T14:36:19.467144"
+    },
+    "memory_bus": {
+      "status": "running",
+      "start_time": "2025-07-02T14:36:19.972322",
+      "description": "",
+      "last_check": "2025-07-02T14:36:19.972796"
+    },
+    "scheduler": {
+      "status": "running",
+      "start_time": "2025-07-02T14:36:20.482326",
+      "description": "",
+      "last_check": "2025-07-02T14:36:20.482848"
+    },
+    "agent_maker": {
+      "status": "running",
+      "start_time": "2025-07-02T14:36:21.559727",
+      "description": "",
+      "last_check": "2025-07-02T14:36:21.560308"
+    },
+    "ui_designer": {
+      "status": "running",
+      "start_time": "2025-07-02T14:36:22.060753",
+      "description": "",
+      "last_check": "2025-07-02T14:36:22.061264"
+    }
+  },
+  "system": {
+    "total_agents": 5,
+    "running_agents": 5,
+    "last_update": "2025-07-02T14:36:22.061273",
+    "version": "7.0.0"
+  }
+}

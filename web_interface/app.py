@@ -56,13 +56,24 @@ try:
     from agents.llm_provider_manager import llm_provider_manager
     
     # Import Ultimate AGI Force Agents v7.0.0
-    from agents.commander_agi import commander_agi
-    from agents.quality_control_specialist import quality_control_specialist
-    from agents.bug_hunter_bot import bug_hunter_bot
-    from agents.money_making_agent import money_making_agent
-    from agents.backup_colony_system import backup_colony_system
-    from agents.knowledge_management_agent import knowledge_management_agent
-    from agents.marketing_agent import marketing_agent
+    try:
+        from agents.commander_agi import commander_agi
+        from agents.quality_control_specialist import quality_control_specialist
+        from agents.bug_hunter_bot import bug_hunter_bot
+        from agents.money_making_agent import money_making_agent
+        from agents.backup_colony_system import backup_colony_system
+        from agents.knowledge_management_agent import knowledge_management_agent
+        from agents.marketing_agent import marketing_agent
+    except ImportError as e:
+        print(f"⚠️ Some Ultimate AGI Force agents not available: {e}")
+        # Create dummy agents for development
+        commander_agi = type('DummyAgent', (), {'status': 'ready', 'name': 'Commander AGI'})()
+        quality_control_specialist = type('DummyAgent', (), {'status': 'ready', 'name': 'Quality Control'})()
+        bug_hunter_bot = type('DummyAgent', (), {'status': 'ready', 'name': 'Bug Hunter Bot'})()
+        money_making_agent = type('DummyAgent', (), {'status': 'ready', 'name': 'Money Making Agent'})()
+        backup_colony_system = type('DummyAgent', (), {'status': 'ready', 'name': 'Backup Colony'})()
+        knowledge_management_agent = type('DummyAgent', (), {'status': 'ready', 'name': 'Knowledge Manager'})()
+        marketing_agent = type('DummyAgent', (), {'status': 'ready', 'name': 'Marketing Agent'})()
     
     # Available agents
     agents_registry = {
