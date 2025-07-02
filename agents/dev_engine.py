@@ -396,6 +396,231 @@ class DevEngineAgent:
     "vitest": "^0.28.5"
   }
 }"""
+
+    def _get_nextjs_package_json(self) -> str:
+        return """{
+  "name": "{{PROJECT_NAME}}",
+  "version": "0.1.0",
+  "description": "{{PROJECT_DESCRIPTION}}",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "tailwindcss": "^3.3.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "jest": "^29.0.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/jest-dom": "^5.16.0"
+  }
+}"""
+
+    def _get_nextjs_config(self) -> str:
+        return """/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    appDir: true,
+  },
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+  images: {
+    domains: ['localhost'],
+  },
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  }
+}
+
+module.exports = nextConfig"""
+
+    def _get_nextjs_page(self) -> str:
+        return """export default function Home() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
+        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
+          Get started by editing&nbsp;
+          <code className="font-mono font-bold">app/page.tsx</code>
+        </p>
+      </div>
+
+      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
+        <h1 className="text-6xl font-bold">
+          Welcome to {{PROJECT_NAME}}
+        </h1>
+      </div>
+
+      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
+        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
+          <h2 className="mb-3 text-2xl font-semibold">
+            Docs{' '}
+            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+              -&gt;
+            </span>
+          </h2>
+          <p className="m-0 max-w-[30ch] text-sm opacity-50">
+            Find in-depth information about Next.js features and API.
+          </p>
+        </div>
+
+        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
+          <h2 className="mb-3 text-2xl font-semibold">
+            Learn{' '}
+            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+              -&gt;
+            </span>
+          </h2>
+          <p className="m-0 max-w-[30ch] text-sm opacity-50">
+            Learn about Next.js in an interactive course with&nbsp;quizzes!
+          </p>
+        </div>
+
+        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
+          <h2 className="mb-3 text-2xl font-semibold">
+            Templates{' '}
+            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+              -&gt;
+            </span>
+          </h2>
+          <p className="m-0 max-w-[30ch] text-sm opacity-50">
+            Explore the Next.js 13 playground.
+          </p>
+        </div>
+
+        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
+          <h2 className="mb-3 text-2xl font-semibold">
+            Deploy{' '}
+            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+              -&gt;
+            </span>
+          </h2>
+          <p className="m-0 max-w-[30ch] text-sm opacity-50 text-balance">
+            Instantly deploy your Next.js site to a shareable URL with Vercel.
+          </p>
+        </div>
+      </div>
+    </main>
+  )
+}"""
+
+    def _get_nextjs_layout(self) -> str:
+        return """import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: '{{PROJECT_NAME}}',
+  description: '{{PROJECT_DESCRIPTION}}',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>{children}</body>
+    </html>
+  )
+}"""
+
+    def _get_nextjs_gitignore(self) -> str:
+        return """# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts"""
+
+    def _get_nextjs_readme(self) -> str:
+        return """# {{PROJECT_NAME}}
+
+{{PROJECT_DESCRIPTION}}
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+"""
     
     def _get_vite_config(self) -> str:
         return """import { defineConfig } from 'vite'
@@ -770,6 +995,379 @@ def test_get_users():
     assert response.status_code == 200
     assert isinstance(response.json(), list)"""
     
+    def _get_python_setup(self) -> str:
+        return """from setuptools import setup, find_packages
+
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
+with open("requirements.txt", "r", encoding="utf-8") as fh:
+    requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+
+setup(
+    name="{{PROJECT_NAME}}",
+    version="0.1.0",
+    author="Your Name",
+    author_email="your.email@example.com",
+    description="{{PROJECT_DESCRIPTION}}",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/yourusername/{{PROJECT_NAME}}",
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+    ],
+    python_requires=">=3.8",
+    install_requires=requirements,
+    extras_require={
+        "dev": [
+            "pytest>=7.0",
+            "pytest-cov>=4.0",
+            "black>=22.0",
+            "flake8>=5.0",
+            "mypy>=0.991",
+        ],
+    },
+    entry_points={
+        "console_scripts": [
+            "{{PROJECT_NAME}}={{PROJECT_NAME}}.main:main",
+        ],
+    },
+)"""
+
+    def _get_python_requirements(self) -> str:
+        return """# Core dependencies
+requests>=2.28.0
+click>=8.1.0
+pydantic>=1.10.0
+python-dotenv>=0.19.0
+
+# Development dependencies (install with: pip install -e .[dev])
+# pytest>=7.0
+# pytest-cov>=4.0
+# black>=22.0
+# flake8>=5.0
+# mypy>=0.991"""
+
+    def _get_python_main(self) -> str:
+        return '''"""
+{{PROJECT_NAME}} - {{PROJECT_DESCRIPTION}}
+
+Main application entry point.
+"""
+
+import click
+import logging
+from pathlib import Path
+
+
+def setup_logging(verbose: bool = False):
+    """Setup logging configuration."""
+    level = logging.DEBUG if verbose else logging.INFO
+    logging.basicConfig(
+        level=level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+
+
+@click.command()
+@click.option('--verbose', '-v', is_flag=True, help='Enable verbose logging')
+@click.option('--config', '-c', type=click.Path(exists=True), help='Configuration file path')
+@click.version_option(version='0.1.0')
+def main(verbose: bool, config: str):
+    """
+    {{PROJECT_NAME}} - {{PROJECT_DESCRIPTION}}
+    """
+    setup_logging(verbose)
+    
+    logger = logging.getLogger(__name__)
+    logger.info("Starting {{PROJECT_NAME}}...")
+    
+    if config:
+        logger.info(f"Using configuration file: {config}")
+    
+    # Your application logic here
+    click.echo("Hello from {{PROJECT_NAME}}!")
+    click.echo("This is a template Python application.")
+    
+    logger.info("{{PROJECT_NAME}} completed successfully")
+
+
+if __name__ == '__main__':
+    main()
+'''
+
+    def _get_python_tests(self) -> str:
+        return '''"""
+Test suite for {{PROJECT_NAME}}.
+"""
+
+import pytest
+from click.testing import CliRunner
+from {{PROJECT_NAME}}.main import main
+
+
+def test_main_command():
+    """Test the main CLI command."""
+    runner = CliRunner()
+    result = runner.invoke(main, [])
+    
+    assert result.exit_code == 0
+    assert "Hello from {{PROJECT_NAME}}!" in result.output
+    assert "This is a template Python application." in result.output
+
+
+def test_main_command_verbose():
+    """Test the main CLI command with verbose flag."""
+    runner = CliRunner()
+    result = runner.invoke(main, ['--verbose'])
+    
+    assert result.exit_code == 0
+    assert "Hello from {{PROJECT_NAME}}!" in result.output
+
+
+def test_main_command_help():
+    """Test the main CLI command help."""
+    runner = CliRunner()
+    result = runner.invoke(main, ['--help'])
+    
+    assert result.exit_code == 0
+    assert "{{PROJECT_DESCRIPTION}}" in result.output
+    assert "--verbose" in result.output
+    assert "--config" in result.output
+
+
+@pytest.fixture
+def sample_data():
+    """Sample test data fixture."""
+    return {
+        "test_key": "test_value",
+        "numbers": [1, 2, 3, 4, 5],
+        "nested": {
+            "inner_key": "inner_value"
+        }
+    }
+
+
+def test_sample_data_fixture(sample_data):
+    """Test the sample data fixture."""
+    assert sample_data["test_key"] == "test_value"
+    assert len(sample_data["numbers"]) == 5
+    assert sample_data["nested"]["inner_key"] == "inner_value"
+
+
+class TestExample:
+    """Example test class."""
+    
+    def test_example_method(self):
+        """Example test method."""
+        result = 2 + 2
+        assert result == 4
+    
+    def test_string_operations(self):
+        """Test string operations."""
+        text = "Hello, World!"
+        assert text.lower() == "hello, world!"
+        assert text.upper() == "HELLO, WORLD!"
+        assert len(text) == 13
+'''
+
+    def _get_python_readme(self) -> str:
+        return """# {{PROJECT_NAME}}
+
+{{PROJECT_DESCRIPTION}}
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/{{PROJECT_NAME}}.git
+cd {{PROJECT_NAME}}
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\\Scripts\\activate
+
+# Install dependencies
+pip install -e .
+
+# For development
+pip install -e .[dev]
+```
+
+## Usage
+
+```bash
+# Run the application
+{{PROJECT_NAME}}
+
+# Show help
+{{PROJECT_NAME}} --help
+
+# Run with verbose output
+{{PROJECT_NAME}} --verbose
+
+# Use custom configuration
+{{PROJECT_NAME}} --config config.yml
+```
+
+## Development
+
+```bash
+# Install development dependencies
+pip install -e .[dev]
+
+# Run tests
+pytest
+
+# Run tests with coverage
+pytest --cov={{PROJECT_NAME}}
+
+# Format code
+black .
+
+# Lint code
+flake8
+
+# Type checking
+mypy src/
+```
+
+## Project Structure
+
+```
+{{PROJECT_NAME}}/
+├── src/{{PROJECT_NAME}}/
+│   ├── __init__.py
+│   └── main.py
+├── tests/
+│   ├── __init__.py
+│   └── test_main.py
+├── requirements.txt
+├── setup.py
+├── README.md
+└── .gitignore
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+Your Name - your.email@example.com
+
+Project Link: [https://github.com/yourusername/{{PROJECT_NAME}}](https://github.com/yourusername/{{PROJECT_NAME}})
+"""
+
+    def _get_pyproject_toml(self) -> str:
+        return """[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "{{PROJECT_NAME}}"
+version = "0.1.0"
+description = "{{PROJECT_DESCRIPTION}}"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "requests>=2.28.0",
+    "click>=8.1.0",
+    "pydantic>=1.10.0",
+    "python-dotenv>=0.19.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=22.0",
+    "flake8>=5.0",
+    "mypy>=0.991",
+]
+
+[project.scripts]
+{{PROJECT_NAME}} = "{{PROJECT_NAME}}.main:main"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/{{PROJECT_NAME}}"
+Repository = "https://github.com/yourusername/{{PROJECT_NAME}}.git"
+Documentation = "https://{{PROJECT_NAME}}.readthedocs.io/"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\\.pyi?$'
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--strict-markers --strict-config"
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+]
+"""
+
     def _get_python_gitignore(self) -> str:
         return """# Byte-compiled / optimized / DLL files
 __pycache__/
@@ -956,6 +1554,127 @@ MIT License"""
             "agent": self.agent_id,
             "timestamp": datetime.now().isoformat()
         }
+
+    def _get_docker_compose(self) -> str:
+        """Get Docker Compose configuration"""
+        return """version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/{{PROJECT_NAME}}
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB={{PROJECT_NAME}}
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    driver: bridge
+"""
+
+    def _get_fullstack_readme(self) -> str:
+        """Get fullstack project README"""
+        return """# {{PROJECT_NAME}}
+
+{{PROJECT_DESCRIPTION}}
+
+A full-stack application with React frontend and FastAPI backend.
+
+## Architecture
+
+- **Frontend**: React + TypeScript + Tailwind CSS
+- **Backend**: FastAPI + Python
+- **Database**: PostgreSQL
+- **Cache**: Redis
+- **Deployment**: Docker + Docker Compose
+
+## Quick Start
+
+### Prerequisites
+
+- Docker and Docker Compose
+- Node.js 18+ (for local development)
+- Python 3.8+ (for local development)
+
+### Development Setup
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd {{PROJECT_NAME}}
+```
+
+2. Start the development environment:
+```bash
+docker-compose up -d
+```
+
+3. Access the application:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
+
+## License
+
+This project is licensed under the MIT License.
+"""
 
 # Additional template methods would continue here...
 # Keeping the response manageable, I'm including the core structure

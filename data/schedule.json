@@ -1,0 +1,91 @@
+{
+  "scheduled_tasks": [
+    {
+      "task_id": "health_check",
+      "agent_id": "agent_watcher",
+      "task_type": "ScheduleType.RECURRING",
+      "schedule_expression": "*/5 * * * *",
+      "task_data": {
+        "action": "health_check"
+      },
+      "priority": 8,
+      "max_retries": 3,
+      "retry_count": 0,
+      "status": "ScheduleStatus.PENDING",
+      "created_at": "2025-07-02 13:31:00.354543",
+      "next_run": null,
+      "last_run": null,
+      "last_result": null,
+      "enabled": true
+    },
+    {
+      "task_id": "memory_cleanup",
+      "agent_id": "data_sync",
+      "task_type": "ScheduleType.RECURRING",
+      "schedule_expression": "0 2 * * *",
+      "task_data": {
+        "action": "cleanup_memory"
+      },
+      "priority": 6,
+      "max_retries": 3,
+      "retry_count": 0,
+      "status": "ScheduleStatus.PENDING",
+      "created_at": "2025-07-02 13:31:00.354556",
+      "next_run": null,
+      "last_run": null,
+      "last_result": null,
+      "enabled": true
+    },
+    {
+      "task_id": "performance_report",
+      "agent_id": "prompt_master",
+      "task_type": "ScheduleType.RECURRING",
+      "schedule_expression": "0 9 * * 1",
+      "task_data": {
+        "action": "generate_performance_report"
+      },
+      "priority": 4,
+      "max_retries": 3,
+      "retry_count": 0,
+      "status": "ScheduleStatus.PENDING",
+      "created_at": "2025-07-02 13:31:00.354562",
+      "next_run": null,
+      "last_run": null,
+      "last_result": null,
+      "enabled": true
+    },
+    {
+      "task_id": "auto_backup",
+      "agent_id": "data_sync",
+      "task_type": "ScheduleType.RECURRING",
+      "schedule_expression": "0 0 * * 0",
+      "task_data": {
+        "action": "backup_data"
+      },
+      "priority": 7,
+      "max_retries": 3,
+      "retry_count": 0,
+      "status": "ScheduleStatus.PENDING",
+      "created_at": "2025-07-02 13:31:00.354566",
+      "next_run": null,
+      "last_run": null,
+      "last_result": null,
+      "enabled": true
+    }
+  ],
+  "auto_restart": {
+    "prompt_master": {
+      "enabled": true,
+      "max_failures": 3,
+      "restart_delay": 30,
+      "health_check_interval": 60
+    },
+    "sync_engine": {
+      "enabled": true,
+      "max_failures": 2,
+      "restart_delay": 10,
+      "health_check_interval": 30
+    }
+  },
+  "last_updated": "2025-07-02T13:31:00.354729"
+}

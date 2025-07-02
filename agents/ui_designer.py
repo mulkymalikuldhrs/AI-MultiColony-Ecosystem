@@ -841,6 +841,114 @@ const HeroSection = ({
 
 export default HeroSection;
 """
+
+    def _get_sidebar_component(self) -> str:
+        """Get sidebar component"""
+        return """
+<div class="sidebar bg-gray-800 text-white w-64 min-h-screen p-4">
+    <div class="sidebar-header mb-8">
+        <h2 class="text-xl font-bold">{{title}}</h2>
+    </div>
+    <nav class="sidebar-nav">
+        <ul class="space-y-2">
+            {{#items}}
+            <li>
+                <a href="{{url}}" class="block py-2 px-4 rounded hover:bg-gray-700 {{#active}}bg-gray-700{{/active}}">
+                    {{#icon}}<i class="{{icon}} mr-2"></i>{{/icon}}
+                    {{text}}
+                </a>
+            </li>
+            {{/items}}
+        </ul>
+    </nav>
+</div>
+"""
+
+    def _get_modal_component(self) -> str:
+        """Get modal component"""
+        return """
+<div class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" id="{{id}}">
+    <div class="modal-content bg-white rounded-lg p-6 max-w-md w-full m-4">
+        <div class="modal-header flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">{{title}}</h3>
+            <button class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body mb-4">
+            {{content}}
+        </div>
+        <div class="modal-footer flex justify-end space-x-2">
+            {{#buttons}}
+            <button class="px-4 py-2 rounded {{class}}">{{text}}</button>
+            {{/buttons}}
+        </div>
+    </div>
+</div>
+"""
+
+    def _get_form_component(self) -> str:
+        """Get form component"""
+        return """
+<form class="form bg-white p-6 rounded-lg shadow-md">
+    <div class="form-header mb-6">
+        {{#title}}<h2 class="text-2xl font-bold mb-2">{{title}}</h2>{{/title}}
+        {{#description}}<p class="text-gray-600">{{description}}</p>{{/description}}
+    </div>
+    <div class="form-body space-y-4">
+        {{#fields}}
+        <div class="form-group">
+            {{#label}}<label class="block text-sm font-medium text-gray-700 mb-1">{{label}}</label>{{/label}}
+            <input type="{{type}}" name="{{name}}" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" placeholder="{{placeholder}}">
+            {{#error}}<p class="text-red-500 text-sm mt-1">{{error}}</p>{{/error}}
+        </div>
+        {{/fields}}
+    </div>
+    <div class="form-footer mt-6">
+        <button type="submit" class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700">
+            {{submit_text}}
+        </button>
+    </div>
+</form>
+"""
+
+    def _get_table_component(self) -> str:
+        """Get table component"""
+        return """
+<div class="table-container bg-white rounded-lg shadow-md overflow-hidden">
+    {{#title}}
+    <div class="table-header p-4 bg-gray-50 border-b">
+        <h3 class="text-lg font-semibold">{{title}}</h3>
+    </div>
+    {{/title}}
+    <div class="table-wrapper overflow-x-auto">
+        <table class="w-full">
+            {{#headers}}
+            <thead class="bg-gray-50">
+                <tr>
+                    {{#columns}}
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {{text}}
+                    </th>
+                    {{/columns}}
+                </tr>
+            </thead>
+            {{/headers}}
+            <tbody class="bg-white divide-y divide-gray-200">
+                {{#rows}}
+                <tr class="hover:bg-gray-50">
+                    {{#cells}}
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        {{content}}
+                    </td>
+                    {{/cells}}
+                </tr>
+                {{/rows}}
+            </tbody>
+        </table>
+    </div>
+</div>
+"""
     
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create standardized error response"""
