@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ Ultimate AGI Force - Agent Control Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        .agent-card {
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+        .agent-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .status-indicator {
+            animation: pulse 2s infinite;
+        }
+        .workflow-node {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .workflow-node:hover {
+            transform: scale(1.05);
+        }
+        .connection-line {
+            stroke-dasharray: 5,5;
+            animation: dash 2s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -10; }
+        }
+        .floating-panel {
+            backdrop-filter: blur(10px);
+            background: rgba(15, 23, 42, 0.95);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen">
+    <!-- Navigation Header -->
+    <nav class="bg-slate-800 border-b border-slate-700 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-shield-alt text-blue-500 text-2xl"></i>
+                    <h1 class="text-2xl font-bold">Ultimate AGI Force</h1>
+                    <span class="bg-green-500 text-xs px-2 py-1 rounded-full">v7.0.0</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-green-500 rounded-full status-indicator"></div>
+                    <span class="text-sm">System Online</span>
+                </div>
+                <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">
+                    <i class="fas fa-cog mr-2"></i>Settings
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard -->
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-80 bg-slate-800 border-r border-slate-700 overflow-y-auto">
+            <div class="p-4">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-robot mr-2 text-blue-500"></i>
+                    Agent Control Center
+                </h2>
+                
+                <!-- Agent Groups -->
+                <div id="agent-groups" class="space-y-4">
+                    <!-- Security Agents -->
+                    <div class="agent-group">
+                        <button class="group-toggle w-full flex items-center justify-between p-3 bg-red-900/20 rounded-lg hover:bg-red-900/30 transition-colors">
+                            <div class="flex items-center">
+                                <i class="fas fa-shield-alt text-red-500 mr-3"></i>
+                                <span class="font-medium">Security Agents</span>
+                            </div>
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="group-content mt-2 ml-6 space-y-2">
+                            <div class="agent-item" data-agent="commander_agi">
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer">
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                                        <div>
+                                            <div class="font-medium">Commander AGI</div>
+                                            <div class="text-xs text-gray-400">Security & Robotics</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-1">
+                                        <button class="agent-action p-1 hover:bg-green-600 rounded" data-action="start" title="Start">
+                                            <i class="fas fa-play text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-yellow-600 rounded" data-action="pause" title="Pause">
+                                            <i class="fas fa-pause text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-red-600 rounded" data-action="stop" title="Stop">
+                                            <i class="fas fa-stop text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="agent-item" data-agent="bug_hunter">
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer">
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                                        <div>
+                                            <div class="font-medium">Bug Hunter Bot</div>
+                                            <div class="text-xs text-gray-400">Ethical Hacking</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-1">
+                                        <button class="agent-action p-1 hover:bg-green-600 rounded" data-action="start" title="Start">
+                                            <i class="fas fa-play text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-yellow-600 rounded" data-action="pause" title="Pause">
+                                            <i class="fas fa-pause text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-red-600 rounded" data-action="stop" title="Stop">
+                                            <i class="fas fa-stop text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="agent-item" data-agent="authentication">
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer">
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                                        <div>
+                                            <div class="font-medium">Authentication Agent</div>
+                                            <div class="text-xs text-gray-400">KYC & Payment</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-1">
+                                        <button class="agent-action p-1 hover:bg-green-600 rounded" data-action="start" title="Start">
+                                            <i class="fas fa-play text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-yellow-600 rounded" data-action="pause" title="Pause">
+                                            <i class="fas fa-pause text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-red-600 rounded" data-action="stop" title="Stop">
+                                            <i class="fas fa-stop text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Agents -->
+                    <div class="agent-group">
+                        <button class="group-toggle w-full flex items-center justify-between p-3 bg-green-900/20 rounded-lg hover:bg-green-900/30 transition-colors">
+                            <div class="flex items-center">
+                                <i class="fas fa-dollar-sign text-green-500 mr-3"></i>
+                                <span class="font-medium">Business Agents</span>
+                            </div>
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="group-content mt-2 ml-6 space-y-2">
+                            <div class="agent-item" data-agent="money_maker">
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer">
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
+                                        <div>
+                                            <div class="font-medium">Money Making Agent</div>
+                                            <div class="text-xs text-gray-400">Revenue Generation</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-1">
+                                        <button class="agent-action p-1 hover:bg-green-600 rounded" data-action="start" title="Start">
+                                            <i class="fas fa-play text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-yellow-600 rounded" data-action="pause" title="Pause">
+                                            <i class="fas fa-pause text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-red-600 rounded" data-action="stop" title="Stop">
+                                            <i class="fas fa-stop text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="agent-item" data-agent="marketing">
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer">
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 bg-pink-500 rounded-full mr-3"></div>
+                                        <div>
+                                            <div class="font-medium">Marketing Agent</div>
+                                            <div class="text-xs text-gray-400">Global Promotion</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-1">
+                                        <button class="agent-action p-1 hover:bg-green-600 rounded" data-action="start" title="Start">
+                                            <i class="fas fa-play text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-yellow-600 rounded" data-action="pause" title="Pause">
+                                            <i class="fas fa-pause text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-red-600 rounded" data-action="stop" title="Stop">
+                                            <i class="fas fa-stop text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="agent-item" data-agent="quality_control">
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer">
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                                        <div>
+                                            <div class="font-medium">Quality Control</div>
+                                            <div class="text-xs text-gray-400">Assessment</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-1">
+                                        <button class="agent-action p-1 hover:bg-green-600 rounded" data-action="start" title="Start">
+                                            <i class="fas fa-play text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-yellow-600 rounded" data-action="pause" title="Pause">
+                                            <i class="fas fa-pause text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-red-600 rounded" data-action="stop" title="Stop">
+                                            <i class="fas fa-stop text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Agents -->
+                    <div class="agent-group">
+                        <button class="group-toggle w-full flex items-center justify-between p-3 bg-blue-900/20 rounded-lg hover:bg-blue-900/30 transition-colors">
+                            <div class="flex items-center">
+                                <i class="fas fa-server text-blue-500 mr-3"></i>
+                                <span class="font-medium">System Agents</span>
+                            </div>
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="group-content mt-2 ml-6 space-y-2">
+                            <div class="agent-item" data-agent="backup_colony">
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer">
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 bg-cyan-500 rounded-full mr-3"></div>
+                                        <div>
+                                            <div class="font-medium">Backup Colony</div>
+                                            <div class="text-xs text-gray-400">Distributed Backup</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-1">
+                                        <button class="agent-action p-1 hover:bg-green-600 rounded" data-action="start" title="Start">
+                                            <i class="fas fa-play text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-yellow-600 rounded" data-action="pause" title="Pause">
+                                            <i class="fas fa-pause text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-red-600 rounded" data-action="stop" title="Stop">
+                                            <i class="fas fa-stop text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="agent-item" data-agent="knowledge_manager">
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer">
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
+                                        <div>
+                                            <div class="font-medium">Knowledge Manager</div>
+                                            <div class="text-xs text-gray-400">Memory & Data</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-1">
+                                        <button class="agent-action p-1 hover:bg-green-600 rounded" data-action="start" title="Start">
+                                            <i class="fas fa-play text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-yellow-600 rounded" data-action="pause" title="Pause">
+                                            <i class="fas fa-pause text-xs"></i>
+                                        </button>
+                                        <button class="agent-action p-1 hover:bg-red-600 rounded" data-action="stop" title="Stop">
+                                            <i class="fas fa-stop text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col">
+            <!-- Top Metrics Bar -->
+            <div class="bg-slate-800 border-b border-slate-700 p-4">
+                <div class="grid grid-cols-6 gap-4">
+                    <div class="bg-slate-700 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-green-500" id="active-agents">0</div>
+                        <div class="text-sm text-gray-400">Active Agents</div>
+                    </div>
+                    <div class="bg-slate-700 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-500" id="total-tasks">0</div>
+                        <div class="text-sm text-gray-400">Tasks Completed</div>
+                    </div>
+                    <div class="bg-slate-700 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-yellow-500" id="revenue-generated">$0</div>
+                        <div class="text-sm text-gray-400">Revenue Generated</div>
+                    </div>
+                    <div class="bg-slate-700 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-purple-500" id="threats-detected">0</div>
+                        <div class="text-sm text-gray-400">Threats Detected</div>
+                    </div>
+                    <div class="bg-slate-700 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-cyan-500" id="backups-created">0</div>
+                        <div class="text-sm text-gray-400">Backups Created</div>
+                    </div>
+                    <div class="bg-slate-700 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-pink-500" id="campaigns-active">0</div>
+                        <div class="text-sm text-gray-400">Active Campaigns</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Content -->
+            <div class="flex-1 p-6">
+                <!-- Tab Navigation -->
+                <div class="flex space-x-1 mb-6">
+                    <button class="tab-button active px-4 py-2 rounded-lg bg-blue-600 text-white" data-tab="overview">
+                        <i class="fas fa-chart-line mr-2"></i>Overview
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600" data-tab="workflow">
+                        <i class="fas fa-project-diagram mr-2"></i>Workflow
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600" data-tab="monitoring">
+                        <i class="fas fa-chart-bar mr-2"></i>Monitoring
+                    </button>
+                    <button class="tab-button px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600" data-tab="logs">
+                        <i class="fas fa-file-alt mr-2"></i>Logs
+                    </button>
+                </div>
+
+                <!-- Tab Content -->
+                <div id="tab-content">
+                    <!-- Overview Tab -->
+                    <div id="overview-tab" class="tab-content">
+                        <div class="grid grid-cols-2 gap-6">
+                            <!-- System Status -->
+                            <div class="bg-slate-800 rounded-xl p-6">
+                                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                                    <i class="fas fa-heartbeat text-green-500 mr-3"></i>
+                                    System Health
+                                </h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span>CPU Usage</span>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-32 bg-slate-700 rounded-full h-2">
+                                                <div class="bg-green-500 h-2 rounded-full" style="width: 45%"></div>
+                                            </div>
+                                            <span class="text-sm">45%</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span>Memory Usage</span>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-32 bg-slate-700 rounded-full h-2">
+                                                <div class="bg-blue-500 h-2 rounded-full" style="width: 67%"></div>
+                                            </div>
+                                            <span class="text-sm">67%</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span>Network I/O</span>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-32 bg-slate-700 rounded-full h-2">
+                                                <div class="bg-yellow-500 h-2 rounded-full" style="width: 23%"></div>
+                                            </div>
+                                            <span class="text-sm">23%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Activities -->
+                            <div class="bg-slate-800 rounded-xl p-6">
+                                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                                    <i class="fas fa-clock text-blue-500 mr-3"></i>
+                                    Recent Activities
+                                </h3>
+                                <div id="recent-activities" class="space-y-3">
+                                    <div class="flex items-center space-x-3 p-3 bg-slate-700 rounded-lg">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                        <div class="flex-1">
+                                            <div class="text-sm font-medium">Commander AGI initialized</div>
+                                            <div class="text-xs text-gray-400">2 minutes ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-3 p-3 bg-slate-700 rounded-lg">
+                                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                        <div class="flex-1">
+                                            <div class="text-sm font-medium">Bug Hunter Bot started scan</div>
+                                            <div class="text-xs text-gray-400">5 minutes ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-3 p-3 bg-slate-700 rounded-lg">
+                                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                        <div class="flex-1">
+                                            <div class="text-sm font-medium">Backup Colony synchronized</div>
+                                            <div class="text-xs text-gray-400">8 minutes ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Workflow Tab -->
+                    <div id="workflow-tab" class="tab-content hidden">
+                        <div class="bg-slate-800 rounded-xl p-6 h-96">
+                            <h3 class="text-xl font-semibold mb-4 flex items-center">
+                                <i class="fas fa-project-diagram text-purple-500 mr-3"></i>
+                                Agent Workflow Designer
+                            </h3>
+                            <div id="workflow-canvas" class="w-full h-full bg-slate-900 rounded-lg relative overflow-hidden">
+                                <!-- Workflow nodes will be dynamically generated here -->
+                                <div class="absolute top-4 left-4 text-gray-400 text-sm">
+                                    Click to add workflow nodes...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monitoring Tab -->
+                    <div id="monitoring-tab" class="tab-content hidden">
+                        <div class="grid grid-cols-1 gap-6">
+                            <!-- Performance Charts -->
+                            <div class="bg-slate-800 rounded-xl p-6">
+                                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                                    <i class="fas fa-chart-bar text-green-500 mr-3"></i>
+                                    Performance Metrics
+                                </h3>
+                                <div class="h-64 bg-slate-900 rounded-lg flex items-center justify-center">
+                                    <span class="text-gray-400">Real-time performance charts will appear here</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logs Tab -->
+                    <div id="logs-tab" class="tab-content hidden">
+                        <div class="bg-slate-800 rounded-xl p-6">
+                            <h3 class="text-xl font-semibold mb-4 flex items-center">
+                                <i class="fas fa-file-alt text-orange-500 mr-3"></i>
+                                System Logs
+                            </h3>
+                            <div id="log-container" class="h-96 bg-slate-900 rounded-lg p-4 overflow-y-auto font-mono text-sm">
+                                <div class="text-green-400">[2025-07-02 14:30:45] [INFO] Ultimate AGI Force v7.0.0 initialized</div>
+                                <div class="text-blue-400">[2025-07-02 14:30:46] [INFO] Commander AGI: Security monitoring started</div>
+                                <div class="text-yellow-400">[2025-07-02 14:30:47] [WARN] Bug Hunter Bot: Target scan queue is empty</div>
+                                <div class="text-green-400">[2025-07-02 14:30:48] [INFO] Authentication Agent: KYC system ready</div>
+                                <div class="text-purple-400">[2025-07-02 14:30:49] [INFO] Knowledge Manager: Memory system initialized</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Panel (Floating) -->
+    <div id="control-panel" class="fixed bottom-6 right-6 floating-panel rounded-xl p-4 border border-slate-600">
+        <div class="flex items-center space-x-4">
+            <button id="emergency-stop" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">
+                <i class="fas fa-stop mr-2"></i>Emergency Stop
+            </button>
+            <button id="restart-all" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                <i class="fas fa-redo mr-2"></i>Restart All
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Socket.IO connection
+        const socket = io();
+
+        // Tab switching
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.dataset.tab;
+                
+                // Update button states
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active', 'bg-blue-600', 'text-white');
+                    btn.classList.add('bg-slate-700', 'hover:bg-slate-600');
+                });
+                button.classList.add('active', 'bg-blue-600', 'text-white');
+                button.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+                
+                // Show target tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(targetTab + '-tab').classList.remove('hidden');
+            });
+        });
+
+        // Group toggle functionality
+        document.querySelectorAll('.group-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const content = toggle.nextElementSibling;
+                const icon = toggle.querySelector('i.fa-chevron-down');
+                
+                content.classList.toggle('hidden');
+                icon.classList.toggle('rotate-180');
+            });
+        });
+
+        // Agent action handlers
+        document.querySelectorAll('.agent-action').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const action = button.dataset.action;
+                const agentItem = button.closest('.agent-item');
+                const agentId = agentItem.dataset.agent;
+                
+                socket.emit('agent_action', {
+                    agent_id: agentId,
+                    action: action
+                });
+                
+                // Visual feedback
+                button.classList.add('animate-pulse');
+                setTimeout(() => button.classList.remove('animate-pulse'), 1000);
+            });
+        });
+
+        // Agent selection
+        document.querySelectorAll('.agent-item').forEach(item => {
+            item.addEventListener('click', () => {
+                // Remove previous selection
+                document.querySelectorAll('.agent-item > div').forEach(div => {
+                    div.classList.remove('ring-2', 'ring-blue-500');
+                });
+                
+                // Add selection to clicked item
+                item.querySelector('div').classList.add('ring-2', 'ring-blue-500');
+                
+                const agentId = item.dataset.agent;
+                loadAgentDetails(agentId);
+            });
+        });
+
+        // Emergency controls
+        document.getElementById('emergency-stop').addEventListener('click', () => {
+            if (confirm('Are you sure you want to stop all agents?')) {
+                socket.emit('emergency_stop');
+            }
+        });
+
+        document.getElementById('restart-all').addEventListener('click', () => {
+            if (confirm('Are you sure you want to restart all agents?')) {
+                socket.emit('restart_all');
+            }
+        });
+
+        // Socket event handlers
+        socket.on('agent_status_update', (data) => {
+            updateAgentStatus(data.agent_id, data.status);
+        });
+
+        socket.on('system_metrics', (data) => {
+            updateSystemMetrics(data);
+        });
+
+        socket.on('new_log_entry', (data) => {
+            addLogEntry(data);
+        });
+
+        // Helper functions
+        function updateAgentStatus(agentId, status) {
+            const agentItem = document.querySelector(`[data-agent="${agentId}"]`);
+            if (agentItem) {
+                const statusDot = agentItem.querySelector('.w-3.h-3');
+                statusDot.className = `w-3 h-3 rounded-full mr-3 ${getStatusColor(status)}`;
+            }
+        }
+
+        function getStatusColor(status) {
+            switch (status) {
+                case 'active': return 'bg-green-500';
+                case 'running': return 'bg-blue-500';
+                case 'error': return 'bg-red-500';
+                case 'paused': return 'bg-yellow-500';
+                default: return 'bg-gray-500';
+            }
+        }
+
+        function updateSystemMetrics(metrics) {
+            document.getElementById('active-agents').textContent = metrics.active_agents || 0;
+            document.getElementById('total-tasks').textContent = metrics.total_tasks || 0;
+            document.getElementById('revenue-generated').textContent = `$${metrics.revenue || 0}`;
+            document.getElementById('threats-detected').textContent = metrics.threats || 0;
+            document.getElementById('backups-created').textContent = metrics.backups || 0;
+            document.getElementById('campaigns-active').textContent = metrics.campaigns || 0;
+        }
+
+        function addLogEntry(logData) {
+            const logContainer = document.getElementById('log-container');
+            const logEntry = document.createElement('div');
+            logEntry.className = `text-${logData.level === 'ERROR' ? 'red' : logData.level === 'WARN' ? 'yellow' : 'green'}-400`;
+            logEntry.textContent = `[${logData.timestamp}] [${logData.level}] ${logData.message}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function loadAgentDetails(agentId) {
+            socket.emit('get_agent_details', { agent_id: agentId });
+        }
+
+        // Initialize dashboard
+        socket.emit('get_initial_data');
+        
+        // Auto-refresh metrics every 5 seconds
+        setInterval(() => {
+            socket.emit('get_system_metrics');
+        }, 5000);
+    </script>
+</body>
+</html>

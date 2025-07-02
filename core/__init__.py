@@ -6,17 +6,15 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
 from .prompt_master import PromptMasterAgent
-from .memory_bus import MemoryBus
-from .sync_engine import SyncEngine
-from .scheduler import AgentScheduler
-from .ai_selector import AISelector
-from .error_recovery import ErrorRecoverySystem
+from .memory_bus import MemoryBusAgent
+from .sync_engine import SyncEngineAgent
+from .scheduler import SchedulerAgent
+from .ai_selector import AISelectorAgent
 
 __all__ = [
     'PromptMasterAgent',
-    'MemoryBus',
-    'SyncEngine', 
-    'AgentScheduler',
-    'AISelector',
-    'ErrorRecoverySystem'
+    'MemoryBusAgent',
+    'SyncEngineAgent', 
+    'SchedulerAgent',
+    'AISelectorAgent'
 ]

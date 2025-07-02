@@ -799,6 +799,111 @@ const CustomNavbar = ({
 export default CustomNavbar;
 """
     
+    def _get_form_component(self) -> str:
+        """Get form component template"""
+        return """
+import React, { useState } from 'react';
+
+const CustomForm = ({ 
+  onSubmit, 
+  fields = [], 
+  submitText = 'Submit',
+  className = '' 
+}) => {
+  const [formData, setFormData] = useState({});
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (onSubmit) onSubmit(formData);
+  };
+
+  const handleChange = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className={`space-y-4 ${className}`}>
+      {fields.map((field, index) => (
+        <div key={index}>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {field.label}
+          </label>
+          {field.type === 'textarea' ? (
+            <textarea
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={field.placeholder}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+            />
+          ) : (
+            <input
+              type={field.type || 'text'}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={field.placeholder}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+            />
+          )}
+        </div>
+      ))}
+      <button
+        type="submit"
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+      >
+        {submitText}
+      </button>
+    </form>
+  );
+};
+
+export default CustomForm;
+"""
+
+    def _get_table_component(self) -> str:
+        """Get table component template"""
+        return """
+import React from 'react';
+
+const CustomTable = ({ 
+  columns = [], 
+  data = [], 
+  className = '' 
+}) => {
+  return (
+    <div className={`overflow-x-auto ${className}`}>
+      <table className="min-w-full bg-white border border-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            {columns.map((column, index) => (
+              <th
+                key={index}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {column.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {data.map((row, rowIndex) => (
+            <tr key={rowIndex} className="hover:bg-gray-50">
+              {columns.map((column, colIndex) => (
+                <td
+                  key={colIndex}
+                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                >
+                  {row[column.accessor]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default CustomTable;
+"""
+
     def _get_hero_component(self) -> str:
         """Get hero section component"""
         return """
@@ -842,6 +947,182 @@ const HeroSection = ({
 export default HeroSection;
 """
     
+    def _get_modal_component(self) -> str:
+        """Get modal component for agent dialogs"""
+        return """
+import React, { useState } from 'react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+
+const AgentModal = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
+      
+      <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <XMarkIcon className="w-6 h-6" />
+          </button>
+        </div>
+        
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AgentModal;
+"""
+
+    def _get_sidebar_component(self) -> str:
+        """Get sidebar component for agent control dashboard"""
+        return """
+import React, { useState } from 'react';
+import { ChevronDownIcon, ChevronRightIcon, CpuChipIcon, PlayIcon, PauseIcon, StopIcon } from '@heroicons/react/24/outline';
+
+const AgentSidebar = ({ agents, onAgentSelect, onAgentAction, selectedAgent }) => {
+  const [expandedGroups, setExpandedGroups] = useState({
+    'security': true,
+    'development': true,
+    'business': true,
+    'system': true
+  });
+
+  const agentGroups = {
+    security: ['commander_agi', 'bug_hunter', 'authentication'],
+    development: ['dev_engine', 'fullstack_dev', 'ui_designer'],
+    business: ['money_maker', 'marketing', 'quality_control'],
+    system: ['backup_colony', 'knowledge_manager', 'data_sync']
+  };
+
+  const toggleGroup = (group) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [group]: !prev[group]
+    }));
+  };
+
+  const getAgentStatus = (agentId) => {
+    const agent = agents[agentId];
+    if (!agent) return 'offline';
+    return agent.status || 'unknown';
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'active': return 'text-green-500';
+      case 'running': return 'text-blue-500';
+      case 'error': return 'text-red-500';
+      case 'paused': return 'text-yellow-500';
+      default: return 'text-gray-500';
+    }
+  };
+
+  return (
+    <div className="w-80 bg-gray-900 text-white h-full overflow-y-auto">
+      <div className="p-4 border-b border-gray-700">
+        <h2 className="text-xl font-bold flex items-center">
+          <CpuChipIcon className="w-6 h-6 mr-2" />
+          Agent Control Center
+        </h2>
+      </div>
+
+      <div className="p-4">
+        {Object.entries(agentGroups).map(([groupName, agentIds]) => (
+          <div key={groupName} className="mb-4">
+            <button
+              onClick={() => toggleGroup(groupName)}
+              className="flex items-center w-full text-left text-gray-300 hover:text-white mb-2"
+            >
+              {expandedGroups[groupName] ? (
+                <ChevronDownIcon className="w-4 h-4 mr-2" />
+              ) : (
+                <ChevronRightIcon className="w-4 h-4 mr-2" />
+              )}
+              <span className="font-medium capitalize">{groupName}</span>
+            </button>
+
+            {expandedGroups[groupName] && (
+              <div className="ml-6 space-y-2">
+                {agentIds.map(agentId => {
+                  const agent = agents[agentId];
+                  const status = getAgentStatus(agentId);
+                  const isSelected = selectedAgent === agentId;
+
+                  return (
+                    <div
+                      key={agentId}
+                      className={`p-2 rounded cursor-pointer border ${
+                        isSelected 
+                          ? 'bg-blue-600 border-blue-500' 
+                          : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
+                      }`}
+                      onClick={() => onAgentSelect(agentId)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className={`w-3 h-3 rounded-full ${getStatusColor(status)} mr-2`} />
+                          <span className="text-sm">{agent?.name || agentId}</span>
+                        </div>
+                        <div className="flex space-x-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAgentAction(agentId, 'start');
+                            }}
+                            className="p-1 hover:bg-green-600 rounded"
+                            title="Start Agent"
+                          >
+                            <PlayIcon className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAgentAction(agentId, 'pause');
+                            }}
+                            className="p-1 hover:bg-yellow-600 rounded"
+                            title="Pause Agent"
+                          >
+                            <PauseIcon className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAgentAction(agentId, 'stop');
+                            }}
+                            className="p-1 hover:bg-red-600 rounded"
+                            title="Stop Agent"
+                          >
+                            <StopIcon className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        Status: {status}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default AgentSidebar;
+"""
+
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create standardized error response"""
         return {
