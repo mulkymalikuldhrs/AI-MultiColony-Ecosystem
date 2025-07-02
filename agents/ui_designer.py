@@ -842,6 +842,147 @@ const HeroSection = ({
 export default HeroSection;
 """
     
+    def _get_sidebar_component(self) -> str:
+        """Get sidebar component for agent control dashboard"""
+        return """
+import React, { useState } from 'react';
+import { ChevronDownIcon, ChevronRightIcon, CpuChipIcon, PlayIcon, PauseIcon, StopIcon } from '@heroicons/react/24/outline';
+
+const AgentSidebar = ({ agents, onAgentSelect, onAgentAction, selectedAgent }) => {
+  const [expandedGroups, setExpandedGroups] = useState({
+    'security': true,
+    'development': true,
+    'business': true,
+    'system': true
+  });
+
+  const agentGroups = {
+    security: ['commander_agi', 'bug_hunter', 'authentication'],
+    development: ['dev_engine', 'fullstack_dev', 'ui_designer'],
+    business: ['money_maker', 'marketing', 'quality_control'],
+    system: ['backup_colony', 'knowledge_manager', 'data_sync']
+  };
+
+  const toggleGroup = (group) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [group]: !prev[group]
+    }));
+  };
+
+  const getAgentStatus = (agentId) => {
+    const agent = agents[agentId];
+    if (!agent) return 'offline';
+    return agent.status || 'unknown';
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'active': return 'text-green-500';
+      case 'running': return 'text-blue-500';
+      case 'error': return 'text-red-500';
+      case 'paused': return 'text-yellow-500';
+      default: return 'text-gray-500';
+    }
+  };
+
+  return (
+    <div className="w-80 bg-gray-900 text-white h-full overflow-y-auto">
+      <div className="p-4 border-b border-gray-700">
+        <h2 className="text-xl font-bold flex items-center">
+          <CpuChipIcon className="w-6 h-6 mr-2" />
+          Agent Control Center
+        </h2>
+      </div>
+
+      <div className="p-4">
+        {Object.entries(agentGroups).map(([groupName, agentIds]) => (
+          <div key={groupName} className="mb-4">
+            <button
+              onClick={() => toggleGroup(groupName)}
+              className="flex items-center w-full text-left text-gray-300 hover:text-white mb-2"
+            >
+              {expandedGroups[groupName] ? (
+                <ChevronDownIcon className="w-4 h-4 mr-2" />
+              ) : (
+                <ChevronRightIcon className="w-4 h-4 mr-2" />
+              )}
+              <span className="font-medium capitalize">{groupName}</span>
+            </button>
+
+            {expandedGroups[groupName] && (
+              <div className="ml-6 space-y-2">
+                {agentIds.map(agentId => {
+                  const agent = agents[agentId];
+                  const status = getAgentStatus(agentId);
+                  const isSelected = selectedAgent === agentId;
+
+                  return (
+                    <div
+                      key={agentId}
+                      className={`p-2 rounded cursor-pointer border ${
+                        isSelected 
+                          ? 'bg-blue-600 border-blue-500' 
+                          : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
+                      }`}
+                      onClick={() => onAgentSelect(agentId)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className={`w-3 h-3 rounded-full ${getStatusColor(status)} mr-2`} />
+                          <span className="text-sm">{agent?.name || agentId}</span>
+                        </div>
+                        <div className="flex space-x-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAgentAction(agentId, 'start');
+                            }}
+                            className="p-1 hover:bg-green-600 rounded"
+                            title="Start Agent"
+                          >
+                            <PlayIcon className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAgentAction(agentId, 'pause');
+                            }}
+                            className="p-1 hover:bg-yellow-600 rounded"
+                            title="Pause Agent"
+                          >
+                            <PauseIcon className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAgentAction(agentId, 'stop');
+                            }}
+                            className="p-1 hover:bg-red-600 rounded"
+                            title="Stop Agent"
+                          >
+                            <StopIcon className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        Status: {status}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default AgentSidebar;
+"""
+
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create standardized error response"""
         return {
