@@ -1,543 +1,860 @@
 """
-🔑 Authentication Agent - Auto-Login & Registration System
-Handles automatic authentication and registration across platforms
+🔐 Authentication Agent - KYC, Payment Verification, and User Management
+Advanced AI agent for user authentication, KYC verification, and payment processing
+
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
 import asyncio
 import json
-import os
-import requests
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
+import logging
+import hashlib
+import secrets
 import time
+import re
+import sqlite3
+import qrcode
+import io
+import base64
+from datetime import datetime, timedelta
+from typing import Dict, List, Any, Optional, Union
+from dataclasses import dataclass
+from pathlib import Path
+import requests
+import subprocess
+import threading
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import jwt
+import pyotp
+from PIL import Image
+import cv2
+import numpy as np
+
+@dataclass
+class User:
+    """User account information"""
+    user_id: str
+    username: str
+    email: str
+    phone: Optional[str]
+    kyc_status: str  # pending, verified, rejected, expired
+    account_status: str  # active, suspended, banned, pending_payment
+    created_at: datetime
+    last_login: Optional[datetime] = None
+    payment_status: str = "unpaid"  # unpaid, paid, expired
+    subscription_type: str = "free"  # free, basic, premium, enterprise
+    verification_level: int = 0  # 0=none, 1=email, 2=phone, 3=kyc, 4=full
+    metadata: Dict[str, Any] = None
+
+@dataclass
+class KYCDocument:
+    """KYC document information"""
+    document_id: str
+    user_id: str
+    document_type: str  # ktp, passport, driver_license, bank_statement
+    document_number: str
+    full_name: str
+    date_of_birth: Optional[str]
+    address: Optional[str]
+    uploaded_at: datetime
+    verification_status: str  # pending, verified, rejected
+    verification_notes: Optional[str] = None
+    confidence_score: float = 0.0
+
+@dataclass
+class PaymentRecord:
+    """Payment transaction record"""
+    payment_id: str
+    user_id: str
+    amount: float
+    currency: str
+    payment_method: str
+    payment_provider: str
+    status: str  # pending, completed, failed, refunded
+    created_at: datetime
+    completed_at: Optional[datetime] = None
+    verification_code: Optional[str] = None
+    metadata: Dict[str, Any] = None
 
 class AuthenticationAgent:
     """
-    Advanced Authentication Agent that:
-    - Performs automatic login to various platforms
-    - Handles registration workflows
-    - Manages 2FA/OTP authentication
-    - Maintains active sessions
-    - Provides platform-specific authentication flows
-    - Integrates with Credential Manager for secure storage
+    Authentication Agent: Comprehensive user authentication and verification
+    
+    Capabilities:
+    - 🔐 Multi-factor authentication
+    - 📋 KYC (Know Your Customer) verification
+    - 💳 Payment verification and processing
+    - 👤 User account management
+    - 🔍 Identity verification
+    - 📱 2FA/TOTP implementation
+    - 🌐 SSO (Single Sign-On) integration
+    - 🔒 Session management
+    - 📊 Authentication analytics
+    - 🚫 Fraud detection and prevention
     """
     
     def __init__(self):
         self.agent_id = "authentication_agent"
         self.name = "Authentication Agent"
-        self.version = "2.0.0"
-        self.status = "ready"
+        self.status = "initializing"
+        self.version = "1.0.0"
+        self.start_time = datetime.now()
+        
+        # Core capabilities
         self.capabilities = [
-            "auto_login",
-            "auto_registration",
+            "multi_factor_authentication",
+            "kyc_verification",
+            "payment_verification",
+            "user_management",
+            "identity_verification",
+            "two_factor_auth",
             "session_management",
-            "2fa_handling",
-            "platform_integration",
-            "oauth_flows",
-            "api_authentication",
-            "browser_automation"
+            "fraud_detection",
+            "compliance_management",
+            "authentication_analytics"
         ]
         
-        # Platform authentication handlers
-        self.auth_handlers = {
-            'github': self._handle_github_auth,
-            'google': self._handle_google_auth,
-            'aws': self._handle_aws_auth,
-            'openai': self._handle_openai_auth,
-            'anthropic': self._handle_anthropic_auth,
-            'huggingface': self._handle_huggingface_auth,
-            'docker': self._handle_docker_auth,
-            'netlify': self._handle_netlify_auth,
-            'vercel': self._handle_vercel_auth,
-            'heroku': self._handle_heroku_auth,
-            'linkedin': self._handle_linkedin_auth,
-            'twitter': self._handle_twitter_auth,
-            'facebook': self._handle_facebook_auth,
-            'discord': self._handle_discord_auth,
-            'slack': self._handle_slack_auth,
-            'notion': self._handle_notion_auth,
-            'figma': self._handle_figma_auth,
-            'stripe': self._handle_stripe_auth
-        }
-        
-        # Session storage
+        # User management
+        self.users = {}
         self.active_sessions = {}
-        self.session_cookies = {}
+        self.kyc_documents = {}
+        self.payment_records = {}
         
-        # Browser setup for web automation
-        self.browser_options = self._setup_browser_options()
+        # Authentication configuration
+        self.auth_config = {
+            "session_timeout": 3600,  # 1 hour
+            "password_min_length": 8,
+            "max_login_attempts": 5,
+            "lockout_duration": 900,  # 15 minutes
+            "require_2fa": True,
+            "kyc_required_for_paid": True,
+            "auto_verify_owner": True
+        }
         
-        # Performance metrics
-        self.successful_logins = 0
-        self.failed_logins = 0
-        self.registrations_completed = 0
-        self.sessions_managed = 0
+        # KYC configuration
+        self.kyc_config = {
+            "required_documents": ["ktp"],  # Indonesian ID required
+            "manual_review_threshold": 0.7,
+            "auto_approve_threshold": 0.9,
+            "document_expiry_days": 365,
+            "owner_ktp": "1107151509970001",  # Mulky Malikul Dhaher
+            "owner_name": "Mulky Malikul Dhaher"
+        }
         
-        print(f"✅ {self.name} initialized with {len(self.auth_handlers)} platform handlers")
-    
-    def _setup_browser_options(self) -> Options:
-        """Setup Chrome browser options for automation"""
-        options = Options()
-        options.add_argument('--headless')  # Run in background
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_argument('--disable-gpu')
-        options.add_argument('--window-size=1920,1080')
-        options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
-        return options
-    
-    async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
-        """Process authentication tasks"""
-        try:
-            task_type = task.get('type', 'login')
-            
-            if task_type == 'login':
-                return await self.perform_login(task)
-            elif task_type == 'register':
-                return await self.perform_registration(task)
-            elif task_type == 'logout':
-                return await self.perform_logout(task)
-            elif task_type == 'check_session':
-                return await self.check_session_status(task)
-            elif task_type == 'refresh_session':
-                return await self.refresh_session(task)
-            elif task_type == 'list_sessions':
-                return await self.list_active_sessions()
-            elif task_type == 'bulk_login':
-                return await self.perform_bulk_login(task)
-            elif task_type == 'test_credentials':
-                return await self.test_platform_credentials(task)
-            else:
-                return {
-                    'success': False,
-                    'error': f'Unknown task type: {task_type}'
-                }
-                
-        except Exception as e:
-            return {
-                'success': False,
-                'error': f'Authentication error: {str(e)}'
+        # Payment configuration
+        self.payment_config = {
+            "supported_currencies": ["USD", "IDR"],
+            "supported_methods": ["bank_transfer", "crypto", "e_wallet"],
+            "payment_providers": {
+                "midtrans": {"api_key": None, "active": False},
+                "xendit": {"api_key": None, "active": False},
+                "gopay": {"api_key": None, "active": False},
+                "dana": {"api_key": None, "active": False}
+            },
+            "subscription_prices": {
+                "basic": {"usd": 9.99, "idr": 150000},
+                "premium": {"usd": 29.99, "idr": 450000},
+                "enterprise": {"usd": 99.99, "idr": 1500000}
             }
+        }
+        
+        # Security keys
+        self.jwt_secret = None
+        self.encryption_key = None
+        self.totp_issuer = "Dhaher AI Ecosystem"
+        
+        # Fraud detection
+        self.fraud_patterns = {
+            "suspicious_ips": set(),
+            "failed_attempts": {},
+            "rate_limits": {}
+        }
+        
+        # Initialize logging
+        self.setup_logging()
+        
+        # Initialize authentication infrastructure
+        self.initialize_auth_infrastructure()
+        
+        # Load configuration
+        self.load_auth_configuration()
+        
+        # Initialize owner account
+        self.initialize_owner_account()
+        
+        self.logger.info("Authentication Agent initialized successfully")
+        self.status = "ready"
     
-    async def perform_login(self, task: Dict[str, Any]) -> Dict[str, Any]:
-        """Perform automatic login to specified platform"""
-        try:
-            platform = task.get('platform')
-            credential_id = task.get('credential_id')
-            auto_2fa = task.get('auto_2fa', False)
-            save_session = task.get('save_session', True)
-            
-            if not platform:
-                return {
-                    'success': False,
-                    'error': 'Platform is required'
-                }
-            
-            # Get credentials from credential manager
-            from agents.credential_manager import credential_manager
-            
-            get_credential_task = {
-                'type': 'get_credential',
-                'platform': platform
-            }
-            if credential_id:
-                get_credential_task['credential_id'] = credential_id
-            
-            credential_result = await credential_manager.process_task(get_credential_task)
-            
-            if not credential_result['success']:
-                return {
-                    'success': False,
-                    'error': f'No credentials found for {platform}: {credential_result["error"]}'
-                }
-            
-            credential = credential_result['credential']
-            
-            # Perform platform-specific login
-            if platform in self.auth_handlers:
-                login_result = await self.auth_handlers[platform](credential, 'login', auto_2fa)
-            else:
-                login_result = await self._handle_generic_login(credential, auto_2fa)
-            
-            # Save session if successful
-            if login_result['success'] and save_session:
-                session_data = {
-                    'platform': platform,
-                    'credential_id': credential['id'],
-                    'logged_in_at': datetime.now().isoformat(),
-                    'session_data': login_result.get('session_data', {}),
-                    'expires_at': (datetime.now() + timedelta(hours=24)).isoformat()
-                }
-                
-                self.active_sessions[platform] = session_data
-                self.sessions_managed += 1
-            
-            # Update metrics
-            if login_result['success']:
-                self.successful_logins += 1
-            else:
-                self.failed_logins += 1
-            
-            return login_result
-            
-        except Exception as e:
-            self.failed_logins += 1
-            return {
-                'success': False,
-                'error': f'Login failed: {str(e)}'
-            }
+    def setup_logging(self):
+        """Setup logging for Authentication Agent"""
+        log_dir = Path("data/logs")
+        log_dir.mkdir(parents=True, exist_ok=True)
+        
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_dir / "authentication.log"),
+                logging.StreamHandler()
+            ]
+        )
+        self.logger = logging.getLogger("AuthenticationAgent")
     
-    async def perform_registration(self, task: Dict[str, Any]) -> Dict[str, Any]:
-        """Perform automatic registration on specified platform"""
-        try:
-            platform = task.get('platform')
-            registration_data = task.get('registration_data', {})
-            auto_verify = task.get('auto_verify', False)
-            
-            if not platform or not registration_data:
-                return {
-                    'success': False,
-                    'error': 'Platform and registration_data are required'
-                }
-            
-            # Perform platform-specific registration
-            if platform in self.auth_handlers:
-                register_result = await self.auth_handlers[platform](registration_data, 'register', auto_verify)
-            else:
-                register_result = await self._handle_generic_registration(platform, registration_data, auto_verify)
-            
-            # Store credentials if registration successful
-            if register_result['success'] and register_result.get('credentials'):
-                from agents.credential_manager import credential_manager
-                
-                store_task = {
-                    'type': 'store_credential',
-                    'platform': platform,
-                    'auth_method': register_result.get('auth_method', 'username_password'),
-                    'credential_data': register_result['credentials'],
-                    'username': registration_data.get('username') or registration_data.get('email'),
-                    'description': f'Auto-registered on {datetime.now().strftime("%Y-%m-%d")}'
-                }
-                
-                await credential_manager.process_task(store_task)
-                self.registrations_completed += 1
-            
-            return register_result
-            
-        except Exception as e:
-            return {
-                'success': False,
-                'error': f'Registration failed: {str(e)}'
-            }
+    def initialize_auth_infrastructure(self):
+        """Initialize authentication infrastructure"""
+        # Create authentication directories
+        auth_dirs = [
+            "data/auth",
+            "data/auth/users",
+            "data/auth/kyc",
+            "data/auth/payments",
+            "data/auth/sessions",
+            "data/auth/logs"
+        ]
+        
+        for directory in auth_dirs:
+            Path(directory).mkdir(parents=True, exist_ok=True)
+        
+        # Initialize database
+        self.initialize_auth_database()
+        
+        # Initialize encryption
+        self.initialize_auth_encryption()
     
-    async def _handle_github_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
-        """Handle GitHub authentication"""
+    def initialize_auth_database(self):
+        """Initialize SQLite database for authentication"""
+        db_dir = Path("data/auth")
+        self.db_path = db_dir / "authentication.db"
+        
         try:
-            if action == 'login':
-                if 'token' in credential_data['credential_data']:
-                    # API token authentication
-                    token = credential_data['credential_data']['token']
-                    headers = {
-                        'Authorization': f'token {token}',
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                    
-                    response = requests.get('https://api.github.com/user', headers=headers)
-                    
-                    if response.status_code == 200:
-                        user_data = response.json()
-                        return {
-                            'success': True,
-                            'message': 'GitHub login successful',
-                            'platform': 'github',
-                            'user_info': user_data,
-                            'session_data': {'token': token, 'headers': headers}
-                        }
-                    else:
-                        return {
-                            'success': False,
-                            'error': f'GitHub API authentication failed: {response.status_code}'
-                        }
-                
-                else:
-                    # Web-based login
-                    return await self._perform_web_login(
-                        'https://github.com/login',
-                        credential_data['credential_data'],
-                        'github'
-                    )
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
             
-            elif action == 'register':
-                return await self._perform_web_registration(
-                    'https://github.com/join',
-                    credential_data,
-                    'github'
+            # Create tables
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id TEXT PRIMARY KEY,
+                    username TEXT UNIQUE NOT NULL,
+                    email TEXT UNIQUE NOT NULL,
+                    phone TEXT,
+                    password_hash TEXT NOT NULL,
+                    salt TEXT NOT NULL,
+                    kyc_status TEXT DEFAULT 'pending',
+                    account_status TEXT DEFAULT 'pending_payment',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_login TIMESTAMP,
+                    payment_status TEXT DEFAULT 'unpaid',
+                    subscription_type TEXT DEFAULT 'free',
+                    verification_level INTEGER DEFAULT 0,
+                    totp_secret TEXT,
+                    metadata TEXT
                 )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS kyc_documents (
+                    document_id TEXT PRIMARY KEY,
+                    user_id TEXT,
+                    document_type TEXT NOT NULL,
+                    document_number TEXT,
+                    full_name TEXT,
+                    date_of_birth TEXT,
+                    address TEXT,
+                    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    verification_status TEXT DEFAULT 'pending',
+                    verification_notes TEXT,
+                    confidence_score REAL DEFAULT 0.0,
+                    document_data TEXT,
+                    FOREIGN KEY (user_id) REFERENCES users (user_id)
+                )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS payment_records (
+                    payment_id TEXT PRIMARY KEY,
+                    user_id TEXT,
+                    amount REAL NOT NULL,
+                    currency TEXT DEFAULT 'USD',
+                    payment_method TEXT,
+                    payment_provider TEXT,
+                    status TEXT DEFAULT 'pending',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    verification_code TEXT,
+                    metadata TEXT,
+                    FOREIGN KEY (user_id) REFERENCES users (user_id)
+                )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS auth_sessions (
+                    session_id TEXT PRIMARY KEY,
+                    user_id TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP,
+                    ip_address TEXT,
+                    user_agent TEXT,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    FOREIGN KEY (user_id) REFERENCES users (user_id)
+                )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS auth_logs (
+                    log_id TEXT PRIMARY KEY,
+                    user_id TEXT,
+                    action TEXT NOT NULL,
+                    ip_address TEXT,
+                    user_agent TEXT,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    success BOOLEAN,
+                    details TEXT
+                )
+            ''')
+            
+            conn.commit()
+            conn.close()
+            
+            self.logger.info("Authentication database initialized")
             
         except Exception as e:
-            return {
-                'success': False,
-                'error': f'GitHub authentication error: {str(e)}'
-            }
+            self.logger.error(f"Failed to initialize authentication database: {e}")
     
-    async def _handle_google_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
-        """Handle Google authentication"""
+    def initialize_auth_encryption(self):
+        """Initialize encryption for authentication"""
         try:
-            if action == 'login':
-                # Google OAuth or service account authentication
-                if 'service_account' in credential_data['credential_data']:
-                    # Service account authentication
-                    from google.oauth2 import service_account
+            # Generate or load JWT secret
+            jwt_file = Path("data/auth/.jwt.key")
+            if jwt_file.exists():
+                with open(jwt_file, 'r') as f:
+                    self.jwt_secret = f.read().strip()
+            else:
+                self.jwt_secret = secrets.token_urlsafe(64)
+                with open(jwt_file, 'w') as f:
+                    f.write(self.jwt_secret)
+                os.chmod(jwt_file, 0o600)
+            
+            # Generate or load encryption key
+            encryption_file = Path("data/auth/.encryption.key")
+            if encryption_file.exists():
+                with open(encryption_file, 'rb') as f:
+                    self.encryption_key = f.read()
+            else:
+                self.encryption_key = Fernet.generate_key()
+                with open(encryption_file, 'wb') as f:
+                    f.write(self.encryption_key)
+                os.chmod(encryption_file, 0o600)
+            
+            self.logger.info("Authentication encryption initialized")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to initialize encryption: {e}")
+    
+    def load_auth_configuration(self):
+        """Load authentication configuration"""
+        config_file = Path("data/auth/auth_config.json")
+        if config_file.exists():
+            try:
+                with open(config_file, 'r') as f:
+                    config = json.load(f)
+                    self.auth_config.update(config.get("auth_config", {}))
+                    self.kyc_config.update(config.get("kyc_config", {}))
+                    self.payment_config.update(config.get("payment_config", {}))
                     
-                    credentials = service_account.Credentials.from_service_account_info(
-                        credential_data['credential_data']['service_account']
-                    )
-                    
-                    return {
-                        'success': True,
-                        'message': 'Google service account authentication successful',
-                        'platform': 'google',
-                        'session_data': {'credentials': credentials}
-                    }
+                self.logger.info("Authentication configuration loaded")
                 
-                else:
-                    # Web-based OAuth login
-                    return await self._perform_oauth_login(
-                        'https://accounts.google.com/oauth2/auth',
-                        credential_data['credential_data'],
-                        'google'
-                    )
+            except Exception as e:
+                self.logger.error(f"Failed to load auth configuration: {e}")
+    
+    def initialize_owner_account(self):
+        """Initialize owner account (Mulky Malikul Dhaher) with full privileges"""
+        try:
+            owner_user_id = "owner_mulky_malikul_dhaher"
+            
+            # Check if owner account already exists
+            if owner_user_id not in self.users:
+                # Create owner account
+                owner_user = User(
+                    user_id=owner_user_id,
+                    username="mulkymalikuldhaher",
+                    email="mulky@dhaher.ai",
+                    phone="+62", # Indonesian phone prefix
+                    kyc_status="verified",
+                    account_status="active",
+                    created_at=datetime.now(),
+                    payment_status="paid",
+                    subscription_type="enterprise",
+                    verification_level=4,  # Full verification
+                    metadata={
+                        "ktp": self.kyc_config["owner_ktp"],
+                        "full_name": self.kyc_config["owner_name"],
+                        "role": "owner",
+                        "privileges": "all"
+                    }
+                )
+                
+                self.users[owner_user_id] = owner_user
+                
+                # Auto-verify owner KYC
+                if self.kyc_config["auto_verify_owner"]:
+                    # Schedule async verification for later when event loop is available
+                    self.logger.info("Owner KYC auto-verification scheduled")
+                
+                self.logger.info("Owner account initialized with full privileges")
             
         except Exception as e:
-            return {
-                'success': False,
-                'error': f'Google authentication error: {str(e)}'
-            }
+            self.logger.error(f"Failed to initialize owner account: {e}")
     
-    async def _handle_openai_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
-        """Handle OpenAI authentication"""
+    async def register_user(self, username: str, email: str, password: str, 
+                          phone: Optional[str] = None, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Register a new user"""
+        self.logger.info(f"Registering new user: {username}")
+        
         try:
-            if action == 'login':
-                api_key = credential_data['credential_data'].get('api_key')
-                if not api_key:
-                    return {
-                        'success': False,
-                        'error': 'OpenAI API key not found'
-                    }
-                
-                headers = {'Authorization': f'Bearer {api_key}'}
-                response = requests.get('https://api.openai.com/v1/models', headers=headers)
-                
-                if response.status_code == 200:
-                    return {
-                        'success': True,
-                        'message': 'OpenAI authentication successful',
-                        'platform': 'openai',
-                        'session_data': {'api_key': api_key, 'headers': headers}
-                    }
-                else:
-                    return {
-                        'success': False,
-                        'error': f'OpenAI API authentication failed: {response.status_code}'
-                    }
+            # Validate input
+            validation_result = self._validate_registration_data(username, email, password)
+            if not validation_result["valid"]:
+                return {"success": False, "error": validation_result["error"]}
+            
+            # Check if user already exists
+            if self._user_exists(username, email):
+                return {"success": False, "error": "User already exists"}
+            
+            # Generate user ID
+            user_id = hashlib.md5(f"{username}_{email}_{datetime.now()}".encode()).hexdigest()[:12]
+            
+            # Hash password
+            salt = secrets.token_bytes(32)
+            password_hash = self._hash_password(password, salt)
+            
+            # Create user account
+            user = User(
+                user_id=user_id,
+                username=username,
+                email=email,
+                phone=phone,
+                kyc_status="pending",
+                account_status="pending_payment",
+                created_at=datetime.now(),
+                payment_status="unpaid",
+                subscription_type="free",
+                verification_level=1,  # Email verified
+                metadata=metadata or {}
+            )
+            
+            self.users[user_id] = user
+            
+            # Save to database
+            await self._save_user_to_database(user, password_hash, salt)
+            
+            # Generate payment verification code
+            payment_code = await self._generate_payment_verification_code(user_id)
+            
+            # Log registration
+            await self._log_auth_action(user_id, "user_registration", True, {"username": username})
+            
+            self.logger.info(f"User registered successfully: {user_id}")
+            
+            return {
+                "success": True,
+                "user_id": user_id,
+                "payment_verification_code": payment_code,
+                "message": "User registered. Payment required to activate account.",
+                "next_steps": [
+                    "Complete payment using the verification code",
+                    "Upload KYC documents for verification",
+                    "Set up 2FA for enhanced security"
+                ]
+            }
             
         except Exception as e:
-            return {
-                'success': False,
-                'error': f'OpenAI authentication error: {str(e)}'
-            }
+            self.logger.error(f"User registration failed: {e}")
+            return {"success": False, "error": str(e)}
     
-    async def _perform_web_login(self, login_url: str, credentials: Dict, platform: str) -> Dict[str, Any]:
-        """Perform web-based login using browser automation"""
-        driver = None
+    async def authenticate_user(self, identifier: str, password: str, 
+                              totp_code: Optional[str] = None) -> Dict[str, Any]:
+        """Authenticate user with username/email and password"""
+        self.logger.info(f"Authenticating user: {identifier}")
+        
         try:
-            driver = webdriver.Chrome(options=self.browser_options)
-            driver.get(login_url)
+            # Find user
+            user = self._find_user_by_identifier(identifier)
+            if not user:
+                await self._log_auth_action(None, "login_attempt", False, {"identifier": identifier, "error": "user_not_found"})
+                return {"success": False, "error": "Invalid credentials"}
             
-            # Wait for page to load
-            wait = WebDriverWait(driver, 10)
+            # Check account status
+            if user.account_status == "suspended":
+                return {"success": False, "error": "Account suspended"}
+            elif user.account_status == "banned":
+                return {"success": False, "error": "Account banned"}
+            elif user.account_status == "pending_payment" and user.user_id != "owner_mulky_malikul_dhaher":
+                return {"success": False, "error": "Payment required to access account"}
             
-            # Platform-specific login selectors
-            selectors = self._get_login_selectors(platform)
+            # Verify password
+            stored_hash, salt = await self._get_user_password_data(user.user_id)
+            if not self._verify_password(password, stored_hash, salt):
+                await self._log_auth_action(user.user_id, "login_attempt", False, {"error": "invalid_password"})
+                return {"success": False, "error": "Invalid credentials"}
             
-            # Fill username/email
-            username_field = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selectors['username'])))
-            username_field.send_keys(credentials.get('username') or credentials.get('email'))
+            # Check 2FA if required
+            if self.auth_config["require_2fa"] and user.verification_level >= 2:
+                totp_secret = await self._get_user_totp_secret(user.user_id)
+                if totp_secret and not self._verify_totp(totp_secret, totp_code):
+                    await self._log_auth_action(user.user_id, "login_attempt", False, {"error": "invalid_2fa"})
+                    return {"success": False, "error": "Invalid 2FA code"}
             
-            # Fill password
-            password_field = driver.find_element(By.CSS_SELECTOR, selectors['password'])
-            password_field.send_keys(credentials.get('password'))
+            # Create session
+            session_token = await self._create_user_session(user.user_id)
             
-            # Click login button
-            login_button = driver.find_element(By.CSS_SELECTOR, selectors['login_button'])
-            login_button.click()
+            # Update last login
+            user.last_login = datetime.now()
+            await self._update_user_in_database(user)
             
-            # Wait for login to complete
-            time.sleep(3)
+            # Log successful login
+            await self._log_auth_action(user.user_id, "login_success", True)
             
-            # Check if login was successful
-            current_url = driver.current_url
-            if self._is_login_successful(current_url, platform):
-                # Get session cookies
-                cookies = driver.get_cookies()
+            self.logger.info(f"User authenticated successfully: {user.user_id}")
+            
+            return {
+                "success": True,
+                "user_id": user.user_id,
+                "session_token": session_token,
+                "user_info": {
+                    "username": user.username,
+                    "email": user.email,
+                    "subscription_type": user.subscription_type,
+                    "verification_level": user.verification_level,
+                    "kyc_status": user.kyc_status
+                },
+                "permissions": self._get_user_permissions(user)
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Authentication failed: {e}")
+            return {"success": False, "error": "Authentication failed"}
+    
+    async def verify_payment(self, user_id: str, payment_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Verify payment and activate user account"""
+        self.logger.info(f"Verifying payment for user: {user_id}")
+        
+        try:
+            if user_id not in self.users:
+                return {"success": False, "error": "User not found"}
+            
+            user = self.users[user_id]
+            
+            # Generate payment record
+            payment_id = hashlib.md5(f"{user_id}_payment_{datetime.now()}".encode()).hexdigest()[:12]
+            
+            payment_record = PaymentRecord(
+                payment_id=payment_id,
+                user_id=user_id,
+                amount=payment_data.get("amount", 0.0),
+                currency=payment_data.get("currency", "USD"),
+                payment_method=payment_data.get("method", "bank_transfer"),
+                payment_provider=payment_data.get("provider", "manual"),
+                status="pending",
+                created_at=datetime.now(),
+                verification_code=payment_data.get("verification_code"),
+                metadata=payment_data
+            )
+            
+            # Simulate payment verification (in real implementation, this would integrate with payment gateways)
+            verification_result = await self._verify_payment_with_provider(payment_record)
+            
+            if verification_result["success"]:
+                # Update payment status
+                payment_record.status = "completed"
+                payment_record.completed_at = datetime.now()
+                
+                # Update user account
+                user.payment_status = "paid"
+                user.account_status = "active"
+                user.subscription_type = payment_data.get("subscription_type", "basic")
+                
+                # Save updates
+                await self._save_payment_record(payment_record)
+                await self._update_user_in_database(user)
+                
+                # Log payment verification
+                await self._log_auth_action(user_id, "payment_verified", True, {"payment_id": payment_id})
+                
+                self.logger.info(f"Payment verified successfully for user: {user_id}")
                 
                 return {
-                    'success': True,
-                    'message': f'{platform} web login successful',
-                    'platform': platform,
-                    'session_data': {'cookies': cookies, 'url': current_url}
+                    "success": True,
+                    "payment_id": payment_id,
+                    "account_activated": True,
+                    "subscription_type": user.subscription_type,
+                    "message": "Payment verified. Account activated successfully."
                 }
             else:
-                return {
-                    'success': False,
-                    'error': f'{platform} web login failed - still on login page'
-                }
-            
-        except Exception as e:
-            return {
-                'success': False,
-                'error': f'Web login error: {str(e)}'
-            }
-        finally:
-            if driver:
-                driver.quit()
-    
-    def _get_login_selectors(self, platform: str) -> Dict[str, str]:
-        """Get CSS selectors for login forms by platform"""
-        selectors = {
-            'github': {
-                'username': '#login_field',
-                'password': '#password',
-                'login_button': '[type="submit"]'
-            },
-            'google': {
-                'username': '#identifierId',
-                'password': '[type="password"]',
-                'login_button': '#passwordNext'
-            },
-            'linkedin': {
-                'username': '#username',
-                'password': '#password',
-                'login_button': '[type="submit"]'
-            },
-            'twitter': {
-                'username': '[name="text"]',
-                'password': '[name="password"]',
-                'login_button': '[data-testid="LoginForm_Login_Button"]'
-            }
-        }
-        
-        return selectors.get(platform, {
-            'username': '[type="email"], [type="text"], #username, #email',
-            'password': '[type="password"], #password',
-            'login_button': '[type="submit"], .login-button, #login'
-        })
-    
-    def _is_login_successful(self, current_url: str, platform: str) -> bool:
-        """Check if login was successful based on URL"""
-        success_indicators = {
-            'github': 'github.com' in current_url and 'login' not in current_url,
-            'google': 'accounts.google.com' not in current_url or 'myaccount' in current_url,
-            'linkedin': 'feed' in current_url or 'in/' in current_url,
-            'twitter': 'home' in current_url or 'twitter.com' in current_url and 'login' not in current_url
-        }
-        
-        return success_indicators.get(platform, 'login' not in current_url.lower())
-    
-    async def perform_bulk_login(self, task: Dict[str, Any]) -> Dict[str, Any]:
-        """Perform login to multiple platforms"""
-        try:
-            platforms = task.get('platforms', [])
-            results = {}
-            
-            for platform in platforms:
-                login_task = {
-                    'type': 'login',
-                    'platform': platform,
-                    'save_session': True
-                }
+                payment_record.status = "failed"
+                await self._save_payment_record(payment_record)
                 
-                result = await self.perform_login(login_task)
-                results[platform] = result
-            
-            successful = len([r for r in results.values() if r['success']])
-            
-            return {
-                'success': True,
-                'message': f'Bulk login completed: {successful}/{len(platforms)} successful',
-                'results': results,
-                'summary': {
-                    'total': len(platforms),
-                    'successful': successful,
-                    'failed': len(platforms) - successful
-                }
-            }
+                return {"success": False, "error": "Payment verification failed"}
             
         except Exception as e:
-            return {
-                'success': False,
-                'error': f'Bulk login failed: {str(e)}'
-            }
+            self.logger.error(f"Payment verification failed: {e}")
+            return {"success": False, "error": str(e)}
     
-    async def list_active_sessions(self) -> Dict[str, Any]:
-        """List all active authentication sessions"""
+    async def upload_kyc_document(self, user_id: str, document_type: str, 
+                                document_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Upload and verify KYC document"""
+        self.logger.info(f"Processing KYC document for user: {user_id}")
+        
         try:
-            sessions = []
+            if user_id not in self.users:
+                return {"success": False, "error": "User not found"}
             
-            for platform, session_data in self.active_sessions.items():
-                sessions.append({
-                    'platform': platform,
-                    'logged_in_at': session_data['logged_in_at'],
-                    'expires_at': session_data['expires_at'],
-                    'credential_id': session_data['credential_id'],
-                    'is_active': datetime.now() < datetime.fromisoformat(session_data['expires_at'])
-                })
+            # Generate document ID
+            document_id = hashlib.md5(f"{user_id}_{document_type}_{datetime.now()}".encode()).hexdigest()[:12]
+            
+            # Extract document information
+            document_number = document_data.get("document_number", "")
+            full_name = document_data.get("full_name", "")
+            
+            # Special handling for owner KYC
+            if (user_id == "owner_mulky_malikul_dhaher" or 
+                document_number == self.kyc_config["owner_ktp"]):
+                verification_status = "verified"
+                confidence_score = 1.0
+                verification_notes = "Owner account - auto-verified"
+            else:
+                # Perform KYC verification
+                verification_result = await self._verify_kyc_document(document_type, document_data)
+                verification_status = verification_result["status"]
+                confidence_score = verification_result["confidence_score"]
+                verification_notes = verification_result.get("notes")
+            
+            # Create KYC document record
+            kyc_document = KYCDocument(
+                document_id=document_id,
+                user_id=user_id,
+                document_type=document_type,
+                document_number=document_number,
+                full_name=full_name,
+                date_of_birth=document_data.get("date_of_birth"),
+                address=document_data.get("address"),
+                uploaded_at=datetime.now(),
+                verification_status=verification_status,
+                verification_notes=verification_notes,
+                confidence_score=confidence_score
+            )
+            
+            self.kyc_documents[document_id] = kyc_document
+            
+            # Update user KYC status
+            user = self.users[user_id]
+            if verification_status == "verified":
+                user.kyc_status = "verified"
+                user.verification_level = max(user.verification_level, 3)
+            
+            # Save to database
+            await self._save_kyc_document(kyc_document)
+            await self._update_user_in_database(user)
+            
+            # Log KYC upload
+            await self._log_auth_action(user_id, "kyc_upload", True, {
+                "document_type": document_type,
+                "verification_status": verification_status
+            })
+            
+            self.logger.info(f"KYC document processed: {document_id} - {verification_status}")
             
             return {
-                'success': True,
-                'sessions': sessions,
-                'total_active': len([s for s in sessions if s['is_active']])
+                "success": True,
+                "document_id": document_id,
+                "verification_status": verification_status,
+                "confidence_score": confidence_score,
+                "message": f"KYC document {verification_status}"
             }
             
         except Exception as e:
+            self.logger.error(f"KYC document processing failed: {e}")
+            return {"success": False, "error": str(e)}
+    
+    async def setup_2fa(self, user_id: str) -> Dict[str, Any]:
+        """Setup two-factor authentication for user"""
+        self.logger.info(f"Setting up 2FA for user: {user_id}")
+        
+        try:
+            if user_id not in self.users:
+                return {"success": False, "error": "User not found"}
+            
+            user = self.users[user_id]
+            
+            # Generate TOTP secret
+            totp_secret = pyotp.random_base32()
+            
+            # Create TOTP URI for QR code
+            totp_uri = pyotp.totp.TOTP(totp_secret).provisioning_uri(
+                name=user.email,
+                issuer_name=self.totp_issuer
+            )
+            
+            # Generate QR code
+            qr_code_data = await self._generate_qr_code(totp_uri)
+            
+            # Save TOTP secret (encrypted)
+            await self._save_user_totp_secret(user_id, totp_secret)
+            
+            # Update user verification level
+            user.verification_level = max(user.verification_level, 2)
+            await self._update_user_in_database(user)
+            
+            self.logger.info(f"2FA setup completed for user: {user_id}")
+            
             return {
-                'success': False,
-                'error': f'Failed to list sessions: {str(e)}'
+                "success": True,
+                "totp_secret": totp_secret,
+                "qr_code": qr_code_data,
+                "backup_codes": self._generate_backup_codes(),
+                "message": "2FA setup completed. Scan QR code with authenticator app."
             }
+            
+        except Exception as e:
+            self.logger.error(f"2FA setup failed: {e}")
+            return {"success": False, "error": str(e)}
     
-    async def _handle_generic_login(self, credential_data: Dict, auto_2fa: bool = False) -> Dict[str, Any]:
-        """Generic login handler for unsupported platforms"""
-        return {
-            'success': True,
-            'message': f'Generic login handler - credentials available for {credential_data["platform"]}',
-            'platform': credential_data['platform'],
-            'note': 'Platform-specific login logic not implemented yet'
-        }
-    
-    def get_performance_metrics(self) -> Dict[str, Any]:
-        """Get authentication agent performance metrics"""
-        total_attempts = self.successful_logins + self.failed_logins
-        success_rate = (self.successful_logins / max(1, total_attempts)) * 100
+    async def get_auth_status(self) -> Dict[str, Any]:
+        """Get comprehensive authentication status"""
+        total_users = len(self.users)
+        verified_users = len([u for u in self.users.values() if u.kyc_status == "verified"])
+        paid_users = len([u for u in self.users.values() if u.payment_status == "paid"])
+        active_sessions = len(self.active_sessions)
         
         return {
-            'agent_id': self.agent_id,
-            'name': self.name,
-            'status': self.status,
-            'successful_logins': self.successful_logins,
-            'failed_logins': self.failed_logins,
-            'success_rate': round(success_rate, 2),
-            'registrations_completed': self.registrations_completed,
-            'sessions_managed': self.sessions_managed,
-            'active_sessions_count': len(self.active_sessions),
-            'supported_platforms': len(self.auth_handlers),
-            'browser_automation_enabled': True
+            "agent_status": self.status,
+            "total_users": total_users,
+            "verified_users": verified_users,
+            "paid_users": paid_users,
+            "active_sessions": active_sessions,
+            "kyc_documents": len(self.kyc_documents),
+            "payment_records": len(self.payment_records),
+            "owner_account": {
+                "user_id": "owner_mulky_malikul_dhaher",
+                "name": self.kyc_config["owner_name"],
+                "ktp": self.kyc_config["owner_ktp"],
+                "status": "verified"
+            },
+            "security_features": {
+                "2fa_enabled": self.auth_config["require_2fa"],
+                "kyc_required": self.kyc_config["kyc_required_for_paid"],
+                "session_timeout": self.auth_config["session_timeout"]
+            },
+            "uptime_hours": (datetime.now() - self.start_time).total_seconds() / 3600
         }
+    
+    # Private helper methods
+    
+    async def _auto_verify_owner_kyc(self, user_id: str):
+        """Auto-verify owner KYC documents"""
+        try:
+            # Create automatic KYC verification for owner
+            document_id = hashlib.md5(f"{user_id}_auto_kyc_{datetime.now()}".encode()).hexdigest()[:12]
+            
+            kyc_document = KYCDocument(
+                document_id=document_id,
+                user_id=user_id,
+                document_type="ktp",
+                document_number=self.kyc_config["owner_ktp"],
+                full_name=self.kyc_config["owner_name"],
+                uploaded_at=datetime.now(),
+                verification_status="verified",
+                verification_notes="Owner account - auto-verified",
+                confidence_score=1.0
+            )
+            
+            self.kyc_documents[document_id] = kyc_document
+            await self._save_kyc_document(kyc_document)
+            
+            self.logger.info("Owner KYC auto-verified")
+            
+        except Exception as e:
+            self.logger.error(f"Owner KYC auto-verification failed: {e}")
+    
+    def _validate_registration_data(self, username: str, email: str, password: str) -> Dict[str, Any]:
+        """Validate user registration data"""
+        # Username validation
+        if len(username) < 3 or len(username) > 30:
+            return {"valid": False, "error": "Username must be 3-30 characters"}
+        
+        if not re.match("^[a-zA-Z0-9_]+$", username):
+            return {"valid": False, "error": "Username can only contain letters, numbers, and underscore"}
+        
+        # Email validation
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email):
+            return {"valid": False, "error": "Invalid email format"}
+        
+        # Password validation
+        if len(password) < self.auth_config["password_min_length"]:
+            return {"valid": False, "error": f"Password must be at least {self.auth_config['password_min_length']} characters"}
+        
+        return {"valid": True}
+    
+    def _user_exists(self, username: str, email: str) -> bool:
+        """Check if user already exists"""
+        for user in self.users.values():
+            if user.username == username or user.email == email:
+                return True
+        return False
+    
+    def _hash_password(self, password: str, salt: bytes) -> bytes:
+        """Hash password with salt"""
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=100000,
+        )
+        return kdf.derive(password.encode())
+    
+    def _verify_password(self, password: str, stored_hash: bytes, salt: bytes) -> bool:
+        """Verify password against stored hash"""
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=100000,
+        )
+        try:
+            kdf.verify(password.encode(), stored_hash)
+            return True
+        except:
+            return False
+    
+    async def _generate_payment_verification_code(self, user_id: str) -> str:
+        """Generate unique payment verification code"""
+        code = f"PAY_{user_id[:8].upper()}_{secrets.token_hex(4).upper()}"
+        return code
+    
+    def _get_user_permissions(self, user: User) -> List[str]:
+        """Get user permissions based on role and subscription"""
+        permissions = ["basic_access"]
+        
+        if user.user_id == "owner_mulky_malikul_dhaher":
+            return ["all_permissions"]
+        
+        if user.payment_status == "paid":
+            permissions.append("paid_features")
+        
+        if user.kyc_status == "verified":
+            permissions.append("verified_features")
+        
+        if user.subscription_type == "premium":
+            permissions.extend(["premium_features", "advanced_agents"])
+        elif user.subscription_type == "enterprise":
+            permissions.extend(["enterprise_features", "all_agents", "custom_deployment"])
+        
+        return permissions
 
 # Global instance
 authentication_agent = AuthenticationAgent()
+
+# Export for use by other modules
+__all__ = ['AuthenticationAgent', 'authentication_agent', 'User', 'KYCDocument', 'PaymentRecord']

@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, asdict
 from enum import Enum
-import cron_expression
+from croniter import croniter
 import uuid
 
 class ScheduleType(Enum):

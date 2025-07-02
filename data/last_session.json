@@ -1,0 +1,15 @@
+{
+  "shutdown_time": "2025-07-02T13:47:28.949143",
+  "uptime_seconds": 3.585084,
+  "active_agents": [
+    "commander_agi",
+    "quality_control_specialist",
+    "cybershell",
+    "agent_maker",
+    "ui_designer",
+    "dev_engine",
+    "fullstack_dev"
+  ],
+  "status": "running",
+  "version": "2.0.0"
+}
