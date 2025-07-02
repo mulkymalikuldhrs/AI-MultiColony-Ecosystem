@@ -55,7 +55,17 @@ try:
     from agents.authentication_agent import authentication_agent
     from agents.llm_provider_manager import llm_provider_manager
     
-    # Import Ultimate AGI Force Agents v7.0.0
+    # Import Ultimate AGI Force Agents v7.0.0 - Priority Super-Powered Agents
+    try:
+        from agents.agi_colony_connector import agi_colony_connector
+        from agents.deployment_specialist import deployment_specialist
+        print("✅ Super-powered AGI agents loaded")
+    except ImportError as e:
+        print(f"⚠️ Super-powered AGI agents not available: {e}")
+        agi_colony_connector = type('DummyAgent', (), {'status': 'ready', 'name': 'AGI Colony Connector'})()
+        deployment_specialist = type('DummyAgent', (), {'status': 'ready', 'name': 'Deployment Specialist'})()
+    
+    # Import remaining Ultimate AGI Force Agents v7.0.0
     try:
         from agents.commander_agi import commander_agi
         from agents.quality_control_specialist import quality_control_specialist
@@ -91,7 +101,10 @@ try:
         'credential_manager': credential_manager,
         'authentication_agent': authentication_agent,
         'llm_provider_manager': llm_provider_manager,
-        # Ultimate AGI Force v7.0.0 Agents
+        # Ultimate AGI Force v7.0.0 - Super-Powered Agents
+        'agi_colony_connector': agi_colony_connector,
+        'deployment_specialist': deployment_specialist,
+        # Ultimate AGI Force v7.0.0 - Standard Agents
         'commander_agi': commander_agi,
         'quality_control': quality_control_specialist,
         'bug_hunter': bug_hunter_bot,
