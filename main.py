@@ -81,7 +81,12 @@ class AgenticAISystem:
                 "ui_designer",
                 "dev_engine",
                 "data_sync",
-                "fullstack_dev"
+                "fullstack_dev",
+                "commander_agi",
+                "authentication",
+                "knowledge_manager",
+                "backup_colony",
+                "marketing"
             ],
             "enable_scheduler": True,
             "enable_sync_engine": True,
@@ -215,6 +220,46 @@ class AgenticAISystem:
                 "module": "agents.fullstack_dev",
                 "class": "FullStackDevAgent",
                 "instance": "fullstack_dev_agent"
+            },
+            "commander_agi": {
+                "module": "agents.commander_agi",
+                "class": "CommanderAGI",
+                "instance": "commander_agi"
+            },
+            "quality_control": {
+                "module": "agents.quality_control_specialist",
+                "class": "QualityControlSpecialist",
+                "instance": "quality_control_specialist"
+            },
+            "bug_hunter": {
+                "module": "agents.bug_hunter_bot",
+                "class": "BugHunterBot",
+                "instance": "bug_hunter_bot"
+            },
+            "money_maker": {
+                "module": "agents.money_making_agent",
+                "class": "MoneyMakingAgent",
+                "instance": "money_making_agent"
+            },
+            "backup_colony": {
+                "module": "agents.backup_colony_system",
+                "class": "BackupColonySystem",
+                "instance": "backup_colony_system"
+            },
+            "authentication": {
+                "module": "agents.authentication_agent",
+                "class": "AuthenticationAgent",
+                "instance": "authentication_agent"
+            },
+            "knowledge_manager": {
+                "module": "agents.knowledge_management_agent",
+                "class": "KnowledgeManagementAgent",
+                "instance": "knowledge_management_agent"
+            },
+            "marketing": {
+                "module": "agents.marketing_agent",
+                "class": "MarketingAgent",
+                "instance": "marketing_agent"
             }
         }
         
