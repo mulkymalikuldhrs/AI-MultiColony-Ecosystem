@@ -118,11 +118,18 @@
 ### 🔥 **Download APK (Recommended)**
 ```bash
 # Download latest APK
-curl -L https://github.com/mulkymalikuldhrs/agentic-ai-indonesia/releases/latest/download/agentic-ai-indonesia.apk -o agentic-ai.apk
+curl -L https://github.com/mulkymalikuldhrtech/Agentic-AI-Ecosystem/releases/latest/download/agentic-ai-ecosystem.apk -o agentic-ai-ecosystem.apk
 
-# Install APK
-adb install agentic-ai.apk
-# Or transfer to phone and install manually
+# Install APK via ADB (if phone connected to computer)
+adb install agentic-ai-ecosystem.apk
+
+# OR Manual Installation (recommended for most users):
+# 1. Transfer APK file to your Android device
+# 2. Open file manager on your phone
+# 3. Navigate to the APK file location
+# 4. Tap the APK file to install
+# 5. Allow installation from unknown sources if prompted
+# 6. Follow the installation wizard
 ```
 
 ### 📲 **APK Features**
@@ -140,7 +147,7 @@ adb install agentic-ai.apk
 ```bash
 # Install Termux dari F-Droid (recommended)
 # Lalu jalankan command ini:
-curl -sSL https://get.agentic.ai/indonesia | bash
+curl -sSL https://raw.githubusercontent.com/mulkymalikuldhrtech/Agentic-AI-Ecosystem/stable/install-termux.sh | bash
 ```
 
 ### 🔧 **Manual Termux Setup**
@@ -152,19 +159,19 @@ pkg update && pkg upgrade
 pkg install git python rust nodejs
 
 # 3. Clone repository
-git clone https://github.com/mulkymalikuldhrs/agentic-ai-indonesia.git
-cd agentic-ai-indonesia
+git clone https://github.com/mulkymalikuldhrtech/Agentic-AI-Ecosystem.git
+cd Agentic-AI-Ecosystem
 git checkout stable
 
-# 4. Install Agentic AI Indonesia
+# 4. Install Agentic AI System
 chmod +x install-termux.sh
 ./install-termux.sh
 
 # 5. Setup untuk Indonesia
-agentic-setup --language=id --region=indonesia
+python cli.py system start --language=id --region=indonesia
 
 # 6. Jalankan system
-agentic-ai-indonesia --mode=mobile
+python main.py --mode=mobile
 ```
 
 ### 📋 **Termux Requirements**
@@ -610,16 +617,16 @@ Revenue_Projection:
 ### 📲 **Download APK Now**
 ```bash
 # Quick download
-curl -L https://github.com/mulkymalikuldhrs/agentic-ai-indonesia/releases/latest/download/agentic-ai-indonesia.apk -o agentic-ai.apk
+curl -L https://github.com/mulkymalikuldhrtech/Agentic-AI-Ecosystem/releases/latest/download/agentic-ai-ecosystem.apk -o agentic-ai-ecosystem.apk
 
 # Or visit releases page:
-# https://github.com/mulkymalikuldhrs/agentic-ai-indonesia/releases
+# https://github.com/mulkymalikuldhrtech/Agentic-AI-Ecosystem/releases
 ```
 
 ### 🖥️ **Try on Termux**
 ```bash
 # One-command setup
-curl -sSL https://get.agentic.ai/indonesia | bash
+curl -sSL https://raw.githubusercontent.com/mulkymalikuldhrtech/Agentic-AI-Ecosystem/stable/install-termux.sh | bash
 ```
 
 ### 🗣️ **First Voice Command**
@@ -631,14 +638,14 @@ curl -sSL https://get.agentic.ai/indonesia | bash
 
 <div align="center">
 
-**🇮🇩 Dibuat dengan ❤️ di Indonesia oleh [Mulky Malikul Dhaher](https://github.com/mulkymalikuldhrs)**
+**🇮🇩 Dibuat dengan ❤️ di Indonesia oleh [Mulky Malikul Dhaher](https://github.com/mulkymalikuldhrtech)**
 
-**Platform AI Agentic Pertama di Indonesia - Mobile-First AI Revolution**
+**Ultimate AGI Force - Platform AI Agentic Terdepan di Indonesia**
 
-[![GitHub Stars](https://img.shields.io/github/stars/mulkymalikuldhrs/agentic-ai-indonesia?style=social)](https://github.com/mulkymalikuldhrs/agentic-ai-indonesia)
-[![GitHub Forks](https://img.shields.io/github/forks/mulkymalikuldhrs/agentic-ai-indonesia?style=social)](https://github.com/mulkymalikuldhrs/agentic-ai-indonesia)
-[![GitHub Issues](https://img.shields.io/github/issues/mulkymalikuldhrs/agentic-ai-indonesia)](https://github.com/mulkymalikuldhrs/agentic-ai-indonesia/issues)
+[![GitHub Stars](https://img.shields.io/github/stars/mulkymalikuldhrtech/Agentic-AI-Ecosystem?style=social)](https://github.com/mulkymalikuldhrtech/Agentic-AI-Ecosystem)
+[![GitHub Forks](https://img.shields.io/github/forks/mulkymalikuldhrtech/Agentic-AI-Ecosystem?style=social)](https://github.com/mulkymalikuldhrtech/Agentic-AI-Ecosystem)
+[![GitHub Issues](https://img.shields.io/github/issues/mulkymalikuldhrtech/Agentic-AI-Ecosystem)](https://github.com/mulkymalikuldhrtech/Agentic-AI-Ecosystem/issues)
 
-[🚀 Download APK](https://github.com/mulkymalikuldhrs/agentic-ai-indonesia/releases) • [📖 Documentation](./docs/) • [💬 Discord](https://discord.gg/agentic-ai-indonesia) • [📺 YouTube](https://youtube.com/@agentic-ai-indonesia)
+[🚀 Download APK](https://github.com/mulkymalikuldhrtech/Agentic-AI-Ecosystem/releases) • [📖 Documentation](./docs/) • [💬 Discord](https://discord.gg/agentic-ai-ecosystem) • [📺 YouTube](https://youtube.com/@agentic-ai-ecosystem)
 
 </div>
