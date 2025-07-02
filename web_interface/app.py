@@ -40,7 +40,9 @@ try:
     from core.scheduler import agent_scheduler
     from connectors.llm_gateway import llm_gateway
     
-    # Import agents
+    # Import agents - Enhanced AGI Force
+    from agents.commander_agi import commander_agi
+    from agents.quality_control_specialist import quality_control_specialist
     from agents.cybershell import cybershell_agent
     from agents.agent_maker import agent_maker
     from agents.ui_designer import ui_designer_agent
@@ -55,8 +57,10 @@ try:
     from agents.authentication_agent import authentication_agent
     from agents.llm_provider_manager import llm_provider_manager
     
-    # Available agents
+    # Available agents - Enhanced AGI Force Registry
     agents_registry = {
+        'commander_agi': commander_agi,
+        'quality_control_specialist': quality_control_specialist,
         'prompt_master': prompt_master,
         'cybershell': cybershell_agent,
         'agent_maker': agent_maker,
@@ -113,6 +117,11 @@ def platform_integrations():
 def credentials():
     """Credential management page"""
     return render_template('credentials.html')
+
+@app.route('/agi_command_center')
+def agi_command_center():
+    """AGI Command Center - Enhanced monitoring and control"""
+    return render_template('agi_command_center.html')
 
 # API Routes
 @app.route('/api/system/status')
@@ -390,6 +399,175 @@ def get_memory_stats():
                 'error': 'Memory bus not available'
             }), 500
             
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# AGI Command Center API Routes
+@app.route('/api/agi/commander/status')
+def get_commander_status():
+    """Get Commander AGI status"""
+    try:
+        if 'commander_agi' in agents_registry:
+            commander = agents_registry['commander_agi']
+            status = commander.get_status()
+            return jsonify({
+                'success': True,
+                'data': status
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Commander AGI not available'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/agi/commander/command', methods=['POST'])
+def send_commander_command():
+    """Send command to Commander AGI"""
+    try:
+        if 'commander_agi' not in agents_registry:
+            return jsonify({
+                'success': False,
+                'error': 'Commander AGI not available'
+            }), 500
+        
+        data = request.get_json()
+        command = data.get('command', '')
+        parameters = data.get('parameters', {})
+        
+        commander = agents_registry['commander_agi']
+        
+        # Process command asynchronously
+        if asyncio.iscoroutinefunction(commander.process_command):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(commander.process_command(command, parameters))
+            loop.close()
+        else:
+            result = commander.process_command(command, parameters)
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/agi/quality/status')
+def get_quality_control_status():
+    """Get Quality Control Specialist status"""
+    try:
+        if 'quality_control_specialist' in agents_registry:
+            qc = agents_registry['quality_control_specialist']
+            status = qc.get_status()
+            return jsonify({
+                'success': True,
+                'data': status
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Quality Control Specialist not available'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/agi/quality/inspect', methods=['POST'])
+def conduct_quality_inspection():
+    """Conduct quality inspection"""
+    try:
+        if 'quality_control_specialist' not in agents_registry:
+            return jsonify({
+                'success': False,
+                'error': 'Quality Control Specialist not available'
+            }), 500
+        
+        data = request.get_json()
+        inspection_config = data.get('inspection_config', {'type': 'general'})
+        
+        qc = agents_registry['quality_control_specialist']
+        
+        # Conduct inspection asynchronously
+        if asyncio.iscoroutinefunction(qc.conduct_quality_inspection):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(qc.conduct_quality_inspection(inspection_config))
+            loop.close()
+        else:
+            result = qc.conduct_quality_inspection(inspection_config)
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/agi/dashboard/data')
+def get_agi_dashboard_data():
+    """Get comprehensive AGI dashboard data"""
+    try:
+        dashboard_data = {
+            'timestamp': datetime.now().isoformat(),
+            'system_health': 'optimal',
+            'threat_level': 'green'
+        }
+        
+        # Get Commander AGI data
+        if 'commander_agi' in agents_registry:
+            commander = agents_registry['commander_agi']
+            dashboard_data['commander'] = commander.get_status()
+        
+        # Get Quality Control data  
+        if 'quality_control_specialist' in agents_registry:
+            qc = agents_registry['quality_control_specialist']
+            dashboard_data['quality_control'] = qc.get_status()
+        
+        # Get system metrics
+        dashboard_data['system_metrics'] = {
+            'total_agents': len(agents_registry),
+            'active_agents': len([a for a in agents_registry.values() if hasattr(a, 'status') and getattr(a, 'status') in ['operational', 'ready', 'active']]),
+            'cpu_usage': '35%',  # Would be actual system metrics
+            'memory_usage': '68%',
+            'network_status': 'stable'
+        }
+        
+        # Get agent network status
+        agent_network = []
+        for agent_id, agent in agents_registry.items():
+            agent_network.append({
+                'id': agent_id,
+                'name': getattr(agent, 'name', agent_id),
+                'status': getattr(agent, 'status', 'unknown')
+            })
+        
+        dashboard_data['agent_network'] = agent_network
+        
+        return jsonify({
+            'success': True,
+            'data': dashboard_data
+        })
+        
     except Exception as e:
         return jsonify({
             'success': False,

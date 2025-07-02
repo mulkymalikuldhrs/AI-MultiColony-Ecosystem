@@ -75,6 +75,8 @@ class AgenticAISystem:
         """Load system configuration"""
         default_config = {
             "auto_start_agents": [
+                "commander_agi",
+                "quality_control_specialist",
                 "prompt_master",
                 "cybershell", 
                 "agent_maker",
@@ -184,8 +186,18 @@ class AgenticAISystem:
         """Initialize and register all agents"""
         print("🤖 Initializing agents...")
         
-        # Agent configurations
+        # Agent configurations - Enhanced AGI Force
         agent_configs = {
+            "commander_agi": {
+                "module": "agents.commander_agi",
+                "class": "CommanderAGI",
+                "instance": "commander_agi"
+            },
+            "quality_control_specialist": {
+                "module": "agents.quality_control_specialist",
+                "class": "QualityControlSpecialist", 
+                "instance": "quality_control_specialist"
+            },
             "cybershell": {
                 "module": "agents.cybershell",
                 "class": "CyberShellAgent",
