@@ -40,7 +40,7 @@ try:
     from core.scheduler import agent_scheduler
     from connectors.llm_gateway import llm_gateway
     
-    # Import agents
+    # Import agents - Original Agents
     from agents.cybershell import cybershell_agent
     from agents.agent_maker import agent_maker
     from agents.ui_designer import ui_designer_agent
@@ -54,6 +54,15 @@ try:
     from agents.credential_manager import credential_manager
     from agents.authentication_agent import authentication_agent
     from agents.llm_provider_manager import llm_provider_manager
+    
+    # Import Ultimate AGI Force Agents v7.0.0
+    from agents.commander_agi import commander_agi
+    from agents.quality_control_specialist import quality_control_specialist
+    from agents.bug_hunter_bot import bug_hunter_bot
+    from agents.money_making_agent import money_making_agent
+    from agents.backup_colony_system import backup_colony_system
+    from agents.knowledge_management_agent import knowledge_management_agent
+    from agents.marketing_agent import marketing_agent
     
     # Available agents
     agents_registry = {
@@ -70,7 +79,15 @@ try:
         'ai_research_agent': ai_research_agent,
         'credential_manager': credential_manager,
         'authentication_agent': authentication_agent,
-        'llm_provider_manager': llm_provider_manager
+        'llm_provider_manager': llm_provider_manager,
+        # Ultimate AGI Force v7.0.0 Agents
+        'commander_agi': commander_agi,
+        'quality_control': quality_control_specialist,
+        'bug_hunter': bug_hunter_bot,
+        'money_maker': money_making_agent,
+        'backup_colony': backup_colony_system,
+        'knowledge_manager': knowledge_management_agent,
+        'marketing': marketing_agent
     }
     
     print("✅ All core components loaded successfully")
@@ -86,7 +103,7 @@ def index():
 
 @app.route('/dashboard')
 def dashboard():
-    """System dashboard"""
+    """Ultimate AGI Force Dashboard"""
     return render_template('dashboard.html')
 
 @app.route('/agents')

@@ -1,0 +1,9 @@
+{
+  "shutdown_time": "2025-07-02T14:22:58.162307",
+  "uptime_seconds": 0.0239,
+  "active_agents": [
+    "agent_maker"
+  ],
+  "status": "running",
+  "version": "2.0.0"
+}
