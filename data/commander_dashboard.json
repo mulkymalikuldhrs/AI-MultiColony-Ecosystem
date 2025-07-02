@@ -2,17 +2,17 @@
   "commander_status": {
     "status": "operational",
     "mode": "static",
-    "threat_level": "red",
+    "threat_level": "orange",
     "security_level": "high",
-    "uptime": 73.170732
+    "uptime": 385.645957
   },
   "system_metrics": {
-    "timestamp": "2025-07-02T13:48:40.899735",
-    "cpu_usage": 100.0,
-    "memory_usage": 21.3,
+    "timestamp": "2025-07-02T13:53:53.374708",
+    "cpu_usage": 75.1,
+    "memory_usage": 22.1,
     "disk_usage": 6.4,
     "network_connections": 2,
-    "running_processes": 7
+    "running_processes": 8
   },
   "security_alerts": [],
   "gpu_resources": {},
