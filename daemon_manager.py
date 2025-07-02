@@ -93,6 +93,22 @@ class DaemonManager:
             },
             
             # Ultimate AGI Force v7.0.0 Agents
+            "agi_colony_connector": {
+                "module": "agents.agi_colony_connector",
+                "class": "AGIColonyConnector", 
+                "instance": "agi_colony_connector",
+                "priority": 1,
+                "auto_start": True,
+                "description": "🌐 Super-powered inter-colony communication & port forwarding"
+            },
+            "deployment_specialist": {
+                "module": "agents.deployment_specialist",
+                "class": "DeploymentSpecialist",
+                "instance": "deployment_specialist", 
+                "priority": 1,
+                "auto_start": True,
+                "description": "🚀 Autonomous colony deployment & expansion specialist"
+            },
             "commander_agi": {
                 "module": "agents.commander_agi",
                 "class": "CommanderAGI",
