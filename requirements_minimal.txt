@@ -1,0 +1,26 @@
+# Autonomous Agent Colony - Minimal Requirements
+# Essential dependencies only
+
+# Core Python built-ins (no installation needed)
+# - asyncio (built-in)
+# - json (built-in)
+# - os (built-in)
+# - sys (built-in)
+# - pathlib (built-in)
+# - subprocess (built-in)
+# - re (built-in)
+# - ast (built-in)
+# - datetime (built-in)
+# - uuid (built-in)
+# - logging (built-in)
+
+# Optional external dependencies (install with --break-system-packages if needed)
+# fastapi>=0.100.0
+# uvicorn>=0.20.0
+# pydantic>=2.0.0
+# jinja2>=3.0.0
+# python-dotenv>=1.0.0
+
+# For local testing without external dependencies:
+# The system is designed to work with Python built-ins only
+# All AI model integrations are optional and will gracefully degrade

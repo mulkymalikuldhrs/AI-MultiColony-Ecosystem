@@ -1,1 +1,1 @@
-"""Agent implementations for the Agentic AI System"""
+"""\nAgents module for Autonomous Agent Colony\n"""\n
