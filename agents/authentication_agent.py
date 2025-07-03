@@ -397,9 +397,8 @@ class AuthenticationAgent:
                 
                 self.users[owner_user_id] = owner_user
                 
-                # Auto-verify owner KYC
-                if self.kyc_config["auto_verify_owner"]:
-                    await self._auto_verify_owner_kyc(owner_user_id)
+                # Schedule KYC auto-verification (will be handled by async task)
+                self._owner_kyc_pending = True
                 
                 self.logger.info("Owner account initialized with full privileges")
             
