@@ -47,14 +47,14 @@ class LLMClient:
         self.request_counts = {}
         self.error_counts = {}
         
+        # Setup logging first
+        self.logger = logging.getLogger("LLMClient")
+        
         # Load configuration
         self.config = self._load_config()
         
         # Initialize providers
         self._initialize_providers()
-        
-        # Setup logging
-        self.logger = logging.getLogger("LLMClient")
         
     def _load_config(self) -> Dict[str, Any]:
         """Load LLM configuration"""
@@ -109,7 +109,7 @@ class LLMClient:
                             else:
                                 default_config['llm'][key] = value
             except Exception as e:
-                self.logger.warning(f"Failed to load config: {e}")
+                logging.warning(f"Failed to load LLM config: {e}")
         
         return default_config['llm']
     

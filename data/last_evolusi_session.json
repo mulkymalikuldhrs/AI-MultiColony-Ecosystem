@@ -1,6 +1,6 @@
 {
-  "shutdown_time": "2025-07-03T02:46:37.741473",
-  "uptime_seconds": 899.948832,
+  "shutdown_time": "2025-07-03T20:23:11.797382",
+  "uptime_seconds": 0.016243,
   "version": "3.0.0",
   "status": "running",
   "analytics": {
@@ -8,13 +8,13 @@
     "prompts_executed": 0,
     "societies_created": 0,
     "agents_interactions": 0,
-    "average_response_time": 0.000676
+    "average_response_time": 1.7e-05
   },
-  "camel_integration_available": false,
+  "camel_integration_available": true,
   "enhanced_prompts_available": true,
   "legacy_agents": [
     "agent_maker",
     "ui_designer"
   ],
-  "societies_templates": 0
+  "societies_templates": 3
 }

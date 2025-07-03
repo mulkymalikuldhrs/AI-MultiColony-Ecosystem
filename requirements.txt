@@ -5,7 +5,8 @@
 # ========================================
 
 # ===== CAMEL-AI FRAMEWORK =====
-camel-ai[all]==0.2.35
+# Note: Camel-AI currently requires Python <=3.12. Uncomment when using compatible Python version:
+# camel-ai[all]==0.2.35
 # Core multi-agent framework with all toolkits
 
 # ===== CORE LLM PROVIDERS =====
