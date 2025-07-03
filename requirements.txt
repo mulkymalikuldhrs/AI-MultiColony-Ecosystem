@@ -4,168 +4,201 @@
 # Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 # ========================================
 
-# ===== CAMEL-AI FRAMEWORK =====
-camel-ai[all]==0.2.35
-# Core multi-agent framework with all toolkits
+# CAMEL-AI Autonomous Agent Colony System Requirements
+# All 16 Key Modules + Cursor AI-like Features
 
-# ===== CORE LLM PROVIDERS =====
-openai>=1.50.0
-anthropic>=0.21.0
-google-generativeai>=0.8.0
-groq>=0.8.0
-together>=1.0.0
-ollama>=0.2.0
+# Core CAMEL-AI Framework with all modules
+camel-ai[all]>=0.2.0
 
-# ===== ADVANCED AI FRAMEWORKS =====
-langchain>=0.3.0
-langchain-community>=0.3.0
-langchain-openai>=0.2.0
-transformers>=4.45.0
-torch>=2.1.0
-sentence-transformers>=3.0.0
+# AI/ML Models and APIs
+openai>=1.51.0
+anthropic>=0.39.0
+google-generativeai>=0.8.3
+cohere>=5.11.0
+huggingface-hub>=0.26.2
+transformers>=4.46.3
+torch>=2.5.1
+torchvision>=0.20.1
+sentence-transformers>=3.3.0
 
-# ===== WEB FRAMEWORK & API =====
-fastapi>=0.115.0
-uvicorn[standard]>=0.30.0
-flask>=3.0.0
-flask-cors>=5.0.0
-flask-socketio>=5.3.0
-streamlit>=1.39.0
-gradio>=5.0.0
+# Vector Databases and Embeddings
+chromadb>=0.5.23
+faiss-cpu>=1.9.0.post1
+pinecone-client>=5.0.1
+qdrant-client>=1.12.1
+weaviate-client>=4.9.3
 
-# ===== DATABASE & STORAGE =====
-chromadb>=0.5.0
-faiss-cpu>=1.8.0
-weaviate-client>=4.8.0
-pinecone-client>=5.0.0
-redis>=5.1.0
-sqlite3
+# Database and Storage
+redis>=5.2.0
+sqlite3  # Built-in Python module
+sqlalchemy>=2.0.36
+pymongo>=4.10.1
+psycopg2-binary>=2.9.10
 
-# ===== MULTIMEDIA PROCESSING =====
-opencv-python>=4.10.0
-pillow>=10.4.0
-moviepy>=1.0.3
-pydub>=0.25.1
-imageio>=2.35.0
-matplotlib>=3.9.0
-seaborn>=0.13.0
+# Async and Concurrency
+asyncio  # Built-in Python module
+aiohttp>=3.11.7
+aiofiles>=24.1.0
+uvloop>=0.21.0
 
-# ===== BROWSER AUTOMATION =====
-playwright>=1.47.0
-selenium>=4.25.0
-chromedriver-autoinstaller>=0.6.4
+# Docker and Container Management
+docker>=7.1.0
+kubernetes>=31.0.0
+docker-compose>=1.29.2
 
-# ===== DOCUMENT PROCESSING =====
-pypdf>=4.3.0
+# Web Scraping and Browser Automation
+selenium>=4.27.1
+beautifulsoup4>=4.12.3
+scrapy>=2.12.0
+playwright>=1.49.0
+requests>=2.32.3
+
+# Data Processing and Analysis
+pandas>=2.2.3
+numpy>=2.1.3
+scipy>=1.14.1
+matplotlib>=3.9.2
+seaborn>=0.13.2
+plotly>=5.24.1
+
+# Natural Language Processing
+nltk>=3.9.1
+spacy>=3.8.2
+textblob>=0.18.0.post0
+
+# File Format Support
+PyPDF2>=3.0.1
 python-docx>=1.1.2
 openpyxl>=3.1.5
-python-pptx>=1.0.0
-markdown>=3.7.0
-beautifulsoup4>=4.12.3
-
-# ===== VECTOR & EMBEDDINGS =====
-numpy>=2.1.0
-pandas>=2.2.0
-scikit-learn>=1.5.0
-umap-learn>=0.5.6
-plotly>=5.24.0
-
-# ===== ASYNC & CONCURRENCY =====
-asyncio>=3.4.3
-aiohttp>=3.10.0
-aiofiles>=24.1.0
-websockets>=13.0
-
-# ===== NETWORKING & APIs =====
-httpx>=0.27.0
-requests>=2.32.0
-python-multipart>=0.0.9
-pydantic>=2.9.0
-
-# ===== DEVELOPMENT TOOLS =====
-python-dotenv>=1.0.1
+xlsxwriter>=3.2.0
 pyyaml>=6.0.2
 toml>=0.10.2
-rich>=13.8.0
-click>=8.1.7
-typer>=0.12.0
 
-# ===== MONITORING & LOGGING =====
-loguru>=0.7.2
-prometheus-client>=0.21.0
-psutil>=6.0.0
+# Network and Security
+cryptography>=43.0.3
+pycryptodome>=3.21.0
+paramiko>=3.5.0
+python-nmap>=0.7.1
+scapy>=2.6.1
 
-# ===== SECURITY & AUTH =====
-cryptography>=43.0.0
-passlib>=1.7.4
-python-jose>=3.3.0
-bcrypt>=4.2.0
+# API and Web Framework
+fastapi>=0.115.6
+uvicorn>=0.32.1
+flask>=3.1.0
+django>=5.1.4
+pydantic>=2.10.3
 
-# ===== TESTING =====
-pytest>=8.3.0
+# Development and Testing
+pytest>=8.3.4
 pytest-asyncio>=0.24.0
-pytest-cov>=5.0.0
+black>=24.10.0
+flake8>=7.1.1
+mypy>=1.13.0
+pre-commit>=4.0.1
 
-# ===== CODE QUALITY =====
-black>=24.8.0
-flake8>=7.1.0
-mypy>=1.11.0
+# Jupyter and Interactive Computing
+jupyter>=1.1.1
+ipython>=8.30.0
+notebook>=7.3.1
+jupyterlab>=4.3.3
 
-# ===== DEPLOYMENT =====
-docker>=7.1.0
-gunicorn>=23.0.0
+# Task Queue and Job Management
+celery>=5.4.0
+rq>=2.0.0
+dramatiq>=1.17.0
 
-# ===== SPECIALIZED TOOLS =====
-# Model Context Protocol
-mcp>=1.0.0
+# Monitoring and Logging
+prometheus-client>=0.21.0
+loguru>=0.7.3
+structlog>=24.4.0
 
-# Code execution and development
-jupyterlab>=4.2.0
-ipython>=8.27.0
+# Command Line Interface
+click>=8.1.7
+typer>=0.15.1
+rich>=13.9.4
 
-# Scientific computing
-scipy>=1.14.0
-sympy>=1.13.0
-
-# Time and scheduling
-schedule>=1.2.2
-python-crontab>=3.2.0
-
-# File system monitoring
-watchdog>=5.0.0
-
-# Email and notifications
-smtplib
-twilio>=9.3.0
-
-# Image generation and processing
-stability-sdk>=0.8.5
-diffusers>=0.30.0
-
-# ===== OPTIONAL ADVANCED FEATURES =====
-# Quantum computing simulation
-qiskit>=1.2.0
-
-# Advanced NLP
-spacy>=3.7.0
-nltk>=3.9.0
-
-# Audio processing
-librosa>=0.10.2
-whisper>=1.1.10
-
-# Video processing
+# Image and Media Processing
+pillow>=11.0.0
+opencv-python>=4.10.0.84
 ffmpeg-python>=0.2.0
 
-# 3D processing
-open3d>=0.18.0
+# Configuration Management
+python-dotenv>=1.0.1
+configparser  # Built-in Python module
+hydra-core>=1.3.2
 
-# Blockchain integration
-web3>=7.3.0
+# API Clients and Integrations
+boto3>=1.35.77  # AWS
+google-cloud-storage>=2.18.2  # GCP
+azure-storage-blob>=12.24.0  # Azure
+slack-sdk>=3.33.4
+discord.py>=2.4.0
+tweepy>=4.14.0
 
-# IoT and hardware
-pyserial>=3.5
-RPi.GPIO>=0.7.1
+# Time and Date Handling
+python-dateutil>=2.9.0.post0
+pytz>=2024.2
+arrow>=1.3.0
+
+# Graph and Network Analysis
+networkx>=3.4.2
+igraph>=0.11.8
+graphviz>=0.20.3
+
+# Mathematical and Scientific Computing
+sympy>=1.13.3
+scikit-learn>=1.5.2
+statsmodels>=0.14.4
+
+# Specialized AI Tools
+langchain>=0.3.9
+langchain-community>=0.3.8
+langsmith>=0.2.5
+llama-index>=0.12.9
+
+# Code Analysis and Generation
+ast  # Built-in Python module
+inspect  # Built-in Python module
+autopep8>=2.3.1
+rope>=1.13.0
+
+# Memory Management
+psutil>=6.1.0
+memory-profiler>=0.61.0
+
+# Compression and Archives
+zipfile  # Built-in Python module
+tarfile  # Built-in Python module
+gzip  # Built-in Python module
+
+# Internationalization
+babel>=2.16.0
+
+# Additional Utilities
+tqdm>=4.67.1
+colorama>=0.4.6
+tabulate>=0.9.0
+jinja2>=3.1.4
+markupsafe>=3.0.2
+
+# Development Dependencies (Optional)
+# Uncomment for development environment
+# jupyter-lab-code-formatter>=3.0.2
+# jupyter-contrib-nbextensions>=0.7.0
+# ipywidgets>=8.1.5
+# papermill>=2.6.0
+
+# Production Dependencies (Optional)
+# Uncomment for production deployment
+# gunicorn>=23.0.0
+# nginx>=1.25.0
+# supervisor>=4.2.5
+# sentry-sdk>=2.19.2
+
+# Platform-specific dependencies
+# Windows: pywin32>=308
+# Linux: python3-dev, python3-pip
+# macOS: Additional system dependencies may be required
 
 # ===== SYSTEM REQUIREMENTS =====
 # Python 3.10+ required
