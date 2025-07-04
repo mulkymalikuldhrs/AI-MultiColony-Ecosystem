@@ -93,6 +93,10 @@ def check_ports():
 # Load system configuration
 from src.core.config_loader import config
 
+# Import agent initializer and dependencies
+from agents import initialize_agents, AGENTS_REGISTRY
+from connectors.llm_gateway import llm_gateway
+
 class UltimateAGIForce:
     """
     Direct Ultimate AGI Force system controller
@@ -203,33 +207,23 @@ class UltimateAGIForce:
                 print(f"  ❌ AI Selector: {e}")
     
     async def _initialize_working_agents(self):
-        """Initialize working agents only"""
-        print("\n🤖 Initializing working agents...")
-        
-        print("  ⚠️ UI Designer/Dev Engine Agents temporarily disabled due to persistent startup errors.")
-        # try:
-        #     from agents.ui_designer import ui_designer_agent
-        #     from agents.dev_engine import dev_engine_agent
-        #     self.working_agents['ui_designer'] = ui_designer_agent
-        #     self.working_agents['dev_engine'] = dev_engine_agent
-        #     print("  ✅ UI Designer Agent: Ready")
-        #     print("  ✅ Dev Engine Agent: Ready")
-        # except Exception as e:
-        #     print(f"  ❌ ERROR INITIALIZING DEV/UI AGENTS: {e}")
-        #     traceback.print_exc()
-        
-        # Create simplified working agents directly
-        try:
-            self.working_agents['agi_connector'] = self._create_agi_connector()
-            print("  ✅ AGI Colony Connector: Ready (simplified)")
-        except Exception as e:
-            print(f"  ❌ AGI Colony Connector: {e}")
+        """Initialize all agents using the new initializer."""
+        print("\n🤖 Initializing all agents...")
         
         try:
-            self.working_agents['deployment_agent'] = self._create_deployment_agent()
-            print("  ✅ Deployment Agent: Ready (simplified)")
+            # Initialize agents with dependencies
+            initialize_agents(llm_provider=llm_gateway)
+            self.working_agents = AGENTS_REGISTRY
+            
+            print("\n--- Agent Initialization Status ---")
+            for agent_id, agent in self.working_agents.items():
+                status = getattr(agent, 'status', 'unknown')
+                print(f"  ✅ {agent.name} ({agent_id}): {status}")
+            print("---------------------------------")
+
         except Exception as e:
-            print(f"  ❌ Deployment Agent: {e}")
+            print(f"🔥🔥🔥 CRITICAL ERROR DURING AGENT INITIALIZATION: {e}")
+            traceback.print_exc()
         
         # Signal that agent initialization is complete
         self.agents_initialized.set()
@@ -621,35 +615,37 @@ Example prompts (sent to dev_engine):
         """
         print(help_text)
 
-async def main():
-    """Main entry point"""
-    # This part is now handled in the new main block
-    pass
 
-if __name__ == "__main__":
+async def main():
+    """Main entry point for the application."""
     print_banner()
 
     if not check_dependencies():
         print("❌ Dependency check failed. Exiting.")
         sys.exit(1)
 
-    # We can't check ports that might be started by the launcher itself
+    # Port check is now part of the startup sequence
     # if not check_ports():
     #     print("❌ Port check failed. Exiting.")
     #     sys.exit(1)
 
     agi_force = UltimateAGIForce()
     
-    loop = asyncio.get_event_loop()
     try:
         # Start the main system
-        main_task = loop.create_task(agi_force.start())
+        start_task = asyncio.create_task(agi_force.start())
         
-        # Wait for system to be active
+        # Wait for the system to become active
         while agi_force.status != "active":
-            time.sleep(0.1)
-            if main_task.done() and main_task.exception():
-                raise main_task.exception()
+            if start_task.done():
+                # If start_task is done, it might have raised an exception
+                await start_task
+                break
+            await asyncio.sleep(0.1)
+
+        if agi_force.status != "active":
+            print("❌ System failed to start. Exiting.")
+            return
 
         # Check for command-line arguments
         if len(sys.argv) > 1:
@@ -671,34 +667,23 @@ if __name__ == "__main__":
                 json.dump(task_payload, f, indent=2)
             print(f"  -Q- Task {task_id} submitted. System will process and shut down.")
             # Give it a moment to process
-            time.sleep(5)
+            await asyncio.sleep(5)
         else:
             # Run interactive mode
-            loop.run_until_complete(agi_force.run_interactive_mode())
+            await agi_force.run_interactive_mode()
 
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, asyncio.CancelledError):
         print("\n👋 Shutting down...")
     except Exception as e:
         print(f"❌ System error: {e}")
         traceback.print_exc()
     finally:
-        loop.run_until_complete(agi_force.stop())
-        print("❌ Dependency check failed. Exiting.")
-        sys.exit(1)
+        if agi_force.status == "active":
+            await agi_force.stop()
 
-    if not check_ports():
-        print("❌ Port check failed. Exiting.")
-        sys.exit(1)
-
-    agi_force = UltimateAGIForce()
-    
+if __name__ == "__main__":
     try:
-        await agi_force.start()
-        await agi_force.run_forever()
+        asyncio.run(main())
     except KeyboardInterrupt:
-        print("\n👋 Shutting down...")
-    except Exception as e:
-        print(f"❌ System error: {e}")
-    finally:
-        await agi_force.stop()
+        print("\n👋 System shutdown by user.")
 

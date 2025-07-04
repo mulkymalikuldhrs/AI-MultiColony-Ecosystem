@@ -29,7 +29,7 @@ class DevEngineAgent:
     - Sets up testing frameworks
     """
     
-    def __init__(self):
+    def __init__(self, llm_provider=None):
         self.agent_id = "dev_engine"
         self.name = "Development Engine"
         self.status = "ready"
@@ -50,12 +50,9 @@ class DevEngineAgent:
         # Technology stacks
         self.tech_stacks = self._initialize_tech_stacks()
         
-        # Import LLM Gateway for AI-powered development
-        try:
-            from connectors.llm_gateway import llm_gateway
-            self.llm = llm_gateway
-        except ImportError:
-            self.llm = None
+        # Set LLM provider
+        self.llm = llm_provider
+        if not self.llm:
             print("⚠️ LLM Gateway not available for development")
     
     def _load_project_templates(self) -> Dict[str, Dict]:

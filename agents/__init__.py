@@ -8,102 +8,83 @@ __version__ = "2.0.0"
 __author__ = "Mulky Malikul Dhaher"
 __description__ = "Autonomous Multi-Agent Intelligence System"
 
-# Import all agents
-try:
-    from .cybershell import cybershell_agent
-except ImportError:
-    cybershell_agent = None
-
-try:
-    from .agent_maker import agent_maker
-except ImportError:
-    agent_maker = None
-
-try:
-    from .ui_designer import ui_designer_agent
-except ImportError:
-    ui_designer_agent = None
-
-try:
-    from .dev_engine import dev_engine_agent
-except ImportError:
-    dev_engine_agent = None
-
-try:
-    from .data_sync import data_sync_agent
-except ImportError:
-    data_sync_agent = None
-
-try:
-    from .fullstack_dev import fullstack_dev_agent
-except ImportError:
-    fullstack_dev_agent = None
-
-try:
-    from .meta_agent_creator import meta_agent_creator
-except ImportError:
-    meta_agent_creator = None
-
-try:
-    from .system_optimizer import system_optimizer
-except ImportError:
-    system_optimizer = None
-
-try:
-    from .code_executor import code_executor
-except ImportError:
-    code_executor = None
-
-try:
-    from .ai_research_agent import ai_research_agent
-except ImportError:
-    ai_research_agent = None
-
-try:
-    from .credential_manager import credential_manager
-except ImportError:
-    credential_manager = None
-
-try:
-    from .authentication_agent import authentication_agent
-except ImportError:
-    authentication_agent = None
-
-try:
-    from .llm_provider_manager import llm_provider_manager
-except ImportError:
-    llm_provider_manager = None
+import importlib
 
 # Global agents registry
 AGENTS_REGISTRY = {}
 
-# Add agents that were successfully imported
-if cybershell_agent:
-    AGENTS_REGISTRY['cybershell'] = cybershell_agent
-if agent_maker:
-    AGENTS_REGISTRY['agent_maker'] = agent_maker
-if ui_designer_agent:
-    AGENTS_REGISTRY['ui_designer'] = ui_designer_agent
-if dev_engine_agent:
-    AGENTS_REGISTRY['dev_engine'] = dev_engine_agent
-if data_sync_agent:
-    AGENTS_REGISTRY['data_sync'] = data_sync_agent
-if fullstack_dev_agent:
-    AGENTS_REGISTRY['fullstack_dev'] = fullstack_dev_agent
-if meta_agent_creator:
-    AGENTS_REGISTRY['meta_agent_creator'] = meta_agent_creator
-if system_optimizer:
-    AGENTS_REGISTRY['system_optimizer'] = system_optimizer
-if code_executor:
-    AGENTS_REGISTRY['code_executor'] = code_executor
-if ai_research_agent:
-    AGENTS_REGISTRY['ai_research_agent'] = ai_research_agent
-if credential_manager:
-    AGENTS_REGISTRY['credential_manager'] = credential_manager
-if authentication_agent:
-    AGENTS_REGISTRY['authentication_agent'] = authentication_agent
-if llm_provider_manager:
-    AGENTS_REGISTRY['llm_provider_manager'] = llm_provider_manager
+# A list of agent modules to attempt to import
+AGENT_MODULES = [
+    "cybershell",
+    "agent_maker",
+    "ui_designer",
+    "dev_engine",
+    "data_sync",
+    "fullstack_dev",
+    "meta_agent_creator",
+    "system_optimizer",
+    "code_executor",
+    "ai_research_agent",
+    "credential_manager",
+    "authentication_agent",
+    "llm_provider_manager",
+]
+
+def initialize_agents(llm_provider):
+    """
+    Initializes all agents and populates the AGENTS_REGISTRY.
+    This function should be called at startup.
+    """
+    global AGENTS_REGISTRY
+    
+    # First, initialize the dev_engine as it's a dependency for others
+    try:
+        dev_engine_module = importlib.import_module(".dev_engine", package="agents")
+        DevEngineAgent = getattr(dev_engine_module, "DevEngineAgent")
+        dev_engine_agent = DevEngineAgent(llm_provider=llm_provider)
+        AGENTS_REGISTRY['dev_engine'] = dev_engine_agent
+        print("✅ Dev Engine Agent initialized.")
+    except (ImportError, AttributeError) as e:
+        print(f"⚠️ Could not initialize DevEngineAgent: {e}")
+        dev_engine_agent = None
+
+    # Initialize other agents
+    for module_name in AGENT_MODULES:
+        if module_name in AGENTS_REGISTRY: # Skip already initialized
+            continue
+        try:
+            module = importlib.import_module(f".{module_name}", package="agents")
+            
+            # Heuristic to find the agent class and instance name
+            class_name = "".join(word.capitalize() for word in module_name.split('_')) + "Agent"
+            instance_name = module_name + "_agent"
+            
+            if hasattr(module, class_name):
+                AgentClass = getattr(module, class_name)
+                
+                # Check for dependencies
+                if module_name == "ui_designer":
+                    agent_instance = AgentClass(llm_provider=llm_provider, dev_engine=dev_engine_agent)
+                else:
+                    # Assuming other agents might need llm_provider
+                    try:
+                        agent_instance = AgentClass(llm_provider=llm_provider)
+                    except TypeError:
+                        agent_instance = AgentClass()
+
+                AGENTS_REGISTRY[module_name] = agent_instance
+            elif hasattr(module, instance_name):
+                 # For modules that still expose a global instance
+                 AGENTS_REGISTRY[module_name] = getattr(module, instance_name)
+
+        except ImportError as e:
+            print(f"ℹ️ Agent module not found: {module_name} ({e})")
+        except AttributeError as e:
+            print(f"⚠️ Agent class not found in module: {module_name} ({e})")
+        except Exception as e:
+            print(f"🔥 Failed to load agent {module_name}: {e}")
+
+    print(f"✅ Agents module loaded - {len(AGENTS_REGISTRY)} agents available")
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -224,10 +205,9 @@ def get_agents_list():
     
     return agents_list
 
-print(f"✅ Agents module loaded - {len(AGENTS_REGISTRY)} agents available")
-
 # Legacy imports for compatibility
 __all__ = [
+    'initialize_agents',
     'AGENTS_REGISTRY',
     'AGENTS_METADATA', 
     'get_agent_by_id',
