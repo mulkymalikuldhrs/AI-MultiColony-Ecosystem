@@ -39,7 +39,7 @@ def check_dependencies():
     print("🔍 Checking dependencies...")
     
     required_packages = [
-        'flask', 'flask_socketio', 'requests', 'pyyaml'
+        'flask', 'flask_socketio', 'requests', 'pyyaml', 'python-dotenv'
     ]
     
     missing_packages = []
@@ -68,6 +68,16 @@ def check_dependencies():
     
     return True
 
+# Run dependency check before other imports
+if not check_dependencies():
+    print("❌ Dependency check failed. Exiting.")
+    sys.exit(1)
+
+# Now that dependencies are installed, we can import them
+from src.core.config_loader import config
+from agents import initialize_agents, AGENTS_REGISTRY
+from connectors import llm_gateway
+
 def check_ports():
     """Check if required ports are available"""
     print("🔌 Checking port availability...")
@@ -89,13 +99,6 @@ def check_ports():
             print(f"  ✅ Port {port} is available")
     
     return True
-
-# Load system configuration
-from src.core.config_loader import config
-
-# Import agent initializer and dependencies
-from agents import initialize_agents, AGENTS_REGISTRY
-from connectors.llm_gateway import llm_gateway
 
 class UltimateAGIForce:
     """
@@ -619,10 +622,6 @@ Example prompts (sent to dev_engine):
 async def main():
     """Main entry point for the application."""
     print_banner()
-
-    if not check_dependencies():
-        print("❌ Dependency check failed. Exiting.")
-        sys.exit(1)
 
     # Port check is now part of the startup sequence
     # if not check_ports():
