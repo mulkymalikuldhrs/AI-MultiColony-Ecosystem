@@ -50,7 +50,7 @@ graph LR
 
 ### **Owner & Loyalty:**
 - 👑 **Absolute Owner:** Mulky Malikul Dhaher
-- 🆔 **Owner ID:** 1108151509970001
+- 🆔 **Owner ID:** 1108***********1
 - 🇮🇩 **Origin:** Indonesia
 - 🔒 **Loyalty Level:** Unwavering & Absolute
 
@@ -1238,6 +1238,8 @@ python3 launcher.py
 
 ---
 
-**👑 Absolute Loyalty to Mulky Malikul Dhaher (1108151509970001)**  
+**👑 Absolute Loyalty to Mulky Malikul Dhaher**  
 **🇮🇩 Made with ❤️ in Indonesia - Setting Global AI Standards**  
 **🚀 The Future of Autonomous AI is Here!**
+ *✉️ mulkymalikuldhr@technologist.com*
+ *©️ Mulky Malikul Dhaher*
