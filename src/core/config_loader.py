@@ -1,67 +1,388 @@
-import yaml
+#!/usr/bin/env python3
+"""
+🔧 Config Loader with Advanced Fallback Support
+Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
+"""
+
 import os
-import re
-from dotenv import load_dotenv
+import sys
+import json
 from pathlib import Path
 
-def _replace_env_vars(config_value):
-    """Recursively replace environment variable placeholders in config."""
-    if isinstance(config_value, str):
-        # Regex to find ${VAR_NAME} or $VAR_NAME
-        pattern = re.compile(r'\$\{(\w+)\}|\$(\w+)')
-        
-        def replace_match(match):
-            # Find the first non-None group
-            var_name = next((g for g in match.groups() if g is not None), None)
-            if var_name:
-                return os.getenv(var_name, '') # Return empty string if not found
-            return match.group(0) # Should not happen with this pattern
+# Add project root to path
+project_root = Path(__file__).parent.parent.parent
+sys.path.append(str(project_root))
 
-        return pattern.sub(replace_match, config_value)
-        
-    elif isinstance(config_value, dict):
-        return {k: _replace_env_vars(v) for k, v in config_value.items()}
-    elif isinstance(config_value, list):
-        return [_replace_env_vars(i) for i in config_value]
-    else:
-        return config_value
+# Advanced fallback imports
+try:
+    from dotenv import load_dotenv
+    DOTENV_AVAILABLE = True
+except ImportError:
+    DOTENV_AVAILABLE = False
+    def load_dotenv(*args, **kwargs):
+        """Fallback dotenv loader"""
+        pass
 
-def load_config():
+try:
+    import yaml
+    YAML_AVAILABLE = True
+except ImportError:
+    YAML_AVAILABLE = False
+    
+    class FallbackYAML:
+        @staticmethod
+        def safe_load(content):
+            """Basic YAML fallback - converts simple YAML to dict"""
+            if not content:
+                return {}
+            
+            # Simple YAML parser for basic configs
+            result = {}
+            lines = content.strip().split('\n')
+            
+            for line in lines:
+                line = line.strip()
+                if ':' in line and not line.startswith('#'):
+                    key, value = line.split(':', 1)
+                    key = key.strip()
+                    value = value.strip().strip('"\'')
+                    
+                    # Convert boolean strings
+                    if value.lower() == 'true':
+                        value = True
+                    elif value.lower() == 'false':
+                        value = False
+                    # Convert numeric strings
+                    elif value.isdigit():
+                        value = int(value)
+                    elif value.replace('.', '').isdigit():
+                        value = float(value)
+                    
+                    result[key] = value
+            
+            return result
+    
+    yaml = FallbackYAML()
+
+class UltimateConfigLoader:
     """
-    Loads the system configuration from YAML and environment variables.
-    
-    1. Loads .env file into environment variables.
-    2. Loads the base configuration from config/system_config.yaml.
-    3. Recursively replaces placeholders like ${VAR_NAME} with actual environment variables.
-    
-    Returns:
-        A dictionary containing the fully resolved configuration.
+    Ultimate Configuration Loader with Complete Fallback Support
     """
-    # Load environment variables from .env file
-    env_path = Path('.') / '.env'
-    load_dotenv(dotenv_path=env_path)
-
-    # Load base YAML configuration
-    config_path = Path('config') / 'system_config.yaml'
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
-
-    # Replace placeholders with environment variables
-    resolved_config = _replace_env_vars(config)
     
-    print("✅ Configuration loaded and resolved.")
-    return resolved_config
+    def __init__(self):
+        self.project_root = Path(__file__).parent.parent.parent
+        self.config_dir = self.project_root / "config"
+        self.env_file = self.project_root / ".env"
+        
+        # Default configuration
+        self.default_config = {
+            'system': {
+                'name': 'Ultimate AGI Force v7.0.0',
+                'version': '7.0.0',
+                'owner': 'Mulky Malikul Dhaher',
+                'owner_id': '1108151509970001',
+                'region': 'Indonesia'
+            },
+            'web_interface': {
+                'host': '0.0.0.0',
+                'port': 5000,
+                'debug': True
+            },
+            'autonomous_engines': {
+                'development': {
+                    'enabled': True,
+                    'cycle_interval': 300
+                },
+                'execution': {
+                    'enabled': True,
+                    'cycle_interval': 60
+                },
+                'improvement': {
+                    'enabled': True,
+                    'cycle_interval': 900
+                }
+            },
+            'agents': {
+                'max_concurrent': 500,
+                'auto_scaling': True,
+                'performance_monitoring': True
+            },
+            'api_keys': {
+                'llm7': 'demo_key_llm7_indonesia',
+                'openrouter': 'demo_key_openrouter_global',
+                'camel': 'demo_key_camel_ai_collaboration'
+            },
+            'logging': {
+                'level': 'INFO',
+                'file_rotation': True,
+                'max_log_size': '100MB'
+            }
+        }
+        
+        self.config = self.default_config.copy()
+        self.load_configuration()
+    
+    def load_configuration(self):
+        """Load configuration from multiple sources with fallbacks"""
+        print("🔧 Loading Ultimate AGI Force configuration...")
+        
+        # 1. Load environment variables
+        self._load_env_file()
+        self._load_env_variables()
+        
+        # 2. Load YAML configuration files
+        self._load_yaml_configs()
+        
+        # 3. Apply environment overrides
+        self._apply_env_overrides()
+        
+        print("✅ Configuration loaded successfully with fallbacks")
+    
+    def _load_env_file(self):
+        """Load .env file if available"""
+        if DOTENV_AVAILABLE and self.env_file.exists():
+            try:
+                load_dotenv(self.env_file)
+                print(f"  ✅ Loaded .env file: {self.env_file}")
+            except Exception as e:
+                print(f"  ⚠️ Failed to load .env file: {e}")
+        elif self.env_file.exists():
+            # Manual .env parsing
+            try:
+                with open(self.env_file, 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if '=' in line and not line.startswith('#'):
+                            key, value = line.split('=', 1)
+                            os.environ[key.strip()] = value.strip().strip('"\'')
+                print(f"  ✅ Manually parsed .env file: {self.env_file}")
+            except Exception as e:
+                print(f"  ⚠️ Failed to parse .env file: {e}")
+        else:
+            print("  ℹ️ No .env file found, using defaults")
+    
+    def _load_env_variables(self):
+        """Load configuration from environment variables"""
+        env_mapping = {
+            'SYSTEM_NAME': ['system', 'name'],
+            'OWNER_NAME': ['system', 'owner'],
+            'OWNER_ID': ['system', 'owner_id'],
+            'REGION': ['system', 'region'],
+            'WEB_INTERFACE_HOST': ['web_interface', 'host'],
+            'WEB_INTERFACE_PORT': ['web_interface', 'port'],
+            'DEBUG_MODE': ['web_interface', 'debug'],
+            'LLM7_API_KEY': ['api_keys', 'llm7'],
+            'OPENROUTER_API_KEY': ['api_keys', 'openrouter'],
+            'CAMEL_API_KEY': ['api_keys', 'camel'],
+            'LOG_LEVEL': ['logging', 'level'],
+            'MAX_CONCURRENT_AGENTS': ['agents', 'max_concurrent']
+        }
+        
+        for env_key, config_path in env_mapping.items():
+            value = os.getenv(env_key)
+            if value is not None:
+                # Convert value to appropriate type with better logic
+                value = self._convert_env_value(env_key, value)
+                
+                # Set nested configuration value
+                current = self.config
+                for key in config_path[:-1]:
+                    if key not in current:
+                        current[key] = {}
+                    current = current[key]
+                current[config_path[-1]] = value
+    
+    def _convert_env_value(self, env_key, value):
+        """Convert environment variable value to appropriate type"""
+        # String values (keep as string)
+        string_keys = [
+            'SYSTEM_NAME', 'OWNER_NAME', 'OWNER_ID', 'REGION', 
+            'WEB_INTERFACE_HOST', 'LLM7_API_KEY', 'OPENROUTER_API_KEY', 
+            'CAMEL_API_KEY', 'LOG_LEVEL'
+        ]
+        
+        # Integer values
+        integer_keys = [
+            'WEB_INTERFACE_PORT', 'MAX_CONCURRENT_AGENTS'
+        ]
+        
+        # Boolean values  
+        boolean_keys = [
+            'DEBUG_MODE'
+        ]
+        
+        if env_key in string_keys:
+            return str(value)
+        elif env_key in integer_keys:
+            try:
+                return int(value)
+            except ValueError:
+                return value  # Keep original if conversion fails
+        elif env_key in boolean_keys:
+            return value.lower() in ('true', '1', 'yes', 'on')
+        else:
+            # Generic conversion for unknown keys
+            if value.lower() in ('true', 'false'):
+                return value.lower() == 'true'
+            elif value.isdigit():
+                return int(value)
+            else:
+                return value
+    
+    def _load_yaml_configs(self):
+        """Load YAML configuration files"""
+        yaml_files = [
+            'system_config.yaml',
+            'agent_config.yaml',
+            'deployment_config.yaml'
+        ]
+        
+        for yaml_file in yaml_files:
+            config_path = self.config_dir / yaml_file
+            if config_path.exists():
+                try:
+                    with open(config_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        yaml_config = yaml.safe_load(content)
+                        if yaml_config:
+                            self._merge_config(self.config, yaml_config)
+                        print(f"  ✅ Loaded YAML config: {yaml_file}")
+                except Exception as e:
+                    print(f"  ⚠️ Failed to load {yaml_file}: {e}")
+            else:
+                print(f"  ℹ️ YAML config not found: {yaml_file}")
+    
+    def _apply_env_overrides(self):
+        """Apply final environment variable overrides"""
+        # Override critical settings from environment
+        if 'WEB_INTERFACE_PORT' in os.environ:
+            try:
+                self.config['web_interface']['port'] = int(os.environ['WEB_INTERFACE_PORT'])
+            except ValueError:
+                pass
+        
+        if 'AUTONOMY_LEVEL' in os.environ:
+            try:
+                autonomy_level = int(os.environ['AUTONOMY_LEVEL'])
+                self.config['autonomous_engines']['autonomy_level'] = autonomy_level
+            except ValueError:
+                pass
+    
+    def _merge_config(self, base_config, new_config):
+        """Recursively merge configuration dictionaries"""
+        for key, value in new_config.items():
+            if key in base_config and isinstance(base_config[key], dict) and isinstance(value, dict):
+                self._merge_config(base_config[key], value)
+            else:
+                base_config[key] = value
+    
+    def get(self, key_path, default=None):
+        """Get configuration value using dot notation"""
+        keys = key_path.split('.')
+        current = self.config
+        
+        for key in keys:
+            if isinstance(current, dict) and key in current:
+                current = current[key]
+            else:
+                return default
+        
+        return current
+    
+    def set(self, key_path, value):
+        """Set configuration value using dot notation"""
+        keys = key_path.split('.')
+        current = self.config
+        
+        for key in keys[:-1]:
+            if key not in current:
+                current[key] = {}
+            current = current[key]
+        
+        current[keys[-1]] = value
+    
+    def get_api_key(self, provider):
+        """Get API key for specific provider"""
+        return self.get(f'api_keys.{provider}', f'demo_key_{provider}_fallback')
+    
+    def get_web_config(self):
+        """Get web interface configuration"""
+        return self.config.get('web_interface', {
+            'host': '0.0.0.0',
+            'port': 5000,
+            'debug': True
+        })
+    
+    def get_agent_config(self):
+        """Get agent configuration"""
+        return self.config.get('agents', {
+            'max_concurrent': 500,
+            'auto_scaling': True,
+            'performance_monitoring': True
+        })
+    
+    def get_autonomous_config(self):
+        """Get autonomous engines configuration"""
+        return self.config.get('autonomous_engines', {
+            'development': {'enabled': True, 'cycle_interval': 300},
+            'execution': {'enabled': True, 'cycle_interval': 60},
+            'improvement': {'enabled': True, 'cycle_interval': 900}
+        })
+    
+    def save_config(self, config_file='runtime_config.json'):
+        """Save current configuration to file"""
+        config_path = self.project_root / config_file
+        try:
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(self.config, f, indent=2, ensure_ascii=False)
+            print(f"✅ Configuration saved to: {config_path}")
+            return True
+        except Exception as e:
+            print(f"❌ Failed to save configuration: {e}")
+            return False
+    
+    def print_config_summary(self):
+        """Print configuration summary"""
+        print("\n" + "="*70)
+        print("🔧 Ultimate AGI Force v7.0.0 - Configuration Summary")
+        print("="*70)
+        print(f"👑 Owner: {self.get('system.owner')} ({self.get('system.owner_id')})")
+        print(f"🇮🇩 Region: {self.get('system.region')}")
+        print(f"🌐 Web Interface: {self.get('web_interface.host')}:{self.get('web_interface.port')}")
+        print(f"🤖 Max Agents: {self.get('agents.max_concurrent')}")
+        print(f"🔧 Development Engine: {'✅' if self.get('autonomous_engines.development.enabled') else '❌'}")
+        print(f"⚡ Execution Engine: {'✅' if self.get('autonomous_engines.execution.enabled') else '❌'}")
+        print(f"📈 Improvement Engine: {'✅' if self.get('autonomous_engines.improvement.enabled') else '❌'}")
+        print(f"🔑 API Keys: {len([k for k in self.get('api_keys', {}).keys()])} configured")
+        print("="*70)
 
-# Singleton instance of the configuration
-config = load_config()
+# Create global configuration instance
+config_loader = UltimateConfigLoader()
+config = config_loader.config
 
-if __name__ == '__main__':
-    # Example of how to use the loaded config
-    print("\n--- LLM Provider Config ---")
-    print(f"Primary Provider: {config['llm']['primary_provider']}")
-    print(f"LLM7 API Key: {config['llm']['providers']['llm7']['api_key']}")
-    print(f"OpenRouter API Key: {config['llm']['providers']['openrouter']['api_key']}")
-    print("\n--- Database Config ---")
-    print(f"Database URL: {config['database']['primary']['url']}")
-    print("\n--- Web Interface Config ---")
-    print(f"Secret Key: {config['web_interface']['security']['secret_key']}")
+# Convenience functions
+def get_config(key_path, default=None):
+    """Get configuration value"""
+    return config_loader.get(key_path, default)
+
+def get_api_key(provider):
+    """Get API key for provider"""
+    return config_loader.get_api_key(provider)
+
+def get_web_config():
+    """Get web configuration"""
+    return config_loader.get_web_config()
+
+def get_agent_config():
+    """Get agent configuration"""
+    return config_loader.get_agent_config()
+
+def print_config_summary():
+    """Print configuration summary"""
+    config_loader.print_config_summary()
+
+# Auto-load configuration
+if __name__ == "__main__":
+    print_config_summary()
+else:
+    print("🔧 Ultimate AGI Force configuration loaded with advanced fallbacks")
