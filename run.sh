@@ -166,7 +166,7 @@ start_system() {
     # Check if we should run in background
     if [ "$1" = "--background" ] || [ "$1" = "-b" ]; then
         print_status "Starting system in background mode..."
-        nohup $PYTHON_CMD main.py > data/logs/system.log 2>&1 &
+        nohup $PYTHON_CMD launcher.py > data/logs/system.log 2>&1 &
         SYSTEM_PID=$!
         echo $SYSTEM_PID > data/system.pid
         print_status "System started with PID: $SYSTEM_PID"
@@ -181,7 +181,7 @@ start_system() {
         trap cleanup EXIT
         
         # Run the system
-        $PYTHON_CMD main.py "$@"
+        $PYTHON_CMD launcher.py "$@"
     fi
 }
 
