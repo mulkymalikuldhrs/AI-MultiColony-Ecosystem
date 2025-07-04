@@ -1,74 +1,79 @@
 {
-  "system_id": "ultimate_agi_force",
-  "version": "7.0.0-ultimate",
+  "system_id": "ultimate_agi_force_standalone",
+  "version": "7.0.0",
   "status": "active",
   "owner": "Mulky Malikul Dhaher",
   "owner_id": "1108151509970001",
-  "timestamp": "2025-07-04T11:49:35.995670",
+  "timestamp": "2025-07-04T12:42:43.080004",
+  "mode": "standalone",
   "core_components": [
-    "prompt_master",
     "memory_bus",
-    "scheduler",
-    "sync_engine",
-    "ai_selector"
+    "prompt_master",
+    "llm_gateway",
+    "camel_agent",
+    "agent_registry",
+    "web_server"
   ],
   "working_agents": {
+    "memory_bus": {
+      "id": "memory_bus",
+      "name": "Memory Bus Agent (Standalone)",
+      "status": "ready",
+      "capabilities": []
+    },
+    "prompt_master": {
+      "id": "prompt_master",
+      "name": "Prompt Master Agent (Standalone)",
+      "status": "ready",
+      "capabilities": []
+    },
+    "llm_gateway": {
+      "id": "llm_gateway",
+      "name": "llm_gateway",
+      "status": "ready",
+      "capabilities": []
+    },
+    "camel_agent": {
+      "id": "camel_agent",
+      "name": "Camel AI Collaborative Agent (Standalone)",
+      "status": "ready",
+      "capabilities": [
+        "multi_agent_collaboration",
+        "role_playing_conversations",
+        "consensus_building",
+        "collaborative_problem_solving"
+      ]
+    },
     "cybershell": {
       "id": "cybershell",
-      "name": "CyberShell Agent",
+      "name": "CyberShell Agent (Standalone)",
       "status": "ready",
       "capabilities": [
-        "shell_execution",
-        "process_management",
-        "system_monitoring",
-        "automation",
-        "file_operations",
-        "network_commands"
+        "basic_processing"
       ]
     },
-    "agent_maker": {
-      "id": "agent_maker",
-      "name": "Agent Maker",
+    "dev_engine": {
+      "id": "dev_engine",
+      "name": "Development Engine (Standalone)",
       "status": "ready",
       "capabilities": [
-        "agent_creation",
-        "code_generation",
-        "autonomous_development",
-        "system_expansion",
-        "agent_registration",
-        "template_management"
+        "basic_processing"
       ]
     },
-    "fullstack_dev": {
-      "id": "fullstack_dev",
-      "name": "Full Stack Developer",
+    "ui_designer": {
+      "id": "ui_designer",
+      "name": "UI Designer (Standalone)",
       "status": "ready",
       "capabilities": [
-        "frontend_development",
-        "backend_development",
-        "database_design",
-        "api_development",
-        "authentication",
-        "deployment",
-        "mobile_development",
-        "testing"
+        "basic_processing"
       ]
     },
-    "system_optimizer": {
-      "id": "system_optimizer",
-      "name": "System Optimizer",
+    "data_sync": {
+      "id": "data_sync",
+      "name": "Data Synchronizer (Standalone)",
       "status": "ready",
       "capabilities": [
-        "performance_monitoring",
-        "auto_optimization",
-        "dependency_management",
-        "resource_allocation",
-        "preventive_maintenance",
-        "auto_scaling",
-        "error_detection",
-        "system_updates",
-        "security_scanning",
-        "backup_management"
+        "basic_processing"
       ]
     }
   },
