@@ -836,7 +836,7 @@ class AgentEvolutionEngine:
 # System Configuration
 SYSTEM_NAME="Ultimate AGI Force v7.0.0"
 OWNER_NAME="Mulky Malikul Dhaher"
-OWNER_ID="1108151509970001"
+OWNER_ID="11**********"
 REGION="Indonesia"
 
 # API Keys (Optional - has fallbacks)
@@ -869,7 +869,7 @@ system:
   name: "Ultimate AGI Force v7.0.0"
   version: "7.0.0"
   owner: "Mulky Malikul Dhaher"
-  owner_id: "1108151509970001"
+  owner_id: "11**%****"
   
 autonomous_engines:
   development:
