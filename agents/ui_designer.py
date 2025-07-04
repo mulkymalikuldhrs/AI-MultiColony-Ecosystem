@@ -5,9 +5,6 @@ AI-powered UI design and component generation
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
-from agents.dev_engine import DevEngineAgent
-dev_engine_agent = DevEngineAgent()
-
 import asyncio
 import json
 import os
@@ -29,7 +26,7 @@ class UIDesignerAgent:
     - Generates interactive prototypes
     """
     
-    def __init__(self):
+    def __init__(self, llm_provider=None, dev_engine=None):
         self.agent_id = "ui_designer"
         self.name = "UI Designer Agent"
         self.status = "ready"
@@ -51,16 +48,16 @@ class UIDesignerAgent:
         # Generated designs tracking
         self.generated_designs: Dict[str, Dict] = {}
 
-        # Add Next.js template using the dev engine's methods
-        self.ui_templates["nextjs_app"] = self._create_nextjs_app_template()
-        
-        # Import LLM Gateway for AI-powered design
-        try:
-            from connectors.llm_gateway import llm_gateway
-            self.llm = llm_gateway
-        except ImportError:
-            self.llm = None
+        # Set dependencies
+        self.llm = llm_provider
+        self.dev_engine = dev_engine
+        if not self.llm:
             print("⚠️ LLM Gateway not available for UI design")
+        if not self.dev_engine:
+            print("⚠️ Dev Engine not available for UI design")
+        else:
+            # Add Next.js template using the dev engine's methods
+            self.ui_templates["nextjs_app"] = self._create_nextjs_app_template()
     
     def _load_ui_templates(self) -> Dict[str, Dict]:
         """Load UI templates and patterns"""
@@ -1142,7 +1139,10 @@ export default AgentSidebar;
         """
         Creates a Next.js app template structure by borrowing from DevEngineAgent.
         """
-        template = dev_engine_agent.project_templates.get("nextjs_app", {})
+        if not self.dev_engine:
+            return {}
+            
+        template = self.dev_engine.project_templates.get("nextjs_app", {})
         return {
             "description": template.get("description", "Next.js application"),
             "components": ["layout", "page", "globals.css"],
@@ -1151,5 +1151,3 @@ export default AgentSidebar;
             "files": template.get("files", {})
         }
 
-# Global instance
-ui_designer_agent = UIDesignerAgent()
