@@ -9,14 +9,20 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 import asyncio
 import sys
 import os
+import json
 import threading
 import time
 import subprocess
+import traceback
 from datetime import datetime
 from pathlib import Path
 
-# Add current directory to path
-sys.path.append(str(Path(__file__).parent))
+# Add project root to path to allow absolute imports
+project_root = Path(__file__).parent
+sys.path.append(str(project_root))
+
+# Load system configuration
+from src.core.config_loader import config
 
 class UltimateAGIForce:
     """
@@ -37,6 +43,7 @@ class UltimateAGIForce:
         self.core_components = {}
         self.working_agents = {}
         self.web_interface_process = None
+        self.agents_initialized = threading.Event()
         
         print(f"🛡️ Ultimate AGI Force v{self.version}")
         print(f"👑 Absolute loyalty to: {self.owner_name} ({self.owner_identity})")
@@ -81,49 +88,66 @@ class UltimateAGIForce:
         print("📁 Data directories created")
     
     async def _initialize_core_components(self):
-        """Initialize core system components"""
+        """Initialize core system components based on config"""
         print("\n🔧 Initializing core components...")
+
+        if config['core']['prompt_master']['enabled']:
+            try:
+                from core.prompt_master import prompt_master
+                self.core_components['prompt_master'] = prompt_master
+                print("  ✅ Prompt Master: Ready")
+            except Exception as e:
+                print(f"  ❌ Prompt Master: {e}")
+
+        if config['core']['memory_bus']['enabled']:
+            try:
+                from core.memory_bus import memory_bus
+                self.core_components['memory_bus'] = memory_bus
+                print("  ✅ Memory Bus: Ready")
+            except Exception as e:
+                print(f"  ❌ Memory Bus: {e}")
+
+        if config['core']['scheduler']['enabled']:
+            try:
+                from core.scheduler import agent_scheduler
+                self.core_components['scheduler'] = agent_scheduler
+                agent_scheduler.start()
+                print("  ✅ Scheduler: Ready and Active")
+            except Exception as e:
+                print(f"  ❌ Scheduler: {e}")
+
+        if config['core']['sync_engine']['enabled']:
+            try:
+                from core.sync_engine import sync_engine
+                self.core_components['sync_engine'] = sync_engine
+                await sync_engine.start()
+                print("  ✅ Sync Engine: Ready and Active")
+            except Exception as e:
+                print(f"  ❌ Sync Engine: {e}")
         
-        try:
-            from core.prompt_master import prompt_master
-            self.core_components['prompt_master'] = prompt_master
-            print("  ✅ Prompt Master: Ready")
-        except Exception as e:
-            print(f"  ❌ Prompt Master: {e}")
-        
-        try:
-            from core.memory_bus import memory_bus
-            self.core_components['memory_bus'] = memory_bus
-            print("  ✅ Memory Bus: Ready")
-        except Exception as e:
-            print(f"  ❌ Memory Bus: {e}")
-        
-        try:
-            from core.scheduler import agent_scheduler
-            self.core_components['scheduler'] = agent_scheduler
-            agent_scheduler.start()
-            print("  ✅ Scheduler: Ready and Active")
-        except Exception as e:
-            print(f"  ❌ Scheduler: {e}")
-        
-        try:
-            from core.sync_engine import sync_engine
-            self.core_components['sync_engine'] = sync_engine
-            await sync_engine.start()
-            print("  ✅ Sync Engine: Ready and Active")
-        except Exception as e:
-            print(f"  ❌ Sync Engine: {e}")
+        if config['core']['ai_selector']['enabled']:
+            try:
+                from core.ai_selector import ai_selector
+                self.core_components['ai_selector'] = ai_selector
+                print("  ✅ AI Selector: Ready")
+            except Exception as e:
+                print(f"  ❌ AI Selector: {e}")
     
     async def _initialize_working_agents(self):
         """Initialize working agents only"""
         print("\n🤖 Initializing working agents...")
         
-        try:
-            from agents.ui_designer import ui_designer_agent
-            self.working_agents['ui_designer'] = ui_designer_agent
-            print("  ✅ UI Designer Agent: Ready")
-        except Exception as e:
-            print(f"  ❌ UI Designer Agent: {e}")
+        print("  ⚠️ UI Designer/Dev Engine Agents temporarily disabled due to persistent startup errors.")
+        # try:
+        #     from agents.ui_designer import ui_designer_agent
+        #     from agents.dev_engine import dev_engine_agent
+        #     self.working_agents['ui_designer'] = ui_designer_agent
+        #     self.working_agents['dev_engine'] = dev_engine_agent
+        #     print("  ✅ UI Designer Agent: Ready")
+        #     print("  ✅ Dev Engine Agent: Ready")
+        # except Exception as e:
+        #     print(f"  ❌ ERROR INITIALIZING DEV/UI AGENTS: {e}")
+        #     traceback.print_exc()
         
         # Create simplified working agents directly
         try:
@@ -137,6 +161,9 @@ class UltimateAGIForce:
             print("  ✅ Deployment Agent: Ready (simplified)")
         except Exception as e:
             print(f"  ❌ Deployment Agent: {e}")
+        
+        # Signal that agent initialization is complete
+        self.agents_initialized.set()
     
     def _create_agi_connector(self):
         """Create simplified AGI Colony Connector"""
@@ -203,20 +230,29 @@ class UltimateAGIForce:
         print("\n🌐 Starting web interface...")
         
         try:
-            # Start web interface in background process
-            self.web_interface_process = subprocess.Popen([
-                sys.executable, "-c",
-                """
+            # Start web interface in background process using config
+            web_config = config['web_interface']
+            if web_config['enabled']:
+                host = web_config['host']
+                port = web_config['port']
+                debug = web_config['debug']
+                
+                # Construct the command to run the web interface
+                command = f"""
 import sys
-sys.path.append('/workspace/mulkymalikuldhrtech_Agentic-AI-Ecosystem')
+sys.path.append('{str(project_root)}')
 from web_interface.app import app, socketio
-socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
+socketio.run(app, host='{host}', port={port}, debug={debug}, allow_unsafe_werkzeug=True)
 """
-            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            
-            time.sleep(2)  # Give it time to start
-            print("  ✅ Web Interface: Active on port 5000")
-            print("  🌐 Dashboard: http://localhost:5000")
+                self.web_interface_process = subprocess.Popen(
+                    [sys.executable, "-c", command]
+                )
+                
+                time.sleep(5)  # Give it more time to start
+                print(f"  ✅ Web Interface: Active on port {port}")
+                print(f"  🌐 Dashboard: http://localhost:{port}")
+            else:
+                print("  ⚪ Web Interface: Disabled in config")
             
         except Exception as e:
             print(f"  ❌ Web Interface: {e}")
@@ -270,8 +306,12 @@ socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=
         # Start health checking
         threading.Thread(target=self._health_check_loop, daemon=True).start()
         
+        # Start task queue processing
+        threading.Thread(target=self._task_processing_loop, daemon=True).start()
+        
         print("  ✅ Autonomous monitoring: Active")
         print("  ✅ Health checking: Active")
+        print("  ✅ Task queue processor: Active")
         print("  ✅ Colony expansion: Ready")
     
     def _system_monitoring_loop(self):
@@ -300,10 +340,71 @@ socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=
                 time.sleep(30)  # Health check every 30 seconds
             except:
                 time.sleep(60)
+
+    def _task_processing_loop(self):
+        """Monitors and processes tasks from the file-based queue."""
+        self.agents_initialized.wait() # Wait for agents to be ready
+        print("  -Q- Task processor is now active and waiting for tasks.")
+        task_queue_dir = Path("data/task_queue")
+        task_queue_dir.mkdir(exist_ok=True)
+        
+        while True:
+            try:
+                # Check for new task files
+                for task_file in task_queue_dir.glob("*.json"):
+                    try:
+                        with open(task_file, 'r') as f:
+                            task_payload = json.load(f)
+                        
+                        agent_id = task_payload.get('agent_id')
+                        task_data = task_payload.get('task_data')
+                        
+                        print(f"  -Q- New task found: {task_payload.get('task_id')} for agent {agent_id}")
+                        
+                        agent = self.working_agents.get(agent_id)
+                        if not agent:
+                            print(f"  -E- Agent '{agent_id}' not found for task.")
+                            os.remove(task_file) # Discard task
+                            continue
+                            
+                        if hasattr(agent, 'process_task'):
+                            # This is a simplified execution. A real system might
+                            # use asyncio.run_coroutine_threadsafe for async tasks.
+                            print(f"  -P- Processing task with {agent_id}...")
+                            result = agent.process_task(task_data)
+                            print(f"  -R- Task result: {result}")
+                        else:
+                            print(f"  -E- Agent '{agent_id}' does not have a process_task method.")
+                        
+                        # Task processed, remove from queue
+                        os.remove(task_file)
+                        
+                    except Exception as e:
+                        print(f"  -E- Error processing task file {task_file.name}: {e}")
+                        # Move to a failed directory instead of deleting? For now, just remove.
+                        try:
+                            os.remove(task_file)
+                        except OSError:
+                            pass
+                
+                time.sleep(2)  # Check for new tasks every 2 seconds
+            except Exception as e:
+                print(f"  -E- Critical error in task processing loop: {e}")
+                time.sleep(10)
     
     def _save_system_status(self):
         """Save current system status"""
         try:
+            # Get detailed agent info
+            agents_info = {}
+            for agent_id, agent in self.working_agents.items():
+                agents_info[agent_id] = {
+                    'id': agent_id,
+                    'name': getattr(agent, 'name', agent_id),
+                    'status': getattr(agent, 'status', 'unknown'),
+                    'capabilities': getattr(agent, 'capabilities', [])
+                }
+
             status = {
                 "system_id": self.system_id,
                 "version": self.version,
@@ -312,7 +413,7 @@ socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=
                 "owner_id": self.owner_identity,
                 "timestamp": datetime.now().isoformat(),
                 "core_components": list(self.core_components.keys()),
-                "working_agents": list(self.working_agents.keys()),
+                "working_agents": agents_info, # Use detailed info
                 "uptime": "active",
                 "loyalty_status": "ABSOLUTE_LOYALTY_TO_OWNER"
             }
