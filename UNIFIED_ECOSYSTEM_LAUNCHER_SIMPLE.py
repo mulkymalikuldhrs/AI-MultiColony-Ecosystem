@@ -363,16 +363,22 @@ class EcosystemManager:
                 "priority": 1,
                 "required": True
             },
+            "consciousness_system": {
+                "module": "AI_CONSCIOUSNESS_SIMULATION",
+                "class": "ConsciousnessManager",
+                "priority": 2,
+                "required": False
+            },
             "ui_system": {
                 "module": "FUTURISTIC_UI_SYSTEM", 
                 "class": "FuturisticUISystem",
-                "priority": 2,
+                "priority": 3,
                 "required": False
             },
             "research_engine": {
                 "module": "MASSIVE_AUTONOMOUS_RESEARCH_ENGINE",
                 "class": "MassiveAutonomousResearchEngine", 
-                "priority": 3,
+                "priority": 4,
                 "required": False
             }
         }
