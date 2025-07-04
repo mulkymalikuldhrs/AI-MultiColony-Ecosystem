@@ -1,0 +1,64 @@
+{
+  "timestamp": "2025-07-04T18:02:27.655494",
+  "summary": {
+    "total_tests": 6,
+    "passed_tests": 1,
+    "failed_tests": 5,
+    "success_rate": 16.666666666666664
+  },
+  "detailed_results": {
+    "syntax_validation": {
+      "passed": false,
+      "errors": [
+        "ADVANCED_AI_AGENT_ORCHESTRATION.py: Syntax error at line 703: expected 'except' or 'finally' block"
+      ],
+      "files_checked": 4
+    },
+    "import_compatibility": {
+      "passed": true,
+      "errors": [],
+      "warnings": [
+        "Optional module psutil not available",
+        "Optional module numpy not available",
+        "Optional module flask not available"
+      ]
+    },
+    "component_creation": {
+      "passed": false,
+      "errors": [
+        "Component creation failed: No module named 'psutil'"
+      ],
+      "components_tested": []
+    },
+    "basic_functionality": {
+      "passed": false,
+      "errors": [
+        "Basic functionality test failed: No module named 'psutil'"
+      ]
+    },
+    "error_handling": {
+      "passed": false,
+      "errors": [
+        "Error handling test failed: No module named 'psutil'"
+      ]
+    },
+    "autonomous_operation": {
+      "passed": false,
+      "errors": [
+        "Autonomous operation test failed: No module named 'psutil'"
+      ]
+    }
+  },
+  "errors": [
+    "ADVANCED_AI_AGENT_ORCHESTRATION.py: Syntax error at line 703: expected 'except' or 'finally' block",
+    "Component creation failed: No module named 'psutil'",
+    "Basic functionality test failed: No module named 'psutil'",
+    "Error handling test failed: No module named 'psutil'",
+    "Autonomous operation test failed: No module named 'psutil'"
+  ],
+  "warnings": [
+    "Optional module psutil not available",
+    "Optional module numpy not available",
+    "Optional module flask not available"
+  ]
+}
