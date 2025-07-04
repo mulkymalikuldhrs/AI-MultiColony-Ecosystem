@@ -5,6 +5,9 @@ AI-powered UI design and component generation
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
+from agents.dev_engine import DevEngineAgent
+dev_engine_agent = DevEngineAgent()
+
 import asyncio
 import json
 import os
@@ -47,6 +50,9 @@ class UIDesignerAgent:
         
         # Generated designs tracking
         self.generated_designs: Dict[str, Dict] = {}
+
+        # Add Next.js template using the dev engine's methods
+        self.ui_templates["nextjs_app"] = self._create_nextjs_app_template()
         
         # Import LLM Gateway for AI-powered design
         try:
@@ -1130,6 +1136,19 @@ export default AgentSidebar;
             "error": error_message,
             "agent": self.agent_id,
             "timestamp": datetime.now().isoformat()
+        }
+
+    def _create_nextjs_app_template(self) -> Dict:
+        """
+        Creates a Next.js app template structure by borrowing from DevEngineAgent.
+        """
+        template = dev_engine_agent.project_templates.get("nextjs_app", {})
+        return {
+            "description": template.get("description", "Next.js application"),
+            "components": ["layout", "page", "globals.css"],
+            "layout": "app-router",
+            "complexity": "medium",
+            "files": template.get("files", {})
         }
 
 # Global instance

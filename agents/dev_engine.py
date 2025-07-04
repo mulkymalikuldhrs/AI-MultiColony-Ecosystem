@@ -539,47 +539,140 @@ logs
     
     def _get_react_readme(self) -> str:
         return """# {{PROJECT_NAME}}
+"""
+
+    def _get_nextjs_package_json(self) -> str:
+        return """{
+  "name": "{{PROJECT_NAME}}",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "react": "^18",
+    "react-dom": "^18",
+    "next": "14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.0",
+    "typescript": "^5"
+  }
+}"""
+
+    def _get_nextjs_config(self) -> str:
+        return """/** @type {import('next').NextConfig} */
+const nextConfig = {}
+
+module.exports = nextConfig
+"""
+
+    def _get_nextjs_page(self) -> str:
+        return """import Image from 'next/image'
+
+export default function Home() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
+        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
+          Get started by editing&nbsp;
+          <code className="font-mono font-bold">app/page.tsx</code>
+        </p>
+      </div>
+    </main>
+  )
+}
+"""
+
+    def _get_nextjs_layout(self) -> str:
+        return """import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: '{{PROJECT_NAME}}',
+  description: '{{PROJECT_DESCRIPTION}}',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>{children}</body>
+    </html>
+  )
+}
+"""
+
+    def _get_nextjs_gitignore(self) -> str:
+        return self._get_react_gitignore() + "\n.next/\n"
+
+    def _get_nextjs_readme(self) -> str:
+        return """# {{PROJECT_NAME}}
+
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+"""
+
+    def _get_fullstack_readme(self) -> str:
+        return """# {{PROJECT_NAME}} - Full-Stack
 
 {{PROJECT_DESCRIPTION}}
+
+This project is a full-stack application with a React frontend and a FastAPI backend.
+
+## Tech Stack
+
+- **Frontend**: React, Vite, Tailwind CSS
+- **Backend**: FastAPI, Python
+- **Database**: PostgreSQL (or SQLite for development)
+- **Deployment**: Docker
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v18 or higher)
-- npm or yarn
 
-### Installation
+- Docker
+- Docker Compose
 
-1. Install dependencies:
+### Running the Application
+
 ```bash
-npm install
+docker-compose up -d
 ```
 
-2. Start the development server:
-```bash
-npm run dev
-```
+Frontend: [http://localhost:3000](http://localhost:3000)
+Backend API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+"""
 
-3. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-## Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test` - Run tests
-- `npm run lint` - Run ESLint
-
-## Built With
-
-- [React](https://reactjs.org/) - Frontend framework
-- [Vite](https://vitejs.dev/) - Build tool
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-
-## License
-
-MIT License"""
-    
     def _get_fastapi_requirements(self) -> str:
         return """fastapi==0.104.1
 uvicorn[standard]==0.24.0
@@ -769,12 +862,80 @@ def test_get_users():
     response = client.get("/api/v1/users")
     assert response.status_code == 200
     assert isinstance(response.json(), list)"""
-    
+
+    def _get_python_setup(self) -> str:
+        return """from setuptools import setup, find_packages
+
+setup(
+    name='{{PROJECT_NAME}}',
+    version='0.1.0',
+    packages=find_packages(where='src'),
+    package_dir={'': 'src'},
+    install_requires=[
+        # Add your dependencies here
+    ],
+    entry_points={
+        'console_scripts': [
+            '{{PROJECT_NAME}} = main:main',
+        ],
+    },
+)
+"""
+
+    def _get_pyproject_toml(self) -> str:
+        return """[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "{{PROJECT_NAME}}"
+version = "0.1.0"
+description = "{{PROJECT_DESCRIPTION}}"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+"""
+
+    def _get_python_requirements(self) -> str:
+        return """# Add your Python dependencies here
+# e.g., requests
+"""
+
+    def _get_python_main(self) -> str:
+        return """def main():
+    print("Hello from {{PROJECT_NAME}}!")
+
+if __name__ == "__main__":
+    main()
+"""
+
+    def _get_python_tests(self) -> str:
+        return """import unittest
+from src.main import main
+
+class TestMain(unittest.TestCase):
+    def test_main(self):
+        # This is a placeholder test
+        self.assertEqual(main(), None)
+
+if __name__ == '__main__':
+    unittest.main()
+"""
+
     def _get_python_gitignore(self) -> str:
-        return """# Byte-compiled / optimized / DLL files
+        return """# Python
 __pycache__/
-*.py[cod]
-*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-selfcheck.json
 
 # Distribution / packaging
 .Python
@@ -790,11 +951,16 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # PyInstaller
+#  Usually these files are written by a script so they are not necessary to list
+#  explicitly here.  However, in case some are used, it is better to list them.
 *.manifest
 *.spec
 
@@ -805,6 +971,7 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 htmlcov/
 .tox/
+.nox/
 .coverage
 .coverage.*
 .cache
@@ -814,35 +981,13 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
 # Jupyter Notebook
 .ipynb_checkpoints
 
 # pyenv
 .python-version
 
-# celery beat schedule file
+# celery
 celerybeat-schedule
 
 # SageMath parsed files
@@ -859,7 +1004,7 @@ venv.bak/
 
 # Spyder project settings
 .spyderproject
-.spyproject
+.spyderworkspace
 
 # Rope project settings
 .ropeproject
@@ -871,6 +1016,27 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json"""
+
+    def _get_python_readme(self) -> str:
+        return """# {{PROJECT_NAME}}
+
+{{PROJECT_DESCRIPTION}}
+
+## Installation
+
+```bash
+pip install .
+```
+
+## Usage
+
+```python
+from src.main import main
+
+if __name__ == "__main__":
+    main()
+```
+"""
     
     def _get_fastapi_readme(self) -> str:
         return """# {{PROJECT_NAME}} API

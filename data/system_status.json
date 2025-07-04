@@ -4,17 +4,36 @@
   "status": "initializing",
   "owner": "Mulky Malikul Dhaher",
   "owner_id": "1108151509970001",
-  "timestamp": "2025-07-02T14:49:21.738074",
+  "timestamp": "2025-07-04T10:59:15.245900",
   "core_components": [
     "prompt_master",
     "memory_bus",
     "scheduler",
-    "sync_engine"
+    "sync_engine",
+    "ai_selector"
   ],
-  "working_agents": [
-    "agi_connector",
-    "deployment_agent"
-  ],
+  "working_agents": {
+    "agi_connector": {
+      "id": "agi_connector",
+      "name": "AGI Colony Connector",
+      "status": "active",
+      "capabilities": [
+        "inter_colony_communication",
+        "port_forwarding",
+        "autonomous_thinking"
+      ]
+    },
+    "deployment_agent": {
+      "id": "deployment_agent",
+      "name": "Deployment Specialist",
+      "status": "active",
+      "capabilities": [
+        "autonomous_deployment",
+        "colony_cloning",
+        "strategic_expansion"
+      ]
+    }
+  },
   "uptime": "active",
   "loyalty_status": "ABSOLUTE_LOYALTY_TO_OWNER"
 }
