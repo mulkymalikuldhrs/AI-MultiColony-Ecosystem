@@ -728,13 +728,6 @@ class AdvancedAIAgentOrchestrationSystem:
         """Upgrade agent capabilities"""
         # Implement capability upgrades
         pass
-                
-                # Wait before next evolution cycle
-                await asyncio.sleep(300)  # 5 minutes
-                
-            except Exception as e:
-                logging.error(f"❌ System evolution error: {e}")
-                await asyncio.sleep(60)
 
 # Additional specialized agent classes
 class ResearchDevelopmentAgent(AdvancedAIAgent):
