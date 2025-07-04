@@ -143,30 +143,23 @@ def list_agents():
 
 @app.route('/api/agents/<agent_id>/status')
 def get_agent_status(agent_id):
-    """Get specific agent status"""
+    """Get specific agent status from the live status file."""
     try:
-        if agent_id not in agents_registry:
+        live_status = get_live_system_status()
+        agents_dict = live_status.get('working_agents', {})
+
+        if agent_id not in agents_dict:
             return jsonify({
                 'success': False,
-                'error': 'Agent not found'
+                'error': f"Agent '{agent_id}' not found in live status."
             }), 404
         
-        agent = agents_registry[agent_id]
+        agent_info = agents_dict[agent_id]
         
-        # Try to get performance metrics
-        if hasattr(agent, 'get_performance_metrics'):
-            status = agent.get_performance_metrics()
-        else:
-            status = {
-                'agent_id': agent_id,
-                'name': getattr(agent, 'name', agent_id),
-                'status': getattr(agent, 'status', 'ready'),
-                'capabilities': getattr(agent, 'capabilities', [])
-            }
-        
+        # We return the info from the status file, as we don't have direct access to the agent object
         return jsonify({
             'success': True,
-            'data': status
+            'data': agent_info
         })
         
     except Exception as e:

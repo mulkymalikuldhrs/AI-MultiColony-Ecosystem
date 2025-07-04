@@ -3,3 +3,8 @@ flask_socketio
 requests
 pyyaml
 python-dotenv
+pyjwt
+pyotp
+opencv-python
+cryptography
+pillow

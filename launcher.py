@@ -39,7 +39,8 @@ def check_dependencies():
     print("🔍 Checking dependencies...")
     
     required_packages = [
-        'flask', 'flask_socketio', 'requests', 'pyyaml', 'python-dotenv'
+        'flask', 'flask_socketio', 'requests', 'pyyaml', 'python-dotenv',
+        'pyjwt', 'pyotp', 'opencv-python', 'cryptography', 'pillow'
     ]
     
     missing_packages = []
