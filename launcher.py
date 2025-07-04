@@ -21,6 +21,75 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.append(str(project_root))
 
+def print_banner():
+    """Print system banner"""
+    banner = """
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        🚀 ULTIMATE AGI FORCE 🚀                              ║
+║                                                                              ║
+║                    Autonomous Multi-Agent Intelligence                       ║
+║                                                                              ║
+║               🇮🇩 Made with ❤️ by Mulky Malikul Dhaher 🇮🇩                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+    """
+    print(banner)
+
+def check_dependencies():
+    """Check if all required dependencies are installed"""
+    print("🔍 Checking dependencies...")
+    
+    required_packages = [
+        'flask', 'flask_socketio', 'requests', 'pyyaml'
+    ]
+    
+    missing_packages = []
+    
+    for package in required_packages:
+        try:
+            __import__(package.replace('-', '_'))
+            print(f"  ✅ {package}")
+        except ImportError:
+            missing_packages.append(package)
+            print(f"  ❌ {package}")
+    
+    if missing_packages:
+        print(f"\n⚠️  Missing packages: {', '.join(missing_packages)}")
+        print("Installing missing packages...")
+        
+        try:
+            subprocess.check_call([
+                sys.executable, '-m', 'pip', 'install', 
+                *missing_packages
+            ])
+            print("✅ All packages installed successfully!")
+        except subprocess.CalledProcessError:
+            print("❌ Failed to install packages. Please install manually.")
+            return False
+    
+    return True
+
+def check_ports():
+    """Check if required ports are available"""
+    print("🔌 Checking port availability...")
+    
+    import socket
+    
+    ports_to_check = [config['web_interface']['port']]
+    
+    for port in ports_to_check:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex(('localhost', port))
+        sock.close()
+        
+        if result == 0:
+            print(f"  ⚠️  Port {port} is already in use")
+            return False
+        else:
+            print(f"  ✅ Port {port} is available")
+    
+    return True
+
 # Load system configuration
 from src.core.config_loader import config
 
@@ -496,8 +565,131 @@ socketio.run(app, host='{host}', port={port}, debug={debug}, allow_unsafe_werkze
         self.status = "stopped"
         print("✅ Ultimate AGI Force stopped")
 
+    async def run_interactive_mode(self):
+        """Run in interactive mode"""
+        print("\n🎯 Entering interactive mode. Type 'help' for commands, 'exit' to quit.")
+        
+        while self.status == "active":
+            try:
+                user_input = await asyncio.to_thread(input, "\n🚀 AGI Force > ")
+                
+                if not user_input:
+                    continue
+                
+                if user_input.lower() in ['exit', 'quit']:
+                    break
+                elif user_input.lower() == 'help':
+                    self._print_help()
+                    continue
+                elif user_input.lower() == 'status':
+                    self._print_system_status()
+                    continue
+                
+                print("🔄 Processing task...")
+                # Create a task and put it in the queue
+                task_id = f"task_interactive_{datetime.now().strftime('%Y%m%d_%H%M%S%f')}"
+                task_payload = {
+                    'task_id': task_id,
+                    'agent_id': 'dev_engine', # Default to dev_engine for now
+                    'task_data': { 'prompt': user_input },
+                    'submitted_at': datetime.now().isoformat(),
+                    'status': 'pending'
+                }
+                task_queue_dir = Path("data/task_queue")
+                task_file_path = task_queue_dir / f"{task_id}.json"
+                with open(task_file_path, 'w') as f:
+                    json.dump(task_payload, f, indent=2)
+                
+                print(f"  -Q- Task {task_id} submitted to dev_engine.")
+
+            except (KeyboardInterrupt, EOFError):
+                break
+    
+    def _print_help(self):
+        """Print help information"""
+        help_text = """
+🆘 ULTIMATE AGI FORCE HELP
+
+Commands:
+  help          - Show this help
+  status        - Show system status
+  exit/quit     - Exit the system
+
+Example prompts (sent to dev_engine):
+  "Create a new react project named 'my-cool-app'"
+  "Generate a fastapi backend for a blog"
+        """
+        print(help_text)
+
 async def main():
     """Main entry point"""
+    # This part is now handled in the new main block
+    pass
+
+if __name__ == "__main__":
+    print_banner()
+
+    if not check_dependencies():
+        print("❌ Dependency check failed. Exiting.")
+        sys.exit(1)
+
+    # We can't check ports that might be started by the launcher itself
+    # if not check_ports():
+    #     print("❌ Port check failed. Exiting.")
+    #     sys.exit(1)
+
+    agi_force = UltimateAGIForce()
+    
+    loop = asyncio.get_event_loop()
+    try:
+        # Start the main system
+        main_task = loop.create_task(agi_force.start())
+        
+        # Wait for system to be active
+        while agi_force.status != "active":
+            time.sleep(0.1)
+            if main_task.done() and main_task.exception():
+                raise main_task.exception()
+
+        # Check for command-line arguments
+        if len(sys.argv) > 1:
+            command = " ".join(sys.argv[1:])
+            print(f"🎯 Executing command: {command}")
+            # Create and queue the task
+            task_id = f"task_cli_{datetime.now().strftime('%Y%m%d_%H%M%S%f')}"
+            task_payload = {
+                'task_id': task_id,
+                'agent_id': 'dev_engine', # Default to dev_engine
+                'task_data': { 'prompt': command },
+                'submitted_at': datetime.now().isoformat(),
+                'status': 'pending'
+            }
+            task_queue_dir = Path("data/task_queue")
+            task_queue_dir.mkdir(exist_ok=True)
+            task_file_path = task_queue_dir / f"{task_id}.json"
+            with open(task_file_path, 'w') as f:
+                json.dump(task_payload, f, indent=2)
+            print(f"  -Q- Task {task_id} submitted. System will process and shut down.")
+            # Give it a moment to process
+            time.sleep(5)
+        else:
+            # Run interactive mode
+            loop.run_until_complete(agi_force.run_interactive_mode())
+
+    except KeyboardInterrupt:
+        print("\n👋 Shutting down...")
+    except Exception as e:
+        print(f"❌ System error: {e}")
+        traceback.print_exc()
+    finally:
+        loop.run_until_complete(agi_force.stop())
+        print("❌ Dependency check failed. Exiting.")
+        sys.exit(1)
+
+    if not check_ports():
+        print("❌ Port check failed. Exiting.")
+        sys.exit(1)
+
     agi_force = UltimateAGIForce()
     
     try:
@@ -510,14 +702,3 @@ async def main():
     finally:
         await agi_force.stop()
 
-if __name__ == "__main__":
-    print("🛡️ Starting Ultimate AGI Force v7.0.0")
-    print("🇮🇩 Made with ❤️ by Mulky Malikul Dhaher in Indonesia")
-    print()
-    
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\n👋 Goodbye!")
-    except Exception as e:
-        print(f"❌ Fatal error: {e}")
