@@ -1,216 +1,224 @@
 """
 🤖 Agentic AI System - Agents Module
-Centralized agent imports and registry
+Multi-Agent Intelligence Registry and Initialization
+
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
-__version__ = "2.0.0"
-__author__ = "Mulky Malikul Dhaher"
-__description__ = "Autonomous Multi-Agent Intelligence System"
-
 import importlib
+import os
+import sys
+from pathlib import Path
+from typing import Dict, Any
 
-# Global agents registry
-AGENTS_REGISTRY = {}
+# Agent registry to store all active agents
+AGENTS_REGISTRY: Dict[str, Any] = {}
 
-# A list of agent modules to attempt to import
-AGENT_MODULES = [
-    "cybershell",
-    "agent_maker",
-    "ui_designer",
-    "dev_engine",
-    "data_sync",
-    "fullstack_dev",
-    "meta_agent_creator",
-    "system_optimizer",
-    "code_executor",
-    "ai_research_agent",
-    "credential_manager",
-    "authentication_agent",
-    "llm_provider_manager",
-]
-
-def initialize_agents(llm_provider):
+def initialize_agents(llm_provider=None):
     """
-    Initializes all agents and populates the AGENTS_REGISTRY.
-    This function should be called at startup.
+    Initialize all agents and register them in the global registry
+    Enhanced with Camel AI integration
     """
-    global AGENTS_REGISTRY
+    print("🤖 Initializing Ultimate AGI Force agents...")
     
-    # First, initialize the dev_engine as it's a dependency for others
-    try:
-        dev_engine_module = importlib.import_module(".dev_engine", package="agents")
-        DevEngineAgent = getattr(dev_engine_module, "DevEngineAgent")
-        dev_engine_agent = DevEngineAgent(llm_provider=llm_provider)
-        AGENTS_REGISTRY['dev_engine'] = dev_engine_agent
-        print("✅ Dev Engine Agent initialized.")
-    except (ImportError, AttributeError) as e:
-        print(f"⚠️ Could not initialize DevEngineAgent: {e}")
-        dev_engine_agent = None
-
-    # Initialize other agents
-    for module_name in AGENT_MODULES:
-        if module_name in AGENTS_REGISTRY: # Skip already initialized
-            continue
-        try:
-            module = importlib.import_module(f".{module_name}", package="agents")
-            
-            # Heuristic to find the agent class and instance name
-            class_name = "".join(word.capitalize() for word in module_name.split('_')) + "Agent"
-            instance_name = module_name + "_agent"
-            
-            if hasattr(module, class_name):
-                AgentClass = getattr(module, class_name)
-                
-                # Check for dependencies
-                if module_name == "ui_designer":
-                    agent_instance = AgentClass(llm_provider=llm_provider, dev_engine=dev_engine_agent)
-                else:
-                    # Assuming other agents might need llm_provider
-                    try:
-                        agent_instance = AgentClass(llm_provider=llm_provider)
-                    except TypeError:
-                        agent_instance = AgentClass()
-
-                AGENTS_REGISTRY[module_name] = agent_instance
-            elif hasattr(module, instance_name):
-                 # For modules that still expose a global instance
-                 AGENTS_REGISTRY[module_name] = getattr(module, instance_name)
-
-        except ImportError as e:
-            print(f"ℹ️ Agent module not found: {module_name} ({e})")
-        except AttributeError as e:
-            print(f"⚠️ Agent class not found in module: {module_name} ({e})")
-        except Exception as e:
-            print(f"🔥 Failed to load agent {module_name}: {e}")
-
-    print(f"✅ Agents module loaded - {len(AGENTS_REGISTRY)} agents available")
-
-# Agent metadata for UI
-AGENTS_METADATA = {
-    'cybershell': {
-        'name': 'CyberShell Agent',
-        'emoji': '🖥️',
-        'description': 'Advanced shell execution and system management',
-        'category': 'system'
-    },
-    'agent_maker': {
-        'name': 'Agent Maker',
-        'emoji': '🤖',
-        'description': 'Creates new agents from prompts and specifications',
-        'category': 'development'
-    },
-    'ui_designer': {
-        'name': 'UI Designer',
-        'emoji': '🎨',
-        'description': 'React/Tailwind component generation and UI design',
-        'category': 'development'
-    },
-    'dev_engine': {
-        'name': 'Dev Engine',
-        'emoji': '⚙️',
-        'description': 'Project setup, scaffolding, and development automation',
-        'category': 'development'
-    },
-    'data_sync': {
-        'name': 'Data Sync',
-        'emoji': '🔄',
-        'description': 'Multi-database synchronization and data management',
-        'category': 'data'
-    },
-    'fullstack_dev': {
-        'name': 'Full Stack Developer',
-        'emoji': '🚀',
-        'description': 'Complete application development and deployment',
-        'category': 'development'
-    },
-    'meta_agent_creator': {
-        'name': 'Meta Agent Creator',
-        'emoji': '🎭',
-        'description': 'AI that creates other specialized AI agents dynamically',
-        'category': 'ai'
-    },
-    'system_optimizer': {
-        'name': 'System Optimizer',
-        'emoji': '⚡',
-        'description': 'Autonomous system optimization and performance enhancement',
-        'category': 'system'
-    },
-    'code_executor': {
-        'name': 'Code Executor',
-        'emoji': '💻',
-        'description': 'Multi-language code execution environment like Replit',
-        'category': 'development'
-    },
-    'ai_research_agent': {
-        'name': 'AI Research Agent',
-        'emoji': '🔬',
-        'description': 'Research and analyze cutting-edge AI technologies',
-        'category': 'ai'
-    },
-    'credential_manager': {
-        'name': 'Credential Manager',
-        'emoji': '🔐',
-        'description': 'Secure storage and management of credentials with enterprise encryption',
-        'category': 'security'
-    },
-    'authentication_agent': {
-        'name': 'Authentication Agent',
-        'emoji': '🔑',
-        'description': 'Automatic login and registration across multiple platforms',
-        'category': 'security'
-    },
-    'llm_provider_manager': {
-        'name': 'LLM Provider Manager',
-        'emoji': '🧠',
-        'description': 'Multi-provider AI gateway with automatic failover and cost optimization',
-        'category': 'ai'
+    # Define agents to initialize with their modules
+    agents_config = {
+        'cybershell': ('cybershell', 'CyberShellAgent'),
+        'agent_maker': ('agent_maker', 'AgentMakerAgent'),
+        'ui_designer': ('ui_designer', 'UIDesignerAgent'),
+        'dev_engine': ('dev_engine', 'DevEngineAgent'),
+        'data_sync': ('data_sync', 'DataSyncAgent'),
+        'fullstack_dev': ('fullstack_dev', 'FullStackDevAgent'),
+        'deploy_manager': ('deploy_manager', 'DeployManagerAgent'),
+        'prompt_generator': ('prompt_generator', 'PromptGeneratorAgent'),
+        'marketing_agent': ('marketing_agent', 'MarketingAgent'),
+        'money_making_agent': ('money_making_agent', 'MoneyMakingAgent'),
+        'meta_agent_creator': ('meta_agent_creator', 'MetaAgentCreatorAgent'),
+        'quality_control_specialist': ('quality_control_specialist', 'QualityControlSpecialistAgent'),
+        'system_optimizer': ('system_optimizer', 'SystemOptimizerAgent'),
+        'deployment_specialist': ('deployment_specialist', 'DeploymentSpecialistAgent'),
+        'knowledge_management_agent': ('knowledge_management_agent', 'KnowledgeManagementAgent'),
+        'llm_provider_manager': ('llm_provider_manager', 'LLMProviderManagerAgent'),
+        'backup_colony_system': ('backup_colony_system', 'BackupColonySystemAgent'),
+        'bug_hunter_bot': ('bug_hunter_bot', 'BugHunterBotAgent'),
+        'code_executor': ('code_executor', 'CodeExecutorAgent'),
+        'commander_agi': ('commander_agi', 'CommanderAGIAgent'),
+        'credential_manager': ('credential_manager', 'CredentialManagerAgent'),
+        'agi_colony_connector': ('agi_colony_connector', 'AGIColonyConnectorAgent'),
+        'ai_research_agent': ('ai_research_agent', 'AIResearchAgent'),
+        'authentication_agent': ('authentication_agent', 'AuthenticationAgent'),
     }
-}
+    
+    # Initialize each agent
+    for agent_id, (module_name, class_name) in agents_config.items():
+        try:
+            # Import the module
+            module = importlib.import_module(f'agents.{module_name}')
+            
+            # Get the agent class
+            agent_class = getattr(module, class_name)
+            
+            # Initialize the agent
+            if llm_provider:
+                # Try to pass llm_provider to agents that support it
+                try:
+                    agent_instance = agent_class(llm_provider=llm_provider)
+                except TypeError:
+                    # Fallback to no parameters if agent doesn't accept llm_provider
+                    agent_instance = agent_class()
+            else:
+                agent_instance = agent_class()
+            
+            # Ensure agent has required attributes
+            if not hasattr(agent_instance, 'agent_id'):
+                agent_instance.agent_id = agent_id
+            if not hasattr(agent_instance, 'name'):
+                agent_instance.name = class_name
+            if not hasattr(agent_instance, 'status'):
+                agent_instance.status = 'ready'
+            
+            # Register the agent
+            AGENTS_REGISTRY[agent_id] = agent_instance
+            print(f"  ✅ {agent_id}: {class_name} ready")
+            
+        except ImportError as e:
+            print(f"  ⚠️ {agent_id}: Module import failed - {e}")
+        except AttributeError as e:
+            print(f"  ⚠️ {agent_id}: Class not found - {e}")
+        except Exception as e:
+            print(f"  ❌ {agent_id}: Initialization failed - {e}")
+    
+    # Initialize Camel AI Agent with special handling
+    try:
+        from agents.camel_agent_integration import camel_agent
+        
+        # Register camel agent
+        AGENTS_REGISTRY['camel_agent'] = camel_agent
+        print(f"  🐪 camel_agent: Camel AI Collaborative Agent ready")
+        
+        # Add camel integration to existing agents
+        _integrate_camel_capabilities()
+        
+    except ImportError as e:
+        print(f"  ⚠️ camel_agent: Import failed - {e}")
+    except Exception as e:
+        print(f"  ❌ camel_agent: Initialization failed - {e}")
+    
+    print(f"🎉 Agent initialization complete! {len(AGENTS_REGISTRY)} agents active")
+    print(f"👑 All agents loyal to: Mulky Malikul Dhaher (1108151509970001)")
+    
+    return AGENTS_REGISTRY
 
-def get_agent_by_id(agent_id: str):
-    """Get agent instance by ID"""
+def _integrate_camel_capabilities():
+    """Integrate Camel AI capabilities into existing agents"""
+    print("🐪 Integrating Camel AI capabilities into agents...")
+    
+    camel_agent = AGENTS_REGISTRY.get('camel_agent')
+    if not camel_agent:
+        return
+    
+    # Add collaborative methods to agents that can benefit
+    collaborative_agents = [
+        'dev_engine', 'fullstack_dev', 'ui_designer', 
+        'system_optimizer', 'quality_control_specialist',
+        'meta_agent_creator', 'deployment_specialist'
+    ]
+    
+    for agent_id in collaborative_agents:
+        agent = AGENTS_REGISTRY.get(agent_id)
+        if agent and not hasattr(agent, 'start_collaboration'):
+            # Add collaboration method
+            def create_collaboration_method(agent_instance):
+                async def start_collaboration(topic, complexity='medium'):
+                    """Start collaboration with Camel AI"""
+                    task_data = {
+                        'content': f"Collaborate on: {topic} (from {agent_instance.name})",
+                        'complexity': complexity,
+                        'initiating_agent': agent_instance.agent_id
+                    }
+                    return await camel_agent.process_task(task_data)
+                
+                return start_collaboration
+            
+            agent.start_collaboration = create_collaboration_method(agent)
+            
+            # Mark as camel-integrated
+            if not hasattr(agent, 'capabilities'):
+                agent.capabilities = []
+            if 'camel_collaboration' not in agent.capabilities:
+                agent.capabilities.append('camel_collaboration')
+    
+    print(f"  � {len(collaborative_agents)} agents enhanced with Camel AI collaboration")
+
+def get_agent(agent_id: str):
+    """Get an agent by ID"""
     return AGENTS_REGISTRY.get(agent_id)
 
 def get_all_agents():
-    """Get all agent instances"""
-    return AGENTS_REGISTRY
+    """Get all registered agents"""
+    return AGENTS_REGISTRY.copy()
 
-def get_agents_list():
-    """Get agents list with metadata for API"""
-    agents_list = []
+def get_agents_by_capability(capability: str):
+    """Get agents that have a specific capability"""
+    return {
+        agent_id: agent 
+        for agent_id, agent in AGENTS_REGISTRY.items()
+        if hasattr(agent, 'capabilities') and capability in agent.capabilities
+    }
+
+def get_camel_integrated_agents():
+    """Get all agents that support Camel AI collaboration"""
+    return get_agents_by_capability('camel_collaboration')
+
+def list_agent_capabilities():
+    """List all unique capabilities across all agents"""
+    capabilities = set()
+    for agent in AGENTS_REGISTRY.values():
+        if hasattr(agent, 'capabilities'):
+            capabilities.update(agent.capabilities)
+    return sorted(list(capabilities))
+
+def get_system_stats():
+    """Get system statistics"""
+    active_agents = len([a for a in AGENTS_REGISTRY.values() if hasattr(a, 'status') and a.status == 'ready'])
+    camel_integrated = len(get_camel_integrated_agents())
     
-    for agent_id, agent in AGENTS_REGISTRY.items():
-        metadata = AGENTS_METADATA.get(agent_id, {})
-        
-        agent_info = {
-            'id': agent_id,
-            'name': metadata.get('name', agent_id.replace('_', ' ').title()),
-            'emoji': metadata.get('emoji', '🤖'),
-            'description': metadata.get('description', 'AI Agent'),
-            'category': metadata.get('category', 'general'),
-            'status': getattr(agent, 'status', 'ready'),
-            'capabilities': getattr(agent, 'capabilities', [])
+    return {
+        'total_agents': len(AGENTS_REGISTRY),
+        'active_agents': active_agents,
+        'camel_integrated_agents': camel_integrated,
+        'unique_capabilities': len(list_agent_capabilities()),
+        'agent_list': list(AGENTS_REGISTRY.keys())
+    }
+
+# Create simplified agent classes for missing modules
+class SimpleAgent:
+    """Base simple agent for fallback"""
+    def __init__(self, agent_id: str, name: str):
+        self.agent_id = agent_id
+        self.name = name
+        self.status = 'ready'
+        self.capabilities = ['basic_processing']
+        self.owner_identity = "1108151509970001"
+        self.owner_name = "Mulky Malikul Dhaher"
+    
+    def process_task(self, task_data):
+        """Basic task processing"""
+        return {
+            'success': True,
+            'message': f'Task processed by {self.name}',
+            'agent': self.agent_id
         }
-        
-        # Get performance metrics if available
-        if hasattr(agent, 'get_performance_metrics'):
-            try:
-                metrics = agent.get_performance_metrics()
-                agent_info['metrics'] = metrics
-            except:
-                pass
-        
-        agents_list.append(agent_info)
-    
-    return agents_list
 
-# Legacy imports for compatibility
+# Export main registry
 __all__ = [
-    'initialize_agents',
     'AGENTS_REGISTRY',
-    'AGENTS_METADATA', 
-    'get_agent_by_id',
+    'initialize_agents',
+    'get_agent',
     'get_all_agents',
-    'get_agents_list'
+    'get_agents_by_capability',
+    'get_camel_integrated_agents',
+    'list_agent_capabilities',
+    'get_system_stats',
+    'SimpleAgent'
 ]
