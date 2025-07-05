@@ -1,82 +1,13 @@
 {
-  "system_id": "ultimate_agi_force_standalone",
+  "system_name": "AI-MultiColony-Ecosystem",
   "version": "7.0.0",
-  "status": "active",
+  "status": "stopped",
+  "mode": null,
   "owner": "Mulky Malikul Dhaher",
   "owner_id": "1108151509970001",
-  "timestamp": "2025-07-04T13:07:59.445284",
-  "mode": "standalone",
-  "core_components": [
-    "memory_bus",
-    "prompt_master",
-    "llm_gateway",
-    "camel_agent",
-    "agent_registry",
-    "web_server"
-  ],
-  "working_agents": {
-    "memory_bus": {
-      "id": "memory_bus",
-      "name": "Memory Bus Agent (Standalone)",
-      "status": "ready",
-      "capabilities": []
-    },
-    "prompt_master": {
-      "id": "prompt_master",
-      "name": "Prompt Master Agent (Standalone)",
-      "status": "ready",
-      "capabilities": []
-    },
-    "llm_gateway": {
-      "id": "llm_gateway",
-      "name": "llm_gateway",
-      "status": "ready",
-      "capabilities": []
-    },
-    "camel_agent": {
-      "id": "camel_agent",
-      "name": "Camel AI Collaborative Agent (Standalone)",
-      "status": "ready",
-      "capabilities": [
-        "multi_agent_collaboration",
-        "role_playing_conversations",
-        "consensus_building",
-        "collaborative_problem_solving"
-      ]
-    },
-    "cybershell": {
-      "id": "cybershell",
-      "name": "CyberShell Agent (Standalone)",
-      "status": "ready",
-      "capabilities": [
-        "basic_processing"
-      ]
-    },
-    "dev_engine": {
-      "id": "dev_engine",
-      "name": "Development Engine (Standalone)",
-      "status": "ready",
-      "capabilities": [
-        "basic_processing"
-      ]
-    },
-    "ui_designer": {
-      "id": "ui_designer",
-      "name": "UI Designer (Standalone)",
-      "status": "ready",
-      "capabilities": [
-        "basic_processing"
-      ]
-    },
-    "data_sync": {
-      "id": "data_sync",
-      "name": "Data Synchronizer (Standalone)",
-      "status": "ready",
-      "capabilities": [
-        "basic_processing"
-      ]
-    }
-  },
-  "uptime": "active",
-  "loyalty_status": "ABSOLUTE_LOYALTY_TO_OWNER"
+  "timestamp": "2025-07-05T20:57:16.556610",
+  "uptime": 482.71480107307434,
+  "components": [],
+  "processes": [],
+  "working_agents": {}
 }
