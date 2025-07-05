@@ -1,4 +1,4 @@
-THIS SHOULD BE A LINTER ERROR# 🧠 Agentic AI System - Main Configuration
+# 🧠 Agentic AI System - Main Configuration
 # Central configuration file for all system components
 # Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 
@@ -242,8 +242,10 @@ database:
 web_interface:
   enabled: true
   host: "0.0.0.0"
-  port: 5000
+  port: 8080
   debug: false
+  external_access: true
+  bind_all_interfaces: true
   
   # Security settings
   security:

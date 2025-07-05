@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+THIS SHOULD BE A LINTER ERROR#!/usr/bin/env python3
 """
 🚀 AI-MultiColony-Ecosystem - Unified Launcher System
 The Ultimate Launcher that consolidates all system modes
@@ -45,6 +45,9 @@ class UnifiedLauncher:
         
         # Configure LLM7 API
         self._configure_llm7()
+        
+        # Configure network ports
+        self._configure_network()
         
         # Setup signal handlers
         self._setup_signal_handlers()
