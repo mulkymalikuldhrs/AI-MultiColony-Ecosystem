@@ -7,7 +7,7 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 
 import json
 import sqlite3
-import requests
+from .compat_requests import requests
 import asyncio
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional

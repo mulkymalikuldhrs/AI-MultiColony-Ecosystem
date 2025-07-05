@@ -1,5 +1,5 @@
 import os
-import requests
+from .compat_requests import requests
 import json
 
 class RealLLMClient:
