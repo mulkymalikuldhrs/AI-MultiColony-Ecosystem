@@ -523,92 +523,206 @@ graph LR
 
 ---
 
-## 🚀 **QUICK START GUIDE**
+## 🚀 **CARA MENJALANKAN SISTEM**
 
-### **🎯 Instant Launch (30 Seconds):**
+### **⚡ Quick Start (30 Detik):**
 ```bash
 # 1. Clone repository
 git clone https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git
 cd AI-MultiColony-Ecosystem
 
-# 2. Launch unified system
-python unified_launcher.py
+# 2. Switch ke branch Advance_Dev
+git checkout Advance_Dev
 
-# 3. Select mode (1-7):
-#   1. CLI Mode
-#   2. Termux Shell
-#   3. Web UI (http://localhost:5000)
-#   4. Autonomous Engine
-#   5. Background Daemon
-#   6. All Modes
-#   7. Exit
+# 3. Jalankan sistem (tidak perlu install dependencies)
+python3 unified_launcher.py
+
+# 4. Pilih mode yang diinginkan (1-7):
 ```
 
-### **🌟 Available Launch Modes:**
+### **🎯 Pilihan Mode Launcher:**
+```
+╔══════════════════════════════════════════════════════════════╗
+║                🚀 AI-MultiColony-Ecosystem v7.0.0            ║
+║                     Unified Launcher System                  ║
+║          🇮🇩 Made with ❤️ by Mulky Malikul Dhaher 🇮🇩        ║
+╚══════════════════════════════════════════════════════════════╝
 
-#### **1. 🖥️ CLI Mode:**
-- Interactive command line interface
-- Real-time agent management
-- Live system monitoring
-- Direct command execution
+🎯 Available Launcher Modes:
+1. 🖥️  CLI Mode - Interactive command line interface
+2. 📱 Termux Shell - Compatible with Android Termux  
+3. 🌐 Web UI - Modern web interface with dashboard
+4. 🤖 Autonomous Engine - Self-running background system
+5. 🔧 Background Daemon - Silent background operation
+6. 🔄 All Modes - Run all systems simultaneously
+7. ❌ Exit - Shutdown launcher
 
-#### **2. 📱 Termux Shell:**
-- Android Termux compatibility
-- Optimized for mobile
-- Simplified commands
-- Touch-friendly interface
+🎯 Select mode (1-7): 
+```
 
-#### **3. 🌐 Web UI:**
-- Modern dashboard at http://localhost:5000
-- Real-time agent status
-- Visual system monitoring
-- Interactive controls
+### **📱 Cara Menjalankan per Mode:**
 
-#### **4. 🤖 Autonomous Engine:**
-- Fully autonomous operation
-- Self-managing cycles
-- Background processing
-- Minimal user intervention
-
-#### **5. 🔧 Background Daemon:**
-- Silent background operation
-- System service mode
-- Continuous monitoring
-- Log-based feedback
-
-#### **6. 🔄 All Modes:**
-- Run everything simultaneously
-- Maximum functionality
-- Multi-interface access
-- Complete system operation
-
-### **⚙️ System Configuration:**
+#### **1. 🖥️ CLI Mode (Recommended untuk pemula):**
 ```bash
-# LLM API Configuration (pre-configured)
-export OPENAI_API_KEY="unused"
-export OPENAI_API_BASE_URL="https://api.llm7.io/v1"
+python3 unified_launcher.py
+# Pilih: 1
+# Ketik 'help' untuk melihat commands
+# Ketik 'status' untuk cek sistem
+# Ketik 'agents' untuk lihat agent
+# Ketik 'web' untuk buka web UI
+```
 
-# Optional: Install dependencies for enhanced features
+#### **2. 📱 Termux Shell (untuk Android):**
+```bash
+# Di Termux Android:
+pkg install python git
+git clone https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git
+cd AI-MultiColony-Ecosystem
+git checkout Advance_Dev
+python unified_launcher.py
+# Pilih: 2
+```
+
+#### **3. 🌐 Web UI (Paling mudah digunakan):**
+```bash
+python3 unified_launcher.py
+# Pilih: 3
+# Buka browser: http://localhost:5000/dashboard
+# Interface grafis lengkap dengan kontrol agent
+```
+
+#### **4. 🤖 Autonomous Engine (Otomatis penuh):**
+```bash
+python3 unified_launcher.py
+# Pilih: 4
+# Sistem berjalan otomatis tanpa intervensi
+# Cek logs di: logs/colony_activity.log
+```
+
+#### **5. 🔧 Background Daemon (Service mode):**
+```bash
+python3 unified_launcher.py
+# Pilih: 5
+# Berjalan di background seperti service
+# Monitor via: tail -f logs/colony_activity.log
+```
+
+#### **6. 🔄 All Modes (Semua fitur aktif):**
+```bash
+python3 unified_launcher.py
+# Pilih: 6
+# Web UI + CLI + Autonomous + Daemon
+# Akses: http://localhost:5000 + terminal commands
+```
+
+### **⚙️ Tidak Perlu Konfigurasi Tambahan:**
+```bash
+# ✅ SISTEM SUDAH DIKONFIGURASI OTOMATIS:
+# - LLM7 API sudah dikonfigurasi
+# - Dependencies opsional (sistem punya fallback)
+# - Direktori output dibuat otomatis
+# - Tidak perlu API key khusus
+
+# Opsional - Install dependencies untuk fitur tambahan:
 pip install -r requirements.txt
 ```
 
-### **📁 Output & Logs:**
+### **📁 Output & Monitoring:**
 ```bash
-# System creates these directories automatically:
-agent_output/           # All agent outputs and results
-logs/                   # System logs and activity
-data/                   # System data and state
-data/task_queue/        # Task management queue
-data/system_status.json # Real-time system status
+# Sistem otomatis membuat direktori ini:
+agent_output/           # 📁 Hasil output dari semua agent
+logs/                   # 📄 Log sistem dan aktivitas
+├── colony_activity.log # 📝 Log utama sistem
+data/                   # 💾 Data sistem dan status
+├── task_queue/         # 📋 Antrian tugas agent
+├── system_status.json  # 📊 Status sistem real-time
+
+# Cara monitoring:
+tail -f logs/colony_activity.log  # Monitor log real-time
+cat data/system_status.json       # Cek status sistem
+ls agent_output/                  # Lihat hasil agent
 ```
 
-### **🔗 System Access Points:**
-- **Main Dashboard:** http://localhost:5000/dashboard
-- **Agent Management:** http://localhost:5000/agents
-- **System Monitor:** http://localhost:5000/monitoring
-- **Real-time Logs:** `logs/colony_activity.log`
-- **API Status:** http://localhost:5000/api/system/status
-- **Agent List:** http://localhost:5000/api/agents/list
+### **🔗 Cara Akses Sistem:**
+
+#### **🌐 Web Interface (Mode 3 atau 6):**
+```bash
+# Setelah pilih mode 3 atau 6, buka browser:
+http://localhost:5000/dashboard    # 🏠 Dashboard utama
+http://localhost:5000/agents       # 🤖 Management agent  
+http://localhost:5000/monitoring   # 📊 Monitor sistem
+```
+
+#### **📱 CLI Commands (Mode 1):**
+```bash
+colony> help      # 📋 Lihat semua command
+colony> status    # 📊 Status sistem
+colony> agents    # 🤖 List agent aktif
+colony> logs      # 📄 Lihat log terbaru
+colony> web       # 🌐 Buka web interface
+colony> exit      # ❌ Keluar sistem
+```
+
+#### **📡 API Endpoints (untuk developer):**
+```bash
+curl http://localhost:5000/api/system/status    # Status sistem
+curl http://localhost:5000/api/agents/list      # List agent
+curl -X POST http://localhost:5000/api/task/submit  # Submit task
+```
+
+### **🔧 Troubleshooting:**
+
+#### **❌ Error: `python: command not found`**
+```bash
+# Gunakan python3 instead:
+python3 unified_launcher.py
+```
+
+#### **❌ Error: `ModuleNotFoundError`**
+```bash
+# Install dependencies:
+pip install flask flask-socketio pyyaml requests
+
+# Atau:
+pip install -r requirements.txt
+```
+
+#### **❌ Port 5000 sudah digunakan**
+```bash
+# Kill process yang menggunakan port 5000:
+sudo lsof -t -i tcp:5000 | xargs kill -9
+
+# Atau ganti port di config/system_config.yaml:
+web_interface:
+  port: 5001  # Ganti ke port lain
+```
+
+#### **❌ Git branch Advance_Dev tidak ada**
+```bash
+# Fetch semua branch:
+git fetch --all
+git checkout Advance_Dev
+
+# Atau clone ulang:
+git clone -b Advance_Dev https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git
+```
+
+### **❓ FAQ:**
+
+**Q: Apakah perlu API key?**  
+A: Tidak! Sistem sudah dikonfigurasi dengan LLM7 public API.
+
+**Q: Minimal system requirements?**  
+A: Python 3.8+, 2GB RAM, koneksi internet.
+
+**Q: Bisa jalan di Android?**  
+A: Ya! Gunakan Termux dan pilih mode 2.
+
+**Q: Web UI tidak bisa diakses?**  
+A: Pastikan pilih mode 3 atau 6, tunggu 30 detik, coba http://localhost:5000
+
+**Q: Sistem tidak merespon?**  
+A: Cek `logs/colony_activity.log` untuk debug info.
 
 ---
 
