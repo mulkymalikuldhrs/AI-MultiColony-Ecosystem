@@ -194,3 +194,38 @@ graph TD
 5. **Duplicates & Mocks**: purge 6 duplicate HTML templates; convert 152 mock files or delete.
 6. **Refactor**: extract `launcher_base.py` to unify directory creation, logging, signal handling.
 7. **Docs**: add ARCHITECTURE.md with the mermaid diagram; keep CHANGELOG updated per keep-a-changelog.
+
+### Additional Core Component Analysis
+- `src/core/memory_manager.py` & `src/core/ai_selector.py` hard-import **requests** at module import time. Without this dependency the entire core-service layer cannot import, breaking launchers that rely on them.
+- `memory_manager` also relies on `requests` for async API calls but mixes blocking `requests` with `asyncio` (awaiting on sync call) — potential performance deadlock.
+- `platform_integrator.py` (not yet executed) imports cloud SDKs (`boto3`, `supabase`, etc.) unguarded; expected to fail in bare environment.
+- `knowledge_enrichment.py` uses `transformers` & large embedding models — heavy resource footprint, missing dependency.
+
+### Technical Debt Inventory (Severity 1-5)
+| Area | Issue | Severity |
+|------|-------|----------|
+| Dependencies | Missing `requests`, `psutil`, `redis`, `docker`, `aiohttp`, `cryptography`, `opencv-python`, etc. | 5 |
+| Missing Modules | `ULTIMATE_AUTONOMOUS_ECOSYSTEM.py`, `ADVANCED_AI_AGENT_ORCHESTRATION.py` | 5 |
+| Core Imports | `memory_manager`, `ai_selector` crash when `requests` absent | 4 |
+| Blocking Sync Calls | `memory_manager` uses sync HTTP inside async context | 3 |
+| Duplicate Launch Logic | 7 parallel launchers with replicated code | 3 |
+| Test Coverage | <5 tests runnable; many undiscoverable demo tests | 4 |
+| Mock Files | 152 mock/placeholder files shipped to prod | 3 |
+| Duplicate HTML | 6 duplicate template copies in build vs templates | 2 |
+| Logging | Each launcher configures logging separately → duplicate handlers | 2 |
+| Optional Integration Failure | `camel_agent` & ~15 agents fail due to missing heavy libs | 4 |
+
+### Updated Critical Path Mapping
+```
+Launchers -> Core (config_loader, memory_bus, scheduler, ai_selector*) -> Agents -> Connectors (llm_gateway) -> External APIs
+                                    ^                                          |
+                                    |------------------------------------------|
+* ai_selector currently unloadable without requests → whole path blocked.
+```
+
+### Action Items (incremental)
+8. Replace direct `import requests` with try/except and fallback dummy clients; move HTTP calls to `aiohttp` async.
+9. Introduce lightweight stub for `ULTIMATE_AUTONOMOUS_ECOSYSTEM.py` returning minimal status dict to unblock EEUs.
+10. Refactor `memory_manager` to use `aiohttp` or run blocking requests in executor.
+11. Deduplicate logging via `core/logging_utils.py` shared across launchers.
+12. Add `technical_debt.md` auto-generated from this table; track resolution status.
