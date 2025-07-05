@@ -66,3 +66,46 @@ Next Steps (planned)
 1. Locate & validate `ADVANCED_AI_AGENT_ORCHESTRATION.py` and other referenced modules; patch missing ones or adjust imports.
 2. Deduplicate launcher logic – propose refactor toward `core/launcher_base.py` with shared helpers.
 3. Continue agent–connector integration tests & unit test execution.
+
+### Extended Execution Unit (EEU) / Execution Engines
+- `AUTONOMOUS_EXECUTION_ENGINE.py` functions as the primary **EEU**: orchestrates
+  `UltimateAutonomousEcosystem`, `CompleteAgentOrchestrator`, `UltimateControlCenter` and kicks off multiple long-running coroutines (monitoring, revenue optimisation, consciousness evolution, etc.).
+  • ❗ **Blocking issue**: referenced modules `ULTIMATE_AUTONOMOUS_ECOSYSTEM.py`, `REVOLUTIONARY_AGENT_IMPLEMENTATIONS.py` (class `CompleteAgentOrchestrator`) and `ULTIMATE_CONTROL_CENTER.py` exist, but the first (`ULTIMATE_AUTONOMOUS_ECOSYSTEM.py`) is **missing** — execution will crash.
+- Complementary engines: `CONTINUOUS_IMPROVEMENT_CYCLE.py`, `AUTO_RELEASE_SYSTEM.py`, etc., provide specialised continuous loops but duplicate infrastructure (logging, signal handling).
+- Recommendation: centralise common execution-loop utilities; stub or implement the missing UltimateAutonomousEcosystem module.
+
+### Agent Internals & Interaction Patterns
+- `agents/__init__.py` dynamically imports ~24 specialised agent modules and registers them into global `AGENTS_REGISTRY`.
+- Runtime probe (`initialize_agents`) reveals heavy dependency gaps:
+  • Only **5/24** agents initialise successfully in a clean environment; failures stem from missing 3rd-party libs (`psutil`, `requests`, `cryptography`, `docker`, `opencv-python`, `redis`, `aiohttp`, etc.).
+  • Camel AI collaborative integration attaches `start_collaboration()` method to select agents but fails when `camel_agent` import missing (needs `aiohttp`).
+- Interaction graph:
+  • Agents consume LLM completions via `connectors/llm_gateway` ➔ provider dependencies.
+  • Scheduler & task queue (in `launcher.py`) push JSON tasks to `data/task_queue`, agents poll & execute.
+
+### Core Business Logic & Data Flows
+- `src/core` modules:
+  • `memory_manager.py` exposes CRUD over in-memory + file-backed cache but hard-depends on `requests` for remote sync — import currently fails.
+  • `config_loader.py` successfully loads YAML & env defaults; used broadly by launchers.
+  • `agent_manager.py` provides helper registration but is unused (launchers roll their own logic).
+- Data movement:
+  • Config flows: `.env` → `config_loader` → global `config` dict consumed across launchers.
+  • Task flows: external producers write JSON into `data/task_queue` ➔ task_processor in `launcher.py` routes to agents.
+  • Reporting flows: Execution engines dump JSON reports into `reports/…` & `performance_reports/…` for dashboards.
+
+### Runtime Smoke-Tests (current environment)
+```
+$ python -           # summary only
+🤖 initialize_agents ➔ 5 agents ready, 19 failed (missing deps/modules)
+import src.core.memory_manager  ❌  No module named 'requests'
+import src.core.ai_selector     ❌  No module named 'requests'
+import src.core.agent_manager   ✅  OK
+```
+- **Critical missing packages**: requests, psutil, redis, docker, cryptography, aiohttp, opencv-python, etc.
+- **Missing module**: `ULTIMATE_AUTONOMOUS_ECOSYSTEM.py` (used by EEUs).
+
+### Action Items (next phase)
+1. Produce `requirements_min.txt` listing all missing pip deps & add install-step to launcher.
+2. Stub or implement `ULTIMATE_AUTONOMOUS_ECOSYSTEM.py` to unblock AutonomousExecutionEngine.
+3. Gradually refactor core modules (`memory_manager`, `ai_selector`) to degrade gracefully when optional libs absent.
+4. Add unit tests for `agents.initialize_agents` ensuring ≥80% agents load in CI.
