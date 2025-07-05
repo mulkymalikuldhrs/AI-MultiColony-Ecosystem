@@ -1,4 +1,4 @@
-THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -631,6 +631,28 @@ THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
         setInterval(() => {
             socket.emit('get_system_metrics');
         }, 5000);
+
+        /* === Live System Status === */
+        function fetchSystemStatus() {
+            fetch('/api/system/status')
+                .then(resp => resp.json())
+                .then(data => {
+                    if (data.success) {
+                        const s = data.data;
+                        document.getElementById('active-agents').textContent = s.agents_active;
+                        document.getElementById('revenue-generated').textContent = `$${(s.llm_tokens*0.0001).toFixed(2)}`;
+                        // other metrics placeholder until backend endpoints available
+                    }
+                })
+                .catch(e => console.error('status fetch error', e));
+        }
+        setInterval(fetchSystemStatus, 4000);
+        socket.on('status_update', msg => {
+            if (msg.agents_active !== undefined) {
+                document.getElementById('active-agents').textContent = msg.agents_active;
+            }
+        });
+        fetchSystemStatus();
     </script>
 </body>
 </html>
