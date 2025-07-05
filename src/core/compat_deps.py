@@ -23,6 +23,7 @@ OPTIONAL_DEPS: Set[str] = {
     "transformers",
     "matplotlib",
     "numpy",
+    "websockets",
 }
 
 
