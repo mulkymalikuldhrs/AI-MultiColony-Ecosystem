@@ -8,6 +8,8 @@ The format is based on Keep a Changelog (https://keepachangelog.com/en/1.0.0/) a
 ### Added
 - Introduced `CHANGELOG.md` to begin tracking changes in a structured manner.
 - Added `scripts/agentic_refactorer.py`: a CLI utility for scanning the repository, detecting mock/placeholder files, locating exact file duplicates, and optionally cleaning them up with automatic backups.
+- `src/core/launcher_base.py`: shared helpers for directory setup, logging, minimal dependency installation.
+- `launcher.py`: new unified entry point supporting `--mode cli|web|termux|autonomous|daemon` plus interactive menu.
 
 ### Analysis
 - Performed initial repository scan (root level). Major top-level entries include:
@@ -229,3 +231,14 @@ Launchers -> Core (config_loader, memory_bus, scheduler, ai_selector*) -> Agents
 10. Refactor `memory_manager` to use `aiohttp` or run blocking requests in executor.
 11. Deduplicate logging via `core/logging_utils.py` shared across launchers.
 12. Add `technical_debt.md` auto-generated from this table; track resolution status.
+
+### Removed / Cleaned
+- Deleted duplicate HTML files in `build/` directory now redundant with templates.
+
+### Fixed
+- Added optional stub for `websockets` via `src/core/compat_deps` and manual `websockets.py` stub to unblock imports.
+
+### Pending
+- Stub for `aiohttp` still required; autonomous engine now fails on that import.
+- Need to rewire legacy launchers to delegate to `launcher.py` or mark deprecated.
+- Web UI integration work is next.
