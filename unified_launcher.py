@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+THIS SHOULD BE A LINTER ERROR#!/usr/bin/env python3
 """
 🚀 AI-MultiColony-Ecosystem - Unified Launcher System
 The Ultimate Launcher that consolidates all system modes
@@ -120,22 +120,20 @@ class UnifiedLauncher:
     def show_mode_menu(self):
         """Show available launcher modes"""
         print("\n🎯 Available Launcher Modes:")
-        print("1. 🖥️  CLI Mode - Interactive command line interface")
-        print("2. 📱 Termux Shell - Compatible with Android Termux")
-        print("3. 🌐 Web UI - Modern web interface with dashboard")
-        print("4. 🤖 Autonomous Engine - Self-running background system")
-        print("5. 🔧 Background Daemon - Silent background operation")
-        print("6. 🔄 All Modes - Run all systems simultaneously")
-        print("7. ❌ Exit - Shutdown launcher")
+        print("1. 🌐 Web UI Only - Modern web interface (RECOMMENDED)")
+        print("2. � Web UI + Background - Web interface with autonomous engines")
+        print("3. �️  CLI Mode - Interactive command line interface")
+        print("4. � Termux Shell - Compatible with Android Termux")
+        print("5. ❌ Exit - Shutdown launcher")
         print("="*80)
     
     def get_mode_choice(self) -> int:
         """Get user's mode choice"""
         try:
-            choice = input("\n🎯 Select mode (1-7): ").strip()
+            choice = input("\n🎯 Select mode (1-5): ").strip()
             return int(choice)
         except (ValueError, KeyboardInterrupt):
-            return 7
+            return 5
     
     async def run_cli_mode(self):
         """Run CLI mode"""
@@ -667,21 +665,17 @@ socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=
                 choice = self.get_mode_choice()
                 
                 if choice == 1:
-                    await self.run_cli_mode()
+                    await self.run_web_ui_only()
                 elif choice == 2:
-                    await self.run_termux_mode()
+                    await self.run_web_with_background()
                 elif choice == 3:
-                    await self.run_web_ui_mode()
+                    await self.run_cli_mode()
                 elif choice == 4:
-                    await self.run_autonomous_mode()
+                    await self.run_termux_mode()
                 elif choice == 5:
-                    await self.run_background_daemon()
-                elif choice == 6:
-                    await self.run_all_modes()
-                elif choice == 7:
                     break
                 else:
-                    print("❌ Invalid choice. Please select 1-7.")
+                    print("❌ Invalid choice. Please select 1-5.")
                     continue
                 
                 # Ask if user wants to continue
