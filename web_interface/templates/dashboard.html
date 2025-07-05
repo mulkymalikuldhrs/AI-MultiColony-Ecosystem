@@ -489,6 +489,259 @@
         // Socket.IO connection
         const socket = io();
 
+        // Global state
+        let systemStatus = {};
+        let agents = [];
+        let realTimeData = {};
+
+        // Initialize dashboard
+        async function initializeDashboard() {
+            console.log('🚀 Initializing Ultimate AGI Force Dashboard');
+            
+            // Load initial data
+            await loadSystemStatus();
+            await loadAgents();
+            
+            // Setup real-time updates
+            setupSocketListeners();
+            
+            // Start periodic updates
+            setInterval(updateMetrics, 5000); // Update every 5 seconds
+            setInterval(loadSystemStatus, 30000); // Full refresh every 30 seconds
+        }
+
+        // Load system status from API
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch('/api/system/status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    systemStatus = data.data;
+                    updateSystemMetrics();
+                    updateSystemHealth();
+                } else {
+                    console.error('Failed to load system status:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading system status:', error);
+            }
+        }
+
+        // Load agents from API
+        async function loadAgents() {
+            try {
+                const response = await fetch('/api/agents/list');
+                const data = await response.json();
+                
+                if (data.success) {
+                    agents = data.data;
+                    updateAgentsList();
+                    updateAgentMetrics();
+                } else {
+                    console.error('Failed to load agents:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading agents:', error);
+            }
+        }
+
+        // Update system metrics display
+        function updateSystemMetrics() {
+            document.getElementById('active-agents').textContent = systemStatus.agents_active || 0;
+            document.getElementById('total-tasks').textContent = systemStatus.llm_requests || 0;
+            document.getElementById('revenue-generated').textContent = '$' + (systemStatus.revenue || 0);
+            document.getElementById('threats-detected').textContent = systemStatus.threats || 0;
+            document.getElementById('backups-created').textContent = systemStatus.backups || 0;
+            document.getElementById('campaigns-active').textContent = systemStatus.campaigns || 0;
+        }
+
+        // Update system health display
+        function updateSystemHealth() {
+            // Update CPU usage (mock calculation based on active agents)
+            const cpuUsage = Math.min(95, (systemStatus.agents_active || 0) * 2 + 20);
+            document.querySelector('.bg-green-500').style.width = cpuUsage + '%';
+            document.querySelector('.bg-green-500').parentElement.nextElementSibling.textContent = cpuUsage + '%';
+
+            // Update memory usage
+            const memoryUsage = Math.min(90, (systemStatus.total_agents || 0) * 1.5 + 30);
+            document.querySelector('.bg-blue-500').style.width = memoryUsage + '%';
+            document.querySelector('.bg-blue-500').parentElement.nextElementSibling.textContent = memoryUsage + '%';
+
+            // Update network I/O
+            const networkUsage = Math.min(80, (systemStatus.llm_requests || 0) / 10 + 10);
+            document.querySelector('.bg-yellow-500').style.width = networkUsage + '%';
+            document.querySelector('.bg-yellow-500').parentElement.nextElementSibling.textContent = networkUsage + '%';
+        }
+
+        // Update agents list display
+        function updateAgentsList() {
+            agents.forEach(agent => {
+                const agentElement = document.querySelector(`[data-agent="${agent.id}"]`);
+                if (agentElement) {
+                    // Update status indicator
+                    const statusDot = agentElement.querySelector('.w-3.h-3');
+                    if (agent.status === 'active') {
+                        statusDot.className = 'w-3 h-3 bg-green-500 rounded-full mr-3';
+                    } else if (agent.status === 'idle') {
+                        statusDot.className = 'w-3 h-3 bg-yellow-500 rounded-full mr-3';
+                    } else {
+                        statusDot.className = 'w-3 h-3 bg-red-500 rounded-full mr-3';
+                    }
+                    
+                    // Update agent info
+                    const nameElement = agentElement.querySelector('.font-medium');
+                    const descElement = agentElement.querySelector('.text-xs.text-gray-400');
+                    if (nameElement) nameElement.textContent = agent.name;
+                    if (descElement) descElement.textContent = agent.capabilities.join(', ').substring(0, 50) + '...';
+                }
+            });
+        }
+
+        // Update agent metrics
+        function updateAgentMetrics() {
+            const activeCount = agents.filter(a => a.status === 'active').length;
+            const idleCount = agents.filter(a => a.status === 'idle').length;
+            const errorCount = agents.filter(a => a.status === 'error').length;
+            
+            document.getElementById('active-agents').textContent = activeCount;
+        }
+
+        // Setup Socket.IO listeners
+        function setupSocketListeners() {
+            socket.on('connect', () => {
+                console.log('🔗 Connected to server');
+                socket.emit('subscribe_updates');
+            });
+
+            socket.on('disconnect', () => {
+                console.log('🔌 Disconnected from server');
+            });
+
+            socket.on('system_update', (data) => {
+                systemStatus = { ...systemStatus, ...data };
+                updateSystemMetrics();
+                updateSystemHealth();
+            });
+
+            socket.on('agent_update', (data) => {
+                const agentIndex = agents.findIndex(a => a.id === data.agent_id);
+                if (agentIndex !== -1) {
+                    agents[agentIndex] = { ...agents[agentIndex], ...data };
+                    updateAgentsList();
+                    updateAgentMetrics();
+                }
+            });
+
+            socket.on('activity_log', (data) => {
+                addActivityLog(data);
+            });
+        }
+
+        // Add activity log entry
+        function addActivityLog(activity) {
+            const container = document.getElementById('recent-activities');
+            const activityElement = document.createElement('div');
+            activityElement.className = 'flex items-center space-x-3 p-3 bg-slate-700 rounded-lg';
+            
+            const statusColor = activity.type === 'success' ? 'bg-green-500' : 
+                              activity.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+            
+            activityElement.innerHTML = `
+                <div class="w-3 h-3 ${statusColor} rounded-full"></div>
+                <div class="flex-1">
+                    <div class="text-sm font-medium">${activity.message}</div>
+                    <div class="text-xs text-gray-400">${activity.timestamp}</div>
+                </div>
+            `;
+            
+            container.prepend(activityElement);
+            
+            // Keep only last 10 activities
+            while (container.children.length > 10) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        // Handle agent actions
+        async function handleAgentAction(agentId, action) {
+            try {
+                const response = await fetch(`/api/agents/${agentId}/${action}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    console.log(`Agent ${agentId} ${action} successful`);
+                    // Refresh agent data
+                    await loadAgents();
+                } else {
+                    console.error(`Agent ${agentId} ${action} failed:`, data.error);
+                }
+            } catch (error) {
+                console.error(`Error with agent ${agentId} ${action}:`, error);
+            }
+        }
+
+        // Handle emergency stop
+        async function handleEmergencyStop() {
+            if (confirm('Are you sure you want to stop all agents?')) {
+                try {
+                    const response = await fetch('/api/system/emergency-stop', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        alert('Emergency stop initiated');
+                    } else {
+                        alert('Emergency stop failed: ' + data.error);
+                    }
+                } catch (error) {
+                    alert('Emergency stop error: ' + error.message);
+                }
+            }
+        }
+
+        // Handle restart all
+        async function handleRestartAll() {
+            if (confirm('Are you sure you want to restart all agents?')) {
+                try {
+                    const response = await fetch('/api/system/restart-all', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        alert('System restart initiated');
+                    } else {
+                        alert('System restart failed: ' + data.error);
+                    }
+                } catch (error) {
+                    alert('System restart error: ' + error.message);
+                }
+            }
+        }
+
+        // Update metrics periodically
+        function updateMetrics() {
+            // Update timestamps
+            const now = new Date();
+            document.querySelectorAll('.text-xs.text-gray-400').forEach(el => {
+                if (el.textContent.includes('ago')) {
+                    // Update relative timestamps
+                    const match = el.textContent.match(/(\d+) minutes ago/);
+                    if (match) {
+                        const minutes = parseInt(match[1]) + 1;
+                        el.textContent = `${minutes} minutes ago`;
+                    }
+                }
+            });
+        }
+
         // Tab switching
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', () => {
@@ -624,13 +877,41 @@
             socket.emit('get_agent_details', { agent_id: agentId });
         }
 
-        // Initialize dashboard
-        socket.emit('get_initial_data');
-        
-        // Auto-refresh metrics every 5 seconds
-        setInterval(() => {
-            socket.emit('get_system_metrics');
-        }, 5000);
+        // Initialize dashboard when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            
+            // Bind event handlers for control buttons
+            document.getElementById('emergency-stop').addEventListener('click', handleEmergencyStop);
+            document.getElementById('restart-all').addEventListener('click', handleRestartAll);
+            
+            // Bind agent action buttons
+            document.querySelectorAll('.agent-action').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const action = button.dataset.action;
+                    const agentItem = button.closest('.agent-item');
+                    const agentId = agentItem.dataset.agent;
+                    
+                    handleAgentAction(agentId, action);
+                    
+                    // Visual feedback
+                    button.classList.add('animate-pulse');
+                    setTimeout(() => button.classList.remove('animate-pulse'), 1000);
+                });
+            });
+
+            // Group toggle functionality
+            document.querySelectorAll('.group-toggle').forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const content = toggle.nextElementSibling;
+                    const icon = toggle.querySelector('i.fa-chevron-down');
+                    
+                    content.classList.toggle('hidden');
+                    icon.classList.toggle('rotate-180');
+                });
+            });
+        });
     </script>
 </body>
 </html>

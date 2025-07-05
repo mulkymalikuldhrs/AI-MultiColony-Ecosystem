@@ -480,6 +480,136 @@ def test_llm_providers():
             'error': str(e)
         }), 500
 
+@app.route('/api/agents/<agent_id>/<action>', methods=['POST'])
+def agent_action(agent_id, action):
+    """Perform action on specific agent"""
+    try:
+        task_data = {
+            'action': action,
+            'timestamp': datetime.now().isoformat(),
+            'requested_via': 'web_dashboard'
+        }
+        
+        # Submit task to agent via task queue
+        task_id = f"action_{datetime.now().strftime('%Y%m%d_%H%M%S%f')}_{agent_id}"
+        task_payload = {
+            'task_id': task_id,
+            'agent_id': agent_id,
+            'task_data': task_data,
+            'submitted_at': datetime.now().isoformat(),
+            'status': 'pending',
+            'submitted_via': 'web_dashboard'
+        }
+
+        # Write the task to the queue directory
+        task_queue_dir = Path(__file__).parent.parent / 'data' / 'task_queue'
+        task_queue_dir.mkdir(exist_ok=True)
+        task_file_path = task_queue_dir / f"{task_id}.json"
+        
+        with open(task_file_path, 'w') as f:
+            json.dump(task_payload, f, indent=2)
+
+        return jsonify({
+            'success': True,
+            'message': f'Action {action} submitted for agent {agent_id}',
+            'task_id': task_id
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/system/emergency-stop', methods=['POST'])
+def emergency_stop():
+    """Emergency stop all agents"""
+    try:
+        # Create emergency stop task for all agents
+        live_status = get_live_system_status()
+        agents_dict = live_status.get('working_agents', {})
+        
+        stopped_agents = []
+        for agent_id in agents_dict.keys():
+            task_id = f"emergency_stop_{datetime.now().strftime('%Y%m%d_%H%M%S%f')}_{agent_id}"
+            task_payload = {
+                'task_id': task_id,
+                'agent_id': agent_id,
+                'task_data': {
+                    'action': 'emergency_stop',
+                    'priority': 'urgent',
+                    'timestamp': datetime.now().isoformat()
+                },
+                'submitted_at': datetime.now().isoformat(),
+                'status': 'pending',
+                'submitted_via': 'emergency_dashboard'
+            }
+
+            task_queue_dir = Path(__file__).parent.parent / 'data' / 'task_queue'
+            task_queue_dir.mkdir(exist_ok=True)
+            task_file_path = task_queue_dir / f"{task_id}.json"
+            
+            with open(task_file_path, 'w') as f:
+                json.dump(task_payload, f, indent=2)
+            
+            stopped_agents.append(agent_id)
+
+        return jsonify({
+            'success': True,
+            'message': f'Emergency stop initiated for {len(stopped_agents)} agents',
+            'stopped_agents': stopped_agents
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/system/restart-all', methods=['POST'])
+def restart_all():
+    """Restart all agents"""
+    try:
+        # Create restart task for all agents
+        live_status = get_live_system_status()
+        agents_dict = live_status.get('working_agents', {})
+        
+        restarted_agents = []
+        for agent_id in agents_dict.keys():
+            task_id = f"restart_{datetime.now().strftime('%Y%m%d_%H%M%S%f')}_{agent_id}"
+            task_payload = {
+                'task_id': task_id,
+                'agent_id': agent_id,
+                'task_data': {
+                    'action': 'restart',
+                    'timestamp': datetime.now().isoformat()
+                },
+                'submitted_at': datetime.now().isoformat(),
+                'status': 'pending',
+                'submitted_via': 'restart_dashboard'
+            }
+
+            task_queue_dir = Path(__file__).parent.parent / 'data' / 'task_queue'
+            task_queue_dir.mkdir(exist_ok=True)
+            task_file_path = task_queue_dir / f"{task_id}.json"
+            
+            with open(task_file_path, 'w') as f:
+                json.dump(task_payload, f, indent=2)
+            
+            restarted_agents.append(agent_id)
+
+        return jsonify({
+            'success': True,
+            'message': f'Restart initiated for {len(restarted_agents)} agents',
+            'restarted_agents': restarted_agents
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/api/memory/stats')
 def get_memory_stats():
     """Get memory bus statistics"""
