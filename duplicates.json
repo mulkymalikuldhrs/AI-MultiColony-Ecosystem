@@ -1,0 +1,26 @@
+[
+  [
+    ".git/refs/remotes/origin/cursor/deep-analysis-of-project-components-715c",
+    ".git/refs/heads/cursor/deep-analysis-of-project-components-715c"
+  ],
+  [
+    ".git/logs/refs/heads/Advance_Dev",
+    ".git/logs/refs/remotes/origin/HEAD"
+  ],
+  [
+    "web_interface/templates/agents.html",
+    "build/agents.html"
+  ],
+  [
+    "web_interface/templates/monitoring.html",
+    "build/monitoring.html"
+  ],
+  [
+    "web_interface/templates/platform_integrations.html",
+    "build/platform_integrations.html"
+  ],
+  [
+    "web_interface/templates/workflows.html",
+    "build/workflows.html"
+  ]
+]

@@ -109,3 +109,88 @@ import src.core.agent_manager   ✅  OK
 2. Stub or implement `ULTIMATE_AUTONOMOUS_ECOSYSTEM.py` to unblock AutonomousExecutionEngine.
 3. Gradually refactor core modules (`memory_manager`, `ai_selector`) to degrade gracefully when optional libs absent.
 4. Add unit tests for `agents.initialize_agents` ensuring ≥80% agents load in CI.
+
+### Mock / Placeholder Files & Duplicate Assets
+- Deep scan (`scripts/agentic_refactorer.py` logic reproduced) across **303** source-text files:
+  • Mock / placeholder files containing keywords (`dummy|placeholder|mock|test|lorem`): **152** (full list in `mock_files.json`).
+  • Exact duplicate file pairs: **6** (saved to `duplicates.json`).  Representative sample:
+    - `.git/refs/remotes/origin/cursor/deep-analysis-of-project-components-715c` ⇆ `.git/refs/heads/cursor/deep-analysis-of-project-components-715c`
+    - `web_interface/templates/agents.html` ⇆ `build/agents.html`
+    - `web_interface/templates/monitoring.html` ⇆ `build/monitoring.html`
+- Action: review `mock_files.json`; delete or convert mocks → production equivalents. Remove/merge duplicates in `build/` vs `web_interface/templates/`.
+
+### Testing Infrastructure & Coverage Baseline
+- Pytest collection after installing `pytest` gathered **3 tests** before aborting on missing dependency `psutil`:
+  • `test_daemon.py::test_daemon`
+  • `test_simple_daemon.py::{test_core_system,test_autonomous_capabilities}`
+  • Collection failed for `tests/test_agents.py` (import error `psutil`).
+- Additional test-style functions exist inside application modules (∼40+ occurrences of `def test_*`), but these are not discoverable under `pytest` convention.
+- No coverage tooling configured (no `.coveragerc`, CI job, or badges).
+- Action Items:
+  1. Add `requirements_dev.txt` with `pytest`, `pytest-asyncio`, `pytest-cov`.
+  2. Fix hard imports by adding optional dependency guards or include libs in test venv.
+  3. Move inner-module **demo** test functions into dedicated `tests/` files.
+  4. Target ≥70% statement coverage on core modules.
+
+### Dependency Matrix & Missing Components
+- Mandatory third-party libs referenced but absent: requests, psutil, redis, docker, aiohttp, cryptography, opencv-python, matplotlib, etc.
+- Missing internal modules: `ULTIMATE_AUTONOMOUS_ECOSYSTEM.py`, `ADVANCED_AI_AGENT_ORCHESTRATION.py` (referenced by unified launchers).
+- Dependency tiers:
+  • Tier-0 (foundation): Python 3.10-3.13, asyncio, logging.
+  • Tier-1: `src/core` (config_loader, memory_manager) — require requests.
+  • Tier-2: Connectors (llm_gateway) — require aiohttp/requests.
+  • Tier-3: Agents — depend on core + connectors + psutil/redis/docker.
+  • Tier-4: Launchers/EEUs orchestrate everything; depend on all lower tiers.
+- Action: produce `requirements_min.txt` & optional extras (dev, full) then add installation guard in launchers.
+
+### System Architecture (High-Level)
+```mermaid
+graph TD
+  subgraph Core Services
+    config_loader
+    memory_bus
+    scheduler
+    ai_selector
+  end
+  subgraph Connectors
+    llm_gateway
+  end
+  subgraph Agents Layer
+    AGENTS_REGISTRY
+    camel_agent
+    other_agents[~20 specialised agents]
+  end
+  subgraph UI
+    web_interface
+  end
+  subgraph ExecutionEngines
+    unified_launcher[UNIFIED_*_LAUNCHER]
+    autonomous_execution[AUTONOMOUS_EXECUTION_ENGINE]
+    simple_launcher[standalone_launcher]
+    system_launcher
+  end
+
+  config_loader -->|loads| CoreServices
+  memory_bus --> AGENTS_REGISTRY
+  llm_gateway --> AGENTS_REGISTRY
+  camel_agent --> AGENTS_REGISTRY
+  AGENTS_REGISTRY --> scheduler
+  AGENTS_REGISTRY --> ai_selector
+  scheduler -->|JSON tasks| AGENTS_REGISTRY
+
+  ExecutionEngines --> CoreServices
+  ExecutionEngines --> Connectors
+  ExecutionEngines --> Agents Layer
+  ExecutionEngines --> UI
+
+  UI --> CoreServices
+```
+
+### Consolidated Action Items (Q3-2025 Sprint)
+1. **Dependencies**: curate `requirements_min.txt`, integrate `pip install --requirement` step in launchers.
+2. **Missing Modules**: create stub `ULTIMATE_AUTONOMOUS_ECOSYSTEM.py` & locate or rename `ADVANCED_AI_AGENT_ORCHESTRATION.py`.
+3. **Agents**: implement optional-import guards for heavy libs; ensure ≥80 % agents initialise in CI.
+4. **Tests**: restructure tests, set up GitHub Actions with `pytest -q --cov`.
+5. **Duplicates & Mocks**: purge 6 duplicate HTML templates; convert 152 mock files or delete.
+6. **Refactor**: extract `launcher_base.py` to unify directory creation, logging, signal handling.
+7. **Docs**: add ARCHITECTURE.md with the mermaid diagram; keep CHANGELOG updated per keep-a-changelog.

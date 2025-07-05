@@ -1,0 +1,21 @@
+test_daemon.py::test_daemon
+test_simple_daemon.py::test_core_system
+test_simple_daemon.py::test_autonomous_capabilities
+
+==================================== ERRORS ====================================
+____________________ ERROR collecting tests/test_agents.py _____________________
+ImportError while importing test module '/workspace/tests/test_agents.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_agents.py:19: in <module>
+    from agents.cybershell import cybershell_agent
+agents/cybershell.py:19: in <module>
+    import psutil
+E   ModuleNotFoundError: No module named 'psutil'
+=========================== short test summary info ============================
+ERROR tests/test_agents.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+3 tests collected, 1 error in 0.15s
