@@ -1,0 +1,7 @@
+🔍  Menganalisis struktur direktori dan file…
+
+📁  Total file terdeteksi: 257
+🧪  File mock/placeholder: 132
+📂  Duplikat file: 7
+
+✅  Selesai. Seluruh analisa sudah ditampilkan.
