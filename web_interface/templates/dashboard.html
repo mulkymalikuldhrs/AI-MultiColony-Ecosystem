@@ -653,6 +653,17 @@
             }
         });
         fetchSystemStatus();
+
+        /* live status */
+        function updateKPIs(data){
+            document.getElementById('active-agents').textContent=data.agents_active;
+        }
+        function fetchStatus(){
+            fetch('/api/system/status').then(r=>r.json()).then(j=>{if(j.success)updateKPIs(j.data);});
+        }
+        setInterval(fetchStatus,3000);
+        fetchStatus();
+        socket.on('status_update',updateKPIs);
     </script>
 </body>
 </html>
