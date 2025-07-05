@@ -523,7 +523,59 @@ graph LR
 
 ---
 
-## 🚀 **CARA MENJALANKAN SISTEM**
+## � **ARSITEKTUR SISTEM TERBARU**
+
+```mermaid
+graph TB
+    subgraph "🚀 UNIFIED LAUNCHER"
+        UL[unified_launcher.py]
+        M[main.py]
+        M --> UL
+    end
+    
+    subgraph "🌐 WEB UI MODE"
+        WO[Web UI Only]
+        WB[Web UI + Background]
+        UL --> WO
+        UL --> WB
+    end
+    
+    subgraph "🤖 CORE SYSTEM"
+        AG[Agents Registry]
+        LG[LLM Gateway]
+        TQ[Task Queue]
+        MB[Memory Bus]
+    end
+    
+    subgraph "🌐 WEB INTERFACE"
+        APP[app.py - Port 8080]
+        DASH[Dashboard]
+        API[API Endpoints]
+        WS[WebSocket]
+        APP --> DASH
+        APP --> API
+        APP --> WS
+    end
+    
+    subgraph "📁 DATA FLOW"
+        AO[agent_output/]
+        LOG[logs/colony_activity.log]
+        DATA[data/system_status.json]
+        QUEUE[data/task_queue/]
+    end
+    
+    WO --> APP
+    WB --> APP
+    WB --> AG
+    AG --> LG
+    AG --> TQ
+    TQ --> QUEUE
+    AG --> AO
+    APP --> LOG
+    APP --> DATA
+```
+
+## �🚀 **CARA MENJALANKAN SISTEM**
 
 ### **⚡ Quick Start (30 Detik):**
 ```bash
@@ -534,13 +586,15 @@ cd AI-MultiColony-Ecosystem
 # 2. Switch ke branch Advance_Dev
 git checkout Advance_Dev
 
-# 3. Jalankan sistem (tidak perlu install dependencies)
+# 3. Jalankan sistem (SEMUA LAUNCHER SUDAH DIGABUNG)
 python3 unified_launcher.py
+# ATAU
+python3 main.py
 
-# 4. Pilih mode yang diinginkan (1-7):
+# 4. Pilih mode (DISEDERHANAKAN JADI 5 MODE):
 ```
 
-### **🎯 Pilihan Mode Launcher:**
+### **🎯 Pilihan Mode Launcher (DISEDERHANAKAN):**
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║                🚀 AI-MultiColony-Ecosystem v7.0.0            ║
@@ -548,31 +602,47 @@ python3 unified_launcher.py
 ║          🇮🇩 Made with ❤️ by Mulky Malikul Dhaher 🇮🇩        ║
 ╚══════════════════════════════════════════════════════════════╝
 
-🎯 Available Launcher Modes:
-1. 🖥️  CLI Mode - Interactive command line interface
-2. 📱 Termux Shell - Compatible with Android Termux  
-3. 🌐 Web UI - Modern web interface with dashboard
-4. 🤖 Autonomous Engine - Self-running background system
-5. 🔧 Background Daemon - Silent background operation
-6. 🔄 All Modes - Run all systems simultaneously
-7. ❌ Exit - Shutdown launcher
+🎯 Available Launcher Modes (SIMPLIFIED):
+1. 🌐 Web UI Only - Modern web interface (RECOMMENDED)
+2. � Web UI + Background - Web interface with autonomous engines  
+3. �️ CLI Mode - Interactive command line interface
+4. � Termux Shell - Compatible with Android Termux
+5. ❌ Exit - Shutdown launcher
 
-🎯 Select mode (1-7): 
+🎯 Select mode (1-5): 
 ```
 
-### **📱 Cara Menjalankan per Mode:**
+### **📱 Cara Menjalankan per Mode (UPDATED):**
 
-#### **1. 🖥️ CLI Mode (Recommended untuk pemula):**
+#### **1. 🌐 Web UI Only (RECOMMENDED - Paling mudah):**
 ```bash
 python3 unified_launcher.py
 # Pilih: 1
+# Buka browser: http://localhost:8080 atau http://YOUR_IP:8080
+# Interface grafis lengkap dengan kontrol agent
+# AKSES DARI NETWORK LAIN JUGA BISA!
+```
+
+#### **2. � Web UI + Background (Full featured):**
+```bash
+python3 unified_launcher.py
+# Pilih: 2
+# Web UI + Autonomous Engines aktif bersamaan
+# Akses: http://localhost:8080
+# Cek logs: logs/colony_activity.log
+```
+
+#### **3. 🖥️ CLI Mode (untuk developer):**
+```bash
+python3 unified_launcher.py
+# Pilih: 3
 # Ketik 'help' untuk melihat commands
 # Ketik 'status' untuk cek sistem
 # Ketik 'agents' untuk lihat agent
 # Ketik 'web' untuk buka web UI
 ```
 
-#### **2. 📱 Termux Shell (untuk Android):**
+#### **4. � Termux Shell (untuk Android):**
 ```bash
 # Di Termux Android:
 pkg install python git
@@ -580,39 +650,7 @@ git clone https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git
 cd AI-MultiColony-Ecosystem
 git checkout Advance_Dev
 python unified_launcher.py
-# Pilih: 2
-```
-
-#### **3. 🌐 Web UI (Paling mudah digunakan):**
-```bash
-python3 unified_launcher.py
-# Pilih: 3
-# Buka browser: http://localhost:5000/dashboard
-# Interface grafis lengkap dengan kontrol agent
-```
-
-#### **4. 🤖 Autonomous Engine (Otomatis penuh):**
-```bash
-python3 unified_launcher.py
 # Pilih: 4
-# Sistem berjalan otomatis tanpa intervensi
-# Cek logs di: logs/colony_activity.log
-```
-
-#### **5. 🔧 Background Daemon (Service mode):**
-```bash
-python3 unified_launcher.py
-# Pilih: 5
-# Berjalan di background seperti service
-# Monitor via: tail -f logs/colony_activity.log
-```
-
-#### **6. 🔄 All Modes (Semua fitur aktif):**
-```bash
-python3 unified_launcher.py
-# Pilih: 6
-# Web UI + CLI + Autonomous + Daemon
-# Akses: http://localhost:5000 + terminal commands
 ```
 
 ### **⚙️ Tidak Perlu Konfigurasi Tambahan:**
@@ -645,12 +683,15 @@ ls agent_output/                  # Lihat hasil agent
 
 ### **🔗 Cara Akses Sistem:**
 
-#### **🌐 Web Interface (Mode 3 atau 6):**
+#### **🌐 Web Interface (Mode 1 atau 2):**
 ```bash
-# Setelah pilih mode 3 atau 6, buka browser:
-http://localhost:5000/dashboard    # 🏠 Dashboard utama
-http://localhost:5000/agents       # 🤖 Management agent  
-http://localhost:5000/monitoring   # 📊 Monitor sistem
+# Setelah pilih mode 1 atau 2, buka browser:
+http://localhost:8080/dashboard    # 🏠 Dashboard utama
+http://localhost:8080/agents       # 🤖 Management agent  
+http://localhost:8080/monitoring   # 📊 Monitor sistem
+
+# ATAU akses dari network lain:
+http://YOUR_IP:8080/dashboard      # 🌐 Akses external
 ```
 
 #### **📱 CLI Commands (Mode 1):**
@@ -665,9 +706,12 @@ colony> exit      # ❌ Keluar sistem
 
 #### **📡 API Endpoints (untuk developer):**
 ```bash
-curl http://localhost:5000/api/system/status    # Status sistem
-curl http://localhost:5000/api/agents/list      # List agent
-curl -X POST http://localhost:5000/api/task/submit  # Submit task
+curl http://localhost:8080/api/system/status    # Status sistem
+curl http://localhost:8080/api/agents/list      # List agent
+curl -X POST http://localhost:8080/api/task/submit  # Submit task
+
+# External API access:
+curl http://YOUR_IP:8080/api/system/status      # Remote access
 ```
 
 ### **🔧 Troubleshooting:**
