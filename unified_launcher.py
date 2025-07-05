@@ -1,4 +1,4 @@
-THIS SHOULD BE A LINTER ERROR#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 🚀 AI-MultiColony-Ecosystem - Unified Launcher System
 The Ultimate Launcher that consolidates all system modes
@@ -77,6 +77,20 @@ class UnifiedLauncher:
         os.environ["LLM7_API_BASE_URL"] = "https://api.llm7.io/v1"
         
         print("🔑 Configured LLM7 API endpoint")
+    
+    def _configure_network(self):
+        """Configure network ports for external access"""
+        # Set web interface port
+        os.environ["WEB_INTERFACE_PORT"] = "8080"
+        os.environ["WEB_INTERFACE_HOST"] = "0.0.0.0"
+        
+        # Set websocket port
+        os.environ["WEBSOCKET_PORT"] = "8765"
+        
+        # Set API port
+        os.environ["API_PORT"] = "8080"
+        
+        print("🌐 Configured network ports - Web: 8080, WebSocket: 8765")
     
     def _setup_signal_handlers(self):
         """Setup signal handlers for graceful shutdown"""
