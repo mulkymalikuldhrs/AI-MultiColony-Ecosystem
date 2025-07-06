@@ -254,16 +254,38 @@ class LLMGateway:
     
     def __init__(self):
         self.providers: Dict[str, LLMProvider] = {}
-        self.config = config.get('llm', {})
+        # Ensure LLM7 public integration as default
+        default_llm7_config = {
+            'primary_provider': 'llm7',
+            'providers': {
+                'llm7': {
+                    'enabled': True,
+                    'api_key': 'unused',
+                    'base_url': 'https://api.llm7.io/v1',
+                    'models': ['gpt-3.5-turbo'],
+                    'rate_limit': 60
+                }
+            },
+            'failover': {
+                'enabled': True,
+                'providers_order': ['llm7']
+            }
+        }
+        # Merge config from file with default, prioritizing file config
+        file_config = config.get('llm', {})
+        merged_config = default_llm7_config.copy()
+        merged_config.update(file_config)
+        # Deep merge providers and failover
+        merged_config['providers'] = {**default_llm7_config['providers'], **file_config.get('providers', {})}
+        merged_config['failover'] = {**default_llm7_config['failover'], **file_config.get('failover', {})}
+        self.config = merged_config
         self.primary_provider = self.config.get('primary_provider', 'llm7')
         self.failover_enabled = self.config.get('failover', {}).get('enabled', True)
-        self.providers_order = self.config.get('failover', {}).get('providers_order', [])
-        
+        self.providers_order = self.config.get('failover', {}).get('providers_order', ['llm7'])
         self.status = "initializing"
         self.total_requests = 0
         self.total_tokens = 0
         self.last_activity = None
-        
         print("🧠 Initializing Ultimate LLM Gateway...")
         self._initialize_providers()
     

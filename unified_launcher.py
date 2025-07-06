@@ -429,23 +429,23 @@ class UnifiedLauncher:
         
         try:
             # Start web interface process
-                         web_command = [sys.executable, "-c", f"""
+            web_command = [sys.executable, "-c", f"""
 import sys
 sys.path.append('{str(project_root)}')
 from web_interface.app import app, socketio
 socketio.run(app, host='0.0.0.0', port=8080, debug=False, allow_unsafe_werkzeug=True)
 """]
-            
+
             self.processes['web_ui'] = subprocess.Popen(
                 web_command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
             )
-            
+
             # Wait for web UI to start
             await asyncio.sleep(3)
             print("  ✅ Web UI launched at http://0.0.0.0:8080")
-            
+
         except Exception as e:
             print(f"  ❌ Failed to launch Web UI: {e}")
     
