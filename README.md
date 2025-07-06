@@ -1,5 +1,20 @@
-# 🚀 AI-MultiColony-Ecosystem v7.0.0 - Unified System Documentation
+
+# 🚀 AI-MultiColony-Ecosystem v7.2.0 - Unified System Documentation
 **The Ultimate Autonomous AI Multi-Agent Colony with Unified Launcher**
+
+---
+## 🆕 SYSTEM STATUS & INTEGRATION (2025-07-06)
+
+- ✅ **All launchers merged**: Only `main.py` and `unified_launcher.py` are used. Interactive mode selection (Web UI, CLI, Termux, etc) at startup.
+- ✅ **Web UI fully functional**: Real-time dashboard for agents, logs, tasks, sandbox, monitoring, credential manager, and AI Core panel. Access at http://localhost:8080 or http://YOUR_IP:8080
+- ✅ **LLM7 API enforced**: All agents and LLM Gateway use LLM7 public endpoint (`LLM7_API_KEY=unused`, `LLM7_BASE_URL=https://api.llm7.io/v1`).
+- ✅ **ColonyCore rule enforced**: Only Mulky Malikul Dhaher (owner) can be ColonyCore.
+- ✅ **All agent/colony/task management, logs, and metrics are exposed in the Web UI**.
+- ⚠️ **Some agents/features require extra dependencies**: (redis, cv2, paramiko, cryptography, docker, arxiv, nltk, etc). Install these for full functionality.
+- ⚠️ **LLM7 API is public/free**: If completions fail, check LLM7 server status or rate limits.
+- ⚠️ **CLI only supports documented commands**: Custom/unknown commands will return `Unknown command`.
+
+---
 
 Made with ❤️ by **Mulky Malikul Dhaher** in Indonesia 🇮🇩
 
@@ -577,7 +592,7 @@ graph TB
 
 ## �🚀 **CARA MENJALANKAN SISTEM**
 
-### **⚡ Quick Start (30 Detik):**
+### **⚡ Quick Start (v7.2.0):**
 ```bash
 # 1. Clone repository
 git clone https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git
@@ -586,12 +601,18 @@ cd AI-MultiColony-Ecosystem
 # 2. Switch ke branch Advance_Dev
 git checkout Advance_Dev
 
-# 3. Jalankan sistem (SEMUA LAUNCHER SUDAH DIGABUNG)
-python3 unified_launcher.py
-# ATAU
+pip install -r requirements.txt
+# Jalankan launcher utama
 python3 main.py
+# Pilih mode (Web UI Only, Web UI + Background, CLI, Termux, Exit)
+# Untuk Web UI: buka http://localhost:8080
 
-# 4. Pilih mode (DISEDERHANAKAN JADI 5 MODE):
+**Note:**
+- LLM7 API sudah otomatis aktif (lihat .env: `LLM7_API_KEY=unused`, `LLM7_BASE_URL=https://api.llm7.io/v1`).
+- Semua output/log tersimpan di `logs/colony_activity.log` dan `agent_output/`.
+- Untuk fitur agent tertentu, pastikan semua dependency eksternal sudah terpasang.
+
+---
 ```
 
 ### **🎯 Pilihan Mode Launcher (DISEDERHANAKAN):**
