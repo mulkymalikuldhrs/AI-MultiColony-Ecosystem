@@ -2,12 +2,167 @@
   "system_name": "AI-MultiColony-Ecosystem",
   "version": "7.0.0",
   "status": "stopped",
-  "mode": null,
+  "mode": "cli",
   "owner": "Mulky Malikul Dhaher",
   "owner_id": "1108151509970001",
-  "timestamp": "2025-07-06T08:04:59.016948",
-  "uptime": 140.14894556999207,
-  "components": [],
+  "timestamp": "2025-07-06T08:05:19.512302",
+  "uptime": 1467.4312014579773,
+  "components": [
+    "config",
+    "agents",
+    "memory_bus",
+    "scheduler"
+  ],
   "processes": [],
-  "working_agents": {}
+  "working_agents": {
+    "cybershell": {
+      "id": "cybershell",
+      "name": "CyberShell Agent",
+      "status": "ready",
+      "capabilities": [
+        "shell_execution",
+        "process_management",
+        "system_monitoring",
+        "automation",
+        "file_operations",
+        "network_commands"
+      ]
+    },
+    "agent_maker": {
+      "id": "agent_maker",
+      "name": "Agent Maker",
+      "status": "ready",
+      "capabilities": [
+        "agent_creation",
+        "code_generation",
+        "autonomous_development",
+        "system_expansion",
+        "agent_registration",
+        "template_management"
+      ]
+    },
+    "ui_designer": {
+      "id": "ui_designer",
+      "name": "UI Designer Agent",
+      "status": "ready",
+      "capabilities": [
+        "ui_design",
+        "react_components",
+        "tailwind_css",
+        "responsive_design",
+        "component_library",
+        "prototype_creation",
+        "design_system",
+        "camel_collaboration"
+      ]
+    },
+    "fullstack_dev": {
+      "id": "fullstack_dev",
+      "name": "Full Stack Developer",
+      "status": "ready",
+      "capabilities": [
+        "frontend_development",
+        "backend_development",
+        "database_design",
+        "api_development",
+        "authentication",
+        "deployment",
+        "mobile_development",
+        "testing",
+        "camel_collaboration"
+      ]
+    },
+    "deploy_manager": {
+      "id": "deploy_manager",
+      "name": "Deploy Manager Agent",
+      "status": "ready",
+      "capabilities": [
+        "multi_platform_deployment",
+        "infrastructure_management",
+        "cicd_automation",
+        "environment_config",
+        "health_monitoring",
+        "rollback_management"
+      ]
+    },
+    "prompt_generator": {
+      "id": "prompt_generator",
+      "name": "Prompt Generator Agent",
+      "status": "ready",
+      "capabilities": [
+        "prompt_creation",
+        "prompt_optimization",
+        "role_based_prompts",
+        "task_specific_prompts",
+        "prompt_analysis",
+        "template_generation"
+      ]
+    },
+    "marketing_agent": {
+      "id": "marketing_agent",
+      "name": "Marketing Agent",
+      "status": "ready",
+      "capabilities": [
+        "social_media_automation",
+        "content_creation",
+        "targeted_advertising",
+        "email_marketing",
+        "influencer_outreach",
+        "seo_optimization",
+        "analytics_tracking",
+        "multi_platform_management",
+        "ai_content_generation",
+        "roi_optimization"
+      ]
+    },
+    "money_making_agent": {
+      "id": "money_making_agent",
+      "name": "Money Making Agent",
+      "status": "ready",
+      "capabilities": [
+        "freelance_automation",
+        "content_monetization",
+        "ecommerce_automation",
+        "trading_automation",
+        "bug_bounty_hunting",
+        "saas_development",
+        "app_monetization",
+        "affiliate_marketing",
+        "web_service_monetization",
+        "payment_optimization"
+      ]
+    },
+    "system_optimizer": {
+      "id": "system_optimizer",
+      "name": "System Optimizer",
+      "status": "ready",
+      "capabilities": [
+        "performance_monitoring",
+        "auto_optimization",
+        "dependency_management",
+        "resource_allocation",
+        "preventive_maintenance",
+        "auto_scaling",
+        "error_detection",
+        "system_updates",
+        "security_scanning",
+        "backup_management",
+        "camel_collaboration"
+      ]
+    },
+    "camel_agent": {
+      "id": "camel_agent",
+      "name": "Camel AI Collaborative Agent",
+      "status": "ready",
+      "capabilities": [
+        "multi_agent_collaboration",
+        "role_playing_conversations",
+        "consensus_building",
+        "collaborative_problem_solving",
+        "agent_coordination",
+        "task_decomposition",
+        "collective_intelligence"
+      ]
+    }
+  }
 }
