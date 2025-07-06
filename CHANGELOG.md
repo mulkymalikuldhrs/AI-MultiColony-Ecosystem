@@ -1,3 +1,23 @@
+# [7.2.0] - 2025-07-06
+
+### 🆕 SYSTEM STATUS & INTEGRATION
+
+- ✅ All launchers merged: Only `main.py` and `unified_launcher.py` are used. Interactive mode selection (Web UI, CLI, Termux, etc) at startup.
+- ✅ Web UI fully functional: Real-time dashboard for agents, logs, tasks, sandbox, monitoring, credential manager, and AI Core panel. Access at http://localhost:8080 or http://YOUR_IP:8080
+- ✅ LLM7 API enforced: All agents and LLM Gateway use LLM7 public endpoint (`LLM7_API_KEY=unused`, `LLM7_BASE_URL=https://api.llm7.io/v1`).
+- ✅ ColonyCore rule enforced: Only Mulky Malikul Dhaher (owner) can be ColonyCore.
+- ✅ All agent/colony/task management, logs, and metrics are exposed in the Web UI.
+- ⚠️ Some agents/features require extra dependencies: (redis, cv2, paramiko, cryptography, docker, arxiv, nltk, etc). Install these for full functionality.
+- ⚠️ LLM7 API is public/free: If completions fail, check LLM7 server status or rate limits.
+- ⚠️ CLI only supports documented commands: Custom/unknown commands will return `Unknown command`.
+
+#### Known Issues
+- Some agents/modules require extra Python packages (see logs for missing modules).
+- LLM7 completions may fail if the public server is down or rate-limited.
+- Only supported CLI commands will work; others will return `Unknown command`.
+- All system logs are in `logs/colony_activity.log`.
+
+---
 # 🚀 AI-MultiColony-Ecosystem - CHANGELOG
 
 All notable changes to this project will be documented in this file.
