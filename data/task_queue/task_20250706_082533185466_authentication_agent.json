@@ -1,0 +1,10 @@
+{
+  "task_id": "task_20250706_082533185466_authentication_agent",
+  "agent_id": "authentication_agent",
+  "task_data": {
+    "type": "list_sessions"
+  },
+  "submitted_at": "2025-07-06T08:25:33.185488",
+  "status": "pending",
+  "submitted_via": "web_interface"
+}
