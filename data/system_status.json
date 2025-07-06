@@ -1,24 +1,19 @@
 {
   "system_name": "AI-MultiColony-Ecosystem",
   "version": "7.0.0",
-  "status": "stopped",
-  "mode": "web_background",
+  "status": "running",
+  "mode": "cli",
   "owner": "Mulky Malikul Dhaher",
   "owner_id": "1108151509970001",
-  "timestamp": "2025-07-06T07:40:44.549007",
-  "uptime": 81.00154566764832,
+  "timestamp": "2025-07-06T07:41:00.153668",
+  "uptime": 8.07256007194519,
   "components": [
     "config",
     "agents",
     "memory_bus",
     "scheduler"
   ],
-  "processes": [
-    "engine_development",
-    "engine_execution",
-    "engine_improvement",
-    "web_ui"
-  ],
+  "processes": [],
   "working_agents": {
     "cybershell": {
       "id": "cybershell",
