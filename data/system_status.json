@@ -1,12 +1,12 @@
 {
   "system_name": "AI-MultiColony-Ecosystem",
   "version": "7.0.0",
-  "status": "stopped",
-  "mode": "cli",
+  "status": "running",
+  "mode": "web_only",
   "owner": "Mulky Malikul Dhaher",
   "owner_id": "1108151509970001",
-  "timestamp": "2025-07-06T08:05:19.512302",
-  "uptime": 1467.4312014579773,
+  "timestamp": "2025-07-06T08:21:42.094572",
+  "uptime": 3.5586111545562744,
   "components": [
     "config",
     "agents",
