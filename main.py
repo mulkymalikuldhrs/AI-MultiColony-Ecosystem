@@ -32,4 +32,10 @@ def main():
         sys.exit(1)
 
 if __name__ == "__main__":
+    import os
+    # Ensure LLM7 public endpoint and key are always set for all agents
+    os.environ["LLM7_API_KEY"] = "unused"
+    os.environ["LLM7_API_BASE_URL"] = "https://api.llm7.io/v1"
+    os.environ["OPENAI_API_KEY"] = "unused"
+    os.environ["OPENAI_API_BASE_URL"] = "https://api.llm7.io/v1"
     main()
