@@ -57,6 +57,21 @@ body {
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
 }
 
+.metric-card {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .metric-card-workflows {
     background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
 }
