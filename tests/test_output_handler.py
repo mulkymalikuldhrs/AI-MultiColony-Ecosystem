@@ -165,7 +165,7 @@ class TestOutputHandler(unittest.TestCase):
         self.assertGreater(validation["quality_score"], 0.8)
         self.assertEqual(validation["missing_components"], [])
         self.assertEqual(validation["quality_issues"], [])
-        self.assertIn('Review and enhance agent outputs', validation["recommendations_for_improvement"]) # Default recommendation
+        self.assertEqual(validation["recommendations_for_improvement"], []) # High quality, so no recommendations
 
         # Test for an incomplete submission (missing planner)
         collected_results_incomplete = {
@@ -237,7 +237,7 @@ class TestOutputHandler(unittest.TestCase):
             'status': 'completed',
             'deliverables': ['Project plan']
         }
-        self.assertAlmostEqual(self.output_handler._assess_contribution_quality('planner', missing_type), 0.8) # 1.0 - 0.2
+        self.assertAlmostEqual(self.output_handler._assess_contribution_quality('planner', missing_type), 0.7) # 1.0 - 0.2 (missing type) - 0.1 (less than 2 deliverables)
 
         # Not completed status
         not_completed = {
