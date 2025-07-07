@@ -1,0 +1,32 @@
+# Laporan Restrukturisasi Backend - Kilo
+
+**Tanggal:** 2025-07-07
+
+**Ringkasan Eksekutif:**
+Restrukturisasi backend telah berhasil diselesaikan. Fondasi baru menggunakan FastAPI telah diletakkan untuk mendukung skalabilitas, modularitas, dan kemudahan pengembangan di masa depan. Arsitektur sekarang dipisahkan dengan jelas antara lapisan API, layanan (logika bisnis), dan inti sistem.
+
+**Perubahan Utama:**
+1.  **Entry Point Terpusat:**
+    -   Membuat `src/main.py` sebagai titik masuk utama untuk aplikasi backend, menggunakan kerangka kerja FastAPI.
+
+2.  **Struktur Direktori Modular:**
+    -   Membangun struktur direktori `src/api` untuk menampung semua yang terkait dengan endpoint, termasuk `endpoints` untuk logika rute dan `schemas` (direncanakan) untuk validasi data.
+    -   Membuat direktori `src/services` untuk menampung logika bisnis, memisahkannya dari lapisan transport (API).
+
+3.  **Implementasi Endpoint Baru:**
+    -   `POST /api/v1/run-agent`: Menerima permintaan untuk menjalankan agen. Terhubung ke `AgentService` untuk penanganan logika.
+    -   `GET /api/v1/task-status/{task_id}`: Endpoint untuk memeriksa status tugas (saat ini dengan logika placeholder).
+    -   `GET /api/v1/log-stream/{task_id}`: Endpoint untuk streaming log tugas secara real-time menggunakan Server-Sent Events (saat ini dengan logika placeholder).
+
+4.  **Pemisahan Concerns (Separation of Concerns):**
+    -   Membuat `AgentService` di `src/services/agent_service.py` untuk menampung logika yang terkait dengan eksekusi agen.
+    -   Menggunakan sistem Injeksi Dependensi FastAPI (`Depends`) untuk menyediakan layanan ke lapisan API, mempromosikan kode yang bersih dan dapat diuji.
+
+**Langkah Selanjutnya yang Direkomendasikan:**
+-   Integrasikan `AgentService` dengan `AgentManager` atau pabrik agen yang sebenarnya untuk memanggil agen secara dinamis.
+-   Implementasikan sistem antrian tugas (misalnya, Celery dengan Redis atau RabbitMQ) untuk menangani eksekusi agen secara asinkron.
+-   Hubungkan endpoint status tugas dan log stream ke sistem antrian tugas untuk memberikan pembaruan waktu nyata.
+-   Kembangkan skema Pydantic di `src/api/schemas` untuk validasi permintaan dan respons yang kuat.
+-   Tambahkan lapisan otentikasi dan otorisasi (misalnya, OAuth2 dengan JWT) ke endpoint API.
+
+Arsitektur saat ini menyediakan fondasi yang kokoh untuk membangun fitur-fitur canggih ini.
