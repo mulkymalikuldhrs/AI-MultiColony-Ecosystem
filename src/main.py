@@ -24,10 +24,11 @@ async def root():
     """
     return {"message": "Kilo Backend is operational."}
 
-# TODO: Add routers for agents, tasks, etc.
-# from .api.endpoints import agent_router, task_router
-# app.include_router(agent_router, prefix="/api/v1")
-# app.include_router(task_router, prefix="/api/v1")
+# Add routers for agents, tasks, etc.
+from src.api.endpoints import agents, tasks
+
+app.include_router(agents.router, prefix="/api/v1", tags=["Agents"])
+app.include_router(tasks.router, prefix="/api/v1", tags=["Tasks"])
 
 if __name__ == "__main__":
     import uvicorn

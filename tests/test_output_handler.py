@@ -30,6 +30,10 @@ class TestOutputHandlerRefactored(unittest.TestCase):
         self.MockConflictResolver = self.patcher_resolver.start()
         self.MockReportGenerator = self.patcher_generator.start()
         self.MockOutputStore = self.patcher_store.start()
+        
+        # Patch the logger specifically
+        self.patcher_logger = patch('src.agents.output_handler.OutputHandler.logger')
+        self.MockLogger = self.patcher_logger.start()
 
         # Instantiate the OutputHandler, which will now use the mocked components
         self.output_handler = OutputHandler(config_path=self.config_path)
@@ -44,6 +48,7 @@ class TestOutputHandlerRefactored(unittest.TestCase):
         self.patcher_resolver.stop()
         self.patcher_generator.stop()
         self.patcher_store.stop()
+        self.patcher_logger.stop()
 
     def test_initialization(self):
         """Test that the OutputHandler initializes correctly and creates its components."""
@@ -126,7 +131,7 @@ class TestOutputHandlerRefactored(unittest.TestCase):
 
         self.assertEqual(result["status"], "error")
         self.assertIn("Internal error: Simulated error", result["content"])
-        self.output_handler.log_error.assert_called_once_with("An unexpected error occurred during task processing: Simulated error")
+        self.MockLogger.error.assert_called_once_with("An unexpected error occurred during task processing: Simulated error")
 
     def test_process_task_with_invalid_input(self):
         """Test process_task with missing required fields."""
