@@ -46,8 +46,8 @@ class BaseAgent(abc.ABC):
             return {}
     
     @abc.abstractmethod
-    def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
-        """Process a task - must be implemented by each agent"""
+    async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Process a task asynchronously - must be implemented by each agent"""
         pass
     
     def get_system_prompt(self) -> str:
@@ -65,10 +65,12 @@ class BaseAgent(abc.ABC):
         """
     
     def update_status(self, status: str, task_info: Optional[Dict] = None):
-        """Update agent status"""
+        """Update agent status and log start time if processing"""
         self.status = status
         self.current_task = task_info
         self.logger.info(f"{self.emoji} {self.name} status: {status}")
+        if status == "processing":
+            self._task_start_time = datetime.now()
     
     def log_task_completion(self, task: Dict, result: Dict, success: bool = True):
         """Log completed task for performance tracking"""
