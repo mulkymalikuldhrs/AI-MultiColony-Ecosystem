@@ -166,7 +166,7 @@ class ReportGenerator:
             steps.append("Deploy and monitor implemented solutions.")
         return steps
 
-    def _extract_all_deliverables(self, unified_results: Dict[str, Any]) -> List[str]:
+    def extract_all_deliverables(self, unified_results: Dict[str, Any]) -> List[str]:
         """Extracts a flat list of all deliverables from all agents."""
         return [
             deliverable
