@@ -75,6 +75,8 @@ class UltimateConfigLoader:
         self.env_file = self.project_root / ".env"
         self.logger = logging.getLogger(self.__class__.__name__)
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        self.logger = logging.getLogger(self.__class__.__name__)
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         
         # Default configuration
         self.default_config = {

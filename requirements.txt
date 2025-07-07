@@ -229,7 +229,7 @@ marshmallow
 
 # Workflow Management
 prefect
-apache-airflow
+apache-airflow>=2.0.0,<3.0.0
 
 # Message Queues
 kombu
