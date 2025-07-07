@@ -359,7 +359,10 @@ class OutputHandler(BaseAgent):
         quality_score = 1.0
         
         # Check for required fields
-        required_fields = ['agent_type', 'status', 'deliverables']
+        required_fields = ['agent_type', 'status']
+        if agent_id != 'agent_base': # Deliverables might not be relevant for base coordination agent
+            required_fields.append('deliverables')
+
         missing_fields = [field for field in required_fields if field not in contribution]
         quality_score -= 0.2 * len(missing_fields)
         
