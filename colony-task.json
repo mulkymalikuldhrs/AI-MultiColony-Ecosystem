@@ -6,12 +6,12 @@
     "roo": "done",
     "kilo": "done",
     "kilo2": "pending",
-    "cline": "pending"
+    "cline": "in_progress"
   },
   "catatan": {
     "roo": "",
     "kilo": "Backend restrukturisasi selesai. Membuat fondasi FastAPI modular dengan entry point di `src/main.py`. Menambahkan direktori `api` dan `services` untuk pemisahan concern. Mengimplementasikan endpoint placeholder untuk `/run-agent`, `/task-status`, dan `/log-stream`. Arsitektur siap untuk integrasi logika agen dan tugas yang lebih dalam.",
     "kilo2": "",
-    "cline": ""
+    "cline": "Memulai perancangan ulang UI utama dengan Next.js, Tailwind, dan React. Komponen dasbor awal telah dibuat."
   }
 }
