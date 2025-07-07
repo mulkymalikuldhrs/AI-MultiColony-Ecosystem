@@ -86,6 +86,17 @@ body {
     color: #333;
 }
 
+.metric-card .card-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.metric-card .fw-bold {
+    font-size: 2rem;
+    color: var(--text-primary);
+}
+
 /* Stats cards */
 .stats-card {
     text-align: center;
