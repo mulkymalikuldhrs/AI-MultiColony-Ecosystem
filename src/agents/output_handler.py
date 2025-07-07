@@ -18,11 +18,19 @@ class OutputHandler(BaseAgent):
         self.compiled_outputs = {}
         self.delivery_formats = ['executive_summary', 'detailed_report', 'technical_docs', 'presentation']
         
+    def validate_input(self, task: Dict[str, Any]) -> bool:
+        """Validates that the task is a dictionary and contains a 'request' key."""
+        return isinstance(task, dict) and 'request' in task
+        
     def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Compile and finalize results from all agents"""
         
         if not self.validate_input(task):
-            return self.handle_error(Exception("Invalid task format"), task)
+            return {
+                "status": "error",
+                "type": "error",
+                "content": "Invalid task format"
+            }
         
         try:
             self.update_status("collecting", task)
@@ -52,34 +60,40 @@ class OutputHandler(BaseAgent):
             
             # Prepare final response
             response_content = f"""
-📋 EXECUTIVE SUMMARY: {summary_insights['executive_summary']}
+ 📋 EXECUTIVE SUMMARY: {summary_insights['executive_summary']}
 
-📊 KEY FINDINGS: 
-{self._format_key_findings(summary_insights['key_findings'])}
+ 📊 KEY FINDINGS:
+ {self._format_key_findings(summary_insights['key_findings'])}
 
-📈 METRICS:
-{self._format_metrics(summary_insights['metrics'])}
+ 📈 METRICS:
+ {self._format_metrics(summary_insights['metrics'])}
 
-💡 RECOMMENDATIONS:
-{self._format_recommendations(summary_insights['recommendations'])}
+ 💡 RECOMMENDATIONS:
+ {self._format_recommendations(summary_insights['recommendations'])}
 
-📚 DETAILED RESULTS:
-{self._format_detailed_results(formatted_outputs)}
+ 📚 DETAILED RESULTS:
+ {self._format_detailed_results(formatted_outputs)}
 
-🔗 SOURCES:
-{self._format_sources(collected_results)}
+ 🔗 SOURCES:
+ {self._format_sources(collected_results)}
 
-✅ COMPLETION STATUS: {validation_report['completion_status']}
+ ✅ COMPLETION STATUS: {validation_report['completion_status']}
             """
             
             # Store compiled output
             output_id = f"output_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             self._store_compiled_output(output_id, task, collected_results, final_deliverables)
             
-            return self.format_response(response_content.strip(), "final_deliverable")
+            response = self.format_response(response_content.strip(), "final_deliverable")
+            response['status'] = 'success'
+            return response
             
         except Exception as e:
-            return self.handle_error(e, task)
+            return {
+                "status": "error",
+                "type": "error",
+                "content": str(e)
+            }
     
     def _collect_agent_results(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Collect results from all contributing agents"""
