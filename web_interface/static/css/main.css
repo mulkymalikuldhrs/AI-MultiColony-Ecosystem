@@ -193,4 +193,8 @@ body {
     .card {
         margin-bottom: 1rem;
     }
+
+    .metric-card {
+        margin-bottom: 1rem;
+    }
 }
