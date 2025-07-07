@@ -4,13 +4,13 @@
   "deskripsi_tugas": "Perombakan menyeluruh pada sistem AI Colony, termasuk refactor kode, rekonstruksi backend, penambahan fitur automasi AI, pengujian menyeluruh, UI interaktif penuh kontrol, dan integrasi lintas modul.",
   "status": {
     "roo": "done",
-    "kilo": "pending",
+    "kilo": "done",
     "kilo2": "pending",
     "cline": "pending"
   },
   "catatan": {
     "roo": "",
-    "kilo": "",
+    "kilo": "Backend restrukturisasi selesai. Membuat fondasi FastAPI modular dengan entry point di `src/main.py`. Menambahkan direktori `api` dan `services` untuk pemisahan concern. Mengimplementasikan endpoint placeholder untuk `/run-agent`, `/task-status`, dan `/log-stream`. Arsitektur siap untuk integrasi logika agen dan tugas yang lebih dalam.",
     "kilo2": "",
     "cline": ""
   }
