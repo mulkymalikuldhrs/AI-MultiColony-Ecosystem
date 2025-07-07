@@ -159,8 +159,8 @@ class AgentManager:
             # Update agent status
             agent.update_status("processing", task)
             
-            # Process the task
-            result = agent.process_task(task)
+            # Process the task asynchronously
+            result = await agent.process_task(task)
             
             # Log the communication
             self._log_communication(agent.agent_id, task, result)

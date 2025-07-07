@@ -238,27 +238,6 @@ class UnifiedLauncher:
         except KeyboardInterrupt:
             print("\n🛑 Stopping Web UI...")
     
-    async def run_web_ui_only(self):
-        """Run Web UI Only mode"""
-        self.current_mode = "web_only"
-        print("\n🌐 Starting Web UI Only Mode...")
-        
-        # Initialize components
-        await self._initialize_components()
-        
-        # Launch web interface
-        await self._launch_web_ui()
-        
-        # Keep web UI running
-        print("\n🌐 Web UI is running at http://0.0.0.0:8080")
-        print("🔗 Access: http://localhost:8080 or http://YOUR_IP:8080")
-        print("🔄 Press Ctrl+C to stop the web interface")
-        
-        try:
-            while self.is_running:
-                await asyncio.sleep(1)
-        except KeyboardInterrupt:
-            print("\n🛑 Stopping Web UI...")
     
     async def run_web_with_background(self):
         """Run Web UI with Background Engines"""
@@ -286,31 +265,6 @@ class UnifiedLauncher:
         except KeyboardInterrupt:
             print("\n🛑 Stopping all systems...")
     
-    async def run_web_with_background(self):
-        """Run Web UI with Background Engines"""
-        self.current_mode = "web_background"
-        print("\n🔄 Starting Web UI + Background Engines...")
-        
-        # Initialize components
-        await self._initialize_components()
-        
-        # Start autonomous engines
-        await self._start_autonomous_engines()
-        
-        # Launch web interface
-        await self._launch_web_ui()
-        
-        print("\n🔄 Systems running:")
-        print("  🌐 Web UI: http://0.0.0.0:8080")
-        print("  🤖 Autonomous Engines: Active")
-        print("  📄 Logs: logs/colony_activity.log")
-        print("🔄 Press Ctrl+C to stop all systems")
-        
-        try:
-            while self.is_running:
-                await asyncio.sleep(1)
-        except KeyboardInterrupt:
-            print("\n🛑 Stopping all systems...")
     
     async def run_autonomous_mode(self):
         """Run Autonomous Engine mode"""
