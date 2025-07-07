@@ -42,9 +42,11 @@ class OutputHandler(BaseAgent):
             return self.format_error("Invalid task format: Missing 'request' key.")
 
         try:
+            processing_timestamp = datetime.now().isoformat()
+
             # Step 1: Collect results from all contributors
             self.update_status("collecting", task)
-            collected_results = self.result_collector.collect_agent_results(task)
+            collected_results = self.result_collector.collect_agent_results(task, processing_timestamp)
             
             # Step 2: Validate completeness and quality
             self.update_status("validating")
@@ -52,7 +54,7 @@ class OutputHandler(BaseAgent):
             
             # Step 3: Resolve conflicts and inconsistencies
             self.update_status("resolving")
-            resolved_results = self.conflict_resolver.resolve_conflicts(collected_results)
+            resolved_results = self.conflict_resolver.resolve_conflicts(collected_results, processing_timestamp)
             
             # Step 4: Generate summary and insights
             self.update_status("generating_insights")
@@ -65,7 +67,7 @@ class OutputHandler(BaseAgent):
             # Step 6: Prepare final deliverables package
             self.update_status("finalizing")
             final_deliverables = self.report_generator.generate_final_deliverables(
-                resolved_results, summary_insights, task
+                resolved_results, summary_insights, task, processing_timestamp
             )
             
             # Step 7: Generate the user-facing response text
@@ -74,7 +76,7 @@ class OutputHandler(BaseAgent):
             )
             
             # Step 8: Store the compiled output for auditing and retrieval
-            self._store_compiled_output(task, collected_results, final_deliverables, resolved_results)
+            self._store_compiled_output(task, collected_results, final_deliverables, resolved_results, processing_timestamp)
             
             self.update_status("ready")
             
@@ -87,10 +89,11 @@ class OutputHandler(BaseAgent):
             self.log_error(f"An unexpected error occurred during task processing: {e}")
             return self.format_error(f"Internal error: {e}")
 
-    def _store_compiled_output(self, task: Dict[str, Any], 
-                               collected_results: Dict[str, Any], 
+    def _store_compiled_output(self, task: Dict[str, Any],
+                               collected_results: Dict[str, Any],
                                final_deliverables: Dict[str, Any],
-                               resolved_results: Dict[str, Any]):
+                               resolved_results: Dict[str, Any],
+                               timestamp: str):
         """Stores the fully compiled output using the OutputStore component."""
         output_id = self.output_store.generate_output_id()
         
@@ -98,13 +101,13 @@ class OutputHandler(BaseAgent):
 
         compiled_output = {
             'output_id': output_id,
-            'created_at': datetime.now().isoformat(),
+            'created_at': timestamp,
             'original_task': task,
             'collected_results': collected_results,
             'final_deliverables': final_deliverables,
             'compilation_metadata': {
                 'agents_involved': len(collected_results.get('agent_contributions', {})),
-                'total_deliverables': len(self.report_generator._extract_all_deliverables(unified_results)),
+                'total_deliverables': len(self.report_generator.extract_all_deliverables(unified_results)),
                 'quality_assured': True,
                 'ready_for_delivery': True
             }
