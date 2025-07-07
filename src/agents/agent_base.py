@@ -16,7 +16,7 @@ class AgentBase(BaseAgent):
         self.delegation_history = []
         self.active_delegations = {}
         
-    def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process incoming requests and coordinate other agents"""
         
         if not self.validate_input(task):
