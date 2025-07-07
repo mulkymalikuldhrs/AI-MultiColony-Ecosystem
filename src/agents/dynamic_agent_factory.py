@@ -4,6 +4,7 @@ Dynamic Agent Factory - Creates new agents based on specific needs
 
 from typing import Dict, List, Any, Optional
 import json
+import yaml
 from datetime import datetime
 
 from ..core.base_agent import BaseAgent
@@ -11,88 +12,23 @@ from ..core.base_agent import BaseAgent
 class DynamicAgentFactory(BaseAgent):
     """Creates and manages dynamic agents for specific tasks"""
     
-    def __init__(self, config_path: str = "config/prompts.yaml"):
+    def __init__(self, config_path: str = "config/prompts.yaml",
+                 templates_path: str = "config/agent_templates.yaml"):
         super().__init__("dynamic_agent_factory", config_path)
         self.created_agents = {}
-        self.agent_templates = {}
-        self._load_agent_templates()
+        self.agent_templates = self._load_agent_templates(templates_path)
         
-    def _load_agent_templates(self):
-        """Load templates for creating new agents"""
-        self.agent_templates = {
-            'data_scientist': {
-                'role': 'Data Analysis & Machine Learning',
-                'skills': ['python', 'pandas', 'scikit-learn', 'statistics', 'visualization'],
-                'prompt_template': """
-                Anda adalah Data Scientist specialist. Anda ahli dalam:
-                - Analisis data dan statistik
-                - Machine learning dan modeling
-                - Data visualization
-                - Python ecosystem (pandas, numpy, scikit-learn)
-                - Statistical analysis dan hypothesis testing
-                """
-            },
-            'devops_engineer': {
-                'role': 'DevOps & Infrastructure',
-                'skills': ['docker', 'kubernetes', 'ci/cd', 'cloud', 'monitoring'],
-                'prompt_template': """
-                Anda adalah DevOps Engineer specialist. Anda ahli dalam:
-                - Container orchestration (Docker, Kubernetes)
-                - CI/CD pipelines
-                - Cloud infrastructure (AWS, GCP, Azure)
-                - Monitoring dan logging
-                - Infrastructure as Code
-                """
-            },
-            'frontend_developer': {
-                'role': 'Frontend Development',
-                'skills': ['javascript', 'react', 'vue', 'html', 'css', 'ui/ux'],
-                'prompt_template': """
-                Anda adalah Frontend Developer specialist. Anda ahli dalam:
-                - Modern JavaScript frameworks (React, Vue, Angular)
-                - HTML5, CSS3, responsive design
-                - UI/UX best practices
-                - Frontend build tools
-                - Web performance optimization
-                """
-            },
-            'backend_developer': {
-                'role': 'Backend Development',
-                'skills': ['python', 'node.js', 'databases', 'apis', 'microservices'],
-                'prompt_template': """
-                Anda adalah Backend Developer specialist. Anda ahli dalam:
-                - Server-side programming (Python, Node.js, Java)
-                - Database design dan optimization
-                - REST API dan GraphQL development
-                - Microservices architecture
-                - System design dan scalability
-                """
-            },
-            'content_writer': {
-                'role': 'Content Creation & Writing',
-                'skills': ['writing', 'copywriting', 'seo', 'content_strategy'],
-                'prompt_template': """
-                Anda adalah Content Writer specialist. Anda ahli dalam:
-                - Technical writing dan documentation
-                - Copywriting dan marketing content
-                - SEO optimization
-                - Content strategy
-                - Multi-language content creation
-                """
-            },
-            'product_manager': {
-                'role': 'Product Management',
-                'skills': ['product_strategy', 'requirements', 'roadmap', 'analytics'],
-                'prompt_template': """
-                Anda adalah Product Manager specialist. Anda ahli dalam:
-                - Product strategy dan roadmap planning
-                - Requirements gathering dan analysis
-                - User experience research
-                - Product analytics dan metrics
-                - Cross-functional team coordination
-                """
-            }
-        }
+    def _load_agent_templates(self, templates_path: str) -> Dict[str, Any]:
+        """Load agent templates from a YAML file."""
+        try:
+            with open(templates_path, 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f)
+        except FileNotFoundError:
+            self.logger.error(f"Agent templates file not found at: {templates_path}")
+            return {}
+        except yaml.YAMLError as e:
+            self.logger.error(f"Error parsing agent templates file: {e}")
+            return {}
     
     def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Assess need for new agents and create them if necessary"""
