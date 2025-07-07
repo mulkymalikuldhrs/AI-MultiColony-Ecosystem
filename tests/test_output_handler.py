@@ -111,6 +111,23 @@ class TestOutputHandlerRefactored(unittest.TestCase):
         self.assertEqual(result["response_type"], "final_deliverable")
         self.assertEqual(result["content"], response_text)
 
+    def test_process_task_exception_handling(self):
+        """Test that process_task handles exceptions gracefully."""
+        task = {
+            "request": "trigger an error",
+            "context": {"workflow_id": "wf_error"}
+        }
+
+        # Make one of the mocked components raise an exception
+        mock_collector_instance = self.MockResultCollector.return_value
+        mock_collector_instance.collect_agent_results.side_effect = Exception("Simulated error")
+
+        result = self.output_handler.process_task(task)
+
+        self.assertEqual(result["status"], "error")
+        self.assertIn("Internal error: Simulated error", result["content"])
+        self.output_handler.log_error.assert_called_once_with("An unexpected error occurred during task processing: Simulated error")
+
     def test_process_task_with_invalid_input(self):
         """Test process_task with missing required fields."""
         task = {"wrong_key": "some_value"}
