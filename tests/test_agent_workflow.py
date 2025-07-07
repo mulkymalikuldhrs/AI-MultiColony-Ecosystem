@@ -12,7 +12,10 @@ from src.agents.output_handler import OutputHandler
 
 class TestAgentWorkflow(unittest.TestCase):
 
-    def setUp(self):
+    @patch('src.core.base_agent.BaseAgent._load_config')
+    def setUp(self, mock_load_config):
+        mock_load_config.return_value = {} # Mock the config loading to return an empty dict
+        
         # Initialize agents with mock config paths
         self.agent_base = AgentBase(config_path="mock_config.yaml")
         self.planner = Agent03Planner(config_path="mock_config.yaml")
