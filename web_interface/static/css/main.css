@@ -57,6 +57,20 @@ body {
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
 }
 
+.metric-card-workflows {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.metric-card-tasks {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); 
+    color: #333;
+}
+
+.metric-card-uptime {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
+    color: #333;
+}
+
 /* Stats cards */
 .stats-card {
     text-align: center;
