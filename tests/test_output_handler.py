@@ -51,8 +51,8 @@ class TestOutputHandler(unittest.TestCase):
 
         self.assertIn("status", result)
         self.assertEqual(result["status"], "success")
-        self.assertIn("type", result)
-        self.assertEqual(result["type"], "final_deliverable")
+        self.assertIn("response_type", result)
+        self.assertEqual(result["response_type"], "final_deliverable")
         self.assertIn("content", result)
         self.assertIn("EXECUTIVE SUMMARY", result["content"])
         self.assertIn("planner", result["content"])
