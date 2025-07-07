@@ -126,11 +126,12 @@ class AgentManager:
                     'request': step.get('action'),
                     'context': context,
                     'workflow_id': workflow_id,
-                    'step_number': i
+                    'step_number': i,
+                    'timestamp': timestamp.isoformat()
                 }
                 
                 # Execute task
-                result = await self._execute_agent_task(agent, task, timestamp.isoformat())
+                result = await self._execute_agent_task(agent, task)
                 
                 # Store result
                 step_key = step.get('step', f'step_{i}')
@@ -178,7 +179,7 @@ class AgentManager:
     def _log_communication(self, agent_id: str, task: Dict[str, Any], result: Dict[str, Any]):
         """Log communication between manager and agents"""
         log_entry = {
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': task.get('timestamp', datetime.now().isoformat()),
             'agent_id': agent_id,
             'task': task,
             'result': result
@@ -225,14 +226,16 @@ class AgentManager:
             return self._error_response("One or both agents not found")
         
         # Format inter-agent communication
+        comm_timestamp = datetime.now()
         communication_task = {
-            'task_id': f"comm_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            'task_id': f"comm_{comm_timestamp.strftime('%Y%m%d_%H%M%S')}",
             'request': message.get('request', ''),
             'context': {
                 'from_agent': from_agent_id,
                 'communication_type': 'inter_agent',
                 'original_message': message
-            }
+            },
+            'timestamp': comm_timestamp.isoformat()
         }
         
         try:
