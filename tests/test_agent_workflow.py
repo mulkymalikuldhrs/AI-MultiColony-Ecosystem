@@ -28,7 +28,8 @@ class TestAgentWorkflow(unittest.TestCase):
         # to prevent actual file operations and allow testing of core logic
         for agent in [self.agent_base, self.planner, self.designer, self.executor, self.specialist, self.output_handler]:
             agent.update_status = MagicMock()
-            agent.handle_error = MagicMock(side_effect=lambda e, t: {"status": "error", "message": str(e), "task": t})
+            # Modify handle_error to print the exception for debugging
+            agent.handle_error = MagicMock(side_effect=lambda e, t: (print(f"--- Agent Error in {agent.agent_id}: {e} ---"), {"status": "error", "message": str(e), "task": t})[1])
             agent.format_response = MagicMock(side_effect=lambda content, type: {"status": "success", "type": type, "content": content})
 
     def test_todo_app_development_workflow(self):
