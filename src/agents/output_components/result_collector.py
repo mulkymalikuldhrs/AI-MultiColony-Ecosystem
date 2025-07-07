@@ -19,7 +19,7 @@ class ResultCollector:
         """
         self.use_simulation = use_simulation
 
-    def collect_agent_results(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def collect_agent_results(self, task: Dict[str, Any], timestamp: str) -> Dict[str, Any]:
         """
         Collects results from all contributing agents based on the task context.
         
@@ -31,7 +31,7 @@ class ResultCollector:
         collected = {
             'original_request': task.get('request', ''),
             'agent_contributions': {},
-            'collection_timestamp': datetime.now().isoformat(),
+            'collection_timestamp': timestamp,
             'workflow_id': context.get('workflow_id', 'standalone')
         }
 

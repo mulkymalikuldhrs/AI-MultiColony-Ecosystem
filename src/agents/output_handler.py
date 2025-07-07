@@ -86,7 +86,7 @@ class OutputHandler(BaseAgent):
             return response
             
         except Exception as e:
-            self.log_error(f"An unexpected error occurred during task processing: {e}")
+            self.logger.error(f"An unexpected error occurred during task processing: {e}")
             return self.format_error(f"Internal error: {e}")
 
     def _store_compiled_output(self, task: Dict[str, Any],

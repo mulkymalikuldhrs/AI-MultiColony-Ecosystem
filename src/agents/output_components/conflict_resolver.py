@@ -8,7 +8,7 @@ from datetime import datetime
 class ConflictResolver:
     """Resolves conflicts and inconsistencies in collected agent results."""
 
-    def resolve_conflicts(self, collected_results: Dict[str, Any]) -> Dict[str, Any]:
+    def resolve_conflicts(self, collected_results: Dict[str, Any], timestamp: str) -> Dict[str, Any]:
         """
         Identifies and resolves conflicts in the contributions from different agents.
         """
@@ -17,7 +17,7 @@ class ConflictResolver:
             'original_request': collected_results.get('original_request'),
             'unified_results': {},
             'conflict_resolutions': [],
-            'resolution_timestamp': datetime.now().isoformat()
+            'resolution_timestamp': timestamp
         }
 
         # Detect and log potential conflicts
@@ -39,7 +39,7 @@ class ConflictResolver:
 
         # Unify results by processing each contribution
         for agent_id, contribution in contributions.items():
-            resolved['unified_results'][agent_id] = self._process_agent_contribution(agent_id, contribution)
+            resolved['unified_results'][agent_id] = self._process_agent_contribution(agent_id, contribution, timestamp)
             
         return resolved
 
@@ -51,7 +51,7 @@ class ConflictResolver:
         ]
         return conflicting_agents if len(conflicting_agents) > 1 else []
 
-    def _process_agent_contribution(self, agent_id: str, contribution: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_agent_contribution(self, agent_id: str, contribution: Dict[str, Any], timestamp: str) -> Dict[str, Any]:
         """
         Processes and standardizes a single agent's contribution for unification.
         """
@@ -62,7 +62,7 @@ class ConflictResolver:
             'deliverables': contribution.get('deliverables', []),
             'key_output': self._extract_key_output(contribution),
             'metadata': {
-                'processed_at': datetime.now().isoformat()
+                'processed_at': timestamp
             }
         }
 

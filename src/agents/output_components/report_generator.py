@@ -8,9 +8,10 @@ from datetime import datetime
 class ReportGenerator:
     """Generates various formatted outputs from unified agent results."""
 
-    def generate_final_deliverables(self, resolved_results: Dict[str, Any], 
-                                    summary_insights: Dict[str, Any], 
-                                    task: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_final_deliverables(self, resolved_results: Dict[str, Any],
+                                    summary_insights: Dict[str, Any],
+                                    task: Dict[str, Any],
+                                    timestamp: str) -> Dict[str, Any]:
         """
         Prepares the final package of deliverables, including primary and supporting documents.
         """
@@ -27,7 +28,7 @@ class ReportGenerator:
                 'metrics_dashboard': summary_insights.get('metrics')
             },
             'delivery_metadata': {
-                'created_at': datetime.now().isoformat(),
+                'created_at': timestamp,
                 'format_versions': list(formatted_outputs.keys()),
                 'quality_assured': True,
                 'ready_for_delivery': True
