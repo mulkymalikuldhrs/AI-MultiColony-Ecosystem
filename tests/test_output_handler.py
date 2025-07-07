@@ -55,8 +55,8 @@ class TestOutputHandler(unittest.TestCase):
         self.assertEqual(result["response_type"], "final_deliverable")
         self.assertIn("content", result)
         self.assertIn("EXECUTIVE SUMMARY", result["content"])
-        self.assertIn("planner", result["content"])
-        self.assertIn("executor", result["content"])
+        self.assertIn("Planner", result["content"])
+        self.assertIn("Executor", result["content"])
 
     def test_process_task_with_invalid_input(self):
         """Test process_task with missing required fields."""
