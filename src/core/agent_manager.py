@@ -63,26 +63,27 @@ class AgentManager:
     
     async def execute_workflow(self, workflow_name: str, request: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a predefined workflow"""
-        workflow_id = f"{workflow_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        workflow_timestamp = datetime.now()
+        workflow_id = f"{workflow_name}_{workflow_timestamp.strftime('%Y%m%d_%H%M%S')}"
         
         if workflow_name not in self.workflow_templates:
-            return self._error_response(f"Workflow '{workflow_name}' not found")
+            return self._error_response(f"Workflow '{workflow_name}' not found", workflow_timestamp.isoformat())
         
         workflow = self.workflow_templates[workflow_name]
         self.active_workflows[workflow_id] = {
             'name': workflow_name,
             'status': 'running',
-            'started_at': datetime.now().isoformat(),
+            'started_at': workflow_timestamp.isoformat(),
             'steps': [],
             'current_step': 0,
             'results': {}
         }
         
         try:
-            results = await self._execute_workflow_steps(workflow_id, workflow, request)
+            results = await self._execute_workflow_steps(workflow_id, workflow, request, workflow_timestamp)
             
             self.active_workflows[workflow_id]['status'] = 'completed'
-            self.active_workflows[workflow_id]['completed_at'] = datetime.now().isoformat()
+            self.active_workflows[workflow_id]['completed_at'] = datetime.now().isoformat() # Keep this as now() to mark completion time
             
             return {
                 'workflow_id': workflow_id,
@@ -96,7 +97,7 @@ class AgentManager:
             
             return self._error_response(f"Workflow execution failed: {str(e)}")
     
-    async def _execute_workflow_steps(self, workflow_id: str, workflow: List[Dict], request: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_workflow_steps(self, workflow_id: str, workflow: List[Dict], request: Dict[str, Any], timestamp: datetime) -> Dict[str, Any]:
         """Execute individual workflow steps"""
         results = {}
         context = {'original_request': request}
@@ -108,7 +109,7 @@ class AgentManager:
                 'step': step.get('step', f'Step {i+1}'),
                 'agent': step.get('agent'),
                 'action': step.get('action'),
-                'started_at': datetime.now().isoformat()
+                'started_at': timestamp.isoformat()
             }
             
             try:
@@ -129,14 +130,14 @@ class AgentManager:
                 }
                 
                 # Execute task
-                result = await self._execute_agent_task(agent, task)
+                result = await self._execute_agent_task(agent, task, timestamp.isoformat())
                 
                 # Store result
                 step_key = step.get('step', f'step_{i}')
                 results[step_key] = result
                 context[step_key] = result
                 
-                step_info['completed_at'] = datetime.now().isoformat()
+                step_info['completed_at'] = datetime.now().isoformat() # Keep this as now() to mark completion time
                 step_info['status'] = 'completed'
                 step_info['result'] = result
                 
