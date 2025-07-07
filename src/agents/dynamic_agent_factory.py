@@ -30,7 +30,7 @@ class DynamicAgentFactory(BaseAgent):
             self.logger.error(f"Error parsing agent templates file: {e}")
             return {}
     
-    def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Assess need for new agents and create them if necessary"""
         
         if not self.validate_input(task):
