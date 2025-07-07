@@ -7,7 +7,9 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 import os
 import sys
 import json
+import logging
 from pathlib import Path
+from typing import Any
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
@@ -73,10 +75,9 @@ class UltimateConfigLoader:
         self.project_root = Path(__file__).parent.parent.parent
         self.config_dir = self.project_root / "config"
         self.env_file = self.project_root / ".env"
-        self.logger = logging.getLogger(self.__class__.__name__)
+        # Configure logging for the loader
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         self.logger = logging.getLogger(self.__class__.__name__)
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         
         # Default configuration
         self.default_config = {
@@ -367,6 +368,5 @@ def print_config_summary():
 if __name__ == "__main__":
     config_loader.print_config_summary()
 else:
-    # Ensure logging is configured before this message
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # Logging is already configured by UltimateConfigLoader.__init__
     logging.getLogger(__name__).info("🔧 Ultimate AGI Force configuration loaded with advanced fallbacks")
