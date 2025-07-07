@@ -124,7 +124,7 @@ class UltimateConfigLoader:
     
     def load_configuration(self):
         """Load configuration from multiple sources with fallbacks"""
-        print("🔧 Loading Ultimate AGI Force configuration...")
+        self.logger.info("🔧 Loading Ultimate AGI Force configuration...")
         
         # 1. Load environment variables
         self._load_env_file()
@@ -136,16 +136,16 @@ class UltimateConfigLoader:
         # 3. Apply environment overrides
         self._apply_env_overrides()
         
-        print("✅ Configuration loaded successfully with fallbacks")
+        self.logger.info("✅ Configuration loaded successfully with fallbacks")
     
     def _load_env_file(self):
         """Load .env file if available"""
         if DOTENV_AVAILABLE and self.env_file.exists():
             try:
                 load_dotenv(self.env_file)
-                print(f"  ✅ Loaded .env file: {self.env_file}")
+                self.logger.info(f"  ✅ Loaded .env file: {self.env_file}")
             except Exception as e:
-                print(f"  ⚠️ Failed to load .env file: {e}")
+                self.logger.warning(f"  ⚠️ Failed to load .env file: {e}")
         elif self.env_file.exists():
             # Manual .env parsing
             try:
@@ -155,11 +155,11 @@ class UltimateConfigLoader:
                         if '=' in line and not line.startswith('#'):
                             key, value = line.split('=', 1)
                             os.environ[key.strip()] = value.strip().strip('"\'')
-                print(f"  ✅ Manually parsed .env file: {self.env_file}")
+                self.logger.info(f"  ✅ Manually parsed .env file: {self.env_file}")
             except Exception as e:
-                print(f"  ⚠️ Failed to parse .env file: {e}")
+                self.logger.warning(f"  ⚠️ Failed to parse .env file: {e}")
         else:
-            print("  ℹ️ No .env file found, using defaults")
+            self.logger.info("  ℹ️ No .env file found, using defaults")
     
     def _load_env_variables(self):
         """Load configuration from environment variables"""
@@ -192,42 +192,20 @@ class UltimateConfigLoader:
                     current = current[key]
                 current[config_path[-1]] = value
     
-    def _convert_env_value(self, env_key, value):
+    def _convert_env_value(self, env_key: str, value: str) -> Any:
         """Convert environment variable value to appropriate type"""
-        # String values (keep as string)
-        string_keys = [
-            'SYSTEM_NAME', 'OWNER_NAME', 'OWNER_ID', 'REGION', 
-            'WEB_INTERFACE_HOST', 'LLM7_API_KEY', 'OPENROUTER_API_KEY', 
-            'CAMEL_API_KEY', 'LOG_LEVEL'
-        ]
+        value_lower = value.lower()
         
-        # Integer values
-        integer_keys = [
-            'WEB_INTERFACE_PORT', 'MAX_CONCURRENT_AGENTS'
-        ]
-        
-        # Boolean values  
-        boolean_keys = [
-            'DEBUG_MODE'
-        ]
-        
-        if env_key in string_keys:
-            return str(value)
-        elif env_key in integer_keys:
+        if value_lower in ('true', 'false'):
+            return value_lower == 'true'
+        elif value.isdigit():
+            return int(value)
+        elif value.replace('.', '', 1).isdigit(): # Check for float
             try:
-                return int(value)
+                return float(value)
             except ValueError:
-                return value  # Keep original if conversion fails
-        elif env_key in boolean_keys:
-            return value.lower() in ('true', '1', 'yes', 'on')
-        else:
-            # Generic conversion for unknown keys
-            if value.lower() in ('true', 'false'):
-                return value.lower() == 'true'
-            elif value.isdigit():
-                return int(value)
-            else:
-                return value
+                pass # Fallback to string if float conversion fails
+        return value
     
     def _load_yaml_configs(self):
         """Load YAML configuration files"""
@@ -246,11 +224,11 @@ class UltimateConfigLoader:
                         yaml_config = yaml.safe_load(content)
                         if yaml_config:
                             self._merge_config(self.config, yaml_config)
-                        print(f"  ✅ Loaded YAML config: {yaml_file}")
+                        self.logger.info(f"  ✅ Loaded YAML config: {yaml_file}")
                 except Exception as e:
-                    print(f"  ⚠️ Failed to load {yaml_file}: {e}")
+                    self.logger.warning(f"  ⚠️ Failed to load {yaml_file}: {e}")
             else:
-                print(f"  ℹ️ YAML config not found: {yaml_file}")
+                self.logger.info(f"  ℹ️ YAML config not found: {yaml_file}")
     
     def _apply_env_overrides(self):
         """Apply final environment variable overrides"""
@@ -335,26 +313,26 @@ class UltimateConfigLoader:
         try:
             with open(config_path, 'w', encoding='utf-8') as f:
                 json.dump(self.config, f, indent=2, ensure_ascii=False)
-            print(f"✅ Configuration saved to: {config_path}")
+            self.logger.info(f"✅ Configuration saved to: {config_path}")
             return True
         except Exception as e:
-            print(f"❌ Failed to save configuration: {e}")
+            self.logger.error(f"❌ Failed to save configuration: {e}")
             return False
     
     def print_config_summary(self):
         """Print configuration summary"""
-        print("\n" + "="*70)
-        print("🔧 Ultimate AGI Force v7.0.0 - Configuration Summary")
-        print("="*70)
-        print(f"👑 Owner: {self.get('system.owner')} ({self.get('system.owner_id')})")
-        print(f"🇮🇩 Region: {self.get('system.region')}")
-        print(f"🌐 Web Interface: {self.get('web_interface.host')}:{self.get('web_interface.port')}")
-        print(f"🤖 Max Agents: {self.get('agents.max_concurrent')}")
-        print(f"🔧 Development Engine: {'✅' if self.get('autonomous_engines.development.enabled') else '❌'}")
-        print(f"⚡ Execution Engine: {'✅' if self.get('autonomous_engines.execution.enabled') else '❌'}")
-        print(f"📈 Improvement Engine: {'✅' if self.get('autonomous_engines.improvement.enabled') else '❌'}")
-        print(f"🔑 API Keys: {len([k for k in self.get('api_keys', {}).keys()])} configured")
-        print("="*70)
+        self.logger.info("\n" + "="*70)
+        self.logger.info("🔧 Ultimate AGI Force v7.0.0 - Configuration Summary")
+        self.logger.info("="*70)
+        self.logger.info(f"👑 Owner: {self.get('system.owner')} ({self.get('system.owner_id')})")
+        self.logger.info(f"🇮🇩 Region: {self.get('system.region')}")
+        self.logger.info(f"🌐 Web Interface: {self.get('web_interface.host')}:{self.get('web_interface.port')}")
+        self.logger.info(f"🤖 Max Agents: {self.get('agents.max_concurrent')}")
+        self.logger.info(f"🔧 Development Engine: {'✅' if self.get('autonomous_engines.development.enabled') else '❌'}")
+        self.logger.info(f"⚡ Execution Engine: {'✅' if self.get('autonomous_engines.execution.enabled') else '❌'}")
+        self.logger.info(f"📈 Improvement Engine: {'✅' if self.get('autonomous_engines.improvement.enabled') else '❌'}")
+        self.logger.info(f"🔑 API Keys: {len([k for k in self.get('api_keys', {}).keys()])} configured")
+        self.logger.info("="*70)
 
 # Create global configuration instance
 config_loader = UltimateConfigLoader()
@@ -383,6 +361,8 @@ def print_config_summary():
 
 # Auto-load configuration
 if __name__ == "__main__":
-    print_config_summary()
+    config_loader.print_config_summary()
 else:
-    print("🔧 Ultimate AGI Force configuration loaded with advanced fallbacks")
+    # Ensure logging is configured before this message
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.getLogger(__name__).info("🔧 Ultimate AGI Force configuration loaded with advanced fallbacks")
