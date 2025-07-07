@@ -31,9 +31,9 @@ class TestOutputHandlerRefactored(unittest.TestCase):
         self.MockReportGenerator = self.patcher_generator.start()
         self.MockOutputStore = self.patcher_store.start()
         
-        # Patch the logger specifically
-        self.patcher_logger = patch('src.agents.output_handler.OutputHandler.logger')
-        self.MockLogger = self.patcher_logger.start()
+        # Patch the logging.getLogger to control the logger instance
+        self.patcher_logging_getlogger = patch('src.agents.output_handler.logging.getLogger')
+        self.MockLogger = self.patcher_logging_getlogger.start().return_value # Mock the logger instance returned by getLogger
 
         # Instantiate the OutputHandler, which will now use the mocked components
         self.output_handler = OutputHandler(config_path=self.config_path)
@@ -48,7 +48,7 @@ class TestOutputHandlerRefactored(unittest.TestCase):
         self.patcher_resolver.stop()
         self.patcher_generator.stop()
         self.patcher_store.stop()
-        self.patcher_logger.stop()
+        self.patcher_logging_getlogger.stop()
 
     def test_initialization(self):
         """Test that the OutputHandler initializes correctly and creates its components."""
