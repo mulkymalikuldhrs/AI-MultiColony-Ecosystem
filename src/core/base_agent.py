@@ -79,7 +79,7 @@ class BaseAgent(abc.ABC):
             'task': task,
             'result': result,
             'success': success,
-            'response_time': getattr(self, '_task_start_time', 0)
+            'response_time': (datetime.now() - self._task_start_time).total_seconds() if hasattr(self, '_task_start_time') else 0.0
         }
         
         self.task_history.append(task_log)
