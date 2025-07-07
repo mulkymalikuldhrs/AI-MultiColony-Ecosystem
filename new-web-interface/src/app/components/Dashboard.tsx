@@ -2,15 +2,22 @@
 
 import { useState, useEffect } from 'react';
 
+interface Agent {
+  id: string;
+  name: string;
+  status: 'idle' | 'active' | 'error';
+  description: string;
+}
+
 // Mock data for agents, replace with API call
-const mockAgents = [
+const mockAgents: Agent[] = [
   { id: 'roo', name: 'Roo', status: 'idle', description: 'Core task processing agent.' },
   { id: 'kilo', name: 'Kilo', status: 'active', description: 'Secondary processing unit.' },
   { id: 'kilo2', name: 'Kilo2', status: 'error', description: 'Tertiary processing unit.' },
   { id: 'cline', name: 'Cline', status: 'idle', description: 'UI/UX and frontend agent.' },
 ];
 
-const AgentCard = ({ agent }) => (
+const AgentCard = ({ agent }: { agent: Agent }) => (
   <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 flex justify-between items-center">
     <div>
       <h3 className="text-xl font-bold text-white">{agent.name}</h3>
@@ -32,7 +39,7 @@ const AgentCard = ({ agent }) => (
 );
 
 const Dashboard = () => {
-  const [agents, setAgents] = useState([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [logs, setLogs] = useState('');
 
   useEffect(() => {
