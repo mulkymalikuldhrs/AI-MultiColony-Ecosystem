@@ -42,7 +42,7 @@ class ResultValidator:
         ]
         
         for agent_id, score in zip(contributions.keys(), quality_scores):
-            if score < 0.7:
+            if score <= 0.7: # Changed to <= to include agents with exactly 0.7 quality as 'low quality'
                 validation['quality_issues'].append(f"Low quality output from {agent_id}")
 
         # 3. Calculate overall quality score
