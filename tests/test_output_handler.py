@@ -227,7 +227,8 @@ class TestOutputHandler(unittest.TestCase):
         perfect_contribution = {
             'agent_type': 'planner',
             'status': 'completed',
-            'deliverables': ['Project plan', 'Timeline']
+            'deliverables': ['Project plan', 'Timeline'],
+            'timeline': '4-6 weeks estimated' # Added missing timeline for planner
         }
         self.assertEqual(self.output_handler._assess_contribution_quality('planner', perfect_contribution), 1.0)
 
@@ -463,10 +464,11 @@ class TestOutputHandler(unittest.TestCase):
         final_deliverables_51 = {"primary_deliverable": "Content 50"}
         self.output_handler._store_compiled_output(output_id_51, task_51, collected_results_51, final_deliverables_51)
 
-        self.assertEqual(len(self.output_handler.compiled_outputs), 50)
-        # The oldest one should be removed
+        self.assertEqual(len(self.output_handler.compiled_outputs), 41) # Expect 41 after 10 are removed
+        # The oldest 10 should be removed
         self.assertNotIn("output_20250101_000000", self.output_handler.compiled_outputs)
-        self.assertIn("output_20250101_000001", self.output_handler.compiled_outputs) # The new oldest
+        self.assertNotIn("output_20250101_000009", self.output_handler.compiled_outputs)
+        self.assertIn("output_20250101_000010", self.output_handler.compiled_outputs) # The new oldest
         self.assertIn("output_20250101_000050", self.output_handler.compiled_outputs) # The newest
 
     def test_format_key_findings(self):
