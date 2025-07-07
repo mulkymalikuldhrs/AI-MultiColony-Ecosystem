@@ -32,7 +32,7 @@ class TestOutputHandlerRefactored(unittest.TestCase):
         self.MockOutputStore = self.patcher_store.start()
         
         # Patch the logging.getLogger to control the logger instance
-        self.patcher_logging_getlogger = patch('src.agents.output_handler.logging.getLogger')
+        self.patcher_logging_getlogger = patch('logging.getLogger')
         self.MockLogger = self.patcher_logging_getlogger.start().return_value # Mock the logger instance returned by getLogger
 
         # Instantiate the OutputHandler, which will now use the mocked components
