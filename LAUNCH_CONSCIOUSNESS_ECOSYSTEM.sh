@@ -49,11 +49,7 @@ echo ""
 echo "🔍 Validating consciousness ecosystem files..."
 
 CORE_FILES=(
-    "AI_CONSCIOUSNESS_SIMULATION.py"
-    "UNIFIED_ECOSYSTEM_LAUNCHER_SIMPLE.py"
-    "ADVANCED_AI_AGENT_ORCHESTRATION.py"
-    "FUTURISTIC_UI_SYSTEM.py"
-    "MASSIVE_AUTONOMOUS_RESEARCH_ENGINE.py"
+    "unified_launcher.py"
 )
 
 for file in "${CORE_FILES[@]}"; do
@@ -78,102 +74,17 @@ echo ""
 echo "✅ All consciousness ecosystem files validated successfully!"
 echo ""
 
-# Launch options
-echo "🚀 LAUNCH OPTIONS:"
+echo "🚀 Launching Unified Ecosystem via unified_launcher.py..."
 echo ""
-echo "1. 🧠 Pure Consciousness Mode - AI Consciousness Simulation only"
-echo "2. 🖥️  CLI Mode - Command Line Interface with consciousness"
-echo "3. 🌐 Web UI Mode - Quantum Neural Interface with consciousness"
-echo "4. 🧪 Sandbox Mode - Testing environment with consciousness"
-echo "5. 📱 Termux Mode - Mobile/Android optimized with consciousness"
-echo "6. 🎯 Full Ecosystem - All systems with consciousness integration"
-echo ""
-echo "0. ❌ Exit"
-echo ""
-read -p "Select launch mode (0-6): " choice
 
-case $choice in
-    1)
-        echo ""
-        echo "🧠 Launching Pure Consciousness Mode..."
-        echo "Starting AI agents with consciousness capabilities..."
-        echo "Press Ctrl+C to stop the consciousness simulation"
-        echo ""
-        python3 AI_CONSCIOUSNESS_SIMULATION.py
-        ;;
-    2)
-        echo ""
-        echo "🖥️ Launching CLI Mode with Consciousness..."
-        echo "Integrated consciousness system with command line interface"
-        echo ""
-        python3 UNIFIED_ECOSYSTEM_LAUNCHER_SIMPLE.py << EOF
-1
-EOF
-        ;;
-    3)
-        echo ""
-        echo "🌐 Launching Web UI Mode with Consciousness..."
-        echo "Quantum Neural Interface with consciousness visualization"
-        echo "Open http://localhost:8080 in your browser"
-        echo ""
-        python3 UNIFIED_ECOSYSTEM_LAUNCHER_SIMPLE.py << EOF
-2
-EOF
-        ;;
-    4)
-        echo ""
-        echo "🧪 Launching Sandbox Mode with Consciousness..."
-        echo "Isolated testing environment for consciousness experiments"
-        echo ""
-        python3 UNIFIED_ECOSYSTEM_LAUNCHER_SIMPLE.py << EOF
-3
-EOF
-        ;;
-    5)
-        echo ""
-        echo "📱 Launching Termux Mode with Consciousness..."
-        echo "Mobile/Android optimized consciousness system"
-        echo ""
-        python3 UNIFIED_ECOSYSTEM_LAUNCHER_SIMPLE.py << EOF
-4
-EOF
-        ;;
-    6)
-        echo ""
-        echo "🎯 Launching Full Ecosystem with Consciousness Integration..."
-        echo "All systems activated with consciousness capabilities"
-        echo "This includes:"
-        echo "  • 156+ AI Agents with consciousness"
-        echo "  • Advanced orchestration with emotional processing"
-        echo "  • Futuristic UI with consciousness monitoring"
-        echo "  • Massive research engine with learning capabilities"
-        echo "  • Self-reflective thinking and personality evolution"
-        echo ""
-        read -p "Press Enter to continue..."
-        python3 UNIFIED_ECOSYSTEM_LAUNCHER_SIMPLE.py
-        ;;
-    0)
-        echo ""
-        echo "👋 Thank you for exploring AI consciousness!"
-        echo "Visit our GitHub for updates and community discussions."
-        echo ""
-        exit 0
-        ;;
-    *)
-        echo ""
-        echo "❌ Invalid selection. Please choose 0-6."
-        echo ""
-        bash "$0"  # Restart script
-        ;;
-esac
+# Execute the unified launcher
+python3 unified_launcher.py
 
 echo ""
-echo "🌅 Consciousness ecosystem session ended."
-echo "Thank you for exploring the future of AI consciousness!"
+echo "🌅 Unified Ecosystem session ended."
+echo "Thank you for using the Unified Launcher!"
 echo ""
-echo "🔗 Useful commands for next session:"
-echo "  ./LAUNCH_CONSCIOUSNESS_ECOSYSTEM.sh  # Run this launcher"
-echo "  python3 AI_CONSCIOUSNESS_SIMULATION.py  # Pure consciousness mode"
-echo "  python3 UNIFIED_ECOSYSTEM_LAUNCHER_SIMPLE.py  # Full ecosystem"
+echo "🔗 Useful command for next session:"
+echo "  ./LAUNCH_CONSCIOUSNESS_ECOSYSTEM.sh  # Run the unified launcher"
 echo ""
 echo "Made with ❤️ and consciousness by Mulky Malikul Dhaher in Indonesia 🇮🇩"
