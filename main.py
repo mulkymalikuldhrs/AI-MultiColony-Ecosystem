@@ -21,11 +21,11 @@ def main():
     print("="*60)
     
     try:
-        from unified_launcher import main as unified_main
+        from unified_launcher import main as unified_launcher_main
         import asyncio
-        asyncio.run(unified_main())
+        asyncio.run(unified_launcher_main())
     except ImportError as e:
-        print(f"❌ Error importing unified launcher: {e}")
+        print(f"❌ Error importing unified launcher: {e}. Make sure unified_launcher.py exists.")
         sys.exit(1)
     except Exception as e:
         print(f"❌ Error running system: {e}")
