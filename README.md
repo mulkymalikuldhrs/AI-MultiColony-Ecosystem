@@ -28,8 +28,8 @@ Made with ❤️ by **Mulky Malikul Dhaher** in Indonesia 🇮🇩
 
 ## 📋 **TABLE OF CONTENTS**
 
-- [🎯 System Overview](#-system-overview)
-- [🏗️ Architecture & Structure](#️-architecture--structure)
+### Overall Inspection Summary (July 9, 2025)
+
 - [📁 Folder Structure](#-folder-structure)
 - [🤖 Agent Ecosystem](#-agent-ecosystem)
 - [🔄 Workflow System](#-workflow-system)
