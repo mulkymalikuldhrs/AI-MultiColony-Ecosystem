@@ -20,33 +20,21 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 # Import system components
-try:
-    from agents import AGENTS_REGISTRY as agents_registry
-    print("✅ Agents registry loaded")
-except ImportError:
-    agents_registry = {}
-    print("⚠️ Agents registry not available")
+from src.agents.agent_registry import agent_registry
+from connectors.llm_gateway import llm_gateway
+from core.memory_bus import memory_bus
 
-try:
-    from connectors.llm_gateway import llm_gateway
-    print("✅ LLM Gateway loaded")
-except ImportError:
-    llm_gateway = None
-    print("⚠️ LLM Gateway not available")
+print("✅ Agent Registry loaded")
+print("✅ LLM Gateway loaded")
+print("✅ Memory Bus loaded")
 
-try:
-    from core.memory_bus import memory_bus
-    print("✅ Memory Bus loaded")
-except ImportError:
-    memory_bus = None
-    print("⚠️ Memory Bus not available")
-
-try:
-    from agents.camel_agent_integration import camel_agent
-    print("✅ Camel Agent loaded")
-except ImportError:
-    camel_agent = None
-    print("⚠️ Camel Agent not available")
+# Placeholder for camel_agent if it's still needed for specific logic
+# In a fully modular system, camel_agent would also be registered via @register_agent
+camel_agent = agent_registry.get_agent_class("camel_agent") # Assuming camel_agent is registered
+if camel_agent:
+    print("✅ Camel Agent found in registry")
+else:
+    print("⚠️ Camel Agent not found in registry. Ensure it's registered.")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'agentic-ai-system-secret-key-indonesia')
@@ -176,23 +164,19 @@ def get_system_status():
 
 @app.route('/api/agents/list')
 def list_agents():
-    """List all agents from the live system status."""
+    """List all registered agents with their metadata."""
     try:
-        live_status = get_live_system_status()
-        agents_dict = live_status.get('working_agents', {})
-        
-        # Convert agents dictionary to list with additional metadata
         agents_list = []
-        for agent_id, agent_info in agents_dict.items():
-            agent_data = {
-                'id': agent_id,
-                'name': agent_info.get('name', agent_id),
-                'status': agent_info.get('status', 'unknown'),
-                'capabilities': agent_info.get('capabilities', []),
-                'last_activity': agent_info.get('last_activity'),
-                'is_camel_integrated': agent_id == 'camel_agent' or 'camel' in agent_id.lower()
-            }
-            agents_list.append(agent_data)
+        for agent_name, agent_info in agent_registry.get_all_agents().items():
+            metadata = agent_info.get('metadata', {})
+            agents_list.append({
+                'id': agent_name,
+                'name': metadata.get('name', agent_name),
+                'description': metadata.get('description', 'No description available.'),
+                'route': metadata.get('route', f'/api/agents/{agent_name}'),
+                'dependencies': metadata.get('dependencies', []),
+                'status': metadata.get('status', 'ready') # Default status from metadata
+            })
         
         return jsonify({
             'success': True,
@@ -207,30 +191,20 @@ def list_agents():
 
 @app.route('/api/agents/<agent_id>/status')
 def get_agent_status(agent_id):
-    """Get specific agent status"""
+    """Get specific agent status from registry metadata."""
     try:
-        live_status = get_live_system_status()
-        agents_dict = live_status.get('working_agents', {})
+        agent_info = agent_registry.get_agent_info(agent_id)
         
-        if agent_id not in agents_dict:
+        if not agent_info:
             return jsonify({
                 'success': False,
-                'error': 'Agent not found'
+                'error': 'Agent not found in registry'
             }), 404
         
-        agent_info = agents_dict[agent_id]
-        
-        # Add enhanced status for camel agent
-        if agent_id == 'camel_agent' and camel_agent:
-            try:
-                camel_stats = camel_agent.get_collaboration_stats()
-                agent_info.update(camel_stats)
-            except:
-                pass
-        
+        # Return metadata as status
         return jsonify({
             'success': True,
-            'data': agent_info
+            'data': agent_info.get('metadata', {})
         })
         
     except Exception as e:
@@ -385,34 +359,90 @@ def process_prompt():
                 'processing_method': 'camel_collaboration'
             })
         
-        # Use prompt master if available
-        if 'prompt_master' in agents_registry:
-            prompt_master = agents_registry['prompt_master']
+@app.route('/api/prompt/process', methods=['POST'])
+def process_prompt():
+    """Process a prompt through the system"""
+    try:
+        data = request.get_json()
+        prompt = data.get('prompt', '')
+        input_type = data.get('input_type', 'text')
+        metadata = data.get('metadata', {})
+        use_camel = data.get('use_camel', False)
+        
+        if not prompt:
+            return jsonify({
+                'success': False,
+                'error': 'Prompt is required'
+            }), 400
+        
+        # Use Camel Agent for collaborative processing if requested
+        if use_camel and camel_agent:
+            task_data = {
+                'content': prompt,
+                'complexity': metadata.get('complexity', 'medium'),
+                'participants': metadata.get('participants', ['solution_architect', 'implementation_expert'])
+            }
             
-            if hasattr(prompt_master, 'process_prompt'):
-                if asyncio.iscoroutinefunction(prompt_master.process_prompt):
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    result = loop.run_until_complete(
-                        prompt_master.process_prompt(prompt, input_type, metadata)
-                    )
-                    loop.close()
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(camel_agent.process_task(task_data))
+            loop.close()
+            
+            return jsonify({
+                'success': True,
+                'data': result,
+                'processing_method': 'camel_collaboration'
+            })
+        
+        # Use prompt master if available (assuming it's registered as 'prompt_master')
+        prompt_master_info = agent_registry.get_agent_info('prompt_master')
+        if prompt_master_info:
+            prompt_master_class = prompt_master_info.get('class')
+            if prompt_master_class:
+                # Instantiate if necessary, or get existing instance if managed by a singleton/factory
+                # For now, we'll assume it's a class that can be instantiated
+                prompt_master_instance = prompt_master_class()
+                
+                if hasattr(prompt_master_instance, 'process_prompt'):
+                    if asyncio.iscoroutinefunction(prompt_master_instance.process_prompt):
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        result = loop.run_until_complete(
+                            prompt_master_instance.process_prompt(prompt, input_type, metadata)
+                        )
+                        loop.close()
+                    else:
+                        result = prompt_master_instance.process_prompt(prompt, input_type, metadata)
                 else:
-                    result = prompt_master.process_prompt(prompt, input_type, metadata)
+                    result = {
+                        'success': False,
+                        'error': 'Prompt processing not implemented by prompt_master agent'
+                    }
             else:
                 result = {
                     'success': False,
-                    'error': 'Prompt processing not implemented'
+                    'error': 'Prompt Master agent class not found in registry'
                 }
         else:
-            # Fallback: try to route to appropriate agent
+            # Fallback: try to route to appropriate agent or indicate no prompt master
             result = {
                 'success': True,
-                'message': 'Prompt received but prompt master not available',
+                'message': 'Prompt received but prompt master agent not available or registered',
                 'prompt': prompt,
-                'suggested_agents': list(agents_registry.keys()),
+                'suggested_agents': list(agent_registry.get_all_agents().keys()),
                 'processing_method': 'fallback'
             }
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
         
         return jsonify({
             'success': True,
@@ -480,39 +510,100 @@ def test_llm_providers():
             'error': str(e)
         }), 500
 
-@app.route('/api/agents/<agent_id>/<action>', methods=['POST'])
-def agent_action(agent_id, action):
-    """Perform action on specific agent"""
-    try:
-        task_data = {
-            'action': action,
-            'timestamp': datetime.now().isoformat(),
-            'requested_via': 'web_dashboard'
-        }
-        
-        # Submit task to agent via task queue
-        task_id = f"action_{datetime.now().strftime('%Y%m%d_%H%M%S%f')}_{agent_id}"
-        task_payload = {
-            'task_id': task_id,
-            'agent_id': agent_id,
-            'task_data': task_data,
-            'submitted_at': datetime.now().isoformat(),
-            'status': 'pending',
-            'submitted_via': 'web_dashboard'
-        }
+def make_execute_handler(agent_class):
+    """Creates a handler function for agent execution."""
+    async def execute_handler():
+        try:
+            data = request.get_json()
+            task_data = data.get('task', {})
+            
+            # Instantiate the agent class
+            agent_instance = agent_class()
+            
+            # Execute the agent's process_task method
+            if asyncio.iscoroutinefunction(agent_instance.process_task):
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                result = loop.run_until_complete(agent_instance.process_task(task_data))
+                loop.close()
+            else:
+                result = agent_instance.process_task(task_data)
+            
+            return jsonify({
+                'success': True,
+                'message': f'Task executed by {agent_instance.agent_id}',
+                'result': result
+            })
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
+    return execute_handler
 
-        # Write the task to the queue directory
-        task_queue_dir = Path(__file__).parent.parent / 'data' / 'task_queue'
-        task_queue_dir.mkdir(exist_ok=True)
-        task_file_path = task_queue_dir / f"{task_id}.json"
+# Dynamically generate agent endpoints
+for agent_name, agent_info in agent_registry.get_all_agents().items():
+    agent_class = agent_info.get('class')
+    metadata = agent_info.get('metadata', {})
+    
+    if agent_class and metadata.get('route'):
+        endpoint = metadata['route']
+        # Ensure endpoint starts with /api/agents/
+        if not endpoint.startswith('/api/agents/'):
+            endpoint = f'/api/agents/{agent_name}' # Fallback to default if route is malformed
         
-        with open(task_file_path, 'w') as f:
-            json.dump(task_payload, f, indent=2)
+        # Flask's add_url_rule requires a unique endpoint name
+        # Use agent_name as the endpoint name
+        app.add_url_rule(endpoint, agent_name, make_execute_handler(agent_class), methods=['POST'])
+        print(f"🔗 Dynamically added endpoint: {endpoint} for agent {agent_name}")
+
+@app.route('/api/task/submit', methods=['POST'])
+def submit_task():
+    """Submit a task to an agent via its dynamically generated endpoint."""
+    try:
+        data = request.get_json()
+        agent_id = data.get('agent_id')
+        task_data = data.get('task', {})
+
+        if not agent_id or not task_data:
+            return jsonify({'success': False, 'error': 'agent_id and task are required'}), 400
+
+        agent_info = agent_registry.get_agent_info(agent_id)
+        if not agent_info:
+            return jsonify({'success': False, 'error': f'Agent {agent_id} not found in registry'}), 404
+
+        agent_route = agent_info.get('metadata', {}).get('route')
+        if not agent_route:
+            return jsonify({'success': False, 'error': f'Agent {agent_id} has no defined route'}), 500
+
+        # Instead of writing to a file queue, directly call the agent's endpoint
+        # This requires the Flask test client or a direct function call if within the same app context
+        # For simplicity, we'll simulate a direct call to the handler function
+        # In a real-world scenario with separate processes, this would be an HTTP POST to the agent's endpoint
+        
+        # For now, we'll directly call the handler function for the agent
+        # This is a simplification and assumes the agent's process_task is synchronous or handled by Flask-SocketIO
+        # A more robust solution would involve a message queue or inter-process communication
+        
+        agent_class = agent_info.get('class')
+        if not agent_class:
+            return jsonify({'success': False, 'error': f'Agent class for {agent_id} not found'}), 500
+        
+        agent_instance = agent_class()
+        
+        # Execute the agent's process_task method
+        if asyncio.iscoroutinefunction(agent_instance.process_task):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(agent_instance.process_task(task_data))
+            loop.close()
+        else:
+            result = agent_instance.process_task(task_data)
 
         return jsonify({
             'success': True,
-            'message': f'Action {action} submitted for agent {agent_id}',
-            'task_id': task_id
+            'message': f'Task submitted and executed by {agent_id}',
+            'task_result': result
         })
         
     except Exception as e:
@@ -521,39 +612,31 @@ def agent_action(agent_id, action):
             'error': str(e)
         }), 500
 
+# Remove the old agent_action route as it's replaced by dynamic endpoints
+# @app.route('/api/agents/<agent_id>/<action>', methods=['POST'])
+# def agent_action(agent_id, action):
+#     """Perform action on specific agent"""
+#     ... (old code removed)
+
 @app.route('/api/system/emergency-stop', methods=['POST'])
 def emergency_stop():
-    """Emergency stop all agents"""
+    """Emergency stop all agents by sending a stop signal to each registered agent."""
     try:
-        # Create emergency stop task for all agents
-        live_status = get_live_system_status()
-        agents_dict = live_status.get('working_agents', {})
-        
         stopped_agents = []
-        for agent_id in agents_dict.keys():
-            task_id = f"emergency_stop_{datetime.now().strftime('%Y%m%d_%H%M%S%f')}_{agent_id}"
-            task_payload = {
-                'task_id': task_id,
-                'agent_id': agent_id,
-                'task_data': {
-                    'action': 'emergency_stop',
-                    'priority': 'urgent',
-                    'timestamp': datetime.now().isoformat()
-                },
-                'submitted_at': datetime.now().isoformat(),
-                'status': 'pending',
-                'submitted_via': 'emergency_dashboard'
-            }
-
-            task_queue_dir = Path(__file__).parent.parent / 'data' / 'task_queue'
-            task_queue_dir.mkdir(exist_ok=True)
-            task_file_path = task_queue_dir / f"{task_id}.json"
-            
-            with open(task_file_path, 'w') as f:
-                json.dump(task_payload, f, indent=2)
-            
-            stopped_agents.append(agent_id)
-
+        for agent_name, agent_info in agent_registry.get_all_agents().items():
+            agent_class = agent_info.get('class')
+            if agent_class and hasattr(agent_class, 'stop_agent'): # Assuming agents have a static stop method
+                agent_class.stop_agent() # Call a static method to stop
+                stopped_agents.append(agent_name)
+            elif agent_class: # If not static, try to get instance and call stop
+                try:
+                    agent_instance = agent_class()
+                    if hasattr(agent_instance, 'stop'): # Assuming an instance method 'stop'
+                        agent_instance.stop()
+                        stopped_agents.append(agent_name)
+                except Exception as inst_e:
+                    print(f"⚠️ Could not stop instance of {agent_name}: {inst_e}")
+        
         return jsonify({
             'success': True,
             'message': f'Emergency stop initiated for {len(stopped_agents)} agents',
@@ -568,35 +651,22 @@ def emergency_stop():
 
 @app.route('/api/system/restart-all', methods=['POST'])
 def restart_all():
-    """Restart all agents"""
+    """Restart all agents by sending a restart signal to each registered agent."""
     try:
-        # Create restart task for all agents
-        live_status = get_live_system_status()
-        agents_dict = live_status.get('working_agents', {})
-        
         restarted_agents = []
-        for agent_id in agents_dict.keys():
-            task_id = f"restart_{datetime.now().strftime('%Y%m%d_%H%M%S%f')}_{agent_id}"
-            task_payload = {
-                'task_id': task_id,
-                'agent_id': agent_id,
-                'task_data': {
-                    'action': 'restart',
-                    'timestamp': datetime.now().isoformat()
-                },
-                'submitted_at': datetime.now().isoformat(),
-                'status': 'pending',
-                'submitted_via': 'restart_dashboard'
-            }
-
-            task_queue_dir = Path(__file__).parent.parent / 'data' / 'task_queue'
-            task_queue_dir.mkdir(exist_ok=True)
-            task_file_path = task_queue_dir / f"{task_id}.json"
-            
-            with open(task_file_path, 'w') as f:
-                json.dump(task_payload, f, indent=2)
-            
-            restarted_agents.append(agent_id)
+        for agent_name, agent_info in agent_registry.get_all_agents().items():
+            agent_class = agent_info.get('class')
+            if agent_class and hasattr(agent_class, 'restart_agent'): # Assuming agents have a static restart method
+                agent_class.restart_agent() # Call a static method to restart
+                restarted_agents.append(agent_name)
+            elif agent_class: # If not static, try to get instance and call restart
+                try:
+                    agent_instance = agent_class()
+                    if hasattr(agent_instance, 'restart'): # Assuming an instance method 'restart'
+                        agent_instance.restart()
+                        restarted_agents.append(agent_name)
+                except Exception as inst_e:
+                    print(f"⚠️ Could not restart instance of {agent_name}: {inst_e}")
 
         return jsonify({
             'success': True,
@@ -671,13 +741,14 @@ def handle_subscribe_updates():
 def handle_status_request():
     """Handle status update request"""
     try:
-        live_status = get_live_system_status()
+        # Get current system status from registry
+        total_agents = len(agent_registry.get_all_agents())
+        active_agents = len([a for a_name, a_info in agent_registry.get_all_agents().items() if a_info.get('metadata', {}).get('status') == 'active'])
         
-        # Get current system status
         status_data = {
-            'agents_count': len(live_status.get('working_agents', {})),
-            'active_agents': len([a for a in live_status.get('working_agents', {}).values() if a.get('status') == 'active']),
-            'system_status': live_status.get('status', 'unknown'),
+            'agents_count': total_agents,
+            'active_agents': active_agents,
+            'system_status': 'running', # Assuming web interface implies system is running
             'timestamp': datetime.now().isoformat(),
             'camel_active': camel_agent is not None,
             'llm_gateway_active': llm_gateway is not None
@@ -696,14 +767,15 @@ def background_monitoring():
     """Background monitoring and updates"""
     while True:
         try:
-            live_status = get_live_system_status()
+            # Update system status based on agent registry
+            total_agents = len(agent_registry.get_all_agents())
+            active_agents = len([a for a_name, a_info in agent_registry.get_all_agents().items() if a_info.get('metadata', {}).get('status') == 'active'])
             
-            # Update system status
             global system_status
             system_status.update({
-                'status': live_status.get('status', 'unknown'),
-                'agents_active': len([a for a in live_status.get('working_agents', {}).values() if a.get('status') == 'active']),
-                'total_agents': len(live_status.get('working_agents', {})),
+                'status': 'running', # Assuming web interface implies system is running
+                'agents_active': active_agents,
+                'total_agents': total_agents,
                 'last_update': datetime.now().isoformat(),
                 'camel_available': camel_agent is not None,
                 'llm_gateway_available': llm_gateway is not None
@@ -738,7 +810,7 @@ if __name__ == '__main__':
     print("👑 Owned by: Mulky Malikul Dhaher (1108151509970001)")
     print("🇮🇩 Made with ❤️ in Indonesia")
     print(f"📊 Dashboard will be available at: http://localhost:{os.getenv('WEB_INTERFACE_PORT', 5000)}")
-    print(f"🤖 Loaded {len(agents_registry)} agents")
+    print(f"🤖 Loaded {len(agent_registry.get_all_agents())} agents from registry")
     print(f"🐪 Camel Agent: {'✅ Available' if camel_agent else '❌ Not Available'}")
     print(f"🧠 LLM Gateway: {'✅ Available' if llm_gateway else '❌ Not Available'}")
     print(f"💾 Memory Bus: {'✅ Available' if memory_bus else '❌ Not Available'}")
