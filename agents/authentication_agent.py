@@ -49,7 +49,6 @@ class User:
     verification_level: int = 0  # 0=none, 1=email, 2=phone, 3=kyc, 4=full
     metadata: Dict[str, Any] = None
 
-@register_agent
 @dataclass
 class KYCDocument:
     """KYC document information"""
@@ -80,6 +79,7 @@ class PaymentRecord:
     verification_code: Optional[str] = None
     metadata: Dict[str, Any] = None
 
+@register_agent
 class AuthenticationAgent:
     """
     Authentication Agent: Comprehensive user authentication and verification
@@ -184,7 +184,7 @@ class AuthenticationAgent:
         self.load_auth_configuration()
         
         # Initialize owner account
-        self.initialize_owner_account()
+        asyncio.run(self.initialize_owner_account())
         
         self.logger.info("Authentication Agent initialized successfully")
         self.status = "ready"
@@ -370,7 +370,7 @@ class AuthenticationAgent:
             except Exception as e:
                 self.logger.error(f"Failed to load auth configuration: {e}")
     
-    def initialize_owner_account(self):
+    async def initialize_owner_account(self):
         """Initialize owner account (Mulky Malikul Dhaher) with full privileges"""
         try:
             owner_user_id = "owner_mulky_malikul_dhaher"
