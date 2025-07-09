@@ -15,7 +15,9 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 import sys
+from core.registry import register_agent
 
+@register_agent
 class CodeExecutorAgent:
     """
     Advanced Code Execution Agent that:
