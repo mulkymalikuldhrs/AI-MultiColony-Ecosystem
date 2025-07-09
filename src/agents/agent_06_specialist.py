@@ -7,7 +7,11 @@ import json
 from datetime import datetime
 
 from ..core.base_agent import BaseAgent
+from .agent_registry import register_agent
 
+@register_agent(name="agent_06_specialist", route="/api/agents/specialist",
+                dependencies=["agent_base", "memory_bus"],
+                description="Domain specialist agent for expert consultation (security, legal, AI tuning, etc.).")
 class Agent06Specialist(BaseAgent):
     """Domain specialist agent for expert consultation"""
     
