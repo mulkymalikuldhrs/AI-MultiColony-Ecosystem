@@ -13,7 +13,11 @@ import asyncio
 import aiohttp
 
 from ..core.base_agent import BaseAgent
+from .agent_registry import register_agent
 
+@register_agent(name="agent_04_executor", route="/api/agents/executor",
+                dependencies=["agent_base", "memory_bus"],
+                description="Specialized execution agent for scripts, APIs, and automation pipelines.")
 class Agent04Executor(BaseAgent):
     """Specialized execution agent for scripts, APIs, and automation"""
     
