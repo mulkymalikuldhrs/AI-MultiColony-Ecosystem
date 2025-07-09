@@ -21,7 +21,9 @@ from pathlib import Path
 import subprocess
 import psutil
 import netifaces
+from core.registry import register_agent
 
+@register_agent
 class AGIColonyConnector:
     """
     Super-powered AGI agent for inter-colony communication and coordination
