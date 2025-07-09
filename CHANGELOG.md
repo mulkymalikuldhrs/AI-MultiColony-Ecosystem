@@ -90,7 +90,7 @@ All notable changes to this project will be documented in this file.
 - **🌐 Multi-device Web Access**: Port 8080, accessible from any network device  
 - **📱 Simplified User Experience**: Only 5 modes instead of confusing 7 modes
 - **⚡ Faster Startup**: Reduced launcher complexity = faster boot time
-- **� Better Network Support**: External access enabled by default
+- ** Better Network Support**: External access enabled by default
 - **📊 Enhanced Architecture**: Clear system flow with mermaid diagrams
 - **🗂️ Cleaner Codebase**: 7 duplicate launchers removed, code consolidated
 
@@ -169,3 +169,6 @@ All notable changes to this project will be documented in this file.
 ---
 
 *Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩*
+
+### Added
+- Added overall inspection summary (July 9, 2025): The system is launched using `LAUNCH_CONSCIOUSNESS_ECOSYSTEM.sh`, which executes `unified_launcher.py`. `unified_launcher.py` uses `argparse` to determine which mode to run the system in: `web`, `cli`, `headless`, or `termux`. The `agents/` directory contains a large number of agents with various roles, managed by `src/agents/agent_registry.py`. Agent configurations are defined in `config/agent_templates.yaml`. The web interface is defined in `web_interface/app.py` and the new web interface dashboard component is in `new-web-interface/src/app/components/Dashboard.tsx`. The deployment report `reports/deployment_20250630_151844.json` shows that Supabase is connected successfully and the system version is 1.0.0.
