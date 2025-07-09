@@ -135,4 +135,3 @@ const Dashboard = () => {
       </div>
     </div>
   );
-};
