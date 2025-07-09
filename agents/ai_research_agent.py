@@ -13,7 +13,9 @@ from typing import Dict, Any, List, Optional
 import arxiv
 import feedparser
 from pathlib import Path
+from core.registry import register_agent
 
+@register_agent
 class AIResearchAgent:
     """
     Advanced AI Research Agent that:
