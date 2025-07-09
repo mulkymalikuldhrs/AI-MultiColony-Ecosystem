@@ -9,7 +9,11 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 
 from ..core.base_agent import BaseAgent
+from .agent_registry import register_agent
 
+@register_agent(name="agent_02_meta_spawner", route="/api/agents/meta_spawner",
+                dependencies=["core_engine", "memory_bus"],
+                description="Monitors system performance and identifies bottlenecks.")
 class Agent02MetaSpawner(BaseAgent):
     """Performance monitor and bottleneck analyzer"""
     
