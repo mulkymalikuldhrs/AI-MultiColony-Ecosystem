@@ -1,5 +1,18 @@
 # [7.2.0] - 2025-07-06
 
+## [Unreleased] - 2025-07-09
+### Added
+- Agent registry system for dynamic agent discovery
+- `@register_agent` decorator to all agent classes for automatic registration
+
+### Modified
+- Updated agent files to include registry decorator:
+  - `agents/autonomous_money_making_ecosystem.py`
+  - `agents/backup_colony_system.py`
+  - `agents/bug_hunter_bot.py`
+  - `agents/camel_agent_integration.py`
+  - `agents/code_executor.py`
+
 ### 🆕 SYSTEM STATUS & INTEGRATION
 
 - ✅ All launchers merged: Only `main.py` and `unified_launcher.py` are used. Interactive mode selection (Web UI, CLI, Termux, etc) at startup.
