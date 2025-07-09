@@ -92,8 +92,6 @@ except ImportError:
     agent_creator_agent = DummyAgent("AgentCreatorAgent")
     ptc_agent = DummyAgent("PtcAgent")
     airdrop_agent = DummyAgent("AirdropAgent")
-from src.agents.ptc_agent import ptc_agent
-from src.agents.airdrop_agent import airdrop_agent
 from core.registry import register_agent
 
 @dataclass
