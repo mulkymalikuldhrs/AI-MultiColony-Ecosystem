@@ -31,6 +31,7 @@ import pyotp
 from PIL import Image
 import cv2
 import numpy as np
+from core.registry import register_agent
 
 @dataclass
 class User:
@@ -48,6 +49,7 @@ class User:
     verification_level: int = 0  # 0=none, 1=email, 2=phone, 3=kyc, 4=full
     metadata: Dict[str, Any] = None
 
+@register_agent
 @dataclass
 class KYCDocument:
     """KYC document information"""
