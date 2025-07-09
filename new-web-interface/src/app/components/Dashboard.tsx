@@ -137,32 +137,3 @@ const Dashboard = () => {
   );
 };
 
-
-  return (
-    <div className="w-full max-w-7xl mx-auto p-8 space-y-8">
-      <header className="text-center">
-        <h1 className="text-5xl font-extrabold text-white tracking-tight">AI Colony Control Center</h1>
-        <p className="mt-2 text-lg text-gray-400">Monitor and manage your autonomous AI agents in real-time.</p>
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <h2 className="text-3xl font-bold text-white border-b-2 border-gray-700 pb-2">Agent Status</h2>
-          <div className="space-y-4">
-            {agents.map(agent => (
-              <AgentCard key={agent.id} agent={agent} />
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-          <h2 className="text-3xl font-bold text-white mb-4 border-b-2 border-gray-700 pb-2">System Logs</h2>
-          <div className="bg-black text-green-400 font-mono text-sm rounded p-4 h-96 overflow-y-auto">
-            <pre>{logs}</pre>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-

@@ -1,4 +1,4 @@
-"""
+2"""
 Agent 05 (Designer) - Visual Asset Creation - UI, Diagrams, Infographics
 """
 
@@ -9,7 +9,11 @@ import base64
 import os
 
 from ..core.base_agent import BaseAgent
+from .agent_registry import register_agent
 
+@register_agent(name="agent_05_designer", route="/api/agents/designer",
+                dependencies=["agent_base", "memory_bus"],
+                description="Specialized design agent for visual asset creation (UI, diagrams, infographics).")
 class Agent05Designer(BaseAgent):
     """Specialized design agent for visual assets creation"""
     
