@@ -60,17 +60,41 @@ import logging
 from dataclasses import dataclass, asdict
 
 # Add src directory to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # Import all money-making agents
-from src.agents.economic_analysis_agent import economic_analysis_agent
-from src.agents.smart_money_trading_agent import smart_money_trading_agent  
-from src.agents.trading_execution_agent import trading_execution_agent
-from src.agents.fundamental_analysis_agent import fundamental_analysis_agent
-from src.agents.web3_mining_agent import web3_mining_agent
-from src.agents.agent_creator_agent import agent_creator_agent
+try:
+    from src.agents.economic_analysis_agent import economic_analysis_agent
+    from src.agents.smart_money_trading_agent import smart_money_trading_agent
+    from src.agents.trading_execution_agent import trading_execution_agent
+    from src.agents.fundamental_analysis_agent import fundamental_analysis_agent
+    from src.agents.web3_mining_agent import web3_mining_agent
+    from src.agents.agent_creator_agent import agent_creator_agent
+    from src.agents.ptc_agent import ptc_agent
+    from src.agents.airdrop_agent import airdrop_agent
+except ImportError:
+    print("Could not import agents from src.agents. Please ensure the files exist and the path is correct.")
+    # Define dummy agents if imports fail
+    class DummyAgent:
+        def __init__(self, name):
+            self.name = name
+            self.status = "not_loaded"
+        async def process_task(self, task):
+            return {"success": False, "error": f"{self.name} is not loaded."}
+        def get_status(self):
+            return {"status": self.status}
+
+    economic_analysis_agent = DummyAgent("EconomicAnalysisAgent")
+    smart_money_trading_agent = DummyAgent("SmartMoneyTradingAgent")
+    trading_execution_agent = DummyAgent("TradingExecutionAgent")
+    fundamental_analysis_agent = DummyAgent("FundamentalAnalysisAgent")
+    web3_mining_agent = DummyAgent("Web3MiningAgent")
+    agent_creator_agent = DummyAgent("AgentCreatorAgent")
+    ptc_agent = DummyAgent("PtcAgent")
+    airdrop_agent = DummyAgent("AirdropAgent")
 from src.agents.ptc_agent import ptc_agent
 from src.agents.airdrop_agent import airdrop_agent
+from core.registry import register_agent
 
 @dataclass
 class SystemPerformance:
@@ -99,6 +123,7 @@ class AgentStatus:
     last_activity: datetime
     error_count: int
 
+@register_agent
 class AutonomousMoneyMakingEcosystem:
     """
     🚀 Complete Autonomous Money-Making Ecosystem
