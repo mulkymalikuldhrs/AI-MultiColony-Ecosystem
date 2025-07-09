@@ -20,7 +20,9 @@ project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
 from connectors.llm_gateway import llm_gateway
+from core.registry import register_agent
 
+@register_agent
 class CamelAgent:
     """
     Camel AI Agent - Multi-Agent Collaborative Intelligence
