@@ -8,7 +8,11 @@ from datetime import datetime, timedelta
 import re
 
 from ..core.base_agent import BaseAgent
+from .agent_registry import register_agent
 
+@register_agent(name="agent_03_planner", route="/api/agents/planner",
+                dependencies=["agent_base", "memory_bus"],
+                description="Specialized planning agent for task breakdown and scheduling.")
 class Agent03Planner(BaseAgent):
     """Specialized planning agent for task breakdown and scheduling"""
     

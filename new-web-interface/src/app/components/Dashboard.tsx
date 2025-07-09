@@ -137,7 +137,6 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
 
   return (
     <div className="w-full max-w-7xl mx-auto p-8 space-y-8">
@@ -167,4 +166,3 @@ export default Dashboard;
   );
 };
 
-export default Dashboard;
