@@ -738,8 +738,8 @@ def internal_error(error):
     }), 500
 
 if __name__ == '__main__':
-    print("🚀 Starting Ultimate AGI Force Web Interface v7.0.0")
-    print("👑 Owned by: Mulky Malikul Dhaher (1108151509970001)")
+    print("🚀 Starting Ultimate AI Force Web Interface v7.0.0")
+    print("👑 Owned by: Mulky Malikul Dhaher (11********)")
     print("🇮🇩 Made with ❤️ in Indonesia")
     print(f"📊 Dashboard will be available at: http://localhost:{os.getenv('WEB_INTERFACE_PORT', 5000)}")
     print(f"🤖 Loaded {len(agent_registry.get_all_agents())} agents from registry")
