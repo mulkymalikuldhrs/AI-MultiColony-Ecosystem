@@ -27,6 +27,7 @@ from urllib.parse import urljoin, urlparse
 import dns.resolver
 import whois
 import nmap
+from core.registry import register_agent
 
 @dataclass
 class Vulnerability:
@@ -55,6 +56,7 @@ class HuntingTarget:
     contact_info: Optional[str] = None
     program_type: str = "responsible_disclosure"  # bug_bounty, vdp, responsible_disclosure
 
+@register_agent
 class BugHunterBot:
     """
     Bug Hunter Bot: Automated ethical hacking and vulnerability discovery
