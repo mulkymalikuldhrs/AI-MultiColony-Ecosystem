@@ -15,9 +15,40 @@ from datetime import datetime
 import threading
 import time
 from pathlib import Path
+import logging # Import logging module
 
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
+
+# Custom logging handler to emit logs via SocketIO
+class SocketIOHandler(logging.Handler):
+    def emit(self, record):
+        # Use app.app_context() to ensure SocketIO can be accessed
+        with app.app_context():
+            # Use socketio.emit to send the log record
+            # Need to format the record first
+            log_entry = self.format(record)
+            socketio.emit('system_log', {'message': log_entry, 'timestamp': datetime.now().isoformat()}, room='system_updates')
+
+# Configure logging
+# Get the root logger
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO) # Set minimum logging level
+
+# Create a formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# Create and add the SocketIO handler
+socketio_handler = SocketIOHandler()
+socketio_handler.setFormatter(formatter)
+root_logger.addHandler(socketio_handler)
+
+# Optional: Add a console handler if you still want logs in the console
+# console_handler = logging.StreamHandler(sys.stdout)
+# console_handler.setFormatter(formatter)
+# root_logger.addHandler(console_handler)
+
+print("✅ Configured SocketIO logging handler")
 
 # Import system components
 from src.agents.agent_registry import agent_registry
