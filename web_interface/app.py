@@ -364,13 +364,13 @@ def process_prompt():
         input_type = data.get('input_type', 'text')
         metadata = data.get('metadata', {})
         use_camel = data.get('use_camel', False)
-        
+
         if not prompt:
             return jsonify({
                 'success': False,
                 'error': 'Prompt is required'
             }), 400
-        
+
         # Use Camel Agent for collaborative processing if requested
         if use_camel and camel_agent:
             task_data = {
@@ -378,53 +378,18 @@ def process_prompt():
                 'complexity': metadata.get('complexity', 'medium'),
                 'participants': metadata.get('participants', ['solution_architect', 'implementation_expert'])
             }
-            
+
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             result = loop.run_until_complete(camel_agent.process_task(task_data))
             loop.close()
-            
+
             return jsonify({
                 'success': True,
                 'data': result,
                 'processing_method': 'camel_collaboration'
             })
-        
-@app.route('/api/prompt/process', methods=['POST'])
-def process_prompt():
-    """Process a prompt through the system"""
-    try:
-        data = request.get_json()
-        prompt = data.get('prompt', '')
-        input_type = data.get('input_type', 'text')
-        metadata = data.get('metadata', {})
-        use_camel = data.get('use_camel', False)
-        
-        if not prompt:
-            return jsonify({
-                'success': False,
-                'error': 'Prompt is required'
-            }), 400
-        
-        # Use Camel Agent for collaborative processing if requested
-        if use_camel and camel_agent:
-            task_data = {
-                'content': prompt,
-                'complexity': metadata.get('complexity', 'medium'),
-                'participants': metadata.get('participants', ['solution_architect', 'implementation_expert'])
-            }
-            
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            result = loop.run_until_complete(camel_agent.process_task(task_data))
-            loop.close()
-            
-            return jsonify({
-                'success': True,
-                'data': result,
-                'processing_method': 'camel_collaboration'
-            })
-        
+
         # Use prompt master if available (assuming it's registered as 'prompt_master')
         prompt_master_info = agent_registry.get_agent_info('prompt_master')
         if prompt_master_info:
@@ -433,7 +398,7 @@ def process_prompt():
                 # Instantiate if necessary, or get existing instance if managed by a singleton/factory
                 # For now, we'll assume it's a class that can be instantiated
                 prompt_master_instance = prompt_master_class()
-                
+
                 if hasattr(prompt_master_instance, 'process_prompt'):
                     if asyncio.iscoroutinefunction(prompt_master_instance.process_prompt):
                         loop = asyncio.new_event_loop()
@@ -463,23 +428,12 @@ def process_prompt():
                 'suggested_agents': list(agent_registry.get_all_agents().keys()),
                 'processing_method': 'fallback'
             }
-        
+
         return jsonify({
             'success': True,
             'data': result
         })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-        
-        return jsonify({
-            'success': True,
-            'data': result
-        })
-        
+
     except Exception as e:
         return jsonify({
             'success': False,
