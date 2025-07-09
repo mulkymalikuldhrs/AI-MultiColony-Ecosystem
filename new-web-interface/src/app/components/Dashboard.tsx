@@ -43,11 +43,40 @@ const Dashboard = () => {
   const [logs, setLogs] = useState('');
 
   useEffect(() => {
-    // In a real app, you'd fetch this data from an API
-    setAgents(mockAgents);
-    // Mock logs
-    setLogs('Initializing system...\nAgent Kilo started successfully.\nWatching for tasks...');
-  }, []);
+    const fetchAgents = async () => {
+      try {
+        // Assuming the Flask backend is running on the same host/port as the Next.js app for now
+        // In a production setup, you might need a full URL or proxy
+        const response = await fetch('/api/agents/list');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data.success) {
+          // Map the API response structure to the Agent interface
+          const fetchedAgents: Agent[] = data.data.map((agent: any) => ({
+            id: agent.id,
+            name: agent.name,
+            status: agent.status, // Assuming status matches 'idle' | 'active' | 'error'
+            description: agent.capabilities.join(', ') || 'No capabilities listed', // Using capabilities as description for now
+          }));
+          setAgents(fetchedAgents);
+        } else {
+          console.error('API returned an error:', data.error);
+          setAgents([]); // Clear agents on API error
+        }
+      } catch (error) {
+        console.error('Failed to fetch agents:', error);
+        setAgents([]); // Clear agents on fetch error
+        setLogs(`Error fetching agents: ${error}`); // Display error in logs
+      }
+    };
+
+    fetchAgents();
+
+    // Mock logs for now, will integrate real logs later
+    setLogs('Initializing system...\nAttempting to fetch agent list...');
+  }, []); // Empty dependency array means this effect runs once on mount
 
   return (
     <div className="w-full max-w-7xl mx-auto p-8 space-y-8">
