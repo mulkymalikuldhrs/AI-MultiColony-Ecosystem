@@ -27,6 +27,7 @@ import zipfile
 import tarfile
 from cryptography.fernet import Fernet
 import base64
+from core.registry import register_agent
 
 @dataclass
 class BackupNode:
@@ -57,6 +58,7 @@ class BackupRecord:
     nodes_stored: List[str]
     status: str = "completed"  # pending, in_progress, completed, failed
 
+@register_agent
 class BackupColonySystem:
     """
     Backup Colony System: Distributed backup management and redundancy
