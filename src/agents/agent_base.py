@@ -7,7 +7,11 @@ import json
 from datetime import datetime
 
 from ..core.base_agent import BaseAgent
+from .agent_registry import register_agent
 
+@register_agent(name="agent_base", route="/api/agents/base",
+                dependencies=["core_engine", "memory_bus"],
+                description="Master controller and task coordinator for the ecosystem.")
 class AgentBase(BaseAgent):
     """Master controller and task coordinator"""
     
