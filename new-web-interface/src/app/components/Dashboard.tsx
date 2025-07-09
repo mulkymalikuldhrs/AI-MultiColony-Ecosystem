@@ -136,4 +136,3 @@ const Dashboard = () => {
     </div>
   );
 };
-};
