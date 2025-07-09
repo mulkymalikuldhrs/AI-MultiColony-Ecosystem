@@ -15,7 +15,9 @@ from pathlib import Path
 import uuid
 import importlib
 import sys
+from core.registry import register_agent
 
+@register_agent
 class AgentMakerAgent:
     """
     Autonomous Agent Creation System that:
