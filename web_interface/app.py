@@ -387,61 +387,6 @@ def process_prompt():
             'error': str(e)
         }), 500
 
-@app.route('/api/llm/providers')
-def get_llm_providers():
-    """Get LLM provider status"""
-    try:
-        if llm_gateway:
-            status = llm_gateway.get_provider_status()
-            usage = llm_gateway.get_usage_summary()
-            
-            return jsonify({
-                'success': True,
-                'data': {
-                    'providers': status,
-                    'usage': usage,
-                    'gateway_status': llm_gateway.status
-                }
-            })
-        else:
-            return jsonify({
-                'success': False,
-                'error': 'LLM Gateway not available'
-            }), 500
-            
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@app.route('/api/llm/test', methods=['POST'])
-def test_llm_providers():
-    """Test all LLM providers"""
-    try:
-        if not llm_gateway:
-            return jsonify({
-                'success': False,
-                'error': 'LLM Gateway not available'
-            }), 500
-        
-        # Run async test
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        test_results = loop.run_until_complete(llm_gateway.test_all_providers())
-        loop.close()
-        
-        return jsonify({
-            'success': True,
-            'data': test_results
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
 def make_execute_handler(agent_class):
     """Creates a handler function for agent execution."""
     async def execute_handler():
@@ -738,8 +683,8 @@ def internal_error(error):
     }), 500
 
 if __name__ == '__main__':
-    print("🚀 Starting Ultimate AI Force Web Interface v7.0.0")
-    print("👑 Owned by: Mulky Malikul Dhaher (11********)")
+    print("🚀 Starting Ultimate AGI Force Web Interface v7.0.0")
+    print("👑 Owned by: Mulky Malikul Dhaher (1108151509970001)")
     print("🇮🇩 Made with ❤️ in Indonesia")
     print(f"📊 Dashboard will be available at: http://localhost:{os.getenv('WEB_INTERFACE_PORT', 5000)}")
     print(f"🤖 Loaded {len(agent_registry.get_all_agents())} agents from registry")
