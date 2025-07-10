@@ -155,7 +155,7 @@
 
    # Agentic AI System - Environment Variables Template
 
-   # Made with ¤ by Mulky Malikul Dhaher in Indonesia ®©
+   # Made with ï¿½ by Mulky Malikul Dhaher in Indonesia ï¿½ï¿½
 
    # Copy this file to .env and fill in your actual values
 
@@ -438,7 +438,7 @@
 
    #
 
-   # ®© Developed with security best practices by Mulky M>
+   # ï¿½ï¿½ Developed with security best practices by Mulky M>
 
    #
 
@@ -801,7 +801,7 @@
    visual dan analitik, serta konsep agen AGI yang bekerja di bidang ini
    dan koneksinya dengan agen lain.
 
-   © 2025 JustPaste.it
+   ï¿½ 2025 JustPaste.it
      * [2]Account
      * [3]Terms
      * [4]Privacy
@@ -818,3 +818,14 @@ References
    5. file:///cookies
    6. file:///u/justpasteit
    7. file:///about
+# Enhanced Ultimate AGI Force - Minimal Requirements
+# Optional dependencies for enhanced features
+flask>=2.0.0
+flask-socketio>=5.0.0
+psutil>=5.8.0
+numpy>=1.21.0
+requests>=2.25.0
+aiohttp>=3.8.0
+pyyaml>=6.0
+python-dotenv>=0.19.0
+websockets>=10.0
