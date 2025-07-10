@@ -646,3 +646,5 @@ werkzeug
 xlsxwriter
 xxhash
 yagmail
+python-dotenv
+python-dotenv
