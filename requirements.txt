@@ -260,3 +260,4 @@ xxhash
 # Advanced String Processing
 regex
 unicodedata2
+flask-cors==4.0.0
