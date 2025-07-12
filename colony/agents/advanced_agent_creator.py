@@ -19,7 +19,7 @@ from .agent_base import BaseAgent
 try:
     from ..core.memory_manager import agent_memory_interface, memory_manager
     from ..core.knowledge_enrichment import knowledge_orchestrator
-    from ..core.credential_manager import credential_manager
+    from .credential_manager import credential_manager
     ADVANCED_FEATURES = True
 except ImportError:
     ADVANCED_FEATURES = False
