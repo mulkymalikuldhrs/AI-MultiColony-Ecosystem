@@ -1,0 +1,1107 @@
+{
+  "overview": {
+    "structure": {
+      "total_python_files": 134,
+      "total_html_files": 19,
+      "total_js_files": 7,
+      "total_yaml_files": 12,
+      "total_json_files": 32,
+      "main_directories": [
+        "tests",
+        "docs",
+        "sandbox",
+        "os_automation",
+        "agent_output",
+        "colony",
+        "config",
+        "servers",
+        "archive",
+        "logs",
+        ".continue",
+        "database",
+        ".kilocode",
+        ".git",
+        "examples",
+        "connectors",
+        "research",
+        "build",
+        "data",
+        "reports",
+        "web-interface"
+      ],
+      "key_files": [
+        "main.py",
+        "requirements.txt",
+        "README.md",
+        "docker-compose.yml",
+        "Dockerfile"
+      ]
+    }
+  },
+  "agents": {
+    "total_agents": 41,
+    "working_agents": 41,
+    "broken_agents": 0,
+    "agent_details": {
+      "agent_06_specialist": {
+        "status": "working",
+        "classes": [
+          "Agent06Specialist"
+        ],
+        "functions": 33,
+        "imports": 5,
+        "file_size": 35994,
+        "lines": 825
+      },
+      "data_sync": {
+        "status": "working",
+        "classes": [
+          "DataSyncAgent"
+        ],
+        "functions": 7,
+        "imports": 14,
+        "file_size": 26899,
+        "lines": 694
+      },
+      "backup_colony_system": {
+        "status": "working",
+        "classes": [
+          "BackupNode",
+          "BackupRecord",
+          "BackupColonySystem"
+        ],
+        "functions": 7,
+        "imports": 24,
+        "file_size": 28513,
+        "lines": 741
+      },
+      "marketing_agent": {
+        "status": "working",
+        "classes": [
+          "Campaign",
+          "MarketingContent",
+          "InfluencerProfile",
+          "MarketingAgent"
+        ],
+        "functions": 7,
+        "imports": 18,
+        "file_size": 38258,
+        "lines": 907
+      },
+      "dynamic_agent_factory": {
+        "status": "working",
+        "classes": [
+          "DynamicAgentFactory"
+        ],
+        "functions": 12,
+        "imports": 5,
+        "file_size": 9136,
+        "lines": 230
+      },
+      "agent_registry": {
+        "status": "working",
+        "classes": [
+          "AgentRegistry"
+        ],
+        "functions": 7,
+        "imports": 1,
+        "file_size": 2503,
+        "lines": 74
+      },
+      "dev_engine": {
+        "status": "working",
+        "classes": [
+          "DevEngineAgent"
+        ],
+        "functions": 37,
+        "imports": 11,
+        "file_size": 32606,
+        "lines": 1127
+      },
+      "output_handler": {
+        "status": "working",
+        "classes": [
+          "OutputHandler"
+        ],
+        "functions": 7,
+        "imports": 8,
+        "file_size": 5909,
+        "lines": 131
+      },
+      "money_making_orchestrator": {
+        "status": "working",
+        "classes": [
+          "IncomeStream",
+          "EarningsReport",
+          "MoneyMakingOrchestrator"
+        ],
+        "functions": 23,
+        "imports": 11,
+        "file_size": 43155,
+        "lines": 1012
+      },
+      "agent_02_meta_spawner": {
+        "status": "working",
+        "classes": [
+          "Agent02MetaSpawner"
+        ],
+        "functions": 23,
+        "imports": 7,
+        "file_size": 19987,
+        "lines": 467
+      },
+      "code_executor": {
+        "status": "working",
+        "classes": [
+          "CodeExecutorAgent"
+        ],
+        "functions": 6,
+        "imports": 13,
+        "file_size": 22240,
+        "lines": 604
+      },
+      "agent_base": {
+        "status": "working",
+        "classes": [
+          "AgentBase"
+        ],
+        "functions": 14,
+        "imports": 5,
+        "file_size": 11632,
+        "lines": 303
+      },
+      "quality_control_specialist": {
+        "status": "working",
+        "classes": [
+          "QualityAssessment",
+          "QualityMetrics",
+          "QualityControlSpecialist"
+        ],
+        "functions": 6,
+        "imports": 19,
+        "file_size": 27607,
+        "lines": 679
+      },
+      "smart_money_trading_agent": {
+        "status": "working",
+        "classes": [
+          "MarketStructure",
+          "OrderFlowDirection",
+          "TradeBias",
+          "MarketStructurePoint",
+          "OrderBlock",
+          "FairValueGap",
+          "LiquidityLevel",
+          "SmartMoneySetup",
+          "TradeExecution",
+          "SmartMoneyTradingAgent"
+        ],
+        "functions": 16,
+        "imports": 13,
+        "file_size": 39272,
+        "lines": 978
+      },
+      "knowledge_management_agent": {
+        "status": "working",
+        "classes": [
+          "KnowledgeItem",
+          "SearchResult",
+          "LearningPattern",
+          "KnowledgeManagementAgent"
+        ],
+        "functions": 7,
+        "imports": 23,
+        "file_size": 34685,
+        "lines": 872
+      },
+      "credential_manager": {
+        "status": "working",
+        "classes": [
+          "CredentialManagerAgent"
+        ],
+        "functions": 5,
+        "imports": 14,
+        "file_size": 25999,
+        "lines": 686
+      },
+      "launcher_agent": {
+        "status": "working",
+        "classes": [
+          "LauncherAgent"
+        ],
+        "functions": 20,
+        "imports": 10,
+        "file_size": 17841,
+        "lines": 498
+      },
+      "advanced_agent_creator": {
+        "status": "working",
+        "classes": [
+          "DynamicAIAgent",
+          "AdvancedAgentCreator"
+        ],
+        "functions": 37,
+        "imports": 11,
+        "file_size": 42130,
+        "lines": 1052
+      },
+      "web_automation_agent": {
+        "status": "working",
+        "classes": [
+          "WebAutomationAgent"
+        ],
+        "functions": 14,
+        "imports": 15,
+        "file_size": 25307,
+        "lines": 666
+      },
+      "deploy_manager": {
+        "status": "working",
+        "classes": [
+          "DeployManagerAgent"
+        ],
+        "functions": 7,
+        "imports": 8,
+        "file_size": 20634,
+        "lines": 563
+      },
+      "ui_designer": {
+        "status": "working",
+        "classes": [
+          "UIDesignerAgent"
+        ],
+        "functions": 20,
+        "imports": 9,
+        "file_size": 42607,
+        "lines": 1153
+      },
+      "commander_agi": {
+        "status": "working",
+        "classes": [
+          "SecurityThreat",
+          "SystemMonitorData",
+          "CommanderAGI"
+        ],
+        "functions": 6,
+        "imports": 15,
+        "file_size": 12609,
+        "lines": 357
+      },
+      "agent_04_executor": {
+        "status": "working",
+        "classes": [
+          "Agent04Executor"
+        ],
+        "functions": 42,
+        "imports": 13,
+        "file_size": 33532,
+        "lines": 883
+      },
+      "fullstack_dev": {
+        "status": "working",
+        "classes": [
+          "FullStackDevAgent"
+        ],
+        "functions": 6,
+        "imports": 14,
+        "file_size": 27953,
+        "lines": 889
+      },
+      "bug_hunter_bot": {
+        "status": "working",
+        "classes": [
+          "Vulnerability",
+          "HuntingTarget",
+          "BugHunterBot"
+        ],
+        "functions": 6,
+        "imports": 23,
+        "file_size": 25415,
+        "lines": 636
+      },
+      "autonomous_money_making_ecosystem": {
+        "status": "working",
+        "classes": [
+          "SystemPerformance",
+          "AgentStatus",
+          "AutonomousMoneyMakingEcosystem",
+          "DummyAgent"
+        ],
+        "functions": 6,
+        "imports": 21,
+        "file_size": 40142,
+        "lines": 970
+      },
+      "authentication_agent": {
+        "status": "working",
+        "classes": [
+          "User",
+          "KYCDocument",
+          "PaymentRecord",
+          "AuthenticationAgent"
+        ],
+        "functions": 11,
+        "imports": 27,
+        "file_size": 34339,
+        "lines": 861
+      },
+      "deployment_agent": {
+        "status": "working",
+        "classes": [
+          "DeploymentAgent"
+        ],
+        "functions": 12,
+        "imports": 9,
+        "file_size": 18726,
+        "lines": 453
+      },
+      "prompt_generator": {
+        "status": "working",
+        "classes": [
+          "PromptGeneratorAgent"
+        ],
+        "functions": 11,
+        "imports": 7,
+        "file_size": 24265,
+        "lines": 627
+      },
+      "ai_research_agent": {
+        "status": "working",
+        "classes": [
+          "AIResearchAgent"
+        ],
+        "functions": 3,
+        "imports": 10,
+        "file_size": 17971,
+        "lines": 446
+      },
+      "llm_provider_manager": {
+        "status": "working",
+        "classes": [
+          "LLMProviderManager"
+        ],
+        "functions": 10,
+        "imports": 9,
+        "file_size": 38899,
+        "lines": 999
+      },
+      "agi_colony_connector": {
+        "status": "working",
+        "classes": [
+          "AGIColonyConnector",
+          "AutonomousThinkingEngine",
+          "SecureTunnelManager"
+        ],
+        "functions": 30,
+        "imports": 17,
+        "file_size": 20811,
+        "lines": 590
+      },
+      "money_making_agent": {
+        "status": "working",
+        "classes": [
+          "RevenueStream",
+          "Transaction",
+          "MoneyMakingAgent"
+        ],
+        "functions": 4,
+        "imports": 17,
+        "file_size": 27931,
+        "lines": 724
+      },
+      "deployment_specialist": {
+        "status": "working",
+        "classes": [
+          "DeploymentSpecialist",
+          "AutonomousTargetScanner",
+          "DeploymentStrategyEngine",
+          "BaseDeployment",
+          "DockerDeployment",
+          "SSHDeployment",
+          "CloudDeployment",
+          "KubernetesDeployment",
+          "ServerlessDeployment"
+        ],
+        "functions": 32,
+        "imports": 17,
+        "file_size": 21570,
+        "lines": 650
+      },
+      "system_optimizer": {
+        "status": "working",
+        "classes": [
+          "SystemOptimizerAgent"
+        ],
+        "functions": 2,
+        "imports": 16,
+        "file_size": 19494,
+        "lines": 496
+      },
+      "agent_03_planner": {
+        "status": "working",
+        "classes": [
+          "Agent03Planner"
+        ],
+        "functions": 38,
+        "imports": 6,
+        "file_size": 37562,
+        "lines": 883
+      },
+      "meta_agent_creator": {
+        "status": "working",
+        "classes": [
+          "MetaAgentCreator"
+        ],
+        "functions": 6,
+        "imports": 6,
+        "file_size": 24430,
+        "lines": 610
+      },
+      "camel_agent_integration": {
+        "status": "working",
+        "classes": [
+          "CamelAgent"
+        ],
+        "functions": 2,
+        "imports": 10,
+        "file_size": 17754,
+        "lines": 467
+      },
+      "cybershell": {
+        "status": "working",
+        "classes": [
+          "CyberShellAgent"
+        ],
+        "functions": 10,
+        "imports": 12,
+        "file_size": 19695,
+        "lines": 530
+      },
+      "agent_maker": {
+        "status": "working",
+        "classes": [
+          "AgentMakerAgent"
+        ],
+        "functions": 11,
+        "imports": 12,
+        "file_size": 22956,
+        "lines": 617
+      },
+      "agent_05_designer": {
+        "status": "working",
+        "classes": [
+          "Agent05Designer"
+        ],
+        "functions": 44,
+        "imports": 8,
+        "file_size": 30258,
+        "lines": 793
+      }
+    },
+    "agent_categories": {
+      "general": 29,
+      "development": 5,
+      "financial": 4,
+      "design": 2,
+      "security": 1
+    }
+  },
+  "core_modules": {
+    "total_modules": 39,
+    "working_modules": 38,
+    "broken_modules": 1,
+    "module_details": {
+      "ADVANCED_AI_AGENT_ORCHESTRATION": {
+        "status": "broken",
+        "error": "expected 'except' or 'finally' block (<unknown>, line 703)"
+      },
+      "sync_engine": {
+        "status": "working",
+        "classes": [
+          "SyncEngineAgent",
+          "SimpleSyncEngine"
+        ],
+        "functions": 4,
+        "file_size": 699,
+        "lines": 30,
+        "is_key_module": false
+      },
+      "AUTONOMOUS_IMPROVEMENT_ENGINE": {
+        "status": "working",
+        "classes": [
+          "AutonomousImprovementEngine"
+        ],
+        "functions": 2,
+        "file_size": 26395,
+        "lines": 630,
+        "is_key_module": false
+      },
+      "port_forward_manager": {
+        "status": "working",
+        "classes": [
+          "PortForwardManager",
+          "BaseForwarder",
+          "UPnPForwarder",
+          "NgrokForwarder",
+          "SSHTunnelForwarder",
+          "CloudflareForwarder",
+          "ReverseProxyForwarder"
+        ],
+        "functions": 14,
+        "file_size": 19222,
+        "lines": 526,
+        "is_key_module": false
+      },
+      "agent_registry": {
+        "status": "working",
+        "classes": [
+          "BaseAgent"
+        ],
+        "functions": 10,
+        "file_size": 5753,
+        "lines": 191,
+        "is_key_module": true
+      },
+      "AUTONOMOUS_EXECUTION_ENGINE": {
+        "status": "working",
+        "classes": [
+          "AutonomousExecutionEngine"
+        ],
+        "functions": 3,
+        "file_size": 21597,
+        "lines": 527,
+        "is_key_module": false
+      },
+      "scheduler": {
+        "status": "working",
+        "classes": [
+          "SchedulerAgent",
+          "SimpleScheduler"
+        ],
+        "functions": 6,
+        "file_size": 860,
+        "lines": 39,
+        "is_key_module": false
+      },
+      "config_loader": {
+        "status": "working",
+        "classes": [],
+        "functions": 1,
+        "file_size": 158,
+        "lines": 8,
+        "is_key_module": false
+      },
+      "memory_bus": {
+        "status": "working",
+        "classes": [
+          "MemoryBusAgent",
+          "SimpleMemoryBus"
+        ],
+        "functions": 6,
+        "file_size": 858,
+        "lines": 37,
+        "is_key_module": false
+      },
+      "base_agent": {
+        "status": "working",
+        "classes": [
+          "BaseAgent"
+        ],
+        "functions": 11,
+        "file_size": 8056,
+        "lines": 253,
+        "is_key_module": true
+      },
+      "unified_launcher": {
+        "status": "working",
+        "classes": [
+          "UnifiedLauncher"
+        ],
+        "functions": 29,
+        "file_size": 14463,
+        "lines": 466,
+        "is_key_module": false
+      },
+      "MASSIVE_AUTONOMOUS_RESEARCH_ENGINE": {
+        "status": "working",
+        "classes": [
+          "ResearchVector",
+          "SystemImprovement",
+          "BugReport",
+          "QuantumResearchAlgorithm",
+          "AutonomousBugDetector",
+          "SystemUpgradeEngine",
+          "BranchMergingIntelligence",
+          "MassiveAutonomousResearchEngine",
+          "BugVisitor"
+        ],
+        "functions": 9,
+        "file_size": 47735,
+        "lines": 1196,
+        "is_key_module": false
+      },
+      "advanced_dynamic_ui": {
+        "status": "working",
+        "classes": [
+          "AdvancedDynamicWebInterface",
+          "OSController",
+          "SandboxManager",
+          "FallbackFlask",
+          "FallbackSocketIO"
+        ],
+        "functions": 52,
+        "file_size": 29051,
+        "lines": 715,
+        "is_key_module": false
+      },
+      "ai_selector copy": {
+        "status": "working",
+        "classes": [
+          "RealLLMClient",
+          "AISelector"
+        ],
+        "functions": 4,
+        "file_size": 4920,
+        "lines": 118,
+        "is_key_module": false
+      },
+      "AUTO_RELEASE_SYSTEM": {
+        "status": "working",
+        "classes": [
+          "ReleaseMode",
+          "DeploymentPlatform",
+          "ReleaseConfig",
+          "UltimateReleaseSystem"
+        ],
+        "functions": 11,
+        "file_size": 23988,
+        "lines": 655,
+        "is_key_module": false
+      },
+      "credential_manager": {
+        "status": "working",
+        "classes": [
+          "SecureCredentialManager"
+        ],
+        "functions": 13,
+        "file_size": 16450,
+        "lines": 412,
+        "is_key_module": false
+      },
+      "fallback_imports": {
+        "status": "working",
+        "classes": [
+          "FallbackDotenv",
+          "FallbackAiohttp",
+          "FallbackFlask",
+          "FallbackSocketIO",
+          "FallbackYaml",
+          "FallbackPsutil",
+          "FallbackColorama",
+          "FallbackRequests",
+          "ClientSession",
+          "FallbackResponse",
+          "VirtualMemory",
+          "Fore",
+          "Style",
+          "Response"
+        ],
+        "functions": 25,
+        "file_size": 11212,
+        "lines": 355,
+        "is_key_module": false
+      },
+      "platform_integrator": {
+        "status": "working",
+        "classes": [
+          "PlatformIntegrator",
+          "GitHubIntegration",
+          "GoogleServicesIntegration",
+          "ExternalAPIManager",
+          "AIPlatformManager"
+        ],
+        "functions": 10,
+        "file_size": 13573,
+        "lines": 344,
+        "is_key_module": false
+      },
+      "socketio_handlers": {
+        "status": "working",
+        "classes": [],
+        "functions": 6,
+        "file_size": 7792,
+        "lines": 215,
+        "is_key_module": false
+      },
+      "revolutionary_gui_interface": {
+        "status": "working",
+        "classes": [
+          "GUIAgentRegistry",
+          "RevolutionaryGUIInterface",
+          "MockOSController",
+          "MockSandboxManager",
+          "FallbackFlask"
+        ],
+        "functions": 38,
+        "file_size": 41393,
+        "lines": 925,
+        "is_key_module": false
+      },
+      "COMPLETE_AGENT_IMPLEMENTATIONS": {
+        "status": "working",
+        "classes": [
+          "SystemMonitorAgent",
+          "PerformanceOptimizerAgent",
+          "ResourceManagerAgent",
+          "AutoUpdaterAgent",
+          "HealthCheckerAgent",
+          "BackupManagerAgent",
+          "ErrorRecoveryAgent",
+          "FrontendSpecialistAgent",
+          "BackendSpecialistAgent",
+          "DatabaseArchitectAgent",
+          "PromptGeneratorAgent",
+          "NLPSpecialistAgent"
+        ],
+        "functions": 12,
+        "file_size": 36684,
+        "lines": 988,
+        "is_key_module": false
+      },
+      "memory_manager": {
+        "status": "working",
+        "classes": [
+          "MemoryEntry",
+          "MemoryManager",
+          "ExternalKnowledgeAPI",
+          "AgentMemoryInterface"
+        ],
+        "functions": 15,
+        "file_size": 21246,
+        "lines": 557,
+        "is_key_module": false
+      },
+      "AUTONOMOUS_DEVELOPMENT_ENGINE": {
+        "status": "working",
+        "classes": [
+          "AutonomousDevelopmentEngine",
+          "CodeAnalyzerAgent",
+          "FeatureCreatorAgent",
+          "PerformanceOptimizerAgent",
+          "DocumentationUpdaterAgent",
+          "AssetDesignerAgent",
+          "ReleaseManagerAgent",
+          "QualityAssuranceAgent",
+          "SecurityEnhancerAgent"
+        ],
+        "functions": 5,
+        "file_size": 22819,
+        "lines": 583,
+        "is_key_module": false
+      },
+      "daemon_manager": {
+        "status": "working",
+        "classes": [
+          "DaemonManager"
+        ],
+        "functions": 19,
+        "file_size": 20283,
+        "lines": 582,
+        "is_key_module": false
+      },
+      "prompt_master": {
+        "status": "working",
+        "classes": [
+          "PromptMasterAgent",
+          "SimplePromptMaster"
+        ],
+        "functions": 2,
+        "file_size": 707,
+        "lines": 28,
+        "is_key_module": false
+      },
+      "fix_dependencies": {
+        "status": "working",
+        "classes": [
+          "MockRedis"
+        ],
+        "functions": 13,
+        "file_size": 6895,
+        "lines": 273,
+        "is_key_module": false
+      },
+      "CONTINUOUS_IMPROVEMENT_CYCLE": {
+        "status": "working",
+        "classes": [
+          "ContinuousImprovementCycle"
+        ],
+        "functions": 3,
+        "file_size": 27816,
+        "lines": 644,
+        "is_key_module": false
+      },
+      "INTEGRATED_AUTONOMOUS_SYSTEM": {
+        "status": "working",
+        "classes": [
+          "IntegratedAutonomousSystem"
+        ],
+        "functions": 3,
+        "file_size": 42860,
+        "lines": 973,
+        "is_key_module": false
+      },
+      "launcher_agent_connector": {
+        "status": "working",
+        "classes": [
+          "LauncherAgentConnector"
+        ],
+        "functions": 19,
+        "file_size": 12514,
+        "lines": 395,
+        "is_key_module": true
+      },
+      "REVOLUTIONARY_AGENT_IMPLEMENTATIONS": {
+        "status": "working",
+        "classes": [
+          "QuantumProcessorAgent",
+          "QuantumEntanglerAgent",
+          "AwarenessSimulatorAgent",
+          "ReasoningEngineAgent",
+          "PromptArchitectAgent",
+          "ShellVirtuosoAgent",
+          "UIRevolutionaryAgent",
+          "PromptMastermindAgent",
+          "VoiceSynthesizerAgent",
+          "RevenueOptimizerAgent",
+          "GlobalDeploymentAgent",
+          "CompleteAgentOrchestrator",
+          "UltimateGenericAgent"
+        ],
+        "functions": 13,
+        "file_size": 26892,
+        "lines": 728,
+        "is_key_module": false
+      },
+      "autonomous_engine_connector": {
+        "status": "working",
+        "classes": [
+          "AutonomousEngineConnector",
+          "EngineWrapper"
+        ],
+        "functions": 22,
+        "file_size": 14957,
+        "lines": 442,
+        "is_key_module": true
+      },
+      "system_bootstrap": {
+        "status": "working",
+        "classes": [],
+        "functions": 7,
+        "file_size": 5710,
+        "lines": 172,
+        "is_key_module": true
+      },
+      "knowledge_enrichment": {
+        "status": "working",
+        "classes": [
+          "KnowledgeSource",
+          "FreeAPIConnector",
+          "IntelligentKnowledgeOrchestrator"
+        ],
+        "functions": 5,
+        "file_size": 17664,
+        "lines": 419,
+        "is_key_module": false
+      },
+      "ai_selector": {
+        "status": "working",
+        "classes": [
+          "AISelectorAgent",
+          "SimpleAISelector"
+        ],
+        "functions": 2,
+        "file_size": 359,
+        "lines": 16,
+        "is_key_module": false
+      },
+      "ULTIMATE_CONTROL_CENTER": {
+        "status": "working",
+        "classes": [
+          "UltimateControlCenter"
+        ],
+        "functions": 5,
+        "file_size": 29200,
+        "lines": 802,
+        "is_key_module": false
+      },
+      "AI_CONSCIOUSNESS_SIMULATION": {
+        "status": "working",
+        "classes": [
+          "ConsciousnessState",
+          "EmotionType",
+          "PersonalityTrait",
+          "Emotion",
+          "Memory",
+          "Thought",
+          "Relationship",
+          "Dream",
+          "Personality",
+          "ConsciousnessCore",
+          "ConsciousAgent",
+          "ConsciousnessManager"
+        ],
+        "functions": 14,
+        "file_size": 44255,
+        "lines": 1056,
+        "is_key_module": false
+      },
+      "agent_manager": {
+        "status": "working",
+        "classes": [
+          "AgentManager"
+        ],
+        "functions": 9,
+        "file_size": 9553,
+        "lines": 250,
+        "is_key_module": false
+      },
+      "enhanced_app": {
+        "status": "working",
+        "classes": [
+          "EnhancedAGIWebInterface",
+          "FallbackFlask",
+          "FallbackSocketIO",
+          "FallbackPsutil",
+          "Memory"
+        ],
+        "functions": 51,
+        "file_size": 22725,
+        "lines": 596,
+        "is_key_module": false
+      },
+      "web_ui_connector": {
+        "status": "working",
+        "classes": [
+          "WebUIConnector"
+        ],
+        "functions": 10,
+        "file_size": 7631,
+        "lines": 255,
+        "is_key_module": true
+      }
+    },
+    "key_modules": [
+      "agent_registry.py",
+      "base_agent.py",
+      "system_bootstrap.py",
+      "web_ui_connector.py",
+      "launcher_agent_connector.py",
+      "autonomous_engine_connector.py"
+    ]
+  },
+  "web_interface": {
+    "has_web_interface": true,
+    "has_api": true,
+    "templates": 12,
+    "static_files": 45,
+    "api_endpoints": 23
+  },
+  "configurations": {
+    "config_files": {
+      "prompts.yaml": {
+        "size": 16264,
+        "exists": true
+      },
+      "system_config.yaml": {
+        "size": 8803,
+        "exists": true
+      },
+      "launcher_config.yaml": {
+        "size": 2691,
+        "exists": true
+      },
+      "__init__.py": {
+        "size": 40,
+        "exists": true
+      },
+      "agent_templates.yaml": {
+        "size": 2341,
+        "exists": true
+      }
+    },
+    "has_launcher_config": true,
+    "has_system_config": true,
+    "has_agent_templates": true
+  },
+  "dependencies": {
+    "requirements_file_exists": true,
+    "total_dependencies": 42,
+    "core_dependencies": [
+      "flask>=2.3.0",
+      "flask-socketio>=5.3.0",
+      "flask-cors>=4.0.0",
+      "fastapi>=0.100.0",
+      "requests>=2.31.0",
+      "pyyaml>=6.0"
+    ],
+    "optional_dependencies": [
+      "uvicorn>=0.23.0",
+      "websockets>=11.0.0",
+      "openai>=1.0.0",
+      "anthropic>=0.25.0",
+      "transformers>=4.30.0",
+      "torch>=2.0.0",
+      "numpy>=1.24.0",
+      "pandas>=2.0.0",
+      "scikit-learn>=1.3.0",
+      "aiohttp>=3.8.0",
+      "httpx>=0.24.0",
+      "python-dotenv>=1.0.0",
+      "jsonschema>=4.17.0",
+      "beautifulsoup4>=4.12.0",
+      "lxml>=4.9.0",
+      "sqlalchemy>=2.0.0",
+      "redis>=4.5.0",
+      "pymongo>=4.4.0",
+      "asyncio-mqtt>=0.13.0",
+      "celery>=5.3.0",
+      "threading-timer>=1.0.0",
+      "cryptography>=41.0.0",
+      "pyjwt>=2.8.0",
+      "bcrypt>=4.0.0",
+      "pytest>=7.4.0",
+      "pytest-asyncio>=0.21.0",
+      "black>=23.0.0",
+      "flake8>=6.0.0",
+      "psutil>=5.9.0",
+      "docker>=6.1.0",
+      "paramiko>=3.2.0",
+      "pypdf2>=3.0.0",
+      "pillow>=10.0.0",
+      "python-magic>=0.4.0",
+      "prometheus-client>=0.17.0",
+      "structlog>=23.1.0"
+    ],
+    "missing_dependencies": []
+  },
+  "errors": [
+    "Core module ADVANCED_AI_AGENT_ORCHESTRATION: expected 'except' or 'finally' block (<unknown>, line 703)",
+    "Import failed for colony.core.agent_registry: name 'sa' is not defined",
+    "Import failed for colony.api.app: No module named 'flask'"
+  ],
+  "warnings": [],
+  "recommendations": [
+    {
+      "priority": "critical",
+      "category": "core",
+      "issue": "1 broken core modules",
+      "solution": "Fix core module errors immediately as they affect system stability"
+    }
+  ],
+  "import_tests": {
+    "colony.core.agent_registry": "failed: name 'sa' is not defined",
+    "colony.core.base_agent": "success",
+    "colony.core.system_bootstrap": "success",
+    "colony.api.app": "failed: No module named 'flask'"
+  }
+}

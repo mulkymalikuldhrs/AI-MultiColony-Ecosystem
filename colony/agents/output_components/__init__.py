@@ -1,1 +1,1 @@
-sa # This file makes the output_components directory a Python package.
+# This file makes the output_components directory a Python package.

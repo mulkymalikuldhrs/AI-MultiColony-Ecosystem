@@ -1,4 +1,4 @@
-from typing import Dict, Type, Any, Callable
+from typing import Dict, Type, Any, Callable, Optional, List
 
 class AgentRegistry:
     """
