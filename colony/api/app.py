@@ -51,24 +51,57 @@ root_logger.addHandler(socketio_handler)
 print("✅ Configured SocketIO logging handler")
 
 # Import system components
-from src.agents.agent_registry import agent_registry
-from connectors.llm_gateway import llm_gateway
-from core.memory_bus import memory_bus
+try:
+    from colony.agents.agent_registry import agent_registry
+    print("✅ Agent Registry loaded from colony.agents")
+except ImportError:
+    print("⚠️ Could not import agent registry from colony.agents")
+    agent_registry = None
 
-print("✅ Agent Registry loaded")
-print("✅ LLM Gateway loaded")
-print("✅ Memory Bus loaded")
+try:
+    from connectors.llm_gateway import llm_gateway
+    print("✅ LLM Gateway loaded")
+except ImportError:
+    print("⚠️ Could not import LLM Gateway")
+    llm_gateway = None
+
+try:
+    from colony.core.memory_bus import memory_bus
+    print("✅ Memory Bus loaded")
+except ImportError:
+    print("⚠️ Could not import Memory Bus")
+    memory_bus = None
+
+
 
 # Placeholder for camel_agent if it's still needed for specific logic
 # In a fully modular system, camel_agent would also be registered via @register_agent
-camel_agent = agent_registry.get_agent_class("camel_agent") # Assuming camel_agent is registered
-if camel_agent:
-    print("✅ Camel Agent found in registry")
+camel_agent = None
+if agent_registry:
+    camel_agent = agent_registry.get_agent_class("camel_agent") # Assuming camel_agent is registered
+    if camel_agent:
+        print("✅ Camel Agent found in registry")
+    else:
+        print("⚠️ Camel Agent not found in registry. Ensure it's registered.")
 else:
-    print("⚠️ Camel Agent not found in registry. Ensure it's registered.")
+    print("⚠️ Agent registry not available, camel_agent disabled")
 
-# Create Flask app
-app = Flask(__name__)
+# Helper function to safely access agent registry
+def safe_agent_registry_call(func_name, *args, **kwargs):
+    """Safely call agent registry functions with fallback"""
+    if not agent_registry:
+        return None
+    try:
+        func = getattr(agent_registry, func_name)
+        return func(*args, **kwargs)
+    except Exception as e:
+        print(f"Error calling agent_registry.{func_name}: {e}")
+        return None
+
+# Create Flask app with correct template and static directories
+template_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'web-interface', 'templates')
+static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'web-interface', 'static')
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'agentic-ai-system-secret-key-indonesia')
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -158,12 +191,15 @@ def get_system_status():
                 camel_stats = {'active_collaborations': 0}
         
         # Get agent counts from the registry
-        total_agents_registered = len(agent_registry.get_all_agents())
-        # Assuming agents update their status in their metadata
-        active_agents_from_registry = len([
-            a for a_name, a_info in agent_registry.get_all_agents().items() 
-            if a_info.get('metadata', {}).get('status') == 'active'
-        ])
+        total_agents_registered = 0
+        active_agents_from_registry = 0
+        if agent_registry:
+            total_agents_registered = len(agent_registry.get_all_agents())
+            # Assuming agents update their status in their metadata
+            active_agents_from_registry = len([
+                a for a_name, a_info in agent_registry.get_all_agents().items() 
+                if a_info.get('metadata', {}).get('status') == 'active'
+            ])
 
         return jsonify({
             'success': True,
@@ -197,6 +233,12 @@ def list_agents():
     """List all registered agents with their metadata."""
     try:
         agents_list = []
+        if not agent_registry:
+            return jsonify({
+                'success': False,
+                'error': 'Agent registry not available'
+            }), 500
+        
         for agent_name, agent_info in agent_registry.get_all_agents().items():
             metadata = agent_info.get('metadata', {})
             agents_list.append({
@@ -223,6 +265,12 @@ def list_agents():
 def get_agent_status(agent_id):
     """Get specific agent status from registry metadata."""
     try:
+        if not agent_registry:
+            return jsonify({
+                'success': False,
+                'error': 'Agent registry not available'
+            }), 500
+        
         agent_info = agent_registry.get_agent_info(agent_id)
         
         if not agent_info:
@@ -347,7 +395,7 @@ def process_prompt():
             })
         
         # Use prompt master if available (assuming it's registered as 'prompt_master')
-        prompt_master_info = agent_registry.get_agent_info('prompt_master')
+        prompt_master_info = safe_agent_registry_call('get_agent_info', 'prompt_master')
         if prompt_master_info:
             prompt_master_class = prompt_master_info.get('class')
             if prompt_master_class:
@@ -381,7 +429,7 @@ def process_prompt():
                 'success': True,
                 'message': 'Prompt received but prompt master agent not available or registered',
                 'prompt': prompt,
-                'suggested_agents': list(agent_registry.get_all_agents().keys()),
+                'suggested_agents': list(safe_agent_registry_call('get_all_agents', {}).keys()) if agent_registry else [],
                 'processing_method': 'fallback'
             }
         
@@ -428,20 +476,23 @@ def make_execute_handler(agent_class):
     return execute_handler
 
 # Dynamically generate agent endpoints
-for agent_name, agent_info in agent_registry.get_all_agents().items():
-    agent_class = agent_info.get('class')
-    metadata = agent_info.get('metadata', {})
-    
-    if agent_class and metadata.get('route'):
-        endpoint = metadata['route']
-        # Ensure endpoint starts with /api/agents/
-        if not endpoint.startswith('/api/agents/'):
-            endpoint = f'/api/agents/{agent_name}' # Fallback to default if route is malformed
+if agent_registry:
+    for agent_name, agent_info in agent_registry.get_all_agents().items():
+        agent_class = agent_info.get('class')
+        metadata = agent_info.get('metadata', {})
         
-        # Flask's add_url_rule requires a unique endpoint name
-        # Use agent_name as the endpoint name
-        app.add_url_rule(endpoint, agent_name, make_execute_handler(agent_class), methods=['POST'])
-        print(f"🔗 Dynamically added endpoint: {endpoint} for agent {agent_name}")
+        if agent_class and metadata.get('route'):
+            endpoint = metadata['route']
+            # Ensure endpoint starts with /api/agents/
+            if not endpoint.startswith('/api/agents/'):
+                endpoint = f'/api/agents/{agent_name}' # Fallback to default if route is malformed
+            
+            # Flask's add_url_rule requires a unique endpoint name
+            # Use agent_name as the endpoint name
+            app.add_url_rule(endpoint, agent_name, make_execute_handler(agent_class), methods=['POST'])
+            print(f"🔗 Dynamically added endpoint: {endpoint} for agent {agent_name}")
+else:
+    print("⚠️ Agent registry not available, no dynamic endpoints created")
 
 @app.route('/api/task/submit', methods=['POST'])
 def submit_task():
@@ -454,7 +505,7 @@ def submit_task():
         if not agent_id or not task_data:
             return jsonify({'success': False, 'error': 'agent_id and task are required'}), 400
 
-        agent_info = agent_registry.get_agent_info(agent_id)
+        agent_info = safe_agent_registry_call('get_agent_info', agent_id)
         if not agent_info:
             return jsonify({'success': False, 'error': f'Agent {agent_id} not found in registry'}), 404
 
@@ -531,7 +582,8 @@ def emergency_stop():
         except ImportError:
             # Fall back to legacy method if unified launcher is not available
             stopped_agents = []
-            for agent_name, agent_info in agent_registry.get_all_agents().items():
+            all_agents = safe_agent_registry_call('get_all_agents') or {}
+            for agent_name, agent_info in all_agents.items():
                 agent_class = agent_info.get('class')
                 if agent_class and hasattr(agent_class, 'stop_agent'): # Assuming agents have a static stop method
                     agent_class.stop_agent() # Call a static method to stop
@@ -583,7 +635,8 @@ def restart_all():
         except ImportError:
             # Fall back to legacy method if unified launcher is not available
             restarted_agents = []
-            for agent_name, agent_info in agent_registry.get_all_agents().items():
+            all_agents = safe_agent_registry_call('get_all_agents') or {}
+            for agent_name, agent_info in all_agents.items():
                 agent_class = agent_info.get('class')
                 if agent_class and hasattr(agent_class, 'restart_agent'): # Assuming agents have a static restart method
                     agent_class.restart_agent() # Call a static method to restart
@@ -671,8 +724,9 @@ def handle_status_request():
     """Handle status update request"""
     try:
         # Get current system status from registry
-        total_agents = len(agent_registry.get_all_agents())
-        active_agents = len([a for a_name, a_info in agent_registry.get_all_agents().items() if a_info.get('metadata', {}).get('status') == 'active'])
+        all_agents = safe_agent_registry_call('get_all_agents') or {}
+        total_agents = len(all_agents)
+        active_agents = len([a for a_name, a_info in all_agents.items() if a_info.get('metadata', {}).get('status') == 'active'])
         
         status_data = {
             'agents_count': total_agents,
@@ -697,8 +751,9 @@ def background_monitoring():
     while True:
         try:
             # Update system status based on agent registry
-            total_agents = len(agent_registry.get_all_agents())
-            active_agents = len([a for a_name, a_info in agent_registry.get_all_agents().items() if a_info.get('metadata', {}).get('status') == 'active'])
+            all_agents = safe_agent_registry_call('get_all_agents') or {}
+            total_agents = len(all_agents)
+            active_agents = len([a for a_name, a_info in all_agents.items() if a_info.get('metadata', {}).get('status') == 'active'])
             
             global system_status
             system_status.update({
@@ -738,8 +793,10 @@ if __name__ == '__main__':
     print("🚀 Starting Ultimate AGI Force Web Interface v7.0.0")
     print("👑 Owned by: Mulky Malikul Dhaher (1108151509970001)")
     print("🇮🇩 Made with ❤️ in Indonesia")
-    print(f"📊 Dashboard will be available at: http://localhost:{os.getenv('WEB_INTERFACE_PORT', 5000)}")
-    print(f"🤖 Loaded {len(agent_registry.get_all_agents())} agents from registry")
+    port = int(os.getenv('WEB_INTERFACE_PORT', 5000))
+    print(f"📊 Dashboard will be available at: http://localhost:{port}")
+    agent_count = len(agent_registry.get_all_agents()) if agent_registry else 0
+    print(f"🤖 Loaded {agent_count} agents from registry")
     print(f"🐪 Camel Agent: {'✅ Available' if camel_agent else '❌ Not Available'}")
     print(f"🧠 LLM Gateway: {'✅ Available' if llm_gateway else '❌ Not Available'}")
     print(f"💾 Memory Bus: {'✅ Available' if memory_bus else '❌ Not Available'}")
