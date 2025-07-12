@@ -200,6 +200,58 @@ python main.py --web-ui
 9. **💬 WebSocket Server** (`colony/api/websocket.py`) - Komunikasi real-time
 10. **🧩 Fullstack Agent** (`colony/agents/fullstack_agent.py`) - Agen untuk pengembangan fullstack
 
+### 🔄 Alur Sistem
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│                 │     │                 │     │                 │
+│  Web Interface  │◄────┤   API Server    │◄────┤  Agent Registry │
+│  (React + Vite) │     │   (FastAPI)     │     │                 │
+│                 │────►│                 │────►│                 │
+└────────┬────────┘     └────────┬────────┘     └────────┬────────┘
+         │                       │                       │
+         │                       │                       │
+         │                       │                       │
+         │               ┌───────▼───────┐       ┌───────▼───────┐
+         │               │               │       │               │
+         └──────────────►│   WebSocket   │       │  Base Agent   │
+                         │    Server     │       │               │
+                         │               │       │               │
+                         └───────┬───────┘       └───────┬───────┘
+                                 │                       │
+                                 │                       │
+                                 │                       │
+                         ┌───────▼───────┐       ┌───────▼───────┐
+                         │               │       │               │
+                         │ Agent Creator │       │ Specialized   │
+                         │               │       │    Agents     │
+                         │               │       │               │
+                         └───────────────┘       └───────────────┘
+```
+
+### 🔄 Alur Eksekusi
+
+1. **Inisialisasi Sistem**:
+   - Load konfigurasi
+   - Inisialisasi agent registry
+   - Discover dan register agents
+   - Start API server
+   - Start WebSocket server
+   - Start web interface
+
+2. **Eksekusi Agent**:
+   - Client mengirim request ke API
+   - API mendapatkan agent dari registry
+   - Agent dijalankan dengan task yang diberikan
+   - Hasil dikembalikan ke client
+   - Updates dikirim melalui WebSocket
+
+3. **Pembuatan Agent Dinamis**:
+   - Client mengirim request ke Agent Creator
+   - Agent Creator membuat file agent baru
+   - Agent baru diregistrasi ke registry
+   - Agent baru tersedia untuk digunakan
+
 ### 🌐 Web Interface
 
 Interface web modern menyediakan manajemen sistem komprehensif:
@@ -371,6 +423,7 @@ python main.py --web-ui --monitor
 - `system_analysis_report.txt` - Laporan analisis sistem
 
 ### 🔗 Links Penting
+- [System Architecture](docs/SYSTEM_ARCHITECTURE.md)
 - [Agent Development Guide](docs/AGENT_DEVELOPMENT.md)
 - [API Reference](docs/API_REFERENCE.md)
 - [Frontend Guide](docs/FRONTEND_GUIDE.md)
