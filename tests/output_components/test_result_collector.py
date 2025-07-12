@@ -7,8 +7,8 @@ from datetime import datetime
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from src.agents.output_components.result_collector import ResultCollector
-from src.agents.output_components.simulation_provider import SimulationProvider
+from colony.agents.output_components.result_collector import ResultCollector
+from colony.agents.output_components.simulation_provider import SimulationProvider
 
 class TestResultCollector(unittest.TestCase):
     """Test suite for the ResultCollector component."""
@@ -17,7 +17,7 @@ class TestResultCollector(unittest.TestCase):
         """Set up the test environment before each test."""
         self.collector = ResultCollector(use_simulation=True)
         # Patch SimulationProvider to control simulated results
-        self.patcher_simulation_provider = patch('src.agents.output_components.result_collector.SimulationProvider')
+        self.patcher_simulation_provider = patch('colony.agents.output_components.result_collector.SimulationProvider')
         self.MockSimulationProvider = self.patcher_simulation_provider.start()
 
     def tearDown(self):
@@ -30,7 +30,7 @@ class TestResultCollector(unittest.TestCase):
         self.assertFalse(collector_live.use_simulation)
         self.assertTrue(self.collector.use_simulation)
 
-    @patch('src.agents.output_components.result_collector.datetime')
+    @patch('colony.agents.output_components.result_collector.datetime')
     def test_collect_agent_results_with_simulation(self, mock_datetime):
         """Test collecting results with simulation enabled."""
         mock_datetime.now.return_value.isoformat.return_value = "2025-01-01T12:00:00"
@@ -78,7 +78,7 @@ class TestResultCollector(unittest.TestCase):
         self.assertEqual(collected["agent_contributions"]["planner"]["agent_type"], "planner_sim")
         self.assertEqual(collected["agent_contributions"]["agent_base"]["agent_type"], "agent_base_sim")
 
-    @patch('src.agents.output_components.result_collector.datetime')
+    @patch('colony.agents.output_components.result_collector.datetime')
     def test_collect_agent_results_no_simulation(self, mock_datetime):
         """Test collecting results when simulation is disabled (placeholder logic)."""
         mock_datetime.now.return_value.isoformat.return_value = "2025-01-01T12:00:00"
@@ -92,7 +92,7 @@ class TestResultCollector(unittest.TestCase):
         self.assertEqual(collected["agent_contributions"], {}) # Should be empty as no real data collection is implemented
         self.MockSimulationProvider.get_simulation_for.assert_not_called() # Ensure simulation is not used
 
-    @patch('src.agents.output_components.result_collector.datetime')
+    @patch('colony.agents.output_components.result_collector.datetime')
     def test_collect_agent_results_partial_completion(self, mock_datetime):
         """Test collecting results with only some agents completed."""
         mock_datetime.now.return_value.isoformat.return_value = "2025-01-01T12:00:00"
@@ -116,7 +116,7 @@ class TestResultCollector(unittest.TestCase):
         self.assertNotIn("executor", collected["agent_contributions"])
         self.assertEqual(self.MockSimulationProvider.get_simulation_for.call_count, 2)
 
-    @patch('src.agents.output_components.result_collector.datetime')
+    @patch('colony.agents.output_components.result_collector.datetime')
     def test_collect_agent_results_empty_context(self, mock_datetime):
         """Test collecting results with an empty context."""
         mock_datetime.now.return_value.isoformat.return_value = "2025-01-01T12:00:00"
@@ -128,7 +128,7 @@ class TestResultCollector(unittest.TestCase):
         self.assertEqual(collected["workflow_id"], "standalone")
         self.MockSimulationProvider.get_simulation_for.assert_called_once_with('agent_base', task)
 
-    @patch('src.agents.output_components.result_collector.datetime')
+    @patch('colony.agents.output_components.result_collector.datetime')
     def test_collect_agent_results_no_context(self, mock_datetime):
         """Test collecting results with no context key in task."""
         mock_datetime.now.return_value.isoformat.return_value = "2025-01-01T12:00:00"

@@ -7,7 +7,7 @@ from datetime import datetime
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from src.agents.output_components.conflict_resolver import ConflictResolver
+from colony.agents.output_components.conflict_resolver import ConflictResolver
 
 class TestConflictResolver(unittest.TestCase):
     """Test suite for the ConflictResolver component."""
@@ -16,7 +16,7 @@ class TestConflictResolver(unittest.TestCase):
         """Set up the test environment before each test."""
         self.resolver = ConflictResolver()
 
-    @patch('src.agents.output_components.conflict_resolver.datetime')
+    @patch('colony.agents.output_components.conflict_resolver.datetime')
     def test_resolve_conflicts_no_conflicts(self, mock_datetime):
         """Test conflict resolution when no conflicts are present."""
         mock_datetime.now.return_value.isoformat.return_value = "2025-01-01T12:00:00"
@@ -33,7 +33,7 @@ class TestConflictResolver(unittest.TestCase):
         self.assertIn("executor", resolved["unified_results"])
         self.assertEqual(resolved["resolution_timestamp"], "2025-01-01T12:00:00")
 
-    @patch('src.agents.output_components.conflict_resolver.datetime')
+    @patch('colony.agents.output_components.conflict_resolver.datetime')
     def test_resolve_conflicts_timeline_conflict(self, mock_datetime):
         """Test conflict resolution with timeline conflicts."""
         mock_datetime.now.return_value.isoformat.return_value = "2025-01-01T12:00:00"
@@ -50,7 +50,7 @@ class TestConflictResolver(unittest.TestCase):
         self.assertIn("planner", resolved["conflict_resolutions"][0]["affected_agents"])
         self.assertIn("executor", resolved["conflict_resolutions"][0]["affected_agents"])
 
-    @patch('src.agents.output_components.conflict_resolver.datetime')
+    @patch('colony.agents.output_components.conflict_resolver.datetime')
     def test_resolve_conflicts_resource_conflict(self, mock_datetime):
         """Test conflict resolution with resource conflicts."""
         mock_datetime.now.return_value.isoformat.return_value = "2025-01-01T12:00:00"
@@ -67,7 +67,7 @@ class TestConflictResolver(unittest.TestCase):
         self.assertIn("planner", resolved["conflict_resolutions"][0]["affected_agents"])
         self.assertIn("executor", resolved["conflict_resolutions"][0]["affected_agents"])
 
-    @patch('src.agents.output_components.conflict_resolver.datetime')
+    @patch('colony.agents.output_components.conflict_resolver.datetime')
     def test_resolve_conflicts_both_conflicts(self, mock_datetime):
         """Test conflict resolution with both timeline and resource conflicts."""
         mock_datetime.now.return_value.isoformat.return_value = "2025-01-01T12:00:00"
@@ -95,7 +95,7 @@ class TestConflictResolver(unittest.TestCase):
         self.assertEqual(self.resolver._detect_conflicts(contributions, 'resources'), [])
         self.assertEqual(self.resolver._detect_conflicts({"agent1": {"timeline": "T1"}}, 'timeline'), []) # Only one agent
 
-    @patch('src.agents.output_components.conflict_resolver.datetime')
+    @patch('colony.agents.output_components.conflict_resolver.datetime')
     def test_process_agent_contribution(self, mock_datetime):
         """Test _process_agent_contribution method."""
         mock_datetime.now.return_value.isoformat.return_value = "2025-01-01T12:00:00"

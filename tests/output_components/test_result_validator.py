@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from src.agents.output_components.result_validator import ResultValidator
+from colony.agents.output_components.result_validator import ResultValidator
 
 class TestResultValidator(unittest.TestCase):
     """Test suite for the ResultValidator component."""

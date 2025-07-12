@@ -6,8 +6,8 @@ from unittest.mock import patch, MagicMock
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.agents.output_handler import OutputHandler
-from src.core.base_agent import BaseAgent
+from colony.agents.output_handler import OutputHandler
+from colony.core.base_agent import BaseAgent
 
 class TestOutputHandlerRefactored(unittest.TestCase):
     """Test suite for the refactored OutputHandler agent."""
@@ -19,11 +19,11 @@ class TestOutputHandlerRefactored(unittest.TestCase):
             f.write("output_handler:\n  prompts:\n    some_prompt: 'Test prompt'\n")
 
         # We patch the components that OutputHandler depends on
-        self.patcher_collector = patch('src.agents.output_handler.ResultCollector')
-        self.patcher_validator = patch('src.agents.output_handler.ResultValidator')
-        self.patcher_resolver = patch('src.agents.output_handler.ConflictResolver')
-        self.patcher_generator = patch('src.agents.output_handler.ReportGenerator')
-        self.patcher_store = patch('src.agents.output_handler.OutputStore')
+        self.patcher_collector = patch('colony.agents.output_handler.ResultCollector')
+        self.patcher_validator = patch('colony.agents.output_handler.ResultValidator')
+        self.patcher_resolver = patch('colony.agents.output_handler.ConflictResolver')
+        self.patcher_generator = patch('colony.agents.output_handler.ReportGenerator')
+        self.patcher_store = patch('colony.agents.output_handler.OutputStore')
 
         self.MockResultCollector = self.patcher_collector.start()
         self.MockResultValidator = self.patcher_validator.start()

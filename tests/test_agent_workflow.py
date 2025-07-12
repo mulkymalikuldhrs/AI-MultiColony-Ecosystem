@@ -3,16 +3,16 @@ import json
 from unittest.mock import MagicMock, patch
 
 # Import the agents
-from src.agents.agent_base import AgentBase
-from src.agents.agent_03_planner import Agent03Planner
-from src.agents.agent_04_executor import Agent04Executor
-from src.agents.agent_05_designer import Agent05Designer
-from src.agents.agent_06_specialist import Agent06Specialist
-from src.agents.output_handler import OutputHandler
+from colony.agents.agent_base import AgentBase
+from colony.agents.agent_03_planner import Agent03Planner
+from colony.agents.agent_04_executor import Agent04Executor
+from colony.agents.agent_05_designer import Agent05Designer
+from colony.agents.agent_06_specialist import Agent06Specialist
+from colony.agents.output_handler import OutputHandler
 
 class TestAgentWorkflow(unittest.TestCase):
 
-    @patch('src.core.base_agent.BaseAgent._load_config')
+    @patch('colony.core.base_agent.BaseAgent._load_config')
     def setUp(self, mock_load_config):
         mock_load_config.return_value = {} # Mock the config loading to return an empty dict
         
