@@ -137,6 +137,7 @@
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/terminal.js') }}"></script>
 <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script src="{{ url_for('static', filename='js/launcher.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize Mermaid
@@ -199,6 +200,342 @@
                 memory: Math.floor(Math.random() * 100)
             });
         }, 2000);
+        
+        // Initialize launcher integration
+        initLauncherIntegration();
+        
+        // Add event listeners for emergency stop and restart buttons
+        document.getElementById('emergency-stop').addEventListener('click', async function() {
+            if (confirm('Are you sure you want to stop all components?')) {
+                const result = await stopAll();
+                if (result.success) {
+                    showNotification('Emergency stop initiated for all components', 'success');
+                } else {
+                    showNotification(`Emergency stop failed: ${result.error}`, 'error');
+                }
+            }
+        });
+        
+        document.getElementById('restart-all').addEventListener('click', async function() {
+            if (confirm('Are you sure you want to restart all components?')) {
+                // First stop all
+                await stopAll();
+                // Then start all
+                setTimeout(async () => {
+                    const result = await startAll();
+                    if (result.success) {
+                        showNotification('Restart initiated for all components', 'success');
+                    } else {
+                        showNotification(`Restart failed: ${result.error}`, 'error');
+                    }
+                }, 1000);
+            }
+        });
+        
+        // Update agent groups with data from launcher
+        async function updateAgentGroups() {
+            const status = await getLauncherStatus();
+            if (!status) return;
+            
+            const agentGroups = document.getElementById('agent-groups');
+            if (!agentGroups) return;
+            
+            // Clear existing content
+            agentGroups.innerHTML = '';
+            
+            // Create agent groups
+            const agents = status.components?.agents?.statuses || {};
+            
+            // Group 1: Core Agents
+            const coreAgents = Object.entries(agents).filter(([name]) => 
+                name.includes('core') || name.includes('base') || name.includes('system')
+            );
+            
+            // Group 2: Specialized Agents
+            const specializedAgents = Object.entries(agents).filter(([name]) => 
+                !name.includes('core') && !name.includes('base') && !name.includes('system')
+            );
+            
+            // Create core agents group
+            const coreGroup = document.createElement('div');
+            coreGroup.className = 'mb-6';
+            coreGroup.innerHTML = `
+                <h3 class="text-sm font-semibold mb-2 text-gray-400 uppercase">Core Agents</h3>
+                <div class="space-y-2 core-agents-list"></div>
+            `;
+            
+            // Add core agents
+            const coreList = coreGroup.querySelector('.core-agents-list');
+            coreAgents.forEach(([name, status]) => {
+                const agentItem = document.createElement('div');
+                agentItem.className = 'bg-slate-700 hover:bg-slate-600 rounded-lg p-3 flex items-center justify-between';
+                
+                const statusColor = status.running ? 'bg-green-500' : 'bg-red-500';
+                
+                agentItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 ${statusColor} rounded-full mr-2"></div>
+                        <span>${name}</span>
+                    </div>
+                    <div class="flex space-x-1">
+                        <button class="start-agent-btn bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs" data-agent="${name}">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="stop-agent-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs" data-agent="${name}">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+                `;
+                
+                coreList.appendChild(agentItem);
+            });
+            
+            // Create specialized agents group
+            const specializedGroup = document.createElement('div');
+            specializedGroup.className = 'mb-6';
+            specializedGroup.innerHTML = `
+                <h3 class="text-sm font-semibold mb-2 text-gray-400 uppercase">Specialized Agents</h3>
+                <div class="space-y-2 specialized-agents-list"></div>
+            `;
+            
+            // Add specialized agents
+            const specializedList = specializedGroup.querySelector('.specialized-agents-list');
+            specializedAgents.forEach(([name, status]) => {
+                const agentItem = document.createElement('div');
+                agentItem.className = 'bg-slate-700 hover:bg-slate-600 rounded-lg p-3 flex items-center justify-between';
+                
+                const statusColor = status.running ? 'bg-green-500' : 'bg-red-500';
+                
+                agentItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 ${statusColor} rounded-full mr-2"></div>
+                        <span>${name}</span>
+                    </div>
+                    <div class="flex space-x-1">
+                        <button class="start-agent-btn bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs" data-agent="${name}">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="stop-agent-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs" data-agent="${name}">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+                `;
+                
+                specializedList.appendChild(agentItem);
+            });
+            
+            // Add groups to container
+            agentGroups.appendChild(coreGroup);
+            agentGroups.appendChild(specializedGroup);
+            
+            // Add engines group
+            const enginesGroup = document.createElement('div');
+            enginesGroup.className = 'mb-6';
+            enginesGroup.innerHTML = `
+                <h3 class="text-sm font-semibold mb-2 text-gray-400 uppercase">Autonomous Engines</h3>
+                <div class="space-y-2 engines-list"></div>
+            `;
+            
+            // Add engines
+            const enginesList = enginesGroup.querySelector('.engines-list');
+            const engines = status.components?.engines?.statuses || {};
+            
+            Object.entries(engines).forEach(([name, status]) => {
+                const engineItem = document.createElement('div');
+                engineItem.className = 'bg-slate-700 hover:bg-slate-600 rounded-lg p-3 flex items-center justify-between';
+                
+                const statusColor = status.running ? 'bg-green-500' : 'bg-red-500';
+                
+                engineItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 ${statusColor} rounded-full mr-2"></div>
+                        <span>${name.replace('_', ' ').toLowerCase()}</span>
+                    </div>
+                    <div class="flex space-x-1">
+                        <button class="start-engine-btn bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs" data-engine="${name}">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="stop-engine-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs" data-engine="${name}">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+                `;
+                
+                enginesList.appendChild(engineItem);
+            });
+            
+            // Add engines group to container
+            agentGroups.appendChild(enginesGroup);
+            
+            // Add event listeners for agent buttons
+            document.querySelectorAll('.start-agent-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const agentName = btn.dataset.agent;
+                    const result = await startAgent(agentName);
+                    
+                    if (result.success) {
+                        showNotification(`Started agent ${agentName}`, 'success');
+                    } else {
+                        showNotification(`Failed to start agent ${agentName}: ${result.error}`, 'error');
+                    }
+                    
+                    // Refresh status after a short delay
+                    setTimeout(updateAgentGroups, 1000);
+                });
+            });
+            
+            document.querySelectorAll('.stop-agent-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const agentName = btn.dataset.agent;
+                    const result = await stopAgent(agentName);
+                    
+                    if (result.success) {
+                        showNotification(`Stopped agent ${agentName}`, 'success');
+                    } else {
+                        showNotification(`Failed to stop agent ${agentName}: ${result.error}`, 'error');
+                    }
+                    
+                    // Refresh status after a short delay
+                    setTimeout(updateAgentGroups, 1000);
+                });
+            });
+            
+            // Add event listeners for engine buttons
+            document.querySelectorAll('.start-engine-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const engineName = btn.dataset.engine;
+                    const result = await startEngine(engineName);
+                    
+                    if (result.success) {
+                        showNotification(`Started engine ${engineName}`, 'success');
+                    } else {
+                        showNotification(`Failed to start engine ${engineName}: ${result.error}`, 'error');
+                    }
+                    
+                    // Refresh status after a short delay
+                    setTimeout(updateAgentGroups, 1000);
+                });
+            });
+            
+            document.querySelectorAll('.stop-engine-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const engineName = btn.dataset.engine;
+                    const result = await stopEngine(engineName);
+                    
+                    if (result.success) {
+                        showNotification(`Stopped engine ${engineName}`, 'success');
+                    } else {
+                        showNotification(`Failed to stop engine ${engineName}: ${result.error}`, 'error');
+                    }
+                    
+                    // Refresh status after a short delay
+                    setTimeout(updateAgentGroups, 1000);
+                });
+            });
+        }
+        
+        // Initial update
+        updateAgentGroups();
+        
+        // Update every 10 seconds
+        setInterval(updateAgentGroups, 10000);
+        
+        // Update metrics from launcher status
+        async function updateMetrics() {
+            const status = await getLauncherStatus();
+            if (!status) return;
+            
+            // Update active agents count
+            const activeAgentsEl = document.getElementById('active-agents');
+            if (activeAgentsEl) {
+                activeAgentsEl.textContent = status.components?.agents?.running || 0;
+            }
+            
+            // Update other metrics if needed
+        }
+        
+        // Initial update
+        updateMetrics();
+        
+        // Update every 10 seconds
+        setInterval(updateMetrics, 10000);
+        
+        // Add log entries from launcher
+        function addLogEntry(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            if (!logContainer) return;
+            
+            const entry = document.createElement('div');
+            entry.className = 'mb-1';
+            
+            // Set color based on type
+            let color;
+            switch (type) {
+                case 'success':
+                    color = 'text-green-400';
+                    break;
+                case 'error':
+                    color = 'text-red-400';
+                    break;
+                case 'warning':
+                    color = 'text-yellow-400';
+                    break;
+                case 'info':
+                default:
+                    color = 'text-blue-400';
+                    break;
+            }
+            
+            // Add timestamp
+            const timestamp = new Date().toLocaleTimeString();
+            
+            entry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> <span class="${color}">${message}</span>`;
+            
+            // Add to container
+            logContainer.appendChild(entry);
+            
+            // Scroll to bottom
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Limit entries
+            if (logContainer.children.length > 100) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        // Add some initial log entries
+        addLogEntry('System initialized', 'success');
+        addLogEntry('Connected to launcher', 'info');
+        addLogEntry('Loading agent registry...', 'info');
+        
+        // Listen for socket.io events if available
+        if (typeof io !== 'undefined') {
+            const socket = io();
+            
+            socket.on('connect', () => {
+                addLogEntry('Connected to server', 'success');
+                
+                // Join system updates room
+                socket.emit('join', 'system_updates');
+            });
+            
+            socket.on('disconnect', () => {
+                addLogEntry('Disconnected from server', 'error');
+            });
+            
+            socket.on('system_log', (data) => {
+                addLogEntry(data.message, 'info');
+            });
+            
+            socket.on('system_update', (data) => {
+                // Update UI with system status
+                updateMetrics();
+                updateAgentGroups();
+                
+                // Add log entry
+                addLogEntry(`System update: ${data.status}`, 'info');
+            });
+        }
     });
 </script>
 {% endblock %}
