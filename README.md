@@ -103,12 +103,18 @@ git clone https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git
 cd AI-MultiColony-Ecosystem
 
 # 2. Install core dependencies (ENHANCED)
-pip install flask flask-socketio flask-cors pyyaml requests aiofiles
+pip install flask flask-socketio flask-cors fastapi uvicorn pyyaml requests aiofiles
 
-# 3. Launch DYNAMIC INTERACTIVE INTERFACE
+# 3. Launch Backend API Server
 python main.py --web-ui
+# Backend API will be available at http://localhost:8080
 
-# 4. Access the REVOLUTIONARY WEB INTERFACE
+# 4. Launch Frontend UI (in a separate terminal)
+cd web-interface/react-ui
+npm install
+npm run dev
+
+# 5. Access the REVOLUTIONARY WEB INTERFACE
 # 🚀 Dynamic Dashboard: http://localhost:12000
 # 💬 AI Chatbot: http://localhost:12000/chat
 # 🤖 Agent Creator: http://localhost:12000/agent-creator
