@@ -157,7 +157,7 @@ def bootstrap_systems():
     # Initialize LLM providers
     llm_gateway = initialize_llm_providers()
     
-    # Set environment variables if needed
+    # Set environment variables if needed (don't override if already set)
     if "WEB_INTERFACE_PORT" not in os.environ:
         os.environ["WEB_INTERFACE_PORT"] = "8080"
     

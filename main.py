@@ -66,9 +66,11 @@ def run_web_ui(with_background=False):
     os.makedirs("data", exist_ok=True)
     os.makedirs("agent_output", exist_ok=True)
     
-    # Set environment variables
-    os.environ["WEB_INTERFACE_PORT"] = "8080"
-    os.environ["WEB_INTERFACE_HOST"] = "0.0.0.0"
+    # Set environment variables (only if not already set)
+    if "WEB_INTERFACE_PORT" not in os.environ:
+        os.environ["WEB_INTERFACE_PORT"] = "8080"
+    if "WEB_INTERFACE_HOST" not in os.environ:
+        os.environ["WEB_INTERFACE_HOST"] = "0.0.0.0"
     
     # Bootstrap the system
     try:
@@ -89,13 +91,16 @@ def run_web_ui(with_background=False):
     
     # Start the web UI
     try:
+        port = int(os.getenv('WEB_INTERFACE_PORT', 8080))
+        host = os.getenv('WEB_INTERFACE_HOST', '0.0.0.0')
+        
         print(f"{Colors.GREEN}🌐 Web UI will be available at:{Colors.ENDC}")
-        print(f"{Colors.YELLOW}   http://localhost:8080{Colors.ENDC}")
-        print(f"{Colors.YELLOW}   http://YOUR_IP:8080{Colors.ENDC}")
+        print(f"{Colors.YELLOW}   http://localhost:{port}{Colors.ENDC}")
+        print(f"{Colors.YELLOW}   http://YOUR_IP:{port}{Colors.ENDC}")
         
         # Import and run the Flask app
         from colony.api.app import app, socketio
-        socketio.run(app, host="0.0.0.0", port=8080, debug=False, allow_unsafe_werkzeug=True)
+        socketio.run(app, host=host, port=port, debug=False, allow_unsafe_werkzeug=True)
     except Exception as e:
         print(f"{Colors.RED}❌ Error starting web UI: {e}{Colors.ENDC}")
         print(f"{Colors.YELLOW}⚠️ Attempting to start web UI with subprocess...{Colors.ENDC}")
