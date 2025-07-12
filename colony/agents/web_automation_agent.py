@@ -13,7 +13,7 @@ import re
 from urllib.parse import urlparse
 
 from ..core.base_agent import BaseAgent
-from ..core.credential_manager import credential_manager
+from .credential_manager import credential_manager
 
 try:
     from selenium import webdriver
