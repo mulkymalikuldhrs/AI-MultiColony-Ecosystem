@@ -1,10 +1,10 @@
 {
-  "version": "7.0.0-ultimate",
-  "release_name": "Ultimate AGI Force",
-  "release_date": "2025-01-02",
+  "version": "7.3.0-ultimate",
+  "release_name": "Ultimate AGI Force - Unified Launcher",
+  "release_date": "2025-07-12",
   "branch": "stable",
-  "previous_version": "5.0.0-ultimate",
-  "build_number": 600001,
+  "previous_version": "7.2.0-ultimate",
+  "build_number": 730001,
   "language_focus": "Bahasa Indonesia",
   "target_market": "Indonesia",
   
