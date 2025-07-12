@@ -127,12 +127,12 @@ system_status = {
 @app.route('/')
 def index():
     """Main dashboard"""
-    return render_template('enhanced_index.html')
+    return render_template('dynamic_dashboard.html')
 
 @app.route('/dashboard')
 def dashboard():
     """Ultimate AGI Force Dashboard"""
-    return render_template('dashboard.html')
+    return render_template('dynamic_dashboard.html')
 
 @app.route('/agents')
 def agents_page():
@@ -810,3 +810,254 @@ if __name__ == '__main__':
     host = os.getenv('WEB_INTERFACE_HOST', '0.0.0.0')
     
     socketio.run(app, host=host, port=port, debug=False, allow_unsafe_werkzeug=True)
+
+# ============================================================================
+# NEW DYNAMIC DASHBOARD API ENDPOINTS
+# ============================================================================
+
+# Chatbot API endpoints
+@app.route('/api/chat/message', methods=['POST'])
+def chat_message():
+    """Process chat message"""
+    try:
+        data = request.get_json()
+        message = data.get('message', '')
+        session_id = data.get('session_id', 'default')
+        user_id = data.get('user_id', 'anonymous')
+        
+        # Import chatbot agent
+        try:
+            from colony.agents.chatbot_agent import chatbot_agent
+            
+            # Process message asynchronously
+            import asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            result = loop.run_until_complete(
+                chatbot_agent.process_message(message, session_id, user_id)
+            )
+            
+            loop.close()
+            
+            return jsonify(result)
+            
+        except ImportError:
+            return jsonify({
+                'success': False,
+                'error': 'Chatbot agent not available',
+                'response': 'Sorry, the chatbot is currently unavailable.'
+            })
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'response': 'Sorry, I encountered an error processing your message.'
+        }), 500
+
+@app.route('/api/chat/history/<session_id>')
+def chat_history(session_id):
+    """Get chat history for session"""
+    try:
+        from colony.agents.chatbot_agent import chatbot_agent
+        
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        history = loop.run_until_complete(
+            chatbot_agent.get_conversation_history(session_id)
+        )
+        
+        loop.close()
+        
+        return jsonify({
+            'success': True,
+            'history': history
+        })
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Chatbot agent not available',
+            'history': []
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/chat/clear/<session_id>', methods=['POST'])
+def clear_chat(session_id):
+    """Clear chat history"""
+    try:
+        from colony.agents.chatbot_agent import chatbot_agent
+        
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        result = loop.run_until_complete(
+            chatbot_agent.clear_conversation(session_id)
+        )
+        
+        loop.close()
+        
+        return jsonify(result)
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Chatbot agent not available'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# Agent Creator API endpoints
+@app.route('/api/agents/create', methods=['POST'])
+def create_agent():
+    """Create new agent"""
+    try:
+        data = request.get_json()
+        
+        # Import enhanced agent creator
+        try:
+            from colony.agents.enhanced_agent_creator import enhanced_agent_creator
+            
+            import asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            result = loop.run_until_complete(
+                enhanced_agent_creator.create_agent(data)
+            )
+            
+            loop.close()
+            
+            # Emit agent update via SocketIO
+            if result.get('success'):
+                socketio.emit('agent_created', {
+                    'agent_id': result.get('agent_id'),
+                    'message': f"Agent {data.get('name', 'Unknown')} created successfully"
+                })
+            
+            return jsonify(result)
+            
+        except ImportError:
+            return jsonify({
+                'success': False,
+                'error': 'Enhanced Agent Creator not available'
+            })
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/agents/templates')
+def get_agent_templates():
+    """Get available agent templates"""
+    try:
+        from colony.agents.enhanced_agent_creator import enhanced_agent_creator
+        
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        templates = loop.run_until_complete(
+            enhanced_agent_creator.get_agent_templates()
+        )
+        
+        loop.close()
+        
+        return jsonify({
+            'success': True,
+            'templates': templates
+        })
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Enhanced Agent Creator not available',
+            'templates': {}
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/agents/created')
+def get_created_agents():
+    """Get list of created agents"""
+    try:
+        from colony.agents.enhanced_agent_creator import enhanced_agent_creator
+        
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        agents = loop.run_until_complete(
+            enhanced_agent_creator.list_created_agents()
+        )
+        
+        loop.close()
+        
+        return jsonify({
+            'success': True,
+            'agents': agents
+        })
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Enhanced Agent Creator not available',
+            'agents': []
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/agents/delete/<agent_id>', methods=['DELETE'])
+def delete_agent(agent_id):
+    """Delete created agent"""
+    try:
+        from colony.agents.enhanced_agent_creator import enhanced_agent_creator
+        
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        result = loop.run_until_complete(
+            enhanced_agent_creator.delete_agent(agent_id)
+        )
+        
+        loop.close()
+        
+        # Emit agent update via SocketIO
+        if result.get('success'):
+            socketio.emit('agent_deleted', {
+                'agent_id': agent_id,
+                'message': f"Agent {agent_id} deleted successfully"
+            })
+        
+        return jsonify(result)
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Enhanced Agent Creator not available'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
