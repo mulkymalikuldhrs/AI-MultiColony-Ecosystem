@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI MultiColony Ecosystem - Dynamic Dashboard</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dynamic.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- PWA Meta -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2>🚀 AI MultiColony Ecosystem</h2>
+            <p>Initializing dynamic interface...</p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div id="app" class="app-container" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <i class="fas fa-robot"></i>
+                    <span>AI MultiColony</span>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="text" id="global-search" placeholder="Search agents, commands, or ask questions...">
+                    <button id="voice-search" class="voice-btn">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="system-status" id="system-status">
+                    <span class="status-indicator online"></span>
+                    <span>Online</span>
+                </div>
+                <button id="notifications-btn" class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-count">0</span>
+                </button>
+                <div class="user-menu">
+                    <img src="{{ url_for('static', filename='icons/icon-32x32.png') }}" alt="User">
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h3>Dashboard</h3>
+                    <a href="#dashboard" class="nav-item active" data-view="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="#agents" class="nav-item" data-view="agents">
+                        <i class="fas fa-robot"></i>
+                        <span>Agents</span>
+                        <span class="badge" id="agents-count">0</span>
+                    </a>
+                    <a href="#chat" class="nav-item" data-view="chat">
+                        <i class="fas fa-comments"></i>
+                        <span>AI Chat</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>Management</h3>
+                    <a href="#agent-creator" class="nav-item" data-view="agent-creator">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Create Agent</span>
+                    </a>
+                    <a href="#workflows" class="nav-item" data-view="workflows">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>Workflows</span>
+                    </a>
+                    <a href="#monitoring" class="nav-item" data-view="monitoring">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Monitoring</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>System</h3>
+                    <a href="#settings" class="nav-item" data-view="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#logs" class="nav-item" data-view="logs">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Logs</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h3>Quick Actions</h3>
+                <button class="quick-btn" id="emergency-stop">
+                    <i class="fas fa-stop-circle"></i>
+                    Emergency Stop
+                </button>
+                <button class="quick-btn" id="system-optimize">
+                    <i class="fas fa-rocket"></i>
+                    Optimize System
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard View -->
+            <div id="dashboard-view" class="view active">
+                <div class="view-header">
+                    <h1>System Overview</h1>
+                    <div class="view-actions">
+                        <button class="btn btn-primary" id="refresh-dashboard">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="active-agents-count">0</h3>
+                            <p>Active Agents</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="running-tasks-count">0</h3>
+                            <p>Running Tasks</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="system-performance">98%</h3>
+                            <p>Performance</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="system-uptime">0h 0m</h3>
+                            <p>Uptime</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Agent Grid -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Agent Network</h2>
+                        <button class="btn btn-secondary" id="add-agent-btn">
+                            <i class="fas fa-plus"></i>
+                            Add Agent
+                        </button>
+                    </div>
+                    <div id="agents-grid" class="agents-grid">
+                        <!-- Agents will be loaded dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Real-time Activity -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Real-time Activity</h2>
+                        <button class="btn btn-secondary" id="clear-activity">
+                            <i class="fas fa-trash"></i>
+                            Clear
+                        </button>
+                    </div>
+                    <div id="activity-feed" class="activity-feed">
+                        <!-- Activity will be loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agents View -->
+            <div id="agents-view" class="view">
+                <div class="view-header">
+                    <h1>Agent Management</h1>
+                    <div class="view-actions">
+                        <button class="btn btn-primary" id="create-new-agent">
+                            <i class="fas fa-plus"></i>
+                            Create Agent
+                        </button>
+                        <button class="btn btn-secondary" id="import-agent">
+                            <i class="fas fa-upload"></i>
+                            Import
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Agent Filters -->
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="agent-status-filter">
+                            <option value="all">All</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="error">Error</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Category:</label>
+                        <select id="agent-category-filter">
+                            <option value="all">All Categories</option>
+                            <option value="core">Core</option>
+                            <option value="development">Development</option>
+                            <option value="financial">Financial</option>
+                            <option value="creative">Creative</option>
+                            <option value="security">Security</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <input type="text" id="agent-search" placeholder="Search agents...">
+                    </div>
+                </div>
+                
+                <!-- Agents List -->
+                <div id="agents-list" class="agents-list">
+                    <!-- Agents will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Chat View -->
+            <div id="chat-view" class="view">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h2>AI Assistant</h2>
+                        <div class="chat-actions">
+                            <button id="clear-chat" class="btn btn-secondary">
+                                <i class="fas fa-trash"></i>
+                                Clear
+                            </button>
+                            <button id="export-chat" class="btn btn-secondary">
+                                <i class="fas fa-download"></i>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="message bot-message">
+                            <div class="message-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="message-content">
+                                <p>Hello! I'm your AI assistant. How can I help you manage the MultiColony system today?</p>
+                                <span class="message-time">Just now</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <div class="chat-input">
+                            <input type="text" id="chat-message-input" placeholder="Type your message or command...">
+                            <button id="send-message" class="send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                            <button id="voice-input" class="voice-btn">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                        <div class="quick-commands">
+                            <button class="quick-command" data-command="list agents">List Agents</button>
+                            <button class="quick-command" data-command="system status">System Status</button>
+                            <button class="quick-command" data-command="help">Help</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Creator View -->
+            <div id="agent-creator-view" class="view">
+                <div class="view-header">
+                    <h1>Create New Agent</h1>
+                    <div class="view-actions">
+                        <button class="btn btn-secondary" id="load-template">
+                            <i class="fas fa-file-import"></i>
+                            Load Template
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="creator-container">
+                    <div class="creator-steps">
+                        <div class="step active" data-step="1">
+                            <span class="step-number">1</span>
+                            <span class="step-title">Basic Info</span>
+                        </div>
+                        <div class="step" data-step="2">
+                            <span class="step-number">2</span>
+                            <span class="step-title">Capabilities</span>
+                        </div>
+                        <div class="step" data-step="3">
+                            <span class="step-number">3</span>
+                            <span class="step-title">Configuration</span>
+                        </div>
+                        <div class="step" data-step="4">
+                            <span class="step-number">4</span>
+                            <span class="step-title">Review</span>
+                        </div>
+                    </div>
+                    
+                    <div class="creator-content">
+                        <!-- Step 1: Basic Info -->
+                        <div id="step-1" class="step-content active">
+                            <h3>Agent Basic Information</h3>
+                            <div class="form-group">
+                                <label for="agent-name">Agent Name</label>
+                                <input type="text" id="agent-name" placeholder="e.g., Data Processing Agent">
+                            </div>
+                            <div class="form-group">
+                                <label for="agent-id">Agent ID</label>
+                                <input type="text" id="agent-id" placeholder="e.g., data_processing_agent">
+                            </div>
+                            <div class="form-group">
+                                <label for="agent-description">Description</label>
+                                <textarea id="agent-description" placeholder="Describe what this agent does..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="agent-template">Template</label>
+                                <select id="agent-template">
+                                    <option value="basic">Basic Agent</option>
+                                    <option value="advanced">Advanced Agent</option>
+                                    <option value="autonomous">Autonomous Agent</option>
+                                    <option value="specialized">Specialized Agent</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2: Capabilities -->
+                        <div id="step-2" class="step-content">
+                            <h3>Agent Capabilities</h3>
+                            <div class="capabilities-grid">
+                                <!-- Capabilities will be loaded dynamically -->
+                            </div>
+                            <div class="custom-capability">
+                                <h4>Add Custom Capability</h4>
+                                <div class="form-group">
+                                    <input type="text" id="custom-capability-name" placeholder="Capability name">
+                                    <button id="add-capability" class="btn btn-primary">Add</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3: Configuration -->
+                        <div id="step-3" class="step-content">
+                            <h3>Agent Configuration</h3>
+                            <div class="config-section">
+                                <h4>Runtime Settings</h4>
+                                <div class="form-group">
+                                    <label>
+                                        <input type="checkbox" id="auto-start"> Auto-start agent
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label>
+                                        <input type="checkbox" id="auto-retry"> Enable auto-retry
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="max-retries">Max Retries</label>
+                                    <input type="number" id="max-retries" value="3" min="0" max="10">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 4: Review -->
+                        <div id="step-4" class="step-content">
+                            <h3>Review & Create</h3>
+                            <div id="agent-preview" class="agent-preview">
+                                <!-- Preview will be generated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="creator-actions">
+                        <button id="prev-step" class="btn btn-secondary" disabled>Previous</button>
+                        <button id="next-step" class="btn btn-primary">Next</button>
+                        <button id="create-agent" class="btn btn-success" style="display: none;">Create Agent</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other views will be added here -->
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="agent-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Agent Details</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close">Close</button>
+                <button class="btn btn-primary" id="modal-action">Action</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notifications" class="notifications-container">
+        <!-- Notifications will be added dynamically -->
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/dynamic-dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/agent-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chat-interface.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/agent-creator.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/voice-interface.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/real-time.js') }}"></script>
+</body>
+</html>
