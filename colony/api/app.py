@@ -67,9 +67,18 @@ if camel_agent:
 else:
     print("⚠️ Camel Agent not found in registry. Ensure it's registered.")
 
+# Create Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'agentic-ai-system-secret-key-indonesia')
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+# Import and register launcher API blueprint
+try:
+    from colony.api.launcher_api import launcher_api
+    app.register_blueprint(launcher_api, url_prefix='/api/launcher')
+    print("✅ Launcher API registered")
+except ImportError as e:
+    print(f"⚠️ Could not import launcher API: {e}")
 
 # Global system status
 system_status = {
@@ -499,26 +508,48 @@ def submit_task():
 def emergency_stop():
     """Emergency stop all agents by sending a stop signal to each registered agent."""
     try:
-        stopped_agents = []
-        for agent_name, agent_info in agent_registry.get_all_agents().items():
-            agent_class = agent_info.get('class')
-            if agent_class and hasattr(agent_class, 'stop_agent'): # Assuming agents have a static stop method
-                agent_class.stop_agent() # Call a static method to stop
-                stopped_agents.append(agent_name)
-            elif agent_class: # If not static, try to get instance and call stop
-                try:
-                    agent_instance = agent_class()
-                    if hasattr(agent_instance, 'stop'): # Assuming an instance method 'stop'
-                        agent_instance.stop()
-                        stopped_agents.append(agent_name)
-                except Exception as inst_e:
-                    print(f"⚠️ Could not stop instance of {agent_name}: {inst_e}")
+        # Try to use unified launcher if available
+        try:
+            from colony.core.unified_launcher import stop_all
+            
+            # Stop all components (web UI, agents, engines)
+            results = stop_all()
+            
+            # Count stopped agents
+            stopped_count = sum(1 for agent_name, result in results.get('agents', {}).items() if result)
+            
+            return jsonify({
+                'success': True,
+                'message': f'Emergency stop initiated for {stopped_count} agents via unified launcher',
+                'stopped_agents': [agent_name for agent_name, result in results.get('agents', {}).items() if result],
+                'additional_components': {
+                    'web_ui': results.get('web_ui', False),
+                    'engines': sum(1 for result in results.get('engines', {}).values() if result)
+                }
+            })
         
-        return jsonify({
-            'success': True,
-            'message': f'Emergency stop initiated for {len(stopped_agents)} agents',
-            'stopped_agents': stopped_agents
-        })
+        except ImportError:
+            # Fall back to legacy method if unified launcher is not available
+            stopped_agents = []
+            for agent_name, agent_info in agent_registry.get_all_agents().items():
+                agent_class = agent_info.get('class')
+                if agent_class and hasattr(agent_class, 'stop_agent'): # Assuming agents have a static stop method
+                    agent_class.stop_agent() # Call a static method to stop
+                    stopped_agents.append(agent_name)
+                elif agent_class: # If not static, try to get instance and call stop
+                    try:
+                        agent_instance = agent_class()
+                        if hasattr(agent_instance, 'stop'): # Assuming an instance method 'stop'
+                            agent_instance.stop()
+                            stopped_agents.append(agent_name)
+                    except Exception as inst_e:
+                        print(f"⚠️ Could not stop instance of {agent_name}: {inst_e}")
+            
+            return jsonify({
+                'success': True,
+                'message': f'Emergency stop initiated for {len(stopped_agents)} agents',
+                'stopped_agents': stopped_agents
+            })
         
     except Exception as e:
         return jsonify({
@@ -530,24 +561,45 @@ def emergency_stop():
 def restart_all():
     """Restart all agents by sending a restart signal to each registered agent."""
     try:
-        restarted_agents = []
-        for agent_name, agent_info in agent_registry.get_all_agents().items():
-            agent_class = agent_info.get('class')
-            if agent_class and hasattr(agent_class, 'restart_agent'): # Assuming agents have a static restart method
-                agent_class.restart_agent() # Call a static method to restart
-                restarted_agents.append(agent_name)
-            elif agent_class: # If not static, try to get instance and call restart
-                try:
-                    agent_instance = agent_class()
-                    if hasattr(agent_instance, 'restart'): # Assuming an instance method 'restart'
-                        agent_instance.restart()
-                        restarted_agents.append(agent_name)
-                except Exception as inst_e:
-                    print(f"⚠️ Could not restart instance of {agent_name}: {inst_e}")
+        # Try to use unified launcher if available
+        try:
+            from colony.core.unified_launcher import start_all_agents, stop_all_agents
+            
+            # Stop all agents first
+            stop_results = stop_all_agents()
+            
+            # Then start them again
+            start_results = start_all_agents(background=True)
+            
+            # Count successful restarts
+            restarted_count = sum(1 for agent_name, result in start_results.items() if result)
+            
+            return jsonify({
+                'success': True,
+                'message': f'Restart initiated for {restarted_count} agents via unified launcher',
+                'restarted_agents': [agent_name for agent_name, result in start_results.items() if result]
+            })
+        
+        except ImportError:
+            # Fall back to legacy method if unified launcher is not available
+            restarted_agents = []
+            for agent_name, agent_info in agent_registry.get_all_agents().items():
+                agent_class = agent_info.get('class')
+                if agent_class and hasattr(agent_class, 'restart_agent'): # Assuming agents have a static restart method
+                    agent_class.restart_agent() # Call a static method to restart
+                    restarted_agents.append(agent_name)
+                elif agent_class: # If not static, try to get instance and call restart
+                    try:
+                        agent_instance = agent_class()
+                        if hasattr(agent_instance, 'restart'): # Assuming an instance method 'restart'
+                            agent_instance.restart()
+                            restarted_agents.append(agent_name)
+                    except Exception as inst_e:
+                        print(f"⚠️ Could not restart instance of {agent_name}: {inst_e}")
 
-        return jsonify({
-            'success': True,
-            'message': f'Restart initiated for {len(restarted_agents)} agents',
+            return jsonify({
+                'success': True,
+                'message': f'Restart initiated for {len(restarted_agents)} agents',
             'restarted_agents': restarted_agents
         })
         

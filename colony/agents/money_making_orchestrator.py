@@ -366,7 +366,7 @@ class MoneyMakingOrchestrator:
                 self._rebalance_income_streams()
                 
                 # Explore new opportunities
-                await self._explore_new_opportunities()
+                self._explore_new_opportunities()
                 
                 # Sleep for 1 hour
                 time.sleep(3600)

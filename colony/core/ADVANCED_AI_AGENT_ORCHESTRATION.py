@@ -699,6 +699,13 @@ class AdvancedAIAgentOrchestrationSystem:
                 # Implement improvements
                 for improvement in improvements:
                     await self._implement_improvement(improvement)
+                    
+                # Sleep before next evolution cycle
+                await asyncio.sleep(3600)  # 1 hour
+                
+            except Exception as e:
+                logging.error(f"❌ Evolution cycle error: {e}")
+                await asyncio.sleep(300)  # 5 minutes before retry
     
     async def _implement_improvement(self, improvement: Dict[str, Any]):
         """Implement system improvement"""
