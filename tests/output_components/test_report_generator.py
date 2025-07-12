@@ -7,7 +7,7 @@ from datetime import datetime
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from src.agents.output_components.report_generator import ReportGenerator
+from colony.agents.output_components.report_generator import ReportGenerator
 
 class TestReportGenerator(unittest.TestCase):
     """Test suite for the ReportGenerator component."""
@@ -64,7 +64,7 @@ class TestReportGenerator(unittest.TestCase):
             "completion_status": "complete_high_quality"
         }
 
-    @patch('src.agents.output_components.report_generator.datetime')
+    @patch('colony.agents.output_components.report_generator.datetime')
     def test_generate_final_deliverables(self, mock_datetime):
         """Test generation of final deliverables package."""
         mock_datetime.now.return_value.isoformat.return_value = "2025-01-01T12:00:00"

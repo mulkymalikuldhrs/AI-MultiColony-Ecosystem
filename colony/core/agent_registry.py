@@ -15,15 +15,18 @@ from typing import Dict, Type, Any, List, Optional, Callable
 try:
     from colony.core.base_agent import BaseAgent
 except ImportError:
-    # Define a minimal BaseAgent if the real one can't be imported
-    class BaseAgent:
-        def __init__(self, name=None, config=None, memory=None):
-            self.name = name
-            self.config = config
-            self.memory = memory
-        
-        def run(self):
-            raise NotImplementedError("Subclasses must implement run()")
+    try:
+        from colony.agents.agent_base import AgentBase as BaseAgent
+    except ImportError:
+        # Define a minimal BaseAgent if the real one can't be imported
+        class BaseAgent:
+            def __init__(self, name=None, config=None, memory=None):
+                self.name = name
+                self.config = config
+                self.memory = memory
+            
+            def run(self):
+                raise NotImplementedError("Subclasses must implement run()")
 
 # Global registry
 REGISTRY: Dict[str, Type[BaseAgent]] = {}

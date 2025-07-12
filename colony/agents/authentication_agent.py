@@ -16,6 +16,9 @@ import sqlite3
 import qrcode
 import io
 import base64
+import os
+import uuid
+from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Union
 from dataclasses import dataclass

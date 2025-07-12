@@ -65,10 +65,30 @@ python-magic>=0.4.0
 prometheus-client>=0.17.0
 structlog>=23.1.0
 
-# Optional Dependencies (install as needed)
-# opencv-python>=4.8.0  # For computer vision agents
-# nltk>=3.8.0           # For NLP agents
-# spacy>=3.6.0          # For advanced NLP
-# matplotlib>=3.7.0     # For data visualization
-# plotly>=5.15.0        # For interactive charts
-# jupyter>=1.0.0        # For notebook interface
+# AI Agent Frameworks
+crewai>=0.28.0          # CrewAI framework
+autogen>=0.2.0          # AutoGen framework
+langgraph>=0.0.16       # LangGraph framework
+
+# External Integrations
+boto3>=1.28.0           # AWS SDK
+netifaces>=0.11.0       # Network interfaces
+aiofiles>=23.1.0        # Async file operations
+arxiv>=1.4.7            # ArXiv API client
+qrcode>=7.4.2           # QR code generator
+dns>=1.16.0             # DNS toolkit
+nmap>=0.0.1             # Network scanning
+cv2>=0.0.1              # OpenCV alias (use opencv-python)
+
+# Computer Vision & NLP
+opencv-python>=4.8.0    # For computer vision agents
+nltk>=3.8.0             # For NLP agents
+spacy>=3.6.0            # For advanced NLP
+
+# Data Visualization
+matplotlib>=3.7.0       # For data visualization
+plotly>=5.15.0          # For interactive charts
+
+# Development Tools
+jupyter>=1.0.0          # For notebook interface
+pytest-cov>=4.1.0       # For test coverage

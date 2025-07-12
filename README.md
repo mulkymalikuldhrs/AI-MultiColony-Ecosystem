@@ -81,6 +81,8 @@
 - 🔒 **Keamanan Enterprise** - Keamanan tingkat bank dengan enkripsi canggih
 - 📊 **Analitik Canggih** - Monitoring dan pelaporan komprehensif
 - 🎨 **Web Interface Modern** - Dashboard intuitif untuk manajemen sistem
+- 🚀 **Dynamic Agent Creation** - Buat agen baru secara dinamis dengan kemampuan kustom
+- 💬 **WebSocket Communication** - Komunikasi real-time untuk pembaruan langsung
 
 ---
 
@@ -194,6 +196,9 @@ python main.py --web-ui
 5. **🌐 API Server** (`colony/api/app.py`) - Server Flask dengan SocketIO
 6. **🔐 Security Layer** - Autentikasi dan otorisasi canggih
 7. **🔄 Autonomous Engines** - Mesin otonom untuk perbaikan berkelanjutan
+8. **🚀 Agent Creator** (`colony/api/endpoints/agent_creator.py`) - Pembuatan agen dinamis
+9. **💬 WebSocket Server** (`colony/api/websocket.py`) - Komunikasi real-time
+10. **🧩 Fullstack Agent** (`colony/agents/fullstack_agent.py`) - Agen untuk pengembangan fullstack
 
 ### 🌐 Web Interface
 
@@ -366,8 +371,9 @@ python main.py --web-ui --monitor
 - `system_analysis_report.txt` - Laporan analisis sistem
 
 ### 🔗 Links Penting
-- [Agent Development Guide](docs/agent-development.md)
-- [API Documentation](docs/api.md)
+- [Agent Development Guide](docs/AGENT_DEVELOPMENT.md)
+- [API Reference](docs/API_REFERENCE.md)
+- [Frontend Guide](docs/FRONTEND_GUIDE.md)
 - [Deployment Guide](docs/deployment.md)
 - [Troubleshooting](docs/troubleshooting.md)
 
