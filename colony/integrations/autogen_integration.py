@@ -24,7 +24,7 @@ class AutoGenAdapter:
     
     def __init__(self, agent_manager: AgentManager):
         if not AUTOGEN_AVAILABLE:
-            raise ImportError("AutoGen is not installed. Install with: pip install pyautogen")
+            raise ImportError("AutoGen is not installed. Install with: pip install ag2")
         
         self.agent_manager = agent_manager
         self.autogen_agents = {}
