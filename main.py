@@ -58,7 +58,8 @@ class AgenticAISystem:
         self.ai_selector = None
         
         # Agents registry
-        self.agents = {}
+        from src.core.agent_registry import agent_registry
+        self.agents = agent_registry
         self.active_agents = {}
         
         # System configuration
@@ -183,51 +184,9 @@ class AgenticAISystem:
     async def _initialize_agents(self):
         """Initialize and register all agents"""
         print("🤖 Initializing agents...")
-        
-        # Agent configurations
-        agent_configs = {
-            "cybershell": {
-                "module": "agents.cybershell",
-                "class": "CyberShellAgent",
-                "instance": "cybershell_agent"
-            },
-            "agent_maker": {
-                "module": "agents.agent_maker", 
-                "class": "AgentMakerAgent",
-                "instance": "agent_maker"
-            },
-            "ui_designer": {
-                "module": "agents.ui_designer",
-                "class": "UIDesignerAgent", 
-                "instance": "ui_designer_agent"
-            },
-            "dev_engine": {
-                "module": "agents.dev_engine",
-                "class": "DevEngineAgent",
-                "instance": "dev_engine_agent"
-            },
-            "data_sync": {
-                "module": "agents.data_sync",
-                "class": "DataSyncAgent",
-                "instance": "data_sync_agent"
-            },
-            "fullstack_dev": {
-                "module": "agents.fullstack_dev",
-                "class": "FullStackDevAgent",
-                "instance": "fullstack_dev_agent"
-            }
-        }
-        
-        # Initialize each agent
-        for agent_id, config in agent_configs.items():
+
+        for agent_id, agent_instance in self.agents.items():
             try:
-                # Import agent module
-                module = __import__(config["module"], fromlist=[config["instance"]])
-                agent_instance = getattr(module, config["instance"])
-                
-                # Register agent
-                self.agents[agent_id] = agent_instance
-                
                 # Auto-start if configured
                 if agent_id in self.config["auto_start_agents"]:
                     self.active_agents[agent_id] = agent_instance

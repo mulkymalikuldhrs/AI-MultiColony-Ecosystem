@@ -42,45 +42,13 @@ try:
     from core.sync_engine import sync_engine
     from core.scheduler import agent_scheduler
     from connectors.llm_gateway import llm_gateway
-    
-    # Import agents
-    from agents.cybershell import cybershell_agent
-    from agents.agent_maker import agent_maker
-    from agents.ui_designer import ui_designer_agent
-    from agents.dev_engine import dev_engine_agent
-    from agents.data_sync import data_sync_agent
-    from agents.fullstack_dev import fullstack_dev_agent
-    from agents.meta_agent_creator import meta_agent_creator
-    from agents.system_optimizer import system_optimizer
-    from agents.code_executor import code_executor
-    from agents.ai_research_agent import ai_research_agent
-    from agents.credential_manager import credential_manager
-    from agents.authentication_agent import authentication_agent
-    from agents.llm_provider_manager import llm_provider_manager
-    
-    # Available agents
-    agents_registry = {
-        'prompt_master': prompt_master,
-        'cybershell': cybershell_agent,
-        'agent_maker': agent_maker,
-        'ui_designer': ui_designer_agent,
-        'dev_engine': dev_engine_agent,
-        'data_sync': data_sync_agent,
-        'fullstack_dev': fullstack_dev_agent,
-        'meta_agent_creator': meta_agent_creator,
-        'system_optimizer': system_optimizer,
-        'code_executor': code_executor,
-        'ai_research_agent': ai_research_agent,
-        'credential_manager': credential_manager,
-        'authentication_agent': authentication_agent,
-        'llm_provider_manager': llm_provider_manager
-    }
+    from src.core.agent_registry import agent_registry
     
     print("✅ All core components loaded successfully")
     
 except ImportError as e:
     print(f"⚠️ Warning: Some components not available: {e}")
-    agents_registry = {}
+    agent_registry = {}
 
 @app.route('/')
 def index():
@@ -148,15 +116,15 @@ def get_system_status():
     """Get current system status"""
     try:
         # Get status from prompt master if available
-        if 'prompt_master' in agents_registry:
-            master_status = agents_registry['prompt_master'].get_system_status()
+        if 'prompt_master' in agent_registry:
+            master_status = agent_registry['prompt_master'].get_system_status()
             
             return jsonify({
                 'success': True,
                 'data': {
                     'system_status': 'running',
-                    'agents_active': len([a for a in agents_registry.values() if hasattr(a, 'status') and a.status == 'ready']),
-                    'total_agents': len(agents_registry),
+                    'agents_active': len([a for a in agent_registry.values() if hasattr(a, 'status') and a.status == 'ready']),
+                    'total_agents': len(agent_registry),
                     'uptime': master_status.get('uptime', '0'),
                     'memory_usage': master_status.get('memory_usage', 'Unknown'),
                     'cpu_usage': '< 25%',
@@ -170,8 +138,8 @@ def get_system_status():
                 'success': True,
                 'data': {
                     'system_status': 'partial',
-                    'agents_active': len(agents_registry),
-                    'total_agents': len(agents_registry),
+                    'agents_active': len(agent_registry),
+                    'total_agents': len(agent_registry),
                     'message': 'System running in basic mode'
                 }
             })
@@ -188,7 +156,7 @@ def list_agents():
     try:
         agents_list = []
         
-        for agent_id, agent in agents_registry.items():
+        for agent_id, agent in agent_registry.items():
             try:
                 agent_info = {
                     'id': agent_id,
@@ -221,13 +189,13 @@ def list_agents():
 def get_agent_status(agent_id):
     """Get specific agent status"""
     try:
-        if agent_id not in agents_registry:
+        if agent_id not in agent_registry:
             return jsonify({
                 'success': False,
                 'error': 'Agent not found'
             }), 404
         
-        agent = agents_registry[agent_id]
+        agent = agent_registry[agent_id]
         
         # Try to get performance metrics
         if hasattr(agent, 'get_performance_metrics'):
@@ -259,13 +227,13 @@ def submit_task():
         agent_id = data.get('agent_id')
         task_data = data.get('task', {})
         
-        if agent_id not in agents_registry:
+        if agent_id not in agent_registry:
             return jsonify({
                 'success': False,
                 'error': 'Agent not found'
             }), 404
         
-        agent = agents_registry[agent_id]
+        agent = agent_registry[agent_id]
         
         # Execute task
         if hasattr(agent, 'process_task'):
@@ -310,8 +278,8 @@ def process_prompt():
             }), 400
         
         # Use prompt master if available
-        if 'prompt_master' in agents_registry:
-            prompt_master = agents_registry['prompt_master']
+        if 'prompt_master' in agent_registry:
+            prompt_master = agent_registry['prompt_master']
             
             if hasattr(prompt_master, 'process_prompt'):
                 if asyncio.iscoroutinefunction(prompt_master.process_prompt):
@@ -334,7 +302,7 @@ def process_prompt():
                 'success': True,
                 'message': 'Prompt received but prompt master not available',
                 'prompt': prompt,
-                'suggested_agents': list(agents_registry.keys())
+                'suggested_agents': list(agent_registry.keys())
             }
         
         return jsonify({
@@ -712,8 +680,8 @@ def handle_status_request():
     try:
         # Get current system status
         status_data = {
-            'agents_count': len(agents_registry),
-            'active_agents': len([a for a in agents_registry.values() if hasattr(a, 'status') and a.status == 'ready']),
+            'agents_count': len(agent_registry),
+            'active_agents': len([a for a in agent_registry.values() if hasattr(a, 'status') and a.status == 'ready']),
             'system_status': 'running',
             'timestamp': datetime.now().isoformat()
         }
@@ -1253,18 +1221,3 @@ def generate_automated_report(report_type, time_range, format_type):
             'error': str(e)
         }
 
-if __name__ == '__main__':
-    print("🚀 Starting Agentic AI System Web Interface")
-    print("🇮🇩 Made with ❤️ by Mulky Malikul Dhaher in Indonesia")
-    print(f"📊 Dashboard will be available at: http://localhost:{os.getenv('WEB_INTERFACE_PORT', 5000)}")
-    print(f"🤖 Loaded {len(agents_registry)} agents")
-    
-    # Start background monitoring
-    monitoring_thread = threading.Thread(target=background_monitoring, daemon=True)
-    monitoring_thread.start()
-    
-    # Run the application
-    port = int(os.getenv('WEB_INTERFACE_PORT', 5000))
-    host = os.getenv('WEB_INTERFACE_HOST', '0.0.0.0')
-    
-    socketio.run(app, host=host, port=port, debug=True, allow_unsafe_werkzeug=True)
