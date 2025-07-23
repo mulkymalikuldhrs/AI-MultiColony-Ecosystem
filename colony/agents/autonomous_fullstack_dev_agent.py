@@ -33,8 +33,8 @@ class AutonomousFullstackDevAgent(BaseAgent):
     - Auto-documentation and reporting
     """
     
-    def __init__(self):
-        super().__init__(agent_id="autonomous_fullstack_dev_agent")
+    def __init__(self, name="autonomous_fullstack_dev_agent", config=None, memory_manager=None):
+        super().__init__(name=name, config=config, memory_manager=memory_manager)
         self.version = "1.0.0"
         self.capabilities = [
             "autonomous_research",

@@ -10,23 +10,28 @@ import logging
 import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Union
+from abc import ABC, abstractmethod
 
-class BaseAgent:
+class BaseAgent(ABC):
     """
-    Base class for all agents in the system.
-    All specialized agents should inherit from this class.
+    Abstract base class for all agents in the system.
+    All specialized agents must inherit from this class.
     """
     
-    def __init__(self, agent_id: str, config_path: Optional[str] = None):
+    def __init__(self, name: str, config: Optional[Dict[str, Any]] = None, memory_manager=None):
         """
         Initialize the base agent.
         
         Args:
-            agent_id: Unique identifier for the agent
-            config_path: Path to the agent's configuration file (optional)
+            name: Unique identifier for the agent.
+            config: Configuration dictionary for the agent.
+            memory_manager: Instance of a memory manager for state persistence.
         """
-        self.agent_id = agent_id
-        self.config_path = config_path
+        self.name = name
+        self.agent_id = name  # For backward compatibility
+        self.config = config if config is not None else {}
+        self.memory = memory_manager
+
         self.status = "initialized"
         self.start_time = time.time()
         self.last_activity = self.start_time
@@ -34,48 +39,20 @@ class BaseAgent:
         self.current_task = None
         
         # Setup logging
-        self.logger = logging.getLogger(f"agent.{agent_id}")
-        
-        # Load configuration if provided
-        self.config = self._load_config() if config_path else {}
+        self.logger = logging.getLogger(f"agent.{self.name}")
         
         # Create output directory if it doesn't exist
         os.makedirs("agent_output", exist_ok=True)
         
-        self.logger.info(f"Agent {agent_id} initialized")
-    
-    def _load_config(self) -> Dict[str, Any]:
-        """
-        Load agent configuration from file.
-        
-        Returns:
-            Configuration dictionary
-        """
-        try:
-            if self.config_path.endswith('.json'):
-                with open(self.config_path, 'r') as f:
-                    return json.load(f)
-            elif self.config_path.endswith('.yaml') or self.config_path.endswith('.yml'):
-                try:
-                    import yaml
-                    with open(self.config_path, 'r') as f:
-                        return yaml.safe_load(f)
-                except ImportError:
-                    self.logger.warning("YAML module not available, falling back to default config")
-                    return {}
-            else:
-                self.logger.warning(f"Unsupported config format: {self.config_path}")
-                return {}
-        except Exception as e:
-            self.logger.error(f"Error loading config: {e}")
-            return {}
-    
+        self.logger.info(f"Agent '{self.name}' initialized")
+
+    @abstractmethod
     def run(self):
         """
         Run the agent's main functionality.
-        This method should be overridden by subclasses.
+        This method must be overridden by subclasses.
         """
-        raise NotImplementedError("Subclasses must implement run()")
+        pass
     
     async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
