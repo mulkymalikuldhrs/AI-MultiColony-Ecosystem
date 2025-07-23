@@ -79,7 +79,7 @@ netifaces>=0.11.0       # Network interfaces
 aiofiles>=23.1.0        # Async file operations
 arxiv>=1.4.7            # ArXiv API client
 qrcode>=7.4.2           # QR code generator
-dns>=1.16.0             # DNS toolkit
+dnspython>=1.16.0
 nmap>=0.0.1             # Network scanning
 cv2>=0.0.1              # OpenCV alias (use opencv-python)
 
