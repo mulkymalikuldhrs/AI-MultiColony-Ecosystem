@@ -41,7 +41,6 @@ pymongo>=4.4.0
 # Async & Concurrency
 asyncio-mqtt>=0.13.0
 celery>=5.3.0
-threading-timer>=1.0.0
 
 # Security & Authentication
 cryptography>=41.0.0
@@ -49,10 +48,6 @@ pyjwt>=2.8.0
 bcrypt>=4.0.0
 
 # Development & Testing
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-black>=23.0.0
-flake8>=6.0.0
 
 # System & OS Integration
 psutil>=5.9.0
@@ -79,9 +74,8 @@ netifaces>=0.11.0       # Network interfaces
 aiofiles>=23.1.0        # Async file operations
 arxiv>=1.4.7            # ArXiv API client
 qrcode>=7.4.2           # QR code generator
-dns>=1.16.0             # DNS toolkit
-nmap>=0.0.1             # Network scanning
-cv2>=0.0.1              # OpenCV alias (use opencv-python)
+dnspython>=2.0.0        # DNS toolkit
+python-nmap>=0.7.1      # Network scanning
 
 # Computer Vision & NLP
 opencv-python>=4.8.0    # For computer vision agents
@@ -94,4 +88,3 @@ plotly>=5.15.0          # For interactive charts
 
 # Development Tools
 jupyter>=1.0.0          # For notebook interface
-pytest-cov>=4.1.0       # For test coverage
