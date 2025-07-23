@@ -95,3 +95,12 @@ plotly>=5.15.0          # For interactive charts
 # Development Tools
 jupyter>=1.0.0          # For notebook interface
 pytest-cov>=4.1.0       # For test coverage
+requests
+numpy
+psutil
+cryptography
+docker
+redis
+opencv-python
+aiohttp
+qrcode
