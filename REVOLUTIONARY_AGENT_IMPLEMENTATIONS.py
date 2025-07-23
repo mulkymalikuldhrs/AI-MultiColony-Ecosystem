@@ -22,10 +22,29 @@ import sqlite3
 import redis
 from pathlib import Path
 
+# === GLOBAL AGENT REGISTRY ===
+AGENT_REGISTRY = {}
+
+def register_agent_class(agent_class):
+    """Register agent class to global registry automatically."""
+    name = agent_class.__name__
+    if name not in AGENT_REGISTRY:
+        AGENT_REGISTRY[name] = agent_class
+    return agent_class
+
+def get_agent_by_name(name):
+    """Get agent class by name from registry."""
+    return AGENT_REGISTRY.get(name)
+
+def list_all_agents():
+    """List all registered agent class names."""
+    return list(AGENT_REGISTRY.keys())
+
 # ===============================
 # QUANTUM CORE AGENTS (50 agents)
 # ===============================
 
+@register_agent_class
 class QuantumProcessorAgent:
     """Quantum processing agent with superhuman computational capabilities"""
     
@@ -65,6 +84,7 @@ class QuantumProcessorAgent:
             "efficiency_boost": random.uniform(0.3, 0.8)
         }
 
+@register_agent_class
 class QuantumEntanglerAgent:
     """Agent specialized in quantum entanglement operations"""
     
@@ -88,6 +108,7 @@ class QuantumEntanglerAgent:
 # CONSCIOUSNESS ENGINE AGENTS (40 agents)
 # ===============================
 
+@register_agent_class
 class AwarenessSimulatorAgent:
     """Simulates self-awareness and consciousness"""
     
@@ -126,6 +147,7 @@ class AwarenessSimulatorAgent:
         ]
         return random.sample(insights, random.randint(2, 4))
 
+@register_agent_class
 class ReasoningEngineAgent:
     """Advanced reasoning and logical processing agent"""
     
@@ -154,6 +176,7 @@ class ReasoningEngineAgent:
 # DEVELOPMENT MASTER AGENTS (60 agents)
 # ===============================
 
+@register_agent_class
 class PromptArchitectAgent:
     """Master prompt architect exceeding all existing capabilities"""
     
@@ -206,6 +229,7 @@ class PromptArchitectAgent:
             "efficiency_improvement": random.uniform(0.4, 0.7)
         }
 
+@register_agent_class
 class ShellVirtuosoAgent:
     """Shell command virtuoso with superhuman capabilities"""
     
@@ -247,6 +271,7 @@ class ShellVirtuosoAgent:
             "time_saved": f"{random.randint(10, 100)} hours/month"
         }
 
+@register_agent_class
 class UIRevolutionaryAgent:
     """Revolutionary UI designer exceeding all design capabilities"""
     
@@ -396,6 +421,7 @@ export default ConsciousDashboard;
 # AI SUPERINTELLIGENCE AGENTS (80 agents)  
 # ===============================
 
+@register_agent_class
 class PromptMastermindAgent:
     """Ultimate prompt engineering mastermind"""
     
@@ -455,6 +481,7 @@ Execute with the power of 500+ specialized agents.
             "revenue_potential": random.uniform(5000, 15000)
         }
 
+@register_agent_class
 class VoiceSynthesizerAgent:
     """Advanced voice processing and synthesis agent"""
     
@@ -487,6 +514,7 @@ class VoiceSynthesizerAgent:
 # REVENUE GENERATOR AGENTS (45 agents)
 # ===============================
 
+@register_agent_class
 class RevenueOptimizerAgent:
     """Revolutionary revenue optimization agent"""
     
@@ -558,6 +586,7 @@ class RevenueOptimizerAgent:
 # GLOBAL OPERATOR AGENTS (40 agents)
 # ===============================
 
+@register_agent_class
 class GlobalDeploymentAgent:
     """Global deployment and operations agent"""
     
@@ -695,6 +724,7 @@ class CompleteAgentOrchestrator:
             "system_status": "Revolutionary and Operational"
         }
 
+@register_agent_class
 class UltimateGenericAgent:
     """Generic agent for remaining specialized categories"""
     
