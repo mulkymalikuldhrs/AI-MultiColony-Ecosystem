@@ -41,7 +41,7 @@ pymongo>=4.4.0
 # Async & Concurrency
 asyncio-mqtt>=0.13.0
 celery>=5.3.0
-threading-timer>=1.0.0
+# threading-timer>=1.0.0  # Dihapus, tidak ada di PyPI, gunakan threading bawaan Python
 
 # Security & Authentication
 cryptography>=41.0.0
