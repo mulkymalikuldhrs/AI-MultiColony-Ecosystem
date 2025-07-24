@@ -5,7 +5,18 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).parent.resolve()
 REPORTS_DIR = ROOT_DIR / "reports"
 OUTPUT_FILE = REPORTS_DIR / "structure_current_branch.txt"
-IGNORED_DIRS = {"__pycache__", ".git", ".idea", "node_modules", "build", "dist", "archive", ".continue", ".kilocode"}
+IGNORED_DIRS = {
+    "__pycache__",
+    ".git",
+    ".idea",
+    "node_modules",
+    "build",
+    "dist",
+    "archive",
+    ".continue",
+    ".kilocode",
+}
+
 
 def main():
     # Pastikan direktori laporan ada
@@ -26,12 +37,13 @@ def main():
             except ValueError:
                 level_count = 0
 
-            indent = ' ' * 4 * level_count
-            f.write(f'{indent}{os.path.basename(root)}/\n')
+            indent = " " * 4 * level_count
+            f.write(f"{indent}{os.path.basename(root)}/\n")
 
-            subindent = ' ' * 4 * (level_count + 1)
+            subindent = " " * 4 * (level_count + 1)
             for file_name in files:
-                f.write(f'{subindent}{file_name}\n')
+                f.write(f"{subindent}{file_name}\n")
+
 
 if __name__ == "__main__":
     print(f"Generating report at: {OUTPUT_FILE}")

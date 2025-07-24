@@ -2,12 +2,12 @@
 # Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 
 import argparse
-import os
-import sys
-import time
-import threading
-import subprocess
 import importlib.util
+import os
+import subprocess
+import sys
+import threading
+import time
 from pathlib import Path
 
 # Add colony directory to path
@@ -24,16 +24,17 @@ except ImportError as e:
     # Attempt to add the project root to the path and retry, as this script might be run from a different CWD.
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     try:
-        from colony.core.agent_registry import get_agent_by_name, list_all_agents
+        from colony.core.agent_registry import (get_agent_by_name,
+                                                list_all_agents)
         from colony.core.system_bootstrap import bootstrap_systems
         print("Core components imported successfully after path correction.")
     except ImportError as e2:
         print(f"Failed to import core components even after path correction: {e2}")
         sys.exit(1)
 =======
+    from colony.agents.agent_registry import agent_registry
     from colony.core.agent_registry import get_agent, list_all_agents
     from colony.core.system_bootstrap import bootstrap_systems
-    from colony.agents.agent_registry import agent_registry
 except ImportError as e:
     print(f"Error importing core components: {e}")
     print("Attempting to continue with limited functionality...")
@@ -256,7 +257,7 @@ def start_autonomous_engines():
         try:
             import subprocess
             import sys
-            
+
             # Start Flask app
             subprocess.Popen([
                 sys.executable, "-m", "flask", "--app", "web_interface.app", "run",

@@ -20,16 +20,17 @@ Based on Latest Research (2024-2025):
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
+import asyncio
+import json
 import os
 import sys
-import json
-import time
 import threading
+import time
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
-import asyncio
+from typing import Any, Dict, List, Optional
+
 import websockets
 
 # Add project root to path
@@ -38,416 +39,480 @@ sys.path.append(str(project_root))
 
 # Advanced imports with fallbacks
 try:
-    from flask import Flask, render_template_string, request, jsonify, Response
+    from flask import Flask, Response, jsonify, render_template_string, request
     from flask_socketio import SocketIO, emit, join_room, leave_room
+
     FLASK_AVAILABLE = True
 except ImportError:
     FLASK_AVAILABLE = False
+
     class FallbackFlask:
-        def __init__(self, name): 
+        def __init__(self, name):
             self.config = {}
+
         def route(self, path, **kwargs):
-            def decorator(func): return func
+            def decorator(func):
+                return func
+
             return decorator
-        def run(self, **kwargs): pass
-    
+
+        def run(self, **kwargs):
+            pass
+
     Flask = FallbackFlask
-    SocketIO = lambda app, **kwargs: type('MockSocketIO', (), {'run': lambda self, *args, **kwargs: None})()
-    def emit(event, data, **kwargs): pass
+    SocketIO = lambda app, **kwargs: type(
+        "MockSocketIO", (), {"run": lambda self, *args, **kwargs: None}
+    )()
+
+    def emit(event, data, **kwargs):
+        pass
+
 
 # Import our enhanced systems
 try:
     from os_automation.universal_os_controller import UniversalOSController
     from sandbox.advanced_sandbox_manager import AdvancedSandboxManager
+
     OS_CONTROLLER_AVAILABLE = True
 except ImportError:
     OS_CONTROLLER_AVAILABLE = False
     UniversalOSController = None
     AdvancedSandboxManager = None
 
+
 class GUIAgentRegistry:
     """Advanced GUI Agent Registry with real-time updates"""
-    
+
     def __init__(self):
         self.agents = {}
         self.agent_templates = self._load_agent_templates()
         self.active_sessions = {}
         self.performance_metrics = {}
-        
+
     def _load_agent_templates(self):
         """Load pre-defined agent templates based on research"""
         return {
-            'ui_tars_agent': {
-                'name': 'UI-TARS Visual Agent',
-                'model': 'UI-TARS-7B',
-                'capabilities': ['visual_grounding', 'click_operations', 'screenshot_analysis'],
-                'platforms': ['Windows', 'Linux', 'macOS'],
-                'accuracy': 75.1,
-                'description': 'State-of-the-art visual GUI agent with native interaction capabilities'
+            "ui_tars_agent": {
+                "name": "UI-TARS Visual Agent",
+                "model": "UI-TARS-7B",
+                "capabilities": [
+                    "visual_grounding",
+                    "click_operations",
+                    "screenshot_analysis",
+                ],
+                "platforms": ["Windows", "Linux", "macOS"],
+                "accuracy": 75.1,
+                "description": "State-of-the-art visual GUI agent with native interaction capabilities",
             },
-            'cogagent_multimodal': {
-                'name': 'CogAgent Multimodal',
-                'model': 'CogAgent-18B',
-                'capabilities': ['visual_understanding', 'language_processing', 'action_planning'],
-                'platforms': ['Windows', 'Linux', 'macOS', 'Web'],
-                'accuracy': 63.8,
-                'description': 'Advanced multimodal agent for complex GUI interactions'
+            "cogagent_multimodal": {
+                "name": "CogAgent Multimodal",
+                "model": "CogAgent-18B",
+                "capabilities": [
+                    "visual_understanding",
+                    "language_processing",
+                    "action_planning",
+                ],
+                "platforms": ["Windows", "Linux", "macOS", "Web"],
+                "accuracy": 63.8,
+                "description": "Advanced multimodal agent for complex GUI interactions",
             },
-            'mobile_app_agent': {
-                'name': 'Mobile App Controller',
-                'model': 'AppAgent-3B',
-                'capabilities': ['touch_simulation', 'app_navigation', 'mobile_ui_understanding'],
-                'platforms': ['Android', 'iOS'],
-                'accuracy': 96.9,
-                'description': 'Specialized agent for mobile app automation and control'
+            "mobile_app_agent": {
+                "name": "Mobile App Controller",
+                "model": "AppAgent-3B",
+                "capabilities": [
+                    "touch_simulation",
+                    "app_navigation",
+                    "mobile_ui_understanding",
+                ],
+                "platforms": ["Android", "iOS"],
+                "accuracy": 96.9,
+                "description": "Specialized agent for mobile app automation and control",
             },
-            'web_automation_agent': {
-                'name': 'Web Automation Agent',
-                'model': 'WebVoyager-7B',
-                'capabilities': ['dom_manipulation', 'web_navigation', 'form_filling'],
-                'platforms': ['Web', 'Chrome', 'Firefox'],
-                'accuracy': 75.1,
-                'description': 'Expert web browsing and automation agent'
+            "web_automation_agent": {
+                "name": "Web Automation Agent",
+                "model": "WebVoyager-7B",
+                "capabilities": ["dom_manipulation", "web_navigation", "form_filling"],
+                "platforms": ["Web", "Chrome", "Firefox"],
+                "accuracy": 75.1,
+                "description": "Expert web browsing and automation agent",
             },
-            'os_sandbox_agent': {
-                'name': 'OS Sandbox Agent',
-                'model': 'OS-ATLAS-7B',
-                'capabilities': ['sandbox_creation', 'secure_execution', 'resource_monitoring'],
-                'platforms': ['Windows', 'Linux', 'macOS'],
-                'accuracy': 85.4,
-                'description': 'Secure sandbox environment manager with OS integration'
-            }
+            "os_sandbox_agent": {
+                "name": "OS Sandbox Agent",
+                "model": "OS-ATLAS-7B",
+                "capabilities": [
+                    "sandbox_creation",
+                    "secure_execution",
+                    "resource_monitoring",
+                ],
+                "platforms": ["Windows", "Linux", "macOS"],
+                "accuracy": 85.4,
+                "description": "Secure sandbox environment manager with OS integration",
+            },
         }
-    
+
     def create_agent(self, agent_config: Dict) -> Dict[str, Any]:
         """Create new agent with enhanced capabilities"""
         try:
             agent_id = f"agent_{int(time.time())}_{str(uuid.uuid4())[:8]}"
-            
+
             # Determine agent template
-            template_name = agent_config.get('template', 'ui_tars_agent')
+            template_name = agent_config.get("template", "ui_tars_agent")
             if template_name in self.agent_templates:
                 template = self.agent_templates[template_name].copy()
                 template.update(agent_config)
             else:
                 template = agent_config
-            
+
             # Enhanced agent configuration
             new_agent = {
-                'id': agent_id,
-                'name': template.get('name', f'Agent-{agent_id[:8]}'),
-                'model': template.get('model', 'UI-TARS-7B'),
-                'capabilities': template.get('capabilities', ['basic_interaction']),
-                'platforms': template.get('platforms', ['Windows']),
-                'status': 'created',
-                'created_at': datetime.now().isoformat(),
-                'last_active': datetime.now().isoformat(),
-                'owner': 'Mulky Malikul Dhaher',
-                'owner_id': '1108151509970001',
-                'performance': {
-                    'accuracy': template.get('accuracy', 0.0),
-                    'success_rate': 0.0,
-                    'total_tasks': 0,
-                    'successful_tasks': 0
+                "id": agent_id,
+                "name": template.get("name", f"Agent-{agent_id[:8]}"),
+                "model": template.get("model", "UI-TARS-7B"),
+                "capabilities": template.get("capabilities", ["basic_interaction"]),
+                "platforms": template.get("platforms", ["Windows"]),
+                "status": "created",
+                "created_at": datetime.now().isoformat(),
+                "last_active": datetime.now().isoformat(),
+                "owner": "Mulky Malikul Dhaher",
+                "owner_id": "1108151509970001",
+                "performance": {
+                    "accuracy": template.get("accuracy", 0.0),
+                    "success_rate": 0.0,
+                    "total_tasks": 0,
+                    "successful_tasks": 0,
                 },
-                'config': {
-                    'visual_grounding': template.get('visual_grounding', True),
-                    'som_marking': template.get('som_marking', True),
-                    'reinforcement_learning': template.get('reinforcement_learning', True),
-                    'safety_mode': template.get('safety_mode', True)
-                }
+                "config": {
+                    "visual_grounding": template.get("visual_grounding", True),
+                    "som_marking": template.get("som_marking", True),
+                    "reinforcement_learning": template.get(
+                        "reinforcement_learning", True
+                    ),
+                    "safety_mode": template.get("safety_mode", True),
+                },
             }
-            
+
             # Store agent
             self.agents[agent_id] = new_agent
-            
+
             print(f"✅ Agent created successfully: {agent_id}")
-            
+
             return {
-                'success': True,
-                'agent_id': agent_id,
-                'agent': new_agent,
-                'message': f'Agent {new_agent["name"]} created successfully'
+                "success": True,
+                "agent_id": agent_id,
+                "agent": new_agent,
+                "message": f'Agent {new_agent["name"]} created successfully',
             }
-            
+
         except Exception as e:
             print(f"❌ Agent creation failed: {e}")
             return {
-                'success': False,
-                'error': str(e),
-                'message': 'Failed to create agent'
+                "success": False,
+                "error": str(e),
+                "message": "Failed to create agent",
             }
-    
+
     def get_all_agents(self) -> Dict[str, Any]:
         """Get all agents with real-time status"""
         agents_list = []
         for agent_id, agent in self.agents.items():
             agent_summary = {
-                'id': agent_id,
-                'name': agent['name'],
-                'model': agent['model'],
-                'status': agent['status'],
-                'capabilities': len(agent['capabilities']),
-                'platforms': agent['platforms'],
-                'performance': agent['performance'],
-                'last_active': agent['last_active']
+                "id": agent_id,
+                "name": agent["name"],
+                "model": agent["model"],
+                "status": agent["status"],
+                "capabilities": len(agent["capabilities"]),
+                "platforms": agent["platforms"],
+                "performance": agent["performance"],
+                "last_active": agent["last_active"],
             }
             agents_list.append(agent_summary)
-        
+
         return {
-            'agents': agents_list,
-            'total_agents': len(agents_list),
-            'templates': list(self.agent_templates.keys()),
-            'timestamp': datetime.now().isoformat()
+            "agents": agents_list,
+            "total_agents": len(agents_list),
+            "templates": list(self.agent_templates.keys()),
+            "timestamp": datetime.now().isoformat(),
         }
-    
+
     def update_agent_performance(self, agent_id: str, task_success: bool):
         """Update agent performance metrics"""
         if agent_id in self.agents:
             agent = self.agents[agent_id]
-            agent['performance']['total_tasks'] += 1
+            agent["performance"]["total_tasks"] += 1
             if task_success:
-                agent['performance']['successful_tasks'] += 1
-            
+                agent["performance"]["successful_tasks"] += 1
+
             # Calculate success rate
-            total = agent['performance']['total_tasks']
-            successful = agent['performance']['successful_tasks']
-            agent['performance']['success_rate'] = (successful / total) * 100 if total > 0 else 0
-            
-            agent['last_active'] = datetime.now().isoformat()
+            total = agent["performance"]["total_tasks"]
+            successful = agent["performance"]["successful_tasks"]
+            agent["performance"]["success_rate"] = (
+                (successful / total) * 100 if total > 0 else 0
+            )
+
+            agent["last_active"] = datetime.now().isoformat()
+
 
 class RevolutionaryGUIInterface:
     """
     Revolutionary GUI Interface with Advanced Agent Capabilities
     """
-    
+
     def __init__(self):
         self.app_name = "Revolutionary GUI Interface v7.3.0"
-        self.owner = "Mulky Malikul Dhaher" 
+        self.owner = "Mulky Malikul Dhaher"
         self.owner_id = "1108151509970001"
         self.version = "7.3.0"
-        
+
         # Initialize Flask app
         self.app = Flask(__name__)
-        self.app.config['SECRET_KEY'] = 'revolutionary_gui_secret_2025'
-        self.socketio = SocketIO(self.app, cors_allowed_origins="*", async_mode='threading')
-        
+        self.app.config["SECRET_KEY"] = "revolutionary_gui_secret_2025"
+        self.socketio = SocketIO(
+            self.app, cors_allowed_origins="*", async_mode="threading"
+        )
+
         # Initialize core systems
         self.agent_registry = GUIAgentRegistry()
         self.os_controller = self._initialize_os_controller()
         self.sandbox_manager = self._initialize_sandbox_manager()
-        
+
         # System state
         self.is_running = False
         self.startup_time = time.time()
         self.active_connections = set()
         self.real_time_updates = True
-        
+
         # Setup routes and handlers
         self._setup_routes()
         self._setup_websocket_handlers()
         self._start_background_services()
-        
+
         print(f"🌐 {self.app_name}")
         print(f"👑 Owner: {self.owner} ({self.owner_id})")
         print(f"🚀 Version: {self.version}")
         print("🇮🇩 Made with ❤️ in Indonesia")
-    
+
     def _initialize_os_controller(self):
         """Initialize OS controller with fallback"""
         if OS_CONTROLLER_AVAILABLE:
             return UniversalOSController()
         else:
             return MockOSController()
-    
+
     def _initialize_sandbox_manager(self):
         """Initialize sandbox manager with fallback"""
         if OS_CONTROLLER_AVAILABLE:
             return AdvancedSandboxManager()
         else:
             return MockSandboxManager()
-    
+
     def _start_background_services(self):
         """Start background monitoring and update services"""
+
         def background_monitor():
             while self.is_running:
                 try:
                     # Update system metrics
                     self._update_system_metrics()
-                    
+
                     # Broadcast real-time updates
                     if self.real_time_updates and self.active_connections:
                         self._broadcast_system_update()
-                    
+
                     time.sleep(2)  # Update every 2 seconds
-                    
+
                 except Exception as e:
                     print(f"Background monitor error: {e}")
                     time.sleep(5)
-        
+
         monitor_thread = threading.Thread(target=background_monitor, daemon=True)
         monitor_thread.start()
-    
+
     def _update_system_metrics(self):
         """Update real-time system metrics"""
         self.system_metrics = {
-            'timestamp': datetime.now().isoformat(),
-            'uptime': time.time() - self.startup_time,
-            'total_agents': len(self.agent_registry.agents),
-            'active_agents': len([a for a in self.agent_registry.agents.values() if a['status'] == 'active']),
-            'os_controller_status': 'available' if OS_CONTROLLER_AVAILABLE else 'fallback',
-            'sandbox_status': 'available' if OS_CONTROLLER_AVAILABLE else 'fallback',
-            'connections': len(self.active_connections),
-            'version': self.version
+            "timestamp": datetime.now().isoformat(),
+            "uptime": time.time() - self.startup_time,
+            "total_agents": len(self.agent_registry.agents),
+            "active_agents": len(
+                [
+                    a
+                    for a in self.agent_registry.agents.values()
+                    if a["status"] == "active"
+                ]
+            ),
+            "os_controller_status": (
+                "available" if OS_CONTROLLER_AVAILABLE else "fallback"
+            ),
+            "sandbox_status": "available" if OS_CONTROLLER_AVAILABLE else "fallback",
+            "connections": len(self.active_connections),
+            "version": self.version,
         }
-    
+
     def _broadcast_system_update(self):
         """Broadcast real-time updates to all connected clients"""
         if FLASK_AVAILABLE:
-            self.socketio.emit('system_update', {
-                'metrics': self.system_metrics,
-                'agents': self.agent_registry.get_all_agents()
-            })
-    
+            self.socketio.emit(
+                "system_update",
+                {
+                    "metrics": self.system_metrics,
+                    "agents": self.agent_registry.get_all_agents(),
+                },
+            )
+
     def _setup_routes(self):
         """Setup Flask routes"""
-        
-        @self.app.route('/')
+
+        @self.app.route("/")
         def dashboard():
             """Revolutionary dashboard"""
             return self._render_revolutionary_dashboard()
-        
-        @self.app.route('/agents')
+
+        @self.app.route("/agents")
         def agents_management():
             """Dynamic agent management interface"""
             return self._render_agents_interface()
-        
-        @self.app.route('/api/agents', methods=['GET'])
+
+        @self.app.route("/api/agents", methods=["GET"])
         def api_get_agents():
             """Get all agents"""
             return jsonify(self.agent_registry.get_all_agents())
-        
-        @self.app.route('/api/agents/create', methods=['POST'])
+
+        @self.app.route("/api/agents/create", methods=["POST"])
         def api_create_agent():
             """Create new agent"""
             if FLASK_AVAILABLE:
                 agent_data = request.get_json()
                 result = self.agent_registry.create_agent(agent_data)
-                
+
                 # Broadcast update to all clients
-                if result['success']:
-                    self.socketio.emit('agent_created', result, broadcast=True)
-                    self.socketio.emit('agents_updated', self.agent_registry.get_all_agents(), broadcast=True)
-                
+                if result["success"]:
+                    self.socketio.emit("agent_created", result, broadcast=True)
+                    self.socketio.emit(
+                        "agents_updated",
+                        self.agent_registry.get_all_agents(),
+                        broadcast=True,
+                    )
+
                 return jsonify(result)
-            return jsonify({'error': 'Flask not available'})
-        
-        @self.app.route('/api/agents/templates', methods=['GET'])
+            return jsonify({"error": "Flask not available"})
+
+        @self.app.route("/api/agents/templates", methods=["GET"])
         def api_get_templates():
             """Get agent templates"""
             return jsonify(self.agent_registry.agent_templates)
-        
-        @self.app.route('/api/system/status', methods=['GET'])
+
+        @self.app.route("/api/system/status", methods=["GET"])
         def api_system_status():
             """Get system status"""
             return jsonify(self.system_metrics)
-        
-        @self.app.route('/api/os/execute', methods=['POST'])
+
+        @self.app.route("/api/os/execute", methods=["POST"])
         def api_os_execute():
             """Execute OS command"""
             if FLASK_AVAILABLE:
                 command_data = request.get_json()
                 result = self.os_controller.execute_command(command_data)
                 return jsonify(result)
-            return jsonify({'error': 'OS controller not available'})
-    
+            return jsonify({"error": "OS controller not available"})
+
     def _setup_websocket_handlers(self):
         """Setup WebSocket handlers for real-time communication"""
-        
-        @self.socketio.on('connect')
+
+        @self.socketio.on("connect")
         def handle_connect():
             """Handle client connection"""
             self.active_connections.add(request.sid)
-            emit('connected', {
-                'message': 'Connected to Revolutionary GUI Interface',
-                'version': self.version,
-                'timestamp': datetime.now().isoformat()
-            })
-            
+            emit(
+                "connected",
+                {
+                    "message": "Connected to Revolutionary GUI Interface",
+                    "version": self.version,
+                    "timestamp": datetime.now().isoformat(),
+                },
+            )
+
             # Send initial data
-            emit('system_update', {
-                'metrics': self.system_metrics,
-                'agents': self.agent_registry.get_all_agents()
-            })
-        
-        @self.socketio.on('disconnect')
+            emit(
+                "system_update",
+                {
+                    "metrics": self.system_metrics,
+                    "agents": self.agent_registry.get_all_agents(),
+                },
+            )
+
+        @self.socketio.on("disconnect")
         def handle_disconnect():
             """Handle client disconnection"""
             self.active_connections.discard(request.sid)
-        
-        @self.socketio.on('create_agent')
+
+        @self.socketio.on("create_agent")
         def handle_create_agent(data):
             """Handle real-time agent creation"""
             result = self.agent_registry.create_agent(data)
-            emit('agent_creation_result', result)
-            
-            if result['success']:
+            emit("agent_creation_result", result)
+
+            if result["success"]:
                 # Broadcast to all clients
-                emit('agent_created', result, broadcast=True)
-                emit('agents_updated', self.agent_registry.get_all_agents(), broadcast=True)
-        
-        @self.socketio.on('request_agent_list')
+                emit("agent_created", result, broadcast=True)
+                emit(
+                    "agents_updated",
+                    self.agent_registry.get_all_agents(),
+                    broadcast=True,
+                )
+
+        @self.socketio.on("request_agent_list")
         def handle_agent_list_request():
             """Handle agent list request"""
-            emit('agents_updated', self.agent_registry.get_all_agents())
-        
-        @self.socketio.on('execute_agent_task')
+            emit("agents_updated", self.agent_registry.get_all_agents())
+
+        @self.socketio.on("execute_agent_task")
         def handle_agent_task(data):
             """Handle agent task execution"""
             result = self._execute_agent_task(data)
-            emit('task_result', result)
-    
+            emit("task_result", result)
+
     def _execute_agent_task(self, task_data):
         """Execute agent task with performance tracking"""
         try:
-            agent_id = task_data.get('agent_id')
-            task = task_data.get('task', '')
-            
+            agent_id = task_data.get("agent_id")
+            task = task_data.get("task", "")
+
             if agent_id not in self.agent_registry.agents:
                 return {
-                    'success': False,
-                    'error': 'Agent not found',
-                    'agent_id': agent_id
+                    "success": False,
+                    "error": "Agent not found",
+                    "agent_id": agent_id,
                 }
-            
+
             agent = self.agent_registry.agents[agent_id]
-            
+
             # Simulate task execution (replace with actual agent execution)
             success = True  # Placeholder - implement actual task execution
             execution_time = 0.5
-            
+
             # Update performance
             self.agent_registry.update_agent_performance(agent_id, success)
-            
+
             return {
-                'success': success,
-                'agent_id': agent_id,
-                'agent_name': agent['name'],
-                'task': task,
-                'execution_time': execution_time,
-                'performance': agent['performance']
+                "success": success,
+                "agent_id": agent_id,
+                "agent_name": agent["name"],
+                "task": task,
+                "execution_time": execution_time,
+                "performance": agent["performance"],
             }
-            
+
         except Exception as e:
             return {
-                'success': False,
-                'error': str(e),
-                'message': 'Task execution failed'
+                "success": False,
+                "error": str(e),
+                "message": "Task execution failed",
             }
-    
+
     def _render_revolutionary_dashboard(self):
         """Render revolutionary dashboard with latest features"""
-        dashboard_html = """
+        dashboard_html = (
+            """
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -614,7 +679,11 @@ class RevolutionaryGUIInterface:
                     <h1>🚀 Revolutionary GUI Interface</h1>
                     <h2>Ultimate AGI Force v7.3.0</h2>
                     <p style="font-size: 1.4em; margin: 15px 0;">Advanced GUI Agent Integration with Latest Research</p>
-                    <p>👑 Owner: """ + self.owner + """ (""" + self.owner_id + """)</p>
+                    <p>👑 Owner: """
+            + self.owner
+            + """ ("""
+            + self.owner_id
+            + """)</p>
                     <p>🇮🇩 Made with ❤️ in Indonesia</p>
                 </div>
                 
@@ -873,27 +942,30 @@ class RevolutionaryGUIInterface:
         </body>
         </html>
         """
+        )
         return dashboard_html
-    
+
     def _render_agents_interface(self):
         """Render advanced agent management interface"""
         # This would be a comprehensive agent management interface
         # For now, return placeholder
         return "<h1>Advanced Agent Management Interface - Coming Soon!</h1>"
-    
-    def run(self, host='0.0.0.0', port=5000, debug=False):
+
+    def run(self, host="0.0.0.0", port=5000, debug=False):
         """Run the revolutionary interface"""
         self.is_running = True
-        
+
         print(f"\n🌐 Starting Revolutionary GUI Interface v{self.version}...")
         print(f"📊 Dashboard: http://{host}:{port}")
         print(f"🤖 Agent Management: http://{host}:{port}/agents")
         print(f"🔬 Research Integration: Latest 2024-2025 findings")
         print(f"⚡ Real-time Updates: Enabled")
-        
+
         if FLASK_AVAILABLE:
             print("✅ Flask available - full functionality enabled")
-            self.socketio.run(self.app, host=host, port=port, debug=debug, allow_unsafe_werkzeug=True)
+            self.socketio.run(
+                self.app, host=host, port=port, debug=debug, allow_unsafe_werkzeug=True
+            )
         else:
             print("⚠️ Flask not available - running in simulation mode")
             try:
@@ -902,24 +974,31 @@ class RevolutionaryGUIInterface:
             except KeyboardInterrupt:
                 print("\n🛑 Revolutionary GUI interface shutdown")
 
+
 # Mock classes for fallback
 class MockOSController:
     def execute_command(self, command_data):
-        return {'success': True, 'message': 'Mock execution - OS controller not available'}
+        return {
+            "success": True,
+            "message": "Mock execution - OS controller not available",
+        }
+
 
 class MockSandboxManager:
     def create_sandbox(self, config):
-        return {'success': True, 'message': 'Mock sandbox - manager not available'}
+        return {"success": True, "message": "Mock sandbox - manager not available"}
+
 
 def main():
     """Main function"""
     interface = RevolutionaryGUIInterface()
-    
+
     try:
         interface.run(debug=True)
     except KeyboardInterrupt:
         print("\n🛑 Revolutionary GUI interface shutdown")
         interface.is_running = False
+
 
 if __name__ == "__main__":
     main()

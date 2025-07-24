@@ -3,13 +3,14 @@ API Endpoints for Dynamic Agent Creation
 Provides REST API for creating new agents dynamically
 """
 
-from fastapi import APIRouter, Body, HTTPException, Depends
-from pydantic import BaseModel, Field
-from typing import Dict, Any, List, Optional
 import logging
-import traceback
 import os
+import traceback
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Body, Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from colony.core.agent_registry import reload_registry
 

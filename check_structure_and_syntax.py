@@ -1,31 +1,36 @@
-import os
 import json
+import os
 import subprocess
 from pathlib import Path
 
 # --- Konfigurasi ---
 ROOT_DIR = Path(__file__).parent.resolve()
 OUTPUT_FILE = "system_analysis_report.json"
-IGNORED_DIRS = {"__pycache__", ".git", ".idea", "node_modules", "build", "dist", "archive"}
+IGNORED_DIRS = {
+    "__pycache__",
+    ".git",
+    ".idea",
+    "node_modules",
+    "build",
+    "dist",
+    "archive",
+}
 FILE_EXTENSIONS_TO_LINT = {".py"}
 FRONTEND_DIR = ROOT_DIR / "web-interface" / "react-ui"
 
 # --- Fungsi Bantuan ---
 
+
 def run_command(command, cwd="."):
     """Menjalankan perintah shell dan mengembalikan output."""
     try:
         result = subprocess.run(
-            command,
-            cwd=cwd,
-            capture_output=True,
-            text=True,
-            check=True,
-            shell=True
+            command, cwd=cwd, capture_output=True, text=True, check=True, shell=True
         )
         return result.stdout.strip(), result.stderr.strip()
     except subprocess.CalledProcessError as e:
         return e.stdout.strip(), e.stderr.strip()
+
 
 def get_dir_size(path):
     """Menghitung ukuran direktori."""
@@ -37,7 +42,9 @@ def get_dir_size(path):
             total += get_dir_size(entry.path)
     return total
 
+
 # --- Fase Analisis ---
+
 
 def analyze_directory_structure():
     """Menganalisis dan melaporkan struktur direktori."""
@@ -58,6 +65,7 @@ def analyze_directory_structure():
             report["folders"].append(str(dir_path.relative_to(ROOT_DIR)))
 
     return report
+
 
 def lint_python_files():
     """Menjalankan ruff untuk memeriksa file Python."""
@@ -86,6 +94,7 @@ def lint_python_files():
 
     return report
 
+
 def check_dependencies():
     """Memeriksa file dependensi."""
     report = {"requirements": {}, "package_json": {}}
@@ -94,22 +103,35 @@ def check_dependencies():
     req_file = ROOT_DIR / "requirements.txt"
     if req_file.exists():
         with open(req_file, "r") as f:
-            report["requirements"]["prod"] = [line.strip() for line in f.readlines() if line.strip() and not line.startswith("#")]
+            report["requirements"]["prod"] = [
+                line.strip()
+                for line in f.readlines()
+                if line.strip() and not line.startswith("#")
+            ]
 
     dev_req_file = ROOT_DIR / "requirements-dev.txt"
     if dev_req_file.exists():
         with open(dev_req_file, "r") as f:
-            report["requirements"]["dev"] = [line.strip() for line in f.readlines() if line.strip() and not line.startswith("#")]
+            report["requirements"]["dev"] = [
+                line.strip()
+                for line in f.readlines()
+                if line.strip() and not line.startswith("#")
+            ]
 
     # Periksa package.json
     pkg_json_file = FRONTEND_DIR / "package.json"
     if pkg_json_file.exists():
         with open(pkg_json_file, "r") as f:
             data = json.load(f)
-            report["package_json"]["dependencies"] = list(data.get("dependencies", {}).keys())
-            report["package_json"]["devDependencies"] = list(data.get("devDependencies", {}).keys())
+            report["package_json"]["dependencies"] = list(
+                data.get("dependencies", {}).keys()
+            )
+            report["package_json"]["devDependencies"] = list(
+                data.get("devDependencies", {}).keys()
+            )
 
     return report
+
 
 def check_frontend():
     """Menjalankan pemeriksaan pada frontend."""
@@ -136,15 +158,17 @@ def check_frontend():
 
     return report
 
+
 def test_agent_registry():
     """Menjalankan tes minimal pada agent registry."""
     report = {"status": "FAIL", "error": "", "agents_list": []}
     try:
         # Menambahkan path colony ke sys.path
         import sys
+
         sys.path.append(str(ROOT_DIR))
 
-        from colony.core.agent_registry import list_all_agents, REGISTRY
+        from colony.core.agent_registry import REGISTRY, list_all_agents
 
         agents = list_all_agents()
         report["agents_list"] = agents
@@ -158,7 +182,9 @@ def test_agent_registry():
 
     return report
 
+
 # --- Main Execution ---
+
 
 def main():
     """Fungsi utama untuk menjalankan semua analisis."""
@@ -189,11 +215,15 @@ def main():
     print("\n--- Ringkasan Analisis ---")
     print(f"Total file: {len(full_report['directory_structure']['files'])}")
     print(f"Total folder: {len(full_report['directory_structure']['folders'])}")
-    print(f"File mencurigakan: {len(full_report['directory_structure']['suspicious_files'])}")
+    print(
+        f"File mencurigakan: {len(full_report['directory_structure']['suspicious_files'])}"
+    )
     print(f"Masalah Python (ruff): {len(full_report['python_linting']['errors'])}")
-    print(f"Dependensi Produksi Python: {len(full_report['dependencies']['requirements'].get('prod', []))}")
+    print(
+        f"Dependensi Produksi Python: {len(full_report['dependencies']['requirements'].get('prod', []))}"
+    )
     print(f"Status Tes Registry Agen: {full_report['agent_registry_test']['status']}")
-    if full_report['agent_registry_test']['status'] == 'FAIL':
+    if full_report["agent_registry_test"]["status"] == "FAIL":
         print(f"  Error: {full_report['agent_registry_test']['error']}")
     print("--------------------------")
 

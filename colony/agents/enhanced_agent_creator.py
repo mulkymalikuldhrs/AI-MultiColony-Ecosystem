@@ -5,23 +5,24 @@ Advanced AI agent for creating custom agents dynamically
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
-import asyncio
-import json
-import os
-import re
 import ast
-import time
-import logging
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Any, Optional
+import asyncio
 import importlib.util
 import inspect
+import json
+import logging
+import os
+import re
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 
 class EnhancedAgentCreator:
     """
     Enhanced Agent Creator
-    
+
     Capabilities:
     - Dynamic agent creation from specifications
     - Custom agent template generation
@@ -30,7 +31,7 @@ class EnhancedAgentCreator:
     - Agent testing and validation
     - Agent documentation generation
     """
-    
+
     def __init__(self):
         self.agent_id = "enhanced_agent_creator"
         self.name = "Enhanced Agent Creator"
@@ -44,71 +45,73 @@ class EnhancedAgentCreator:
             "agent_testing",
             "documentation_generation",
             "code_optimization",
-            "dependency_management"
+            "dependency_management",
         ]
-        
+
         # Initialize logging
         self.logger = logging.getLogger("EnhancedAgentCreator")
         self.logger.setLevel(logging.INFO)
-        
+
         # Directories
         self.base_dir = Path(__file__).parent.parent.parent
         self.agents_dir = self.base_dir / "colony" / "agents"
         self.templates_dir = self.base_dir / "data" / "agent_templates"
         self.created_agents_dir = self.base_dir / "data" / "created_agents"
-        
+
         # Create directories
         for dir_path in [self.templates_dir, self.created_agents_dir]:
             dir_path.mkdir(parents=True, exist_ok=True)
-        
+
         # Agent templates
         self.agent_templates = {
             "basic": self._get_basic_template(),
             "advanced": self._get_advanced_template(),
             "autonomous": self._get_autonomous_template(),
             "specialized": self._get_specialized_template(),
-            "interactive": self._get_interactive_template()
+            "interactive": self._get_interactive_template(),
         }
-        
+
         # Created agents registry
         self.created_agents = []
         self.agent_registry = {}
-        
+
         self.logger.info(f"🤖 {self.name} v{self.version} initialized")
-    
+
     async def create_agent(self, specification: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new agent from specification"""
         try:
-            self.logger.info(f"🔨 Creating agent: {specification.get('name', 'Unknown')}")
-            
+            self.logger.info(
+                f"🔨 Creating agent: {specification.get('name', 'Unknown')}"
+            )
+
             # Validate specification
             validation_result = await self._validate_specification(specification)
             if not validation_result["valid"]:
                 return {
                     "success": False,
-                    "error": f"Invalid specification: {validation_result['errors']}"
+                    "error": f"Invalid specification: {validation_result['errors']}",
                 }
-            
+
             # Generate agent code
             agent_code = await self._generate_agent_code(specification)
-            
+
             # Create agent file
             agent_file = await self._create_agent_file(specification, agent_code)
-            
+
             # Test agent
             test_result = await self._test_agent(agent_file)
             if not test_result["success"]:
                 return {
                     "success": False,
-                    "error": f"Agent test failed: {test_result['error']}"
+                    "error": f"Agent test failed: {test_result['error']}",
                 }
-            
+
             # Register agent
             registration_result = await self._register_agent(agent_file, specification)
-            
+
             # Generate documentation
             await self._generate_agent_documentation(agent_file, specification)
-            
+
             # Add to created agents registry
             agent_info = {
                 "id": specification["id"],
@@ -116,55 +119,51 @@ class EnhancedAgentCreator:
                 "file": str(agent_file),
                 "created_at": datetime.now().isoformat(),
                 "specification": specification,
-                "status": "active"
+                "status": "active",
             }
             self.created_agents.append(agent_info)
-            
+
             self.logger.info(f"✅ Successfully created agent: {specification['name']}")
-            
+
             return {
                 "success": True,
                 "agent_id": specification["id"],
                 "agent_file": str(agent_file),
-                "registration": registration_result
+                "registration": registration_result,
             }
-            
+
         except Exception as e:
             self.logger.error(f"❌ Error creating agent: {e}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
+            return {"success": False, "error": str(e)}
+
     async def _validate_specification(self, spec: Dict[str, Any]) -> Dict[str, Any]:
         """Validate agent specification"""
         errors = []
-        
+
         # Required fields
         required_fields = ["id", "name", "description", "capabilities"]
         for field in required_fields:
             if field not in spec:
                 errors.append(f"Missing required field: {field}")
-        
+
         # Validate ID format
         if "id" in spec:
-            if not re.match(r'^[a-z_][a-z0-9_]*$', spec["id"]):
+            if not re.match(r"^[a-z_][a-z0-9_]*$", spec["id"]):
                 errors.append("Agent ID must be lowercase with underscores only")
-        
+
         # Validate capabilities
         if "capabilities" in spec and not isinstance(spec["capabilities"], list):
             errors.append("Capabilities must be a list")
-        
-        return {
-            "valid": len(errors) == 0,
-            "errors": errors
-        }
-    
+
+        return {"valid": len(errors) == 0, "errors": errors}
+
     async def _generate_agent_code(self, spec: Dict[str, Any]) -> str:
         """Generate agent code from specification"""
         template_type = spec.get("template", "basic")
-        template = self.agent_templates.get(template_type, self.agent_templates["basic"])
-        
+        template = self.agent_templates.get(
+            template_type, self.agent_templates["basic"]
+        )
+
         # Replace placeholders
         agent_code = template.format(
             agent_id=spec["id"],
@@ -173,15 +172,15 @@ class EnhancedAgentCreator:
             agent_capabilities=json.dumps(spec["capabilities"], indent=8),
             agent_version=spec.get("version", "1.0.0"),
             custom_methods=self._generate_custom_methods(spec),
-            custom_imports=self._generate_custom_imports(spec)
+            custom_imports=self._generate_custom_imports(spec),
         )
-        
+
         return agent_code
-    
+
     def _generate_custom_methods(self, spec: Dict[str, Any]) -> str:
         """Generate custom methods based on capabilities"""
         methods = []
-        
+
         for capability in spec.get("capabilities", []):
             method_name = f"execute_{capability}"
             method_code = f'''
@@ -214,13 +213,13 @@ class EnhancedAgentCreator:
         return f"{capability} executed with args: {{args}}, kwargs: {{kwargs}}"
 '''
             methods.append(method_code)
-        
+
         return "\n".join(methods)
-    
+
     def _generate_custom_imports(self, spec: Dict[str, Any]) -> str:
         """Generate custom imports based on requirements"""
         imports = []
-        
+
         # Add imports based on capabilities
         capability_imports = {
             "web_scraping": "import requests\nfrom bs4 import BeautifulSoup",
@@ -230,95 +229,84 @@ class EnhancedAgentCreator:
             "api_integration": "import requests\nimport aiohttp",
             "file_processing": "import csv\nimport openpyxl",
             "image_processing": "from PIL import Image\nimport cv2",
-            "natural_language": "import nltk\nimport spacy"
+            "natural_language": "import nltk\nimport spacy",
         }
-        
+
         for capability in spec.get("capabilities", []):
             if capability in capability_imports:
                 imports.append(capability_imports[capability])
-        
+
         return "\n".join(imports)
-    
+
     async def _create_agent_file(self, spec: Dict[str, Any], agent_code: str) -> Path:
         """Create agent file"""
         agent_filename = f"{spec['id']}.py"
         agent_file = self.agents_dir / agent_filename
-        
+
         # Write agent code to file
-        with open(agent_file, 'w', encoding='utf-8') as f:
+        with open(agent_file, "w", encoding="utf-8") as f:
             f.write(agent_code)
-        
+
         return agent_file
-    
+
     async def _test_agent(self, agent_file: Path) -> Dict[str, Any]:
         """Test the created agent"""
         try:
             # Test syntax
-            with open(agent_file, 'r', encoding='utf-8') as f:
+            with open(agent_file, "r", encoding="utf-8") as f:
                 content = f.read()
-            
+
             ast.parse(content)
-            
+
             # Test import
             spec = importlib.util.spec_from_file_location("test_agent", agent_file)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
-            
+
             # Test agent instantiation
-            if hasattr(module, 'register_agent'):
+            if hasattr(module, "register_agent"):
                 agent_info = module.register_agent()
-                return {
-                    "success": True,
-                    "agent_info": agent_info
-                }
-            
+                return {"success": True, "agent_info": agent_info}
+
             return {
                 "success": False,
-                "error": "Agent does not have register_agent function"
+                "error": "Agent does not have register_agent function",
             }
-            
+
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
-    async def _register_agent(self, agent_file: Path, spec: Dict[str, Any]) -> Dict[str, Any]:
+            return {"success": False, "error": str(e)}
+
+    async def _register_agent(
+        self, agent_file: Path, spec: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Register the agent with the system"""
         try:
             # Import the agent
             spec_obj = importlib.util.spec_from_file_location(spec["id"], agent_file)
             module = importlib.util.module_from_spec(spec_obj)
             spec_obj.loader.exec_module(module)
-            
+
             # Get registration info
-            if hasattr(module, 'register_agent'):
+            if hasattr(module, "register_agent"):
                 agent_info = module.register_agent()
-                
+
                 # Add to registry
                 self.agent_registry[spec["id"]] = {
                     "module": module,
                     "info": agent_info,
-                    "file": str(agent_file)
+                    "file": str(agent_file),
                 }
-                
-                return {
-                    "success": True,
-                    "agent_info": agent_info
-                }
-            
-            return {
-                "success": False,
-                "error": "No register_agent function found"
-            }
-            
+
+                return {"success": True, "agent_info": agent_info}
+
+            return {"success": False, "error": "No register_agent function found"}
+
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
-    async def _generate_agent_documentation(self, agent_file: Path, spec: Dict[str, Any]):
+            return {"success": False, "error": str(e)}
+
+    async def _generate_agent_documentation(
+        self, agent_file: Path, spec: Dict[str, Any]
+    ):
         """Generate documentation for the agent"""
         doc_content = f"""# {spec['name']} Documentation
 
@@ -364,11 +352,11 @@ for capability in agent.capabilities:
 ---
 *Generated automatically by Enhanced Agent Creator*
 """
-        
+
         doc_file = self.created_agents_dir / f"{spec['id']}_documentation.md"
-        with open(doc_file, 'w', encoding='utf-8') as f:
+        with open(doc_file, "w", encoding="utf-8") as f:
             f.write(doc_content)
-    
+
     def _get_basic_template(self) -> str:
         """Get basic agent template"""
         return '''"""
@@ -455,7 +443,7 @@ if __name__ == "__main__":
     print(f"Agent {{agent.name}} is ready!")
     print(f"Capabilities: {{agent.capabilities}}")
 '''
-    
+
     def _get_advanced_template(self) -> str:
         """Get advanced agent template with more features"""
         return '''"""
@@ -680,23 +668,23 @@ if __name__ == "__main__":
     print(f"Capabilities: {{agent.capabilities}}")
     print(f"Status: {{agent.get_status()}}")
 '''
-    
+
     def _get_autonomous_template(self) -> str:
         """Get autonomous agent template"""
         return self._get_advanced_template()  # For now, use advanced template
-    
+
     def _get_specialized_template(self) -> str:
         """Get specialized agent template"""
         return self._get_advanced_template()  # For now, use advanced template
-    
+
     def _get_interactive_template(self) -> str:
         """Get interactive agent template"""
         return self._get_advanced_template()  # For now, use advanced template
-    
+
     async def list_created_agents(self) -> List[Dict[str, Any]]:
         """List all created agents"""
         return self.created_agents
-    
+
     async def get_agent_templates(self) -> Dict[str, str]:
         """Get available agent templates"""
         return {
@@ -704,9 +692,9 @@ if __name__ == "__main__":
             "advanced": "Advanced agent with error handling and state management",
             "autonomous": "Autonomous agent with self-management capabilities",
             "specialized": "Specialized agent for specific domain tasks",
-            "interactive": "Interactive agent with user interface capabilities"
+            "interactive": "Interactive agent with user interface capabilities",
         }
-    
+
     async def delete_agent(self, agent_id: str) -> Dict[str, Any]:
         """Delete a created agent"""
         try:
@@ -716,36 +704,32 @@ if __name__ == "__main__":
                 if agent["id"] == agent_id:
                     agent_info = agent
                     break
-            
+
             if not agent_info:
-                return {
-                    "success": False,
-                    "error": f"Agent {agent_id} not found"
-                }
-            
+                return {"success": False, "error": f"Agent {agent_id} not found"}
+
             # Remove agent file
             agent_file = Path(agent_info["file"])
             if agent_file.exists():
                 agent_file.unlink()
-            
+
             # Remove from registry
-            self.created_agents = [a for a in self.created_agents if a["id"] != agent_id]
+            self.created_agents = [
+                a for a in self.created_agents if a["id"] != agent_id
+            ]
             if agent_id in self.agent_registry:
                 del self.agent_registry[agent_id]
-            
+
             self.logger.info(f"🗑️ Deleted agent: {agent_id}")
-            
+
             return {
                 "success": True,
-                "message": f"Agent {agent_id} deleted successfully"
+                "message": f"Agent {agent_id} deleted successfully",
             }
-            
+
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
+            return {"success": False, "error": str(e)}
+
     def get_status(self) -> Dict[str, Any]:
         """Get agent creator status"""
         return {
@@ -756,11 +740,13 @@ if __name__ == "__main__":
             "capabilities": self.capabilities,
             "created_agents_count": len(self.created_agents),
             "available_templates": list(self.agent_templates.keys()),
-            "last_updated": datetime.now().isoformat()
+            "last_updated": datetime.now().isoformat(),
         }
+
 
 # Global instance
 enhanced_agent_creator = EnhancedAgentCreator()
+
 
 # Agent registration
 def register_agent():
@@ -772,8 +758,9 @@ def register_agent():
         "capabilities": enhanced_agent_creator.capabilities,
         "status": "active",
         "route": f"/api/agents/{enhanced_agent_creator.agent_id}",
-        "description": "Advanced AI agent for creating custom agents dynamically"
+        "description": "Advanced AI agent for creating custom agents dynamically",
     }
+
 
 if __name__ == "__main__":
     # Test agent creation
@@ -782,9 +769,9 @@ if __name__ == "__main__":
         "name": "Test Agent",
         "description": "A test agent for demonstration",
         "capabilities": ["data_processing", "file_handling"],
-        "template": "advanced"
+        "template": "advanced",
     }
-    
+
     creator = enhanced_agent_creator
     result = asyncio.run(creator.create_agent(test_spec))
     print(f"Agent creation result: {result}")

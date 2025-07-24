@@ -1,17 +1,19 @@
 import os
+
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> origin/kamis24juli2025
 import sys
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 # Add project root to sys.path to allow importing from 'colony'
 ROOT_DIR = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(ROOT_DIR))
 
-from colony.core.agent_registry import AGENT_INFO, list_all_agents, get_all_agents
+from colony.core.agent_registry import (AGENT_INFO, get_all_agents,
+                                        list_all_agents)
 
 DOCS_DIR = ROOT_DIR / "docs"
 AGENT_DOC = DOCS_DIR / "AGENT_REGISTRY.md"
@@ -59,6 +61,7 @@ if __name__ == "__main__":
         print(f"An unexpected error occurred: {e}")
 =======
 from datetime import datetime
+
 from colony.core.agent_registry import get_all_agents
 
 AGENT_DOC = "docs/AGENT_REGISTRY.md"

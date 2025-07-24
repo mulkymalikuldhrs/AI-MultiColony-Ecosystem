@@ -8,13 +8,14 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 import asyncio
 import json
 import os
-import time
-from datetime import datetime
-from typing import Dict, List, Any, Optional
-from pathlib import Path
-import uuid
-import subprocess
 import shutil
+import subprocess
+import time
+import uuid
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 
 class FullStackDevAgent:
     """
@@ -27,7 +28,7 @@ class FullStackDevAgent:
     - Handles deployment and DevOps
     - Creates comprehensive documentation
     """
-    
+
     def __init__(self):
         self.agent_id = "fullstack_dev"
         self.name = "Full Stack Developer"
@@ -40,20 +41,21 @@ class FullStackDevAgent:
             "authentication",
             "deployment",
             "mobile_development",
-            "testing"
+            "testing",
         ]
-        
+
         # Development stacks
         self.dev_stacks = self._initialize_dev_stacks()
         self.created_apps: Dict[str, Dict] = {}
-        
+
         # Import other agents for collaboration
         try:
-            from agents.ui_designer import ui_designer_agent
-            from agents.dev_engine import dev_engine_agent
             from agents.cybershell import cybershell_agent
+            from agents.dev_engine import dev_engine_agent
+            from agents.ui_designer import ui_designer_agent
+
             from connectors.llm_gateway import llm_gateway
-            
+
             self.ui_designer = ui_designer_agent
             self.dev_engine = dev_engine_agent
             self.cybershell = cybershell_agent
@@ -64,7 +66,7 @@ class FullStackDevAgent:
             self.dev_engine = None
             self.cybershell = None
             self.llm = None
-    
+
     def _initialize_dev_stacks(self) -> Dict[str, Dict]:
         """Initialize development stack configurations"""
         return {
@@ -75,16 +77,16 @@ class FullStackDevAgent:
                     "language": "TypeScript",
                     "styling": "Tailwind CSS",
                     "state_management": "Zustand",
-                    "auth": "NextAuth.js"
+                    "auth": "NextAuth.js",
                 },
                 "backend": {
                     "framework": "FastAPI",
                     "language": "Python",
                     "database": "PostgreSQL",
                     "orm": "SQLAlchemy",
-                    "auth": "JWT"
+                    "auth": "JWT",
                 },
-                "deployment": "Docker + Vercel/Railway"
+                "deployment": "Docker + Vercel/Railway",
             },
             "react_express": {
                 "name": "React + Express",
@@ -93,16 +95,16 @@ class FullStackDevAgent:
                     "language": "JavaScript",
                     "styling": "Tailwind CSS",
                     "state_management": "Redux Toolkit",
-                    "auth": "Auth0"
+                    "auth": "Auth0",
                 },
                 "backend": {
                     "framework": "Express.js",
                     "language": "Node.js",
                     "database": "MongoDB",
                     "orm": "Mongoose",
-                    "auth": "Passport.js"
+                    "auth": "Passport.js",
                 },
-                "deployment": "Netlify + Heroku"
+                "deployment": "Netlify + Heroku",
             },
             "svelte_django": {
                 "name": "SvelteKit + Django",
@@ -111,16 +113,16 @@ class FullStackDevAgent:
                     "language": "TypeScript",
                     "styling": "Tailwind CSS",
                     "state_management": "Svelte Stores",
-                    "auth": "Custom"
+                    "auth": "Custom",
                 },
                 "backend": {
                     "framework": "Django",
                     "language": "Python",
                     "database": "PostgreSQL",
                     "orm": "Django ORM",
-                    "auth": "Django Auth"
+                    "auth": "Django Auth",
                 },
-                "deployment": "Docker + DigitalOcean"
+                "deployment": "Docker + DigitalOcean",
             },
             "react_native": {
                 "name": "React Native + Firebase",
@@ -129,24 +131,24 @@ class FullStackDevAgent:
                     "language": "TypeScript",
                     "styling": "NativeBase",
                     "navigation": "React Navigation",
-                    "auth": "Firebase Auth"
+                    "auth": "Firebase Auth",
                 },
                 "backend": {
                     "framework": "Firebase",
                     "database": "Firestore",
                     "auth": "Firebase Auth",
                     "storage": "Firebase Storage",
-                    "functions": "Cloud Functions"
+                    "functions": "Cloud Functions",
                 },
-                "deployment": "App Store + Google Play"
-            }
+                "deployment": "App Store + Google Play",
+            },
         }
-    
+
     async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process full stack development task"""
         try:
             action = task.get("action", "create_app")
-            
+
             if action == "create_app":
                 return await self._create_fullstack_app(task)
             elif action == "add_feature":
@@ -165,53 +167,67 @@ class FullStackDevAgent:
                 return await self._run_comprehensive_tests(task)
             else:
                 return self._create_error_response(f"Unknown action: {action}")
-                
+
         except Exception as e:
             return self._create_error_response(str(e))
-    
+
     async def _create_fullstack_app(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Create a complete full stack application"""
         app_name = task.get("app_name", "")
         description = task.get("description", "")
         stack = task.get("stack", "nextjs_fastapi")
         features = task.get("features", ["auth", "crud", "api"])
-        
+
         if not app_name:
             return self._create_error_response("App name is required")
-        
+
         if stack not in self.dev_stacks:
             return self._create_error_response(f"Stack {stack} not supported")
-        
+
         try:
             app_id = str(uuid.uuid4())
             stack_config = self.dev_stacks[stack]
-            
+
             # Create project structure
-            project_structure = await self._create_project_structure(app_name, stack_config)
-            
+            project_structure = await self._create_project_structure(
+                app_name, stack_config
+            )
+
             # Generate frontend
-            frontend_result = await self._generate_frontend(app_name, stack_config, features)
-            
+            frontend_result = await self._generate_frontend(
+                app_name, stack_config, features
+            )
+
             # Generate backend
-            backend_result = await self._generate_backend(app_name, stack_config, features)
-            
+            backend_result = await self._generate_backend(
+                app_name, stack_config, features
+            )
+
             # Setup database
-            database_result = await self._setup_database_schema(app_name, stack_config, features)
-            
+            database_result = await self._setup_database_schema(
+                app_name, stack_config, features
+            )
+
             # Create API integration
             api_result = await self._create_api_integration(app_name, stack_config)
-            
+
             # Setup authentication if requested
             auth_result = None
             if "auth" in features:
-                auth_result = await self._setup_authentication_system(app_name, stack_config)
-            
+                auth_result = await self._setup_authentication_system(
+                    app_name, stack_config
+                )
+
             # Create deployment configuration
-            deployment_result = await self._create_deployment_config(app_name, stack_config)
-            
+            deployment_result = await self._create_deployment_config(
+                app_name, stack_config
+            )
+
             # Create documentation
-            docs_result = await self._create_app_documentation(app_name, stack_config, features)
-            
+            docs_result = await self._create_app_documentation(
+                app_name, stack_config, features
+            )
+
             # Store app info
             app_info = {
                 "app_id": app_id,
@@ -228,62 +244,66 @@ class FullStackDevAgent:
                 "auth": auth_result,
                 "deployment": deployment_result,
                 "documentation": docs_result,
-                "status": "created"
+                "status": "created",
             }
-            
+
             self.created_apps[app_id] = app_info
-            
+
             return {
                 "success": True,
                 "message": f"Full stack app {app_name} created successfully",
                 "app_info": app_info,
                 "app_id": app_id,
-                "next_steps": self._get_app_next_steps(stack_config)
+                "next_steps": self._get_app_next_steps(stack_config),
             }
-            
+
         except Exception as e:
             return self._create_error_response(f"Failed to create app: {str(e)}")
-    
-    async def _create_project_structure(self, app_name: str, stack_config: Dict) -> Dict[str, Any]:
+
+    async def _create_project_structure(
+        self, app_name: str, stack_config: Dict
+    ) -> Dict[str, Any]:
         """Create project directory structure"""
         try:
             project_path = Path(f"projects/{app_name}")
             project_path.mkdir(parents=True, exist_ok=True)
-            
+
             # Create frontend directory
             frontend_path = project_path / "frontend"
             frontend_path.mkdir(exist_ok=True)
-            
-            # Create backend directory  
+
+            # Create backend directory
             backend_path = project_path / "backend"
             backend_path.mkdir(exist_ok=True)
-            
+
             # Create shared directory for types/configs
             shared_path = project_path / "shared"
             shared_path.mkdir(exist_ok=True)
-            
+
             # Create docs directory
             docs_path = project_path / "docs"
             docs_path.mkdir(exist_ok=True)
-            
+
             # Create root configuration files
             await self._create_root_configs(project_path, app_name, stack_config)
-            
+
             return {
                 "success": True,
                 "path": str(project_path),
                 "frontend_path": str(frontend_path),
                 "backend_path": str(backend_path),
                 "shared_path": str(shared_path),
-                "docs_path": str(docs_path)
+                "docs_path": str(docs_path),
             }
-            
+
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
-    async def _create_root_configs(self, project_path: Path, app_name: str, stack_config: Dict):
+
+    async def _create_root_configs(
+        self, project_path: Path, app_name: str, stack_config: Dict
+    ):
         """Create root configuration files"""
-        
+
         # Create docker-compose.yml
         docker_compose = f"""version: '3.8'
 
@@ -332,10 +352,10 @@ services:
 volumes:
   postgres_data:
 """
-        
+
         with open(project_path / "docker-compose.yml", "w") as f:
             f.write(docker_compose)
-        
+
         # Create .env template
         env_template = f"""# {app_name} Environment Configuration
 
@@ -355,10 +375,10 @@ OPENAI_API_KEY=your-openai-key
 GITHUB_CLIENT_ID=your-github-client-id
 GITHUB_CLIENT_SECRET=your-github-client-secret
 """
-        
+
         with open(project_path / ".env.example", "w") as f:
             f.write(env_template)
-        
+
         # Create README.md
         readme = f"""# {app_name}
 
@@ -432,27 +452,33 @@ uvicorn main:app --reload
 
 MIT License
 """
-        
+
         with open(project_path / "README.md", "w") as f:
             f.write(readme)
-    
-    async def _generate_frontend(self, app_name: str, stack_config: Dict, features: List[str]) -> Dict[str, Any]:
+
+    async def _generate_frontend(
+        self, app_name: str, stack_config: Dict, features: List[str]
+    ) -> Dict[str, Any]:
         """Generate frontend application"""
         try:
             if not self.dev_engine:
                 return {"success": False, "error": "Dev engine not available"}
-            
+
             # Use dev engine to create frontend project
             frontend_task = {
                 "action": "create_project",
                 "project_name": f"{app_name}-frontend",
-                "template": "nextjs_app" if "Next.js" in stack_config['frontend']['framework'] else "react_app",
+                "template": (
+                    "nextjs_app"
+                    if "Next.js" in stack_config["frontend"]["framework"]
+                    else "react_app"
+                ),
                 "description": f"Frontend for {app_name}",
-                "output_dir": f"projects/{app_name}"
+                "output_dir": f"projects/{app_name}",
             }
-            
+
             frontend_result = await self.dev_engine.process_task(frontend_task)
-            
+
             if frontend_result.get("success"):
                 # Add custom components using UI designer
                 if self.ui_designer and "crud" in features:
@@ -460,49 +486,55 @@ MIT License
                         "action": "create_ui",
                         "description": f"CRUD interface for {app_name}",
                         "ui_type": "dashboard",
-                        "design_system": "modern"
+                        "design_system": "modern",
                     }
                     ui_result = await self.ui_designer.process_task(ui_task)
                     frontend_result["ui_components"] = ui_result
-            
+
             return frontend_result
-            
+
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
-    async def _generate_backend(self, app_name: str, stack_config: Dict, features: List[str]) -> Dict[str, Any]:
+
+    async def _generate_backend(
+        self, app_name: str, stack_config: Dict, features: List[str]
+    ) -> Dict[str, Any]:
         """Generate backend application"""
         try:
             if not self.dev_engine:
                 return {"success": False, "error": "Dev engine not available"}
-            
+
             # Use dev engine to create backend project
             backend_task = {
                 "action": "create_project",
                 "project_name": f"{app_name}-backend",
-                "template": "fastapi_backend" if "FastAPI" in stack_config['backend']['framework'] else "python_package",
+                "template": (
+                    "fastapi_backend"
+                    if "FastAPI" in stack_config["backend"]["framework"]
+                    else "python_package"
+                ),
                 "description": f"Backend API for {app_name}",
-                "output_dir": f"projects/{app_name}"
+                "output_dir": f"projects/{app_name}",
             }
-            
+
             backend_result = await self.dev_engine.process_task(backend_task)
-            
+
             if backend_result.get("success") and self.llm:
                 # Generate additional API endpoints using AI
                 api_code = await self._generate_api_endpoints(app_name, features)
                 backend_result["generated_apis"] = api_code
-            
+
             return backend_result
-            
+
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
+
     async def _generate_api_endpoints(self, app_name: str, features: List[str]) -> str:
         """Generate API endpoints using AI"""
-        
+
         if not self.llm:
             return ""
-        
+
         prompt = f"""
         Generate FastAPI endpoints for a {app_name} application with these features: {', '.join(features)}
         
@@ -516,19 +548,21 @@ MIT License
         
         Return only the Python code for routes.py file.
         """
-        
+
         try:
             api_code = await self.llm.generate_code(prompt, language="python")
             return api_code
         except Exception as e:
             print(f"Failed to generate API code: {e}")
             return ""
-    
-    async def _setup_database_schema(self, app_name: str, stack_config: Dict, features: List[str]) -> Dict[str, Any]:
+
+    async def _setup_database_schema(
+        self, app_name: str, stack_config: Dict, features: List[str]
+    ) -> Dict[str, Any]:
         """Setup database schema"""
         try:
-            database_type = stack_config['backend']['database']
-            
+            database_type = stack_config["backend"]["database"]
+
             # Generate database models
             if self.llm:
                 schema_prompt = f"""
@@ -544,31 +578,38 @@ MIT License
                 
                 Return only the SQLAlchemy model definitions.
                 """
-                
-                models_code = await self.llm.generate_code(schema_prompt, language="python")
-                
+
+                models_code = await self.llm.generate_code(
+                    schema_prompt, language="python"
+                )
+
                 return {
                     "success": True,
                     "database_type": database_type,
                     "models_generated": True,
-                    "models_code": models_code
+                    "models_code": models_code,
                 }
-            
+
             return {
                 "success": True,
                 "database_type": database_type,
-                "models_generated": False
+                "models_generated": False,
             }
-            
+
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
-    async def _create_api_integration(self, app_name: str, stack_config: Dict) -> Dict[str, Any]:
+
+    async def _create_api_integration(
+        self, app_name: str, stack_config: Dict
+    ) -> Dict[str, Any]:
         """Create API integration between frontend and backend"""
         try:
             if not self.llm:
-                return {"success": False, "error": "LLM not available for code generation"}
-            
+                return {
+                    "success": False,
+                    "error": "LLM not available for code generation",
+                }
+
             # Generate API client for frontend
             api_client_prompt = f"""
             Create a TypeScript API client for a {app_name} application using {stack_config['frontend']['framework']}.
@@ -583,31 +624,35 @@ MIT License
             
             Return the complete API client code.
             """
-            
-            api_client_code = await self.llm.generate_code(api_client_prompt, language="typescript")
-            
+
+            api_client_code = await self.llm.generate_code(
+                api_client_prompt, language="typescript"
+            )
+
             return {
                 "success": True,
                 "api_client_generated": True,
                 "api_client_code": api_client_code,
-                "integration_type": "REST API"
+                "integration_type": "REST API",
             }
-            
+
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
-    async def _setup_authentication_system(self, app_name: str, stack_config: Dict) -> Dict[str, Any]:
+
+    async def _setup_authentication_system(
+        self, app_name: str, stack_config: Dict
+    ) -> Dict[str, Any]:
         """Setup authentication system"""
         try:
-            auth_type = stack_config['frontend']['auth']
-            
+            auth_type = stack_config["frontend"]["auth"]
+
             if not self.llm:
                 return {
                     "success": True,
                     "auth_type": auth_type,
-                    "implementation": "template_based"
+                    "implementation": "template_based",
                 }
-            
+
             # Generate authentication code
             auth_prompt = f"""
             Implement authentication for a {app_name} application using {auth_type}.
@@ -624,24 +669,26 @@ MIT License
             
             Provide both frontend and backend authentication code.
             """
-            
+
             auth_code = await self.llm.generate_code(auth_prompt, language="typescript")
-            
+
             return {
                 "success": True,
                 "auth_type": auth_type,
                 "implementation": "ai_generated",
-                "auth_code": auth_code
+                "auth_code": auth_code,
             }
-            
+
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
-    async def _create_deployment_config(self, app_name: str, stack_config: Dict) -> Dict[str, Any]:
+
+    async def _create_deployment_config(
+        self, app_name: str, stack_config: Dict
+    ) -> Dict[str, Any]:
         """Create deployment configuration"""
         try:
             deployment_platform = stack_config.get("deployment", "Docker")
-            
+
             # Create Dockerfile for frontend
             frontend_dockerfile = """
 FROM node:18-alpine
@@ -658,7 +705,7 @@ EXPOSE 3000
 
 CMD ["npm", "start"]
 """
-            
+
             # Create Dockerfile for backend
             backend_dockerfile = """
 FROM python:3.11-slim
@@ -674,19 +721,21 @@ EXPOSE 8000
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 """
-            
+
             return {
                 "success": True,
                 "deployment_platform": deployment_platform,
                 "frontend_dockerfile": frontend_dockerfile,
                 "backend_dockerfile": backend_dockerfile,
-                "docker_compose_created": True
+                "docker_compose_created": True,
             }
-            
+
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
-    async def _create_app_documentation(self, app_name: str, stack_config: Dict, features: List[str]) -> Dict[str, Any]:
+
+    async def _create_app_documentation(
+        self, app_name: str, stack_config: Dict, features: List[str]
+    ) -> Dict[str, Any]:
         """Create comprehensive application documentation"""
         try:
             # Create API documentation
@@ -812,21 +861,21 @@ pip install -r requirements.txt
 docker-compose -f docker-compose.prod.yml up -d
 ```
 """
-            
+
             return {
                 "success": True,
                 "api_docs": api_docs,
                 "setup_guide": setup_guide,
-                "docs_created": True
+                "docs_created": True,
             }
-            
+
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
+
     def _generate_feature_docs(self, features: List[str]) -> str:
         """Generate documentation for features"""
         docs = ""
-        
+
         if "crud" in features:
             docs += """
 ### CRUD Operations
@@ -836,7 +885,7 @@ docker-compose -f docker-compose.prod.yml up -d
 - `PUT /api/items/{id}` - Update item
 - `DELETE /api/items/{id}` - Delete item
 """
-        
+
         if "auth" in features:
             docs += """
 ### User Management
@@ -845,9 +894,9 @@ docker-compose -f docker-compose.prod.yml up -d
 - `PUT /api/users/{id}` - Update user profile
 - `DELETE /api/users/{id}` - Delete user account
 """
-        
+
         return docs
-    
+
     def _get_app_next_steps(self, stack_config: Dict) -> List[str]:
         """Get next steps for the created application"""
         steps = [
@@ -862,28 +911,29 @@ docker-compose -f docker-compose.prod.yml up -d
             "Customize the generated code as needed",
             "Add your specific business logic",
             "Run tests: npm test (frontend) && pytest (backend)",
-            "Deploy when ready using provided Docker configs"
+            "Deploy when ready using provided Docker configs",
         ]
-        
+
         return steps
-    
+
     def get_created_apps(self) -> Dict[str, Any]:
         """Get list of created applications"""
         return {
             "success": True,
             "total_apps": len(self.created_apps),
             "apps": list(self.created_apps.values()),
-            "available_stacks": list(self.dev_stacks.keys())
+            "available_stacks": list(self.dev_stacks.keys()),
         }
-    
+
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create standardized error response"""
         return {
             "success": False,
             "error": error_message,
             "agent": self.agent_id,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
+
 
 # Global instance
 fullstack_dev_agent = FullStackDevAgent()

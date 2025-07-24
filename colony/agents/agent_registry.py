@@ -1,4 +1,5 @@
-from typing import Dict, Type, Any, Callable, Optional, List
+from typing import Any, Callable, Dict, List, Optional, Type
+
 
 class AgentRegistry:
     """
@@ -6,21 +7,20 @@ class AgentRegistry:
     Agents can register themselves with metadata, allowing for dynamic loading
     and discovery within the ecosystem.
     """
+
     _agents: Dict[str, Dict[str, Any]] = {}
     _agent_classes: Dict[str, Type[Any]] = {}
 
-    def register_agent(self, name: str, agent_class: Type[Any], metadata: Dict[str, Any]):
+    def register_agent(
+        self, name: str, agent_class: Type[Any], metadata: Dict[str, Any]
+    ):
         """
         Registers an agent with its class and metadata.
         """
         if name in self._agents:
             print(f"⚠️ Warning: Agent '{name}' is already registered. Overwriting.")
-        
-        self._agents[name] = {
-            "name": name,
-            "class": agent_class,
-            "metadata": metadata
-        }
+
+        self._agents[name] = {"name": name, "class": agent_class, "metadata": metadata}
         self._agent_classes[name] = agent_class
         print(f"✅ Agent '{name}' registered with metadata: {metadata}")
 
@@ -50,10 +50,14 @@ class AgentRegistry:
         self._agent_classes.clear()
         print("🗑️ Agent registry cleared.")
 
+
 # Global instance of the AgentRegistry
 agent_registry = AgentRegistry()
 
-def register_agent(name: str, route: str, dependencies: List[str] = None, description: str = "") -> Callable:
+
+def register_agent(
+    name: str, route: str, dependencies: List[str] = None, description: str = ""
+) -> Callable:
     """
     Decorator to register an agent class with the global AgentRegistry.
     """
@@ -62,13 +66,14 @@ def register_agent(name: str, route: str, dependencies: List[str] = None, descri
 
     def decorator(cls: Type[Any]) -> Type[Any]:
         metadata = {
-            "id": name, # Use name as id for consistency
-            "name": name.replace('_', ' ').title(),
+            "id": name,  # Use name as id for consistency
+            "name": name.replace("_", " ").title(),
             "route": route,
             "dependencies": dependencies,
             "description": description,
-            "status": "inactive" # Default status
+            "status": "inactive",  # Default status
         }
         agent_registry.register_agent(name, cls, metadata)
         return cls
+
     return decorator

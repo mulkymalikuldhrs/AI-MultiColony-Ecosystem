@@ -2,15 +2,16 @@
 Agent 04 (Executor) - Script, API & Automation Pipeline Runner
 """
 
-from typing import Dict, List, Any, Optional
+import asyncio
 import json
-import subprocess
-import requests
 import os
+import subprocess
 import tempfile
 from datetime import datetime
-import asyncio
+from typing import Any, Dict, List, Optional
+
 import aiohttp
+import requests
 
 from ..core.base_agent import BaseAgent
 from .agent_registry import register_agent
@@ -648,6 +649,7 @@ class Agent04Executor(BaseAgent):
     def _extract_file_paths(self, request: str) -> List[str]:
         """Extract file paths from request"""
         import re
+
         # Simple file path extraction
         file_patterns = [
             r'["\']([^"\']+\.[a-zA-Z0-9]+)["\']',  # quoted file paths

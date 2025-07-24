@@ -2,8 +2,9 @@
 Component for storing and retrieving compiled agent outputs.
 """
 
-from typing import Dict, List, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 
 class OutputStore:
     """Manages the persistence of compiled outputs."""
@@ -28,13 +29,15 @@ class OutputStore:
         """Lists metadata for all stored compiled outputs."""
         output_list = []
         for output_id, output in self.compiled_outputs.items():
-            metadata = output.get('compilation_metadata', {})
-            output_list.append({
-                'output_id': output_id,
-                'created_at': output.get('created_at', 'N/A'),
-                'agents_involved': metadata.get('agents_involved', 0),
-                'deliverables_count': metadata.get('total_deliverables', 0)
-            })
+            metadata = output.get("compilation_metadata", {})
+            output_list.append(
+                {
+                    "output_id": output_id,
+                    "created_at": output.get("created_at", "N/A"),
+                    "agents_involved": metadata.get("agents_involved", 0),
+                    "deliverables_count": metadata.get("total_deliverables", 0),
+                }
+            )
         return output_list
 
     def _enforce_max_size(self):
@@ -44,13 +47,13 @@ class OutputStore:
             try:
                 sorted_ids = sorted(
                     self.compiled_outputs.keys(),
-                    key=lambda k: self.compiled_outputs[k].get('created_at', '')
+                    key=lambda k: self.compiled_outputs[k].get("created_at", ""),
                 )
-                
+
                 # Number of items to delete
                 num_to_delete = len(self.compiled_outputs) - self.max_size
                 ids_to_delete = sorted_ids[:num_to_delete]
-                
+
                 for output_id in ids_to_delete:
                     if output_id in self.compiled_outputs:
                         del self.compiled_outputs[output_id]
@@ -60,7 +63,6 @@ class OutputStore:
                 num_to_delete = len(keys_to_delete) - self.max_size
                 for i in range(num_to_delete):
                     del self.compiled_outputs[keys_to_delete[i]]
-
 
     @staticmethod
     def generate_output_id() -> str:

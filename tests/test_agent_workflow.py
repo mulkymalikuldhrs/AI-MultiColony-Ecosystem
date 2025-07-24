@@ -1,21 +1,25 @@
-import unittest
 import json
+import unittest
 from unittest.mock import MagicMock, patch
 
-# Import the agents
-from colony.agents.agent_base import AgentBase
 from colony.agents.agent_03_planner import Agent03Planner
 from colony.agents.agent_04_executor import Agent04Executor
 from colony.agents.agent_05_designer import Agent05Designer
 from colony.agents.agent_06_specialist import Agent06Specialist
+
+# Import the agents
+from colony.agents.agent_base import AgentBase
 from colony.agents.output_handler import OutputHandler
+
 
 class TestAgentWorkflow(unittest.TestCase):
 
-    @patch('colony.core.base_agent.BaseAgent._load_config')
+    @patch("colony.core.base_agent.BaseAgent._load_config")
     def setUp(self, mock_load_config):
-        mock_load_config.return_value = {} # Mock the config loading to return an empty dict
-        
+        mock_load_config.return_value = (
+            {}
+        )  # Mock the config loading to return an empty dict
+
         # Initialize agents with mock config paths
         self.agent_base = AgentBase(config_path="mock_config.yaml")
         self.planner = Agent03Planner(config_path="mock_config.yaml")
@@ -26,11 +30,29 @@ class TestAgentWorkflow(unittest.TestCase):
 
         # Mock the BaseAgent's update_status and handle_error methods
         # to prevent actual file operations and allow testing of core logic
-        for agent in [self.agent_base, self.planner, self.designer, self.executor, self.specialist, self.output_handler]:
+        for agent in [
+            self.agent_base,
+            self.planner,
+            self.designer,
+            self.executor,
+            self.specialist,
+            self.output_handler,
+        ]:
             agent.update_status = MagicMock()
             # Modify handle_error to print the exception for debugging
-            agent.handle_error = MagicMock(side_effect=lambda e, t: (print(f"--- Agent Error in {agent.agent_id}: {e} ---"), {"status": "error", "message": str(e), "task": t})[1])
-            agent.format_response = MagicMock(side_effect=lambda content, type: {"status": "success", "type": type, "content": content})
+            agent.handle_error = MagicMock(
+                side_effect=lambda e, t: (
+                    print(f"--- Agent Error in {agent.agent_id}: {e} ---"),
+                    {"status": "error", "message": str(e), "task": t},
+                )[1]
+            )
+            agent.format_response = MagicMock(
+                side_effect=lambda content, type: {
+                    "status": "success",
+                    "type": type,
+                    "content": content,
+                }
+            )
 
     def test_todo_app_development_workflow(self):
         print("\n--- Starting Todo App Development Workflow Simulation ---")
@@ -44,31 +66,35 @@ class TestAgentWorkflow(unittest.TestCase):
                 "project_type": "software_development",
                 "priority": "high",
                 "stakeholders": ["Product Owner", "Development Team", "End Users"],
-                "initial_scope": "Web application, task management, CRUD operations"
-            }
+                "initial_scope": "Web application, task management, CRUD operations",
+            },
         }
         base_response = self.agent_base.process_task(initial_task)
-        self.assertEqual(base_response['status'], 'success')
-        self.assertEqual(base_response['type'], 'coordination_plan')
+        self.assertEqual(base_response["status"], "success")
+        self.assertEqual(base_response["type"], "coordination_plan")
         print(f"   AgentBase Response Type: {base_response['type']}")
-        print(f"   AgentBase Content Summary: {base_response['content'].splitlines()[0]}")
+        print(
+            f"   AgentBase Content Summary: {base_response['content'].splitlines()[0]}"
+        )
 
         # Simulate extracting planning request from base_response for planner
         # In a real system, AgentBase would parse its own analysis to create the next task
         planner_request_summary = "Create a detailed project plan for a simple web-based Todo Application with basic CRUD functionality."
-        
+
         # 2. Agent03Planner: Create Detailed Project Plan
         print("\n2. Agent03Planner: Creating detailed project plan...")
         planner_task = {
             "task_id": "planning_001",
             "request": planner_request_summary,
-            "context": initial_task["context"] # Pass initial context
+            "context": initial_task["context"],  # Pass initial context
         }
         planner_response = self.planner.process_task(planner_task)
-        self.assertEqual(planner_response['status'], 'success')
-        self.assertEqual(planner_response['type'], 'detailed_plan')
+        self.assertEqual(planner_response["status"], "success")
+        self.assertEqual(planner_response["type"], "detailed_plan")
         print(f"   Agent03Planner Response Type: {planner_response['type']}")
-        print(f"   Agent03Planner Content Summary: {planner_response['content'].splitlines()[0]}")
+        print(
+            f"   Agent03Planner Content Summary: {planner_response['content'].splitlines()[0]}"
+        )
 
         # Simulate extracting design request from planner_response for designer
         # In a real system, AgentBase would use the planner's output to formulate the design task
@@ -83,30 +109,40 @@ class TestAgentWorkflow(unittest.TestCase):
                 "project_name": "Simple Todo App",
                 "design_type": "ui_design",
                 "target_audience": "general_public",
-                "style_preferences": {"aesthetic": "minimalist", "color_scheme": "modern"},
+                "style_preferences": {
+                    "aesthetic": "minimalist",
+                    "color_scheme": "modern",
+                },
                 "content_requirements": {
                     "text_content": ["Task Title", "Description", "Due Date"],
-                    "interactive_elements": ["buttons", "forms", "checkboxes"]
+                    "interactive_elements": ["buttons", "forms", "checkboxes"],
                 },
-                "technical_specs": {"platform": "web", "format": "html, css"}
-            }
+                "technical_specs": {"platform": "web", "format": "html, css"},
+            },
         }
         designer_response = self.designer.process_task(designer_task)
-        self.assertEqual(designer_response['status'], 'success')
-        self.assertEqual(designer_response['type'], 'design_deliverable')
+        self.assertEqual(designer_response["status"], "success")
+        self.assertEqual(designer_response["type"], "design_deliverable")
         print(f"   Agent05Designer Response Type: {designer_response['type']}")
-        print(f"   Agent05Designer Content Summary: {designer_response['content'].splitlines()[0]}")
+        print(
+            f"   Agent05Designer Content Summary: {designer_response['content'].splitlines()[0]}"
+        )
 
         # Simulate extracting implementation request from planner_response and designer_response for executor
         executor_request_summary = "Implement the 'Add Task' feature for the Todo Application. This includes an HTML form, JavaScript logic for submission, and a simulated backend call to add the task."
-        
+
         # 4. Agent04Executor: Implement Core Feature (Add Task)
         print("\n4. Agent04Executor: Implementing 'Add Task' feature...")
         # Mock subprocess.run and requests.post for Executor to avoid actual execution
-        with patch('subprocess.run') as mock_subprocess_run, \
-             patch('requests.post') as mock_requests_post:
-            mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="Simulated script output", stderr="")
-            mock_requests_post.return_value = MagicMock(status_code=200, text="Simulated API response")
+        with patch("subprocess.run") as mock_subprocess_run, patch(
+            "requests.post"
+        ) as mock_requests_post:
+            mock_subprocess_run.return_value = MagicMock(
+                returncode=0, stdout="Simulated script output", stderr=""
+            )
+            mock_requests_post.return_value = MagicMock(
+                status_code=200, text="Simulated API response"
+            )
 
             executor_task = {
                 "task_id": "execution_001",
@@ -118,15 +154,17 @@ class TestAgentWorkflow(unittest.TestCase):
                     "code_requirements": {
                         "html_form": "<form id='addTaskForm'>...</form>",
                         "javascript_function": "function addTask(taskData) { /* ... */ }",
-                        "simulated_api_endpoint": "/api/tasks"
-                    }
-                }
+                        "simulated_api_endpoint": "/api/tasks",
+                    },
+                },
             }
             executor_response = self.executor.process_task(executor_task)
-            self.assertEqual(executor_response['status'], 'success')
-            self.assertEqual(executor_response['type'], 'execution_report')
+            self.assertEqual(executor_response["status"], "success")
+            self.assertEqual(executor_response["type"], "execution_report")
             print(f"   Agent04Executor Response Type: {executor_response['type']}")
-            print(f"   Agent04Executor Content Summary: {executor_response['content'].splitlines()[0]}")
+            print(
+                f"   Agent04Executor Content Summary: {executor_response['content'].splitlines()[0]}"
+            )
 
         # Simulate extracting security review request for specialist
         specialist_request_summary = "Perform a security review of the 'Add Task' functionality in the Todo Application, specifically checking for XSS and input validation vulnerabilities."
@@ -141,14 +179,16 @@ class TestAgentWorkflow(unittest.TestCase):
                 "primary_domain": "security",
                 "consultation_type": "review_audit",
                 "code_snippet_to_review": "<!-- Simulated HTML/JS code from Executor -->",
-                "relevant_data_inputs": ["task title", "task description"]
-            }
+                "relevant_data_inputs": ["task title", "task description"],
+            },
         }
         specialist_response = self.specialist.process_task(specialist_task)
-        self.assertEqual(specialist_response['status'], 'success')
-        self.assertEqual(specialist_response['type'], 'specialist_consultation')
+        self.assertEqual(specialist_response["status"], "success")
+        self.assertEqual(specialist_response["type"], "specialist_consultation")
         print(f"   Agent06Specialist Response Type: {specialist_response['type']}")
-        print(f"   Agent06Specialist Content Summary: {specialist_response['content'].splitlines()[0]}")
+        print(
+            f"   Agent06Specialist Content Summary: {specialist_response['content'].splitlines()[0]}"
+        )
 
         # 6. OutputHandler: Compile Final Report
         print("\n6. OutputHandler: Compiling final report...")
@@ -163,20 +203,23 @@ class TestAgentWorkflow(unittest.TestCase):
                 "execution_completed": True,
                 "specialist_consultation": True,
                 "agent_contributions": {
-                    "planner": self.output_handler._simulate_planner_results(), # Use internal simulation for simplicity
+                    "planner": self.output_handler._simulate_planner_results(),  # Use internal simulation for simplicity
                     "designer": self.output_handler._simulate_designer_results(),
                     "executor": self.output_handler._simulate_executor_results(),
-                    "specialist": self.output_handler._simulate_specialist_results()
-                }
-            }
+                    "specialist": self.output_handler._simulate_specialist_results(),
+                },
+            },
         }
         output_handler_response = self.output_handler.process_task(output_handler_task)
-        self.assertEqual(output_handler_response['status'], 'success')
-        self.assertEqual(output_handler_response['type'], 'final_deliverable')
+        self.assertEqual(output_handler_response["status"], "success")
+        self.assertEqual(output_handler_response["type"], "final_deliverable")
         print(f"   OutputHandler Response Type: {output_handler_response['type']}")
-        print(f"   OutputHandler Content Summary: {output_handler_response['content'].splitlines()[0]}")
+        print(
+            f"   OutputHandler Content Summary: {output_handler_response['content'].splitlines()[0]}"
+        )
 
         print("\n--- Workflow Simulation Complete ---")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -58,11 +58,11 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
 import importlib
-import pkgutil
 import inspect
 import logging
+import pkgutil
 from pathlib import Path
-from typing import Dict, Type, Any, List, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional, Type
 
 from colony.core.base_agent import BaseAgent
 

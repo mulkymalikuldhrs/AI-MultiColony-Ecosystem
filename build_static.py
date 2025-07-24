@@ -6,11 +6,12 @@ Agentic AI System
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
+import json
 import os
 import shutil
-import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
 
 def create_build_directory():
     """Create and clean build directory"""
@@ -20,9 +21,11 @@ def create_build_directory():
     build_dir.mkdir(parents=True, exist_ok=True)
     return build_dir
 
+
 def generate_index_html():
     """Generate main index.html"""
-    html_content = """<!DOCTYPE html>
+    html_content = (
+        """<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -501,7 +504,9 @@ def generate_index_html():
                 🇮🇩 Made with ❤️ by Mulky Malikul Dhaher in Indonesia
             </div>
             <p>Advanced Multi-Agent AI System - Production Ready</p>
-            <div class="version">Version 1.0.0 - Build """ + datetime.now().strftime("%Y%m%d%H%M") + """</div>
+            <div class="version">Version 1.0.0 - Build """
+        + datetime.now().strftime("%Y%m%d%H%M")
+        + """</div>
             <p style="margin-top: 20px; font-size: 0.9rem;">
                 Deployed on Netlify with Supabase integration | 
                 Enterprise-grade security and performance
@@ -542,8 +547,10 @@ def generate_index_html():
     </script>
 </body>
 </html>"""
-    
+    )
+
     return html_content
+
 
 def copy_static_assets(build_dir):
     """Copy static assets to build directory"""
@@ -551,14 +558,17 @@ def copy_static_assets(build_dir):
     (build_dir / "assets").mkdir(exist_ok=True)
     (build_dir / "css").mkdir(exist_ok=True)
     (build_dir / "js").mkdir(exist_ok=True)
-    
+
     # Copy web interface templates if they exist (but skip index.html to preserve generated one)
     web_templates = Path("web_interface/templates")
     if web_templates.exists():
         for template_file in web_templates.glob("*.html"):
-            if template_file.name not in ["base.html", "index.html"]:  # Skip base template and index
+            if template_file.name not in [
+                "base.html",
+                "index.html",
+            ]:  # Skip base template and index
                 shutil.copy2(template_file, build_dir / template_file.name)
-    
+
     # Copy any static assets
     static_dir = Path("web_interface/static")
     if static_dir.exists():
@@ -568,6 +578,7 @@ def copy_static_assets(build_dir):
                 dest_path = build_dir / relative_path
                 dest_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(item, dest_path)
+
 
 def generate_netlify_config(build_dir):
     """Generate _redirects file for Netlify"""
@@ -586,9 +597,10 @@ def generate_netlify_config(build_dir):
   Referrer-Policy: strict-origin-when-cross-origin
   X-Powered-By: Agentic AI System - Made by Mulky Malikul Dhaher 🇮🇩
 """
-    
+
     with open(build_dir / "_redirects", "w") as f:
         f.write(redirects_content)
+
 
 def generate_manifest(build_dir):
     """Generate site.webmanifest for PWA support"""
@@ -601,57 +613,51 @@ def generate_manifest(build_dir):
         "background_color": "#ffffff",
         "theme_color": "#667eea",
         "icons": [
-            {
-                "src": "/assets/icon-192.png",
-                "sizes": "192x192",
-                "type": "image/png"
-            },
-            {
-                "src": "/assets/icon-512.png",
-                "sizes": "512x512",
-                "type": "image/png"
-            }
-        ]
+            {"src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png"},
+            {"src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png"},
+        ],
     }
-    
+
     with open(build_dir / "site.webmanifest", "w") as f:
         json.dump(manifest, f, indent=2)
+
 
 def main():
     """Main build function"""
     print("🔨 Building static site for Netlify deployment...")
     print("🇮🇩 Made with ❤️ by Mulky Malikul Dhaher in Indonesia")
-    
+
     try:
         # Create build directory
         build_dir = create_build_directory()
         print(f"✅ Created build directory: {build_dir}")
-        
+
         # Generate main HTML
         html_content = generate_index_html()
         with open(build_dir / "index.html", "w", encoding="utf-8") as f:
             f.write(html_content)
         print("✅ Generated index.html")
-        
+
         # Copy static assets
         copy_static_assets(build_dir)
         print("✅ Copied static assets")
-        
+
         # Generate Netlify configuration
         generate_netlify_config(build_dir)
         print("✅ Generated _redirects file")
-        
+
         # Generate PWA manifest
         generate_manifest(build_dir)
         print("✅ Generated site.webmanifest")
-        
+
         print("\n🚀 Build completed successfully!")
         print(f"📁 Build output: {build_dir.absolute()}")
         print("🌐 Ready for Netlify deployment")
-        
+
     except Exception as e:
         print(f"❌ Build failed: {e}")
         exit(1)
+
 
 if __name__ == "__main__":
     main()

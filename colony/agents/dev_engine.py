@@ -10,12 +10,13 @@ import json
 import os
 import shutil
 import subprocess
-from datetime import datetime
-from typing import Dict, List, Any, Optional
-from pathlib import Path
+import tempfile
 import uuid
 import zipfile
-import tempfile
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 
 class DevEngineAgent:
     """
@@ -749,8 +750,9 @@ export default function Home() {
 
     def _get_nextjs_layout(self) -> str:
         return """import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
+import 'next/font/google'
+import { Inter }
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -896,9 +898,9 @@ httpx==0.25.2"""
     
     def _get_fastapi_main(self) -> str:
         return """from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from app.database import Base, engine
 from app.routes import router
-from app.database import engine, Base
+from fastapi.middleware.cors import CORSMiddleware
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -935,11 +937,12 @@ if __name__ == "__main__":
     
     def _get_fastapi_models(self) -> str:
         return """from sqlalchemy import Column, Integer, String, DateTime, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql import func
-from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
+
+from pydantic import BaseModel
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql import func
 
 Base = declarative_base()
 
@@ -971,10 +974,11 @@ class UserResponse(UserBase):
     
     def _get_fastapi_routes(self) -> str:
         return """from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from typing import List
+
 from app.database import get_db
 from app.models import User, UserCreate, UserResponse
-from typing import List
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -1013,10 +1017,11 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
     
     def _get_fastapi_database(self) -> str:
         return """from sqlalchemy import create_engine
+import os
+
+from dotenv import load_dotenv
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -1042,6 +1047,7 @@ def get_db():
     def _get_fastapi_tests(self) -> str:
         return """import pytest
 from fastapi.testclient import TestClient
+
 from main import app
 
 client = TestClient(app)
@@ -1124,6 +1130,7 @@ if __name__ == "__main__":
     def _get_python_tests(self) -> str:
         return """import unittest
 from src.main import main
+
 
 class TestMain(unittest.TestCase):
     def test_main(self):

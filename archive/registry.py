@@ -1,5 +1,6 @@
 AGENT_REGISTRY = {}
 
+
 def register_agent(cls):
     """
     A decorator to automatically register agent classes in the AGENT_REGISTRY.
