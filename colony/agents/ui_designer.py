@@ -802,8 +802,12 @@ const CustomNavbar = ({
 export default CustomNavbar;
 """
     
+<<<<<<< HEAD
 <<<<<<< HEAD:agents/ui_designer.py
 =======
+=======
+<<<<<<< HEAD:colony/agents/ui_designer.py
+>>>>>>> origin/kamis24juli2025
     def _get_form_component(self) -> str:
         """Get form component template"""
         return """
@@ -862,12 +866,18 @@ const CustomForm = ({
 export default CustomForm;
 """
 
+<<<<<<< HEAD
 >>>>>>> origin/jules-refactor-all:colony/agents/ui_designer.py
+=======
+=======
+>>>>>>> origin/feature/system-refactor-and-ui-update:agents/ui_designer.py
+>>>>>>> origin/kamis24juli2025
     def _get_table_component(self) -> str:
         """Get table component template"""
         return """
 import React from 'react';
 
+<<<<<<< HEAD
 <<<<<<< HEAD:agents/ui_designer.py
 const CustomTable = ({ columns = [], data = [], className = '' }) => {
   return (
@@ -879,6 +889,9 @@ const CustomTable = ({ columns = [], data = [], className = '' }) => {
               <th key={index} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {col.header}
 =======
+=======
+<<<<<<< HEAD:colony/agents/ui_designer.py
+>>>>>>> origin/kamis24juli2025
 const CustomTable = ({ 
   columns = [], 
   data = [], 
@@ -895,11 +908,26 @@ const CustomTable = ({
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 {column.header}
+<<<<<<< HEAD
 >>>>>>> origin/jules-refactor-all:colony/agents/ui_designer.py
+=======
+=======
+const CustomTable = ({ columns = [], data = [], className = '' }) => {
+  return (
+    <div className={`overflow-x-auto ${className}`}>
+      <table className="min-w-full bg-white">
+        <thead className="bg-gray-50">
+          <tr>
+            {columns.map((col, index) => (
+              <th key={index} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {col.header}
+>>>>>>> origin/feature/system-refactor-and-ui-update:agents/ui_designer.py
+>>>>>>> origin/kamis24juli2025
               </th>
             ))}
           </tr>
         </thead>
+<<<<<<< HEAD
 <<<<<<< HEAD:agents/ui_designer.py
         <tbody className="bg-white divide-y divide-gray-200">
           {data.map((row, rowIndex) => (
@@ -908,6 +936,9 @@ const CustomTable = ({
                 <td key={colIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {row[col.accessor]}
 =======
+=======
+<<<<<<< HEAD:colony/agents/ui_designer.py
+>>>>>>> origin/kamis24juli2025
         <tbody className="divide-y divide-gray-200">
           {data.map((row, rowIndex) => (
             <tr key={rowIndex} className="hover:bg-gray-50">
@@ -917,7 +948,18 @@ const CustomTable = ({
                   className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
                 >
                   {row[column.accessor]}
+<<<<<<< HEAD
 >>>>>>> origin/jules-refactor-all:colony/agents/ui_designer.py
+=======
+=======
+        <tbody className="bg-white divide-y divide-gray-200">
+          {data.map((row, rowIndex) => (
+            <tr key={rowIndex}>
+              {columns.map((col, colIndex) => (
+                <td key={colIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {row[col.accessor]}
+>>>>>>> origin/feature/system-refactor-and-ui-update:agents/ui_designer.py
+>>>>>>> origin/kamis24juli2025
                 </td>
               ))}
             </tr>
@@ -931,7 +973,12 @@ const CustomTable = ({
 export default CustomTable;
 """
 
+<<<<<<< HEAD
 <<<<<<< HEAD:agents/ui_designer.py
+=======
+<<<<<<< HEAD:colony/agents/ui_designer.py
+=======
+>>>>>>> origin/kamis24juli2025
     def _get_form_component(self) -> str:
         """Get form component template"""
         return """
@@ -1032,8 +1079,12 @@ const CustomSidebar = ({ links = [], className = '' }) => {
 export default CustomSidebar;
 """
 
+<<<<<<< HEAD
 =======
 >>>>>>> origin/jules-refactor-all:colony/agents/ui_designer.py
+=======
+>>>>>>> origin/feature/system-refactor-and-ui-update:agents/ui_designer.py
+>>>>>>> origin/kamis24juli2025
     def _get_hero_component(self) -> str:
         """Get hero section component"""
         return """
