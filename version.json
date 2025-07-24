@@ -1,14 +1,25 @@
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+  "version": "7.3.0-ultimate",
+  "release_name": "Ultimate AGI Force - Unified Launcher",
+  "release_date": "2025-07-12",
+=======
+>>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
+<<<<<<< HEAD
   "version": "6.0.0-indonesia",
   "release_name": "Mobile-First AI Revolution",
   "release_date": "2025-01-02",
+<<<<<<< HEAD
 =======
   "version": "7.3.0-ultimate",
   "release_name": "Ultimate AGI Force - Unified Launcher",
   "release_date": "2025-07-12",
 >>>>>>> origin/jules-refactor-all
+=======
+>>>>>>> main
+>>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
   "branch": "stable",
   "previous_version": "7.2.0-ultimate",
   "build_number": 730001,

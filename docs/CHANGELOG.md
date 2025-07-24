@@ -1,3 +1,11 @@
+<<<<<<< HEAD
+
+[2025-07-23 19:55] Auto-update docs/AGENT_REGISTRY.md & README.md
+
+[2025-07-23 20:02] Auto-update docs/AGENT_REGISTRY.md & README.md
+
+[2025-07-23 20:40] Auto-update docs/AGENT_REGISTRY.md & README.md
+=======
 # Changelog
 
 ## v8.0.0 - 2025-07-XX
@@ -18,3 +26,4 @@
 ## v7.x.x - 2025-06-XX
 - Konsolidasi branch, perbaikan registry, refaktor agent
 - ...
+>>>>>>> main

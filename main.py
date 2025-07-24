@@ -15,6 +15,7 @@ sys.path.append(str(Path(__file__).parent))
 
 # Import core components
 try:
+<<<<<<< HEAD
     from colony.core.agent_registry import get_agent_by_name, list_all_agents
     from colony.core.system_bootstrap import bootstrap_systems
     print("Core components imported successfully.")
@@ -29,6 +30,14 @@ except ImportError as e:
     except ImportError as e2:
         print(f"Failed to import core components even after path correction: {e2}")
         sys.exit(1)
+=======
+    from colony.core.agent_registry import get_agent, list_all_agents
+    from colony.core.system_bootstrap import bootstrap_systems
+    from colony.agents.agent_registry import agent_registry
+except ImportError as e:
+    print(f"Error importing core components: {e}")
+    print("Attempting to continue with limited functionality...")
+>>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
 
 # ANSI color codes for terminal output
 class Colors:
@@ -258,6 +267,7 @@ def run_specific_agent(agent_name):
     """Run a specific agent"""
     print(f"{Colors.GREEN}🤖 Running agent: {agent_name}{Colors.ENDC}")
     try:
+<<<<<<< HEAD
         agent_cls = get_agent_by_name(agent_name)
         if agent_cls:
             # Pass a default config and no memory manager for now
@@ -266,6 +276,15 @@ def run_specific_agent(agent_name):
             print(f"{Colors.GREEN}✅ Agent {agent_name} completed{Colors.ENDC}")
         else:
             print(f"{Colors.RED}❌ Agent '{agent_name}' not found in registry.{Colors.ENDC}")
+=======
+        agent_cls = get_agent(agent_name)
+        if agent_cls:
+            agent = agent_cls()
+            agent.run()
+            print(f"{Colors.GREEN}✅ Agent {agent_name} completed{Colors.ENDC}")
+        else:
+            print(f"{Colors.RED}❌ Agent {agent_name} not found{Colors.ENDC}")
+>>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
     except Exception as e:
         print(f"{Colors.RED}❌ Error running agent {agent_name}: {e}{Colors.ENDC}")
 
@@ -295,6 +314,7 @@ def main():
     if args.agent:
         run_specific_agent(args.agent)
         return
+<<<<<<< HEAD
     # Bootstrap system before running any agent logic
     bootstrap_systems()
 
@@ -302,11 +322,19 @@ def main():
     if args.agent:
         run_specific_agent(args.agent)
         return
+=======
+>>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
     elif args.all:
         print(f"{Colors.GREEN}🤖 Running all agents...{Colors.ENDC}")
         try:
             for agent_name in list_all_agents():
+<<<<<<< HEAD
                 run_specific_agent(agent_name)
+=======
+                agent_cls = get_agent(agent_name)
+                agent = agent_cls()
+                agent.run()
+>>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
             print(f"{Colors.GREEN}✅ All agents completed{Colors.ENDC}")
         except Exception as e:
             print(f"{Colors.RED}❌ Error running all agents: {e}{Colors.ENDC}")
