@@ -16,7 +16,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agents.cybershell import cybershell_agent
+from colony.agents.cybershell import cybershell_agent
 from agents.agent_maker import agent_maker
 from agents.ui_designer import ui_designer_agent
 from agents.dev_engine import dev_engine_agent

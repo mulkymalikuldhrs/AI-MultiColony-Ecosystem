@@ -11,22 +11,7 @@ import logging
 from pathlib import Path
 from typing import Dict, Type, Any, List, Optional, Callable
 
-# Import BaseAgent from core
-try:
-    from colony.core.base_agent import BaseAgent
-except ImportError:
-    try:
-        from colony.agents.agent_base import AgentBase as BaseAgent
-    except ImportError:
-        # Define a minimal BaseAgent if the real one can't be imported
-        class BaseAgent:
-            def __init__(self, name=None, config=None, memory=None):
-                self.name = name
-                self.config = config
-                self.memory = memory
-            
-            def run(self):
-                raise NotImplementedError("Subclasses must implement run()")
+from colony.core.base_agent import BaseAgent
 
 # Global registry
 REGISTRY: Dict[str, Type[BaseAgent]] = {}
@@ -131,7 +116,7 @@ def discover_agents():
     logger.info(f"Discovered {discovered_count} agents")
     logger.info(f"Total registered agents: {len(REGISTRY)}")
 
-def get_agent(name: str) -> Optional[Type[BaseAgent]]:
+def get_agent_by_name(name: str) -> Optional[Type[BaseAgent]]:
     """
     Get an agent class by name.
     
@@ -142,6 +127,17 @@ def get_agent(name: str) -> Optional[Type[BaseAgent]]:
         Agent class or None if not found
     """
     return REGISTRY.get(name)
+
+def reload_registry():
+    """
+    Reloads the agent registry by discovering all agents again.
+    """
+    logger.info("Reloading agent registry...")
+    # Clear existing registry before discovering again
+    REGISTRY.clear()
+    AGENT_INFO.clear()
+    discover_agents()
+    logger.info(f"Registry reloaded. Found {len(REGISTRY)} agents.")
 
 def get_agent_info(name: str) -> Optional[Dict[str, Any]]:
     """

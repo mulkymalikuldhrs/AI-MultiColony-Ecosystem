@@ -15,7 +15,11 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 import requests
 
-class ChatbotAgent:
+from colony.core.agent_registry import register_agent
+from colony.core.base_agent import BaseAgent
+
+@register_agent(name="chatbot_agent", description="Agent for conversational AI and system interaction.")
+class ChatbotAgent(BaseAgent):
     """
     Chatbot Agent
     
@@ -30,10 +34,8 @@ class ChatbotAgent:
     """
     
     def __init__(self):
-        self.agent_id = "chatbot"
-        self.name = "Chatbot Agent"
+        super().__init__(agent_id="chatbot_agent")
         self.version = "1.0.0"
-        self.status = "active"
         self.capabilities = [
             "natural_conversation",
             "agent_control",
@@ -44,10 +46,6 @@ class ChatbotAgent:
             "multi_language",
             "help_assistance"
         ]
-        
-        # Initialize logging
-        self.logger = logging.getLogger("ChatbotAgent")
-        self.logger.setLevel(logging.INFO)
         
         # Conversation state
         self.conversations = {}
