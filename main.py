@@ -15,7 +15,6 @@ sys.path.append(str(Path(__file__).parent))
 
 # Import core components
 try:
-<<<<<<< HEAD
     from colony.core.agent_registry import get_agent_by_name, list_all_agents
     from colony.core.system_bootstrap import bootstrap_systems
     print("Core components imported successfully.")
@@ -29,15 +28,14 @@ except ImportError as e:
         print("Core components imported successfully after path correction.")
     except ImportError as e2:
         print(f"Failed to import core components even after path correction: {e2}")
-        sys.exit(1)
-=======
-    from colony.core.agent_registry import get_agent, list_all_agents
-    from colony.core.system_bootstrap import bootstrap_systems
-    from colony.agents.agent_registry import agent_registry
-except ImportError as e:
-    print(f"Error importing core components: {e}")
-    print("Attempting to continue with limited functionality...")
->>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
+        print("Attempting to continue with limited functionality...")
+        # Define minimal functionality if imports fail
+        def get_agent_by_name(name):
+            return None
+        def list_all_agents():
+            return []
+        def bootstrap_systems():
+            pass
 
 # ANSI color codes for terminal output
 class Colors:
