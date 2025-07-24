@@ -25,6 +25,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
+try:
+    import cv2
+except ImportError:
+    print('[WARN] Dependency cv2 tidak ditemukan. Agent tidak dijalankan.')
+    cv2 = None
+
 @dataclass
 class QualityAssessment:
     """Quality assessment result data structure"""

@@ -1,7 +1,14 @@
 {
+<<<<<<< HEAD
   "version": "7.3.0-ultimate",
   "release_name": "Ultimate AGI Force - Unified Launcher",
   "release_date": "2025-07-12",
+=======
+<<<<<<< HEAD
+  "version": "6.0.0-indonesia",
+  "release_name": "Mobile-First AI Revolution",
+  "release_date": "2025-01-02",
+>>>>>>> main
   "branch": "stable",
   "previous_version": "7.2.0-ultimate",
   "build_number": 730001,
@@ -158,4 +165,12 @@
     "email": "support@agentic.ai",
     "youtube": "https://youtube.com/@agentic-ai-indonesia"
   }
+=======
+  "current_version": "5.0.0",
+  "build_number": 0,
+  "last_update": "2025-07-01T04:52:43.430160",
+  "features_count": 20,
+  "improvements_made": 0,
+  "next_version": "5.1.0"
+>>>>>>> dc0299f
 }
