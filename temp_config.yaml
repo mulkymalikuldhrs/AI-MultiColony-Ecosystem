@@ -1,0 +1,3 @@
+output_handler:
+  prompts:
+    some_prompt: 'Test prompt'

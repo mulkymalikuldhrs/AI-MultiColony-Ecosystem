@@ -1,0 +1,20 @@
+# Cleanup Plan
+
+## Files to Delete (Temporary/Build Artifacts)
+- *.pyc
+- *.swp
+- .DS_Store
+- /build/ (and its contents)
+- /dist/ (and its contents, specific to each UI build)
+
+## Directories to Archive (Legacy UIs)
+- /web-interface/ui/
+- /web-interface/src/ (Next.js)
+- /web-interface/static/
+- /web-interface/templates/
+
+## Files to Consolidate/Review
+- All `requirements*.txt` files should be consolidated into `requirements.txt` and `requirements-dev.txt`.
+- All `package.json` and `package-lock.json` files outside of `web-interface/react-ui` should be reviewed and potentially removed if they are part of legacy UI setups. The root `package.json` should be the master for project-level scripts.
+- `inventory.py` and `generate_report.py` should be removed after use.
+- `check_structure_and_syntax.py` should be moved to a `/scripts` directory.

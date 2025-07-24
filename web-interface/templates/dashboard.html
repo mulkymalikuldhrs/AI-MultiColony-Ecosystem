@@ -1,0 +1,541 @@
+{% extends "base.html" %}
+
+{% block title %}🛡️ Ultimate AGI Force - Dashboard{% endblock %}
+
+{% block content %}
+<!-- Navigation Header -->
+<nav class="bg-slate-800 border-b border-slate-700 px-6 py-4">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-shield-alt text-blue-500 text-2xl"></i>
+                <h1 class="text-2xl font-bold">Ultimate AGI Force</h1>
+                <span class="bg-green-500 text-xs px-2 py-1 rounded-full">v7.0.0</span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-green-500 rounded-full status-indicator"></div>
+                <span class="text-sm">System Online</span>
+            </div>
+            <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">
+                <i class="fas fa-cog mr-2"></i>Settings
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Dashboard -->
+<div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-80 bg-slate-800 border-r border-slate-700 overflow-y-auto p-4">
+        <h2 class="text-lg font-semibold mb-4 flex items-center">
+            <i class="fas fa-robot mr-2 text-blue-500"></i>
+            Agent Control Center
+        </h2>
+        <div id="agent-groups" class="space-y-4">
+            <!-- Agent groups will be dynamically populated here -->
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col">
+        <!-- Top Metrics Bar -->
+        <div class="bg-slate-800 border-b border-slate-700 p-4">
+            <div class="grid grid-cols-6 gap-4">
+                <div class="bg-slate-700 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-green-500" id="active-agents">0</div>
+                    <div class="text-sm text-gray-400">Active Agents</div>
+                </div>
+                <div class="bg-slate-700 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-blue-500" id="total-tasks">0</div>
+                    <div class="text-sm text-gray-400">Tasks Completed</div>
+                </div>
+                <div class="bg-slate-700 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-yellow-500" id="revenue-generated">$0</div>
+                    <div class="text-sm text-gray-400">Revenue Generated</div>
+                </div>
+                <div class="bg-slate-700 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-purple-500" id="threats-detected">0</div>
+                    <div class="text-sm text-gray-400">Threats Detected</div>
+                </div>
+                <div class="bg-slate-700 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-cyan-500" id="backups-created">0</div>
+                    <div class="text-sm text-gray-400">Backups Created</div>
+                </div>
+                <div class="bg-slate-700 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-pink-500" id="campaigns-active">0</div>
+                    <div class="text-sm text-gray-400">Active Campaigns</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Content -->
+        <div class="flex-1 p-6 overflow-y-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Terminal -->
+                    <div class="bg-slate-800 rounded-xl p-6">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center"><i class="fas fa-terminal text-green-400 mr-3"></i>Interactive Terminal</h3>
+                        <div id="terminal" class="bg-black rounded-lg"></div>
+                    </div>
+                    <!-- System Monitoring -->
+                    <div class="bg-slate-800 rounded-xl p-6">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center"><i class="fas fa-chart-line text-blue-400 mr-3"></i>System Monitoring</h3>
+                        <canvas id="monitoringChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Logs -->
+                    <div class="bg-slate-800 rounded-xl p-6">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center"><i class="fas fa-file-alt text-orange-400 mr-3"></i>Activity Logs</h3>
+                        <div id="log-container" class="h-64 bg-slate-900 rounded-lg p-4 overflow-y-auto font-mono text-sm"></div>
+                    </div>
+                    <!-- Colony Map -->
+                    <div class="bg-slate-800 rounded-xl p-6">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center"><i class="fas fa-map-marked-alt text-red-400 mr-3"></i>Colony Map</h3>
+                        <div id="colony-map" class="h-64 rounded-lg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow -->
+            <div class="bg-slate-800 rounded-xl p-6 mt-6">
+                <h3 class="text-xl font-semibold mb-4 flex items-center"><i class="fas fa-project-diagram text-purple-400 mr-3"></i>Agent Workflow</h3>
+                <div class="mermaid" id="workflow-diagram">
+                    graph TD
+                        A[Start] --> B{Is Task Complex?};
+                        B -- Yes --> C[Engage Camel Agent];
+                        B -- No --> D[Select Specialist Agent];
+                        C --> E[Process Collaboratively];
+                        D --> F[Execute Task];
+                        E --> G[Return Result];
+                        F --> G;
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Control Panel (Floating) -->
+<div id="control-panel" class="fixed bottom-6 right-6 floating-panel rounded-xl p-4 border border-slate-600">
+    <div class="flex items-center space-x-4">
+        <button id="emergency-stop" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">
+            <i class="fas fa-stop mr-2"></i>Emergency Stop
+        </button>
+        <button id="restart-all" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+            <i class="fas fa-redo mr-2"></i>Restart All
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/terminal.js') }}"></script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script src="{{ url_for('static', filename='js/launcher.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
+        // Initialize Monitoring Chart
+        const ctx = document.getElementById('monitoringChart').getContext('2d');
+        const monitoringChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // To be populated
+                datasets: [{
+                    label: 'CPU Usage (%)',
+                    data: [],
+                    borderColor: 'rgba(59, 130, 246, 0.8)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Memory Usage (%)',
+                    data: [],
+                    borderColor: 'rgba(34, 197, 94, 0.8)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Function to update chart
+        function updateChart(data) {
+            monitoringChart.data.labels.push(new Date().toLocaleTimeString());
+            monitoringChart.data.datasets[0].data.push(data.cpu);
+            monitoringChart.data.datasets[1].data.push(data.memory);
+
+            // Limit data points
+            if (monitoringChart.data.labels.length > 20) {
+                monitoringChart.data.labels.shift();
+                monitoringChart.data.datasets.forEach(dataset => {
+                    dataset.data.shift();
+                });
+            }
+            monitoringChart.update();
+        }
+
+        // Mock data update
+        setInterval(() => {
+            updateChart({
+                cpu: Math.floor(Math.random() * 100),
+                memory: Math.floor(Math.random() * 100)
+            });
+        }, 2000);
+        
+        // Initialize launcher integration
+        initLauncherIntegration();
+        
+        // Add event listeners for emergency stop and restart buttons
+        document.getElementById('emergency-stop').addEventListener('click', async function() {
+            if (confirm('Are you sure you want to stop all components?')) {
+                const result = await stopAll();
+                if (result.success) {
+                    showNotification('Emergency stop initiated for all components', 'success');
+                } else {
+                    showNotification(`Emergency stop failed: ${result.error}`, 'error');
+                }
+            }
+        });
+        
+        document.getElementById('restart-all').addEventListener('click', async function() {
+            if (confirm('Are you sure you want to restart all components?')) {
+                // First stop all
+                await stopAll();
+                // Then start all
+                setTimeout(async () => {
+                    const result = await startAll();
+                    if (result.success) {
+                        showNotification('Restart initiated for all components', 'success');
+                    } else {
+                        showNotification(`Restart failed: ${result.error}`, 'error');
+                    }
+                }, 1000);
+            }
+        });
+        
+        // Update agent groups with data from launcher
+        async function updateAgentGroups() {
+            const status = await getLauncherStatus();
+            if (!status) return;
+            
+            const agentGroups = document.getElementById('agent-groups');
+            if (!agentGroups) return;
+            
+            // Clear existing content
+            agentGroups.innerHTML = '';
+            
+            // Create agent groups
+            const agents = status.components?.agents?.statuses || {};
+            
+            // Group 1: Core Agents
+            const coreAgents = Object.entries(agents).filter(([name]) => 
+                name.includes('core') || name.includes('base') || name.includes('system')
+            );
+            
+            // Group 2: Specialized Agents
+            const specializedAgents = Object.entries(agents).filter(([name]) => 
+                !name.includes('core') && !name.includes('base') && !name.includes('system')
+            );
+            
+            // Create core agents group
+            const coreGroup = document.createElement('div');
+            coreGroup.className = 'mb-6';
+            coreGroup.innerHTML = `
+                <h3 class="text-sm font-semibold mb-2 text-gray-400 uppercase">Core Agents</h3>
+                <div class="space-y-2 core-agents-list"></div>
+            `;
+            
+            // Add core agents
+            const coreList = coreGroup.querySelector('.core-agents-list');
+            coreAgents.forEach(([name, status]) => {
+                const agentItem = document.createElement('div');
+                agentItem.className = 'bg-slate-700 hover:bg-slate-600 rounded-lg p-3 flex items-center justify-between';
+                
+                const statusColor = status.running ? 'bg-green-500' : 'bg-red-500';
+                
+                agentItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 ${statusColor} rounded-full mr-2"></div>
+                        <span>${name}</span>
+                    </div>
+                    <div class="flex space-x-1">
+                        <button class="start-agent-btn bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs" data-agent="${name}">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="stop-agent-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs" data-agent="${name}">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+                `;
+                
+                coreList.appendChild(agentItem);
+            });
+            
+            // Create specialized agents group
+            const specializedGroup = document.createElement('div');
+            specializedGroup.className = 'mb-6';
+            specializedGroup.innerHTML = `
+                <h3 class="text-sm font-semibold mb-2 text-gray-400 uppercase">Specialized Agents</h3>
+                <div class="space-y-2 specialized-agents-list"></div>
+            `;
+            
+            // Add specialized agents
+            const specializedList = specializedGroup.querySelector('.specialized-agents-list');
+            specializedAgents.forEach(([name, status]) => {
+                const agentItem = document.createElement('div');
+                agentItem.className = 'bg-slate-700 hover:bg-slate-600 rounded-lg p-3 flex items-center justify-between';
+                
+                const statusColor = status.running ? 'bg-green-500' : 'bg-red-500';
+                
+                agentItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 ${statusColor} rounded-full mr-2"></div>
+                        <span>${name}</span>
+                    </div>
+                    <div class="flex space-x-1">
+                        <button class="start-agent-btn bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs" data-agent="${name}">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="stop-agent-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs" data-agent="${name}">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+                `;
+                
+                specializedList.appendChild(agentItem);
+            });
+            
+            // Add groups to container
+            agentGroups.appendChild(coreGroup);
+            agentGroups.appendChild(specializedGroup);
+            
+            // Add engines group
+            const enginesGroup = document.createElement('div');
+            enginesGroup.className = 'mb-6';
+            enginesGroup.innerHTML = `
+                <h3 class="text-sm font-semibold mb-2 text-gray-400 uppercase">Autonomous Engines</h3>
+                <div class="space-y-2 engines-list"></div>
+            `;
+            
+            // Add engines
+            const enginesList = enginesGroup.querySelector('.engines-list');
+            const engines = status.components?.engines?.statuses || {};
+            
+            Object.entries(engines).forEach(([name, status]) => {
+                const engineItem = document.createElement('div');
+                engineItem.className = 'bg-slate-700 hover:bg-slate-600 rounded-lg p-3 flex items-center justify-between';
+                
+                const statusColor = status.running ? 'bg-green-500' : 'bg-red-500';
+                
+                engineItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 ${statusColor} rounded-full mr-2"></div>
+                        <span>${name.replace('_', ' ').toLowerCase()}</span>
+                    </div>
+                    <div class="flex space-x-1">
+                        <button class="start-engine-btn bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs" data-engine="${name}">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="stop-engine-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs" data-engine="${name}">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+                `;
+                
+                enginesList.appendChild(engineItem);
+            });
+            
+            // Add engines group to container
+            agentGroups.appendChild(enginesGroup);
+            
+            // Add event listeners for agent buttons
+            document.querySelectorAll('.start-agent-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const agentName = btn.dataset.agent;
+                    const result = await startAgent(agentName);
+                    
+                    if (result.success) {
+                        showNotification(`Started agent ${agentName}`, 'success');
+                    } else {
+                        showNotification(`Failed to start agent ${agentName}: ${result.error}`, 'error');
+                    }
+                    
+                    // Refresh status after a short delay
+                    setTimeout(updateAgentGroups, 1000);
+                });
+            });
+            
+            document.querySelectorAll('.stop-agent-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const agentName = btn.dataset.agent;
+                    const result = await stopAgent(agentName);
+                    
+                    if (result.success) {
+                        showNotification(`Stopped agent ${agentName}`, 'success');
+                    } else {
+                        showNotification(`Failed to stop agent ${agentName}: ${result.error}`, 'error');
+                    }
+                    
+                    // Refresh status after a short delay
+                    setTimeout(updateAgentGroups, 1000);
+                });
+            });
+            
+            // Add event listeners for engine buttons
+            document.querySelectorAll('.start-engine-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const engineName = btn.dataset.engine;
+                    const result = await startEngine(engineName);
+                    
+                    if (result.success) {
+                        showNotification(`Started engine ${engineName}`, 'success');
+                    } else {
+                        showNotification(`Failed to start engine ${engineName}: ${result.error}`, 'error');
+                    }
+                    
+                    // Refresh status after a short delay
+                    setTimeout(updateAgentGroups, 1000);
+                });
+            });
+            
+            document.querySelectorAll('.stop-engine-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const engineName = btn.dataset.engine;
+                    const result = await stopEngine(engineName);
+                    
+                    if (result.success) {
+                        showNotification(`Stopped engine ${engineName}`, 'success');
+                    } else {
+                        showNotification(`Failed to stop engine ${engineName}: ${result.error}`, 'error');
+                    }
+                    
+                    // Refresh status after a short delay
+                    setTimeout(updateAgentGroups, 1000);
+                });
+            });
+        }
+        
+        // Initial update
+        updateAgentGroups();
+        
+        // Update every 10 seconds
+        setInterval(updateAgentGroups, 10000);
+        
+        // Update metrics from launcher status
+        async function updateMetrics() {
+            const status = await getLauncherStatus();
+            if (!status) return;
+            
+            // Update active agents count
+            const activeAgentsEl = document.getElementById('active-agents');
+            if (activeAgentsEl) {
+                activeAgentsEl.textContent = status.components?.agents?.running || 0;
+            }
+            
+            // Update other metrics if needed
+        }
+        
+        // Initial update
+        updateMetrics();
+        
+        // Update every 10 seconds
+        setInterval(updateMetrics, 10000);
+        
+        // Add log entries from launcher
+        function addLogEntry(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            if (!logContainer) return;
+            
+            const entry = document.createElement('div');
+            entry.className = 'mb-1';
+            
+            // Set color based on type
+            let color;
+            switch (type) {
+                case 'success':
+                    color = 'text-green-400';
+                    break;
+                case 'error':
+                    color = 'text-red-400';
+                    break;
+                case 'warning':
+                    color = 'text-yellow-400';
+                    break;
+                case 'info':
+                default:
+                    color = 'text-blue-400';
+                    break;
+            }
+            
+            // Add timestamp
+            const timestamp = new Date().toLocaleTimeString();
+            
+            entry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> <span class="${color}">${message}</span>`;
+            
+            // Add to container
+            logContainer.appendChild(entry);
+            
+            // Scroll to bottom
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Limit entries
+            if (logContainer.children.length > 100) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        // Add some initial log entries
+        addLogEntry('System initialized', 'success');
+        addLogEntry('Connected to launcher', 'info');
+        addLogEntry('Loading agent registry...', 'info');
+        
+        // Listen for socket.io events if available
+        if (typeof io !== 'undefined') {
+            const socket = io();
+            
+            socket.on('connect', () => {
+                addLogEntry('Connected to server', 'success');
+                
+                // Join system updates room
+                socket.emit('join', 'system_updates');
+            });
+            
+            socket.on('disconnect', () => {
+                addLogEntry('Disconnected from server', 'error');
+            });
+            
+            socket.on('system_log', (data) => {
+                addLogEntry(data.message, 'info');
+            });
+            
+            socket.on('system_update', (data) => {
+                // Update UI with system status
+                updateMetrics();
+                updateAgentGroups();
+                
+                // Add log entry
+                addLogEntry(`System update: ${data.status}`, 'info');
+            });
+        }
+    });
+</script>
+{% endblock %}

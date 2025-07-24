@@ -1,0 +1,81 @@
+/* General Styles */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #0f172a; /* bg-slate-900 */
+    color: #e2e8f0; /* text-slate-200 */
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e293b; /* bg-slate-800 */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #475569; /* bg-slate-600 */
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #64748b; /* bg-slate-500 */
+}
+
+/* Agent Card */
+.agent-card {
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+.agent-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* Status Indicator */
+.status-indicator {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Floating Panel */
+.floating-panel {
+    backdrop-filter: blur(10px);
+    background: rgba(15, 23, 42, 0.95);
+}
+
+/* Terminal */
+#terminal {
+    height: 400px;
+    width: 100%;
+}
+
+/* Map */
+#colony-map {
+    height: 400px;
+}
+
+/* Workflow */
+.workflow-node {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.workflow-node:hover {
+    transform: scale(1.05);
+}
+.connection-line {
+    stroke-dasharray: 5,5;
+    animation: dash 2s linear infinite;
+}
+@keyframes dash {
+    to { stroke-dashoffset: -10; }
+}
