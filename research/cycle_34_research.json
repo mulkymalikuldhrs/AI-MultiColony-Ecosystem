@@ -1,0 +1,26 @@
+[
+  {
+    "area": "Voice-Controlled Agent Management",
+    "completion": 95.17668842115698,
+    "impact_score": 9.57990614494113,
+    "implementation_ready": true
+  },
+  {
+    "area": "AI-Powered Business Analytics",
+    "completion": 99.52549473295153,
+    "impact_score": 9.62782679831351,
+    "implementation_ready": true
+  },
+  {
+    "area": "Advanced Security Protocols",
+    "completion": 96.16647994049896,
+    "impact_score": 8.046246684715674,
+    "implementation_ready": true
+  },
+  {
+    "area": "Neural Architecture Search Automation",
+    "completion": 90.52880259935384,
+    "impact_score": 8.921263702759038,
+    "implementation_ready": true
+  }
+]
