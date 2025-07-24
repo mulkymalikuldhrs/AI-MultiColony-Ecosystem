@@ -1,0 +1,71 @@
+{
+  "system_info": {
+    "version": "7.3.0",
+    "last_updated": "2025-01-08T10:30:00Z",
+    "memory_format_version": "1.0"
+  },
+  "agent_memories": {
+    "default_camel_agent": {
+      "created_at": "2025-01-08T10:30:00Z",
+      "type": "CamelAIAgent",
+      "configuration": {
+        "model_type": "gpt-4-turbo",
+        "role_type": "assistant"
+      },
+      "conversation_history": [],
+      "learned_patterns": {},
+      "preferences": {
+        "response_style": "helpful",
+        "language": "english",
+        "expertise_level": "adaptive"
+      },
+      "statistics": {
+        "total_conversations": 0,
+        "total_tokens_processed": 0,
+        "average_response_time": 0,
+        "successful_interactions": 0
+      }
+    },
+    "dev_assistant": {
+      "created_at": "2025-01-08T10:30:00Z",
+      "type": "DevAgent",
+      "configuration": {
+        "languages": ["python", "javascript", "typescript"],
+        "frameworks": ["flask", "react", "nextjs"]
+      },
+      "project_context": {},
+      "code_patterns": {},
+      "error_solutions": {},
+      "statistics": {
+        "bugs_fixed": 0,
+        "code_generated": 0,
+        "projects_assisted": 0
+      }
+    }
+  },
+  "global_memory": {
+    "system_patterns": {
+      "common_requests": [],
+      "error_frequencies": {},
+      "performance_metrics": {
+        "average_startup_time": 2.5,
+        "memory_usage_trend": "stable",
+        "success_rate": 0.98
+      }
+    },
+    "learning_data": {
+      "user_preferences": {},
+      "optimization_insights": [],
+      "frequently_used_agents": [
+        "default_camel_agent",
+        "dev_assistant"
+      ]
+    }
+  },
+  "metadata": {
+    "total_agents": 2,
+    "active_sessions": 0,
+    "memory_size": "1.2KB",
+    "last_cleanup": "2025-01-08T10:30:00Z"
+  }
+}

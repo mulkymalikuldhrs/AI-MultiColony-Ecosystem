@@ -15,20 +15,24 @@ sys.path.append(str(Path(__file__).parent))
 
 # Import core components
 try:
-    from colony.core.agent_registry import get_agent_by_name, list_all_agents
+    from colony.core.unified_agent_registry import (
+        get_agent_by_name, list_all_agents, unified_registry, create_agent
+    )
     from colony.core.system_bootstrap import bootstrap_systems
-    print("Core components imported successfully.")
+    print("✅ Unified Agent Registry imported successfully.")
 except ImportError as e:
-    print(f"Error importing core components: {e}")
-    # Attempt to add the project root to the path and retry, as this script might be run from a different CWD.
+    print(f"⚠️ Error importing unified registry: {e}")
+    # Attempt to add the project root to the path and retry
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     try:
-        from colony.core.agent_registry import get_agent_by_name, list_all_agents
+        from colony.core.unified_agent_registry import (
+            get_agent_by_name, list_all_agents, unified_registry, create_agent
+        )
         from colony.core.system_bootstrap import bootstrap_systems
-        print("Core components imported successfully after path correction.")
+        print("✅ Unified Agent Registry imported successfully after path correction.")
     except ImportError as e2:
-        print(f"Failed to import core components even after path correction: {e2}")
-        print("Attempting to continue with limited functionality...")
+        print(f"❌ Failed to import unified registry: {e2}")
+        print("⚡ Attempting to continue with limited functionality...")
         # Define minimal functionality if imports fail
         def get_agent_by_name(name):
             return None
@@ -36,6 +40,9 @@ except ImportError as e:
             return []
         def bootstrap_systems():
             pass
+        def create_agent(name, config=None, instance_name=None):
+            return None
+        unified_registry = None
 
 # ANSI color codes for terminal output
 class Colors:
