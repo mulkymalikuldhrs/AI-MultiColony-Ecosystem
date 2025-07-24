@@ -27,7 +27,9 @@ from urllib.parse import urljoin, urlparse
 import dns.resolver
 import whois
 import nmap
-from core.registry import register_agent
+
+from colony.core.base_agent import BaseAgent
+from colony.core.agent_registry import register_agent
 
 @dataclass
 class Vulnerability:
@@ -56,8 +58,8 @@ class HuntingTarget:
     contact_info: Optional[str] = None
     program_type: str = "responsible_disclosure"  # bug_bounty, vdp, responsible_disclosure
 
-@register_agent
-class BugHunterBot:
+@register_agent(name="bug_hunter_bot")
+class BugHunterBot(BaseAgent):
     """
     Bug Hunter Bot: Automated ethical hacking and vulnerability discovery
     
@@ -72,12 +74,9 @@ class BugHunterBot:
     - 💰 Bug bounty automation
     """
     
-    def __init__(self):
-        self.agent_id = "bug_hunter_bot"
-        self.name = "Bug Hunter Bot"
-        self.status = "initializing"
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.version = "1.0.0"
-        self.start_time = datetime.now()
         
         # Core capabilities
         self.capabilities = [
@@ -188,6 +187,14 @@ Dhaher AI Ecosystem
         self.logger.info("Bug Hunter Bot initialized successfully")
         self.status = "ready"
     
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     def setup_logging(self):
         """Setup logging for Bug Hunter Bot"""
         log_dir = Path("data/logs")
@@ -628,9 +635,3 @@ Dhaher AI Ecosystem
                 pass  # Ignore errors
         
         return directories
-
-# Global instance
-bug_hunter_bot = BugHunterBot()
-
-# Export for use by other modules
-__all__ = ['BugHunterBot', 'bug_hunter_bot', 'Vulnerability', 'HuntingTarget']

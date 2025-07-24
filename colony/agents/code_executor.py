@@ -15,10 +15,12 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 import sys
-from core.registry import register_agent
 
-@register_agent
-class CodeExecutorAgent:
+from colony.core.base_agent import BaseAgent
+from colony.core.agent_registry import register_agent
+
+@register_agent(name="code_executor")
+class CodeExecutorAgent(BaseAgent):
     """
     Advanced Code Execution Agent that:
     - Executes code in multiple programming languages
@@ -29,11 +31,9 @@ class CodeExecutorAgent:
     - Supports interactive REPL environments
     """
     
-    def __init__(self):
-        self.agent_id = "code_executor"
-        self.name = "Code Executor"
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.version = "2.0.0"
-        self.status = "ready"
         self.capabilities = [
             "multi_language_execution",
             "sandboxed_environments",
@@ -119,7 +119,15 @@ class CodeExecutorAgent:
         self.total_execution_time = 0
         
         print(f"✅ {self.name} initialized - Supporting {len(self.supported_languages)} languages")
-    
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process code execution tasks"""
         try:
@@ -588,7 +596,7 @@ class CodeExecutorAgent:
         avg_execution_time = self.total_execution_time / max(1, self.executions_count)
         
         return {
-            'agent_id': self.agent_id,
+            'agent_id': self.name,
             'name': self.name,
             'status': self.status,
             'executions_count': self.executions_count,
@@ -599,6 +607,3 @@ class CodeExecutorAgent:
             'docker_available': self.docker_available,
             'execution_history_size': len(self.execution_history)
         }
-
-# Global instance
-code_executor = CodeExecutorAgent()

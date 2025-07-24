@@ -15,7 +15,6 @@ sys.path.append(str(Path(__file__).parent))
 
 # Import core components
 try:
-<<<<<<< HEAD
     from colony.core.agent_registry import get_agent_by_name, list_all_agents
     from colony.core.system_bootstrap import bootstrap_systems
     print("Core components imported successfully.")
@@ -30,14 +29,6 @@ except ImportError as e:
     except ImportError as e2:
         print(f"Failed to import core components even after path correction: {e2}")
         sys.exit(1)
-=======
-    from colony.core.agent_registry import get_agent, list_all_agents
-    from colony.core.system_bootstrap import bootstrap_systems
-    from colony.agents.agent_registry import agent_registry
-except ImportError as e:
-    print(f"Error importing core components: {e}")
-    print("Attempting to continue with limited functionality...")
->>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
 
 # ANSI color codes for terminal output
 class Colors:
@@ -78,46 +69,10 @@ def run_web_ui(with_background=False):
     """Run the web UI interface"""
     print(f"{Colors.GREEN}🌐 Starting Web UI...{Colors.ENDC}")
     
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/kamis24juli2025
     # Create necessary directories if they don't exist
     os.makedirs("logs", exist_ok=True)
     os.makedirs("data", exist_ok=True)
     os.makedirs("agent_output", exist_ok=True)
-<<<<<<< HEAD
-=======
-=======
-    def __init__(self):
-        self.system_id = "agentic_ai_system"
-        self.version = "2.0.0"
-        self.status = "initializing"
-        self.start_time = datetime.now()
-        
-        # Core components
-        self.prompt_master = None
-        self.memory_bus = None
-        self.sync_engine = None
-        self.scheduler = None
-        self.ai_selector = None
-        
-        # Agents registry
-        from src.core.agent_registry import agent_registry
-        self.agents = agent_registry
-        self.active_agents = {}
-        
-        # System configuration
-        self.config = self._load_system_config()
-        
-        # Shutdown flag
-        self.shutdown_requested = False
-        
-        # Setup signal handlers
-        signal.signal(signal.SIGINT, self._signal_handler)
-        signal.signal(signal.SIGTERM, self._signal_handler)
->>>>>>> origin/feature/system-refactor-and-ui-update
->>>>>>> origin/kamis24juli2025
     
     # Set environment variables (only if not already set)
     if "WEB_INTERFACE_PORT" not in os.environ:
@@ -176,10 +131,6 @@ def start_autonomous_engines():
     
     for engine in engines:
         try:
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/kamis24juli2025
             # Try to import and start each engine
             module_path = f"colony.core.{engine}"
             if importlib.util.find_spec(module_path):
@@ -187,217 +138,6 @@ def start_autonomous_engines():
                 if hasattr(module, "start_engine"):
                     threading.Thread(target=module.start_engine, daemon=True).start()
                     print(f"{Colors.GREEN}✅ Started {engine}{Colors.ENDC}")
-<<<<<<< HEAD
-=======
-=======
-            from core.ai_selector import ai_selector
-            self.ai_selector = ai_selector
-            print("  ✅ AI Selector")
-        except Exception as e:
-            print(f"  ❌ AI Selector: {e}")
-        
-        # Initialize Prompt Master
-        try:
-            from core.prompt_master import prompt_master
-            self.prompt_master = prompt_master
-            self.prompt_master.start_time = self.start_time.timestamp()
-            print("  ✅ Prompt Master")
-        except Exception as e:
-            print(f"  ❌ Prompt Master: {e}")
-    
-    async def _initialize_agents(self):
-        """Initialize and register all agents"""
-        print("🤖 Initializing agents...")
-
-        for agent_id, agent_instance in self.agents.items():
-            try:
-                # Auto-start if configured
-                if agent_id in self.config["auto_start_agents"]:
-                    self.active_agents[agent_id] = agent_instance
-                
-                print(f"  ✅ {agent_id}")
-                
-            except Exception as e:
-                print(f"  ❌ {agent_id}: {e}")
-        
-        print(f"🤖 Initialized {len(self.agents)} agents, {len(self.active_agents)} active")
-    
-    async def _start_scheduler(self):
-        """Start the agent scheduler"""
-        try:
-            from core.scheduler import agent_scheduler
-            self.scheduler = agent_scheduler
-            self.scheduler.start()
-            print("  ✅ Agent Scheduler started")
-        except Exception as e:
-            print(f"  ❌ Scheduler failed: {e}")
-    
-    async def _start_sync_engine(self):
-        """Start the sync engine"""
-        try:
-            from core.sync_engine import sync_engine
-            self.sync_engine = sync_engine
-            await self.sync_engine.start()
-            print("  ✅ Sync Engine started")
-        except Exception as e:
-            print(f"  ❌ Sync Engine failed: {e}")
-    
-    async def _start_web_interface(self):
-        """Start the web interface"""
-        try:
-            # Start web interface in background
-            asyncio.create_task(self._run_web_interface())
-            print(f"  ✅ Web Interface starting on port {self.config['web_interface_port']}")
-        except Exception as e:
-            print(f"  ❌ Web Interface failed: {e}")
-    
-    async def _run_web_interface(self):
-        """Run the web interface server"""
-        try:
-            import subprocess
-            import sys
-            
-            # Start Flask app
-            subprocess.Popen([
-                sys.executable, "-m", "flask", "--app", "web_interface.app", "run",
-                "--host", "0.0.0.0", "--port", str(self.config["web_interface_port"])
-            ])
-            
-        except Exception as e:
-            print(f"Web interface error: {e}")
-    
-    async def _print_system_status(self):
-        """Print current system status"""
-        status_info = f"""
-┌─ SYSTEM STATUS ─────────────────────────────────────────────────────────────┐
-│ Status: {self.status.upper()}                                               
-│ Version: {self.version}                                                     
-│ Started: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}                    
-│                                                                             
-│ 🧠 Core Components:                                                         
-│   • Prompt Master: {'✅' if self.prompt_master else '❌'}                    
-│   • Memory Bus: {'✅' if self.memory_bus else '❌'}                         
-│   • AI Selector: {'✅' if self.ai_selector else '❌'}                       
-│   • Sync Engine: {'✅' if self.sync_engine else '❌'}                       
-│   • Scheduler: {'✅' if self.scheduler else '❌'}                           
-│                                                                             
-│ 🤖 Active Agents: {len(self.active_agents)}                                 
-{self._format_agents_status()}                                               
-│                                                                             
-│ 🌐 Interfaces:                                                              
-│   • Web UI: http://localhost:{self.config['web_interface_port']}            
-│   • API: http://localhost:{self.config['web_interface_port']}/api           
-│                                                                             
-│ 🇮🇩 Made with ❤️ by Mulky Malikul Dhaher in Indonesia                      
-└─────────────────────────────────────────────────────────────────────────────┘
-        """
-        print(status_info)
-    
-    def _format_agents_status(self) -> str:
-        """Format agents status for display"""
-        lines = []
-        for agent_id, agent in self.active_agents.items():
-            status = getattr(agent, 'status', 'unknown')
-            name = getattr(agent, 'name', agent_id)
-            lines.append(f"│   • {name}: {status}")
-        
-        return '\n'.join(lines) if lines else "│   • No active agents"
-    
-    async def process_user_input(self, user_input: str, input_type: str = "text", 
-                                metadata: Dict = None) -> Dict[str, Any]:
-        """Process user input through the system"""
-        if not self.prompt_master:
-            return {"success": False, "error": "Prompt Master not available"}
-        
-        try:
-            # Use Prompt Master to process the input
-            result = await self.prompt_master.process_prompt(
-                prompt=user_input,
-                input_type=input_type,
-                metadata=metadata or {}
-            )
-            
-            return result
-            
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-    
-    async def get_system_status(self) -> Dict[str, Any]:
-        """Get comprehensive system status"""
-        uptime = (datetime.now() - self.start_time).total_seconds()
-        
-        status = {
-            "system_id": self.system_id,
-            "version": self.version,
-            "status": self.status,
-            "uptime_seconds": uptime,
-            "started_at": self.start_time.isoformat(),
-            "core_components": {
-                "prompt_master": self.prompt_master is not None,
-                "memory_bus": self.memory_bus is not None,
-                "ai_selector": self.ai_selector is not None,
-                "sync_engine": self.sync_engine is not None,
-                "scheduler": self.scheduler is not None
-            },
-            "agents": {
-                "total": len(self.agents),
-                "active": len(self.active_agents),
-                "list": list(self.active_agents.keys())
-            },
-            "config": self.config
-        }
-        
-        # Add component-specific status
-        if self.prompt_master:
-            status["prompt_master_status"] = self.prompt_master.get_system_status()
-        
-        if self.scheduler:
-            status["scheduler_status"] = self.scheduler.get_scheduler_status()
-        
-        if self.sync_engine:
-            status["sync_engine_status"] = self.sync_engine.get_engine_status()
-        
-        if self.memory_bus:
-            status["memory_usage"] = self.memory_bus.get_usage_stats()
-        
-        return status
-    
-    async def run_interactive_mode(self):
-        """Run in interactive mode"""
-        print("\n🎯 Entering interactive mode. Type 'help' for commands, 'exit' to quit.")
-        
-        while not self.shutdown_requested:
-            try:
-                # Get user input
-                user_input = input("\n🧠 Agentic AI > ").strip()
-                
-                if not user_input:
-                    continue
-                
-                # Handle special commands
-                if user_input.lower() in ['exit', 'quit']:
-                    break
-                elif user_input.lower() == 'help':
-                    self._print_help()
-                    continue
-                elif user_input.lower() == 'status':
-                    status = await self.get_system_status()
-                    print(json.dumps(status, indent=2))
-                    continue
-                elif user_input.lower() == 'agents':
-                    print(f"Active agents: {', '.join(self.active_agents.keys())}")
-                    continue
-                
-                # Process as regular prompt
-                print("🔄 Processing...")
-                result = await self.process_user_input(user_input)
-                
-                if result.get("success"):
-                    print("✅ Task completed successfully!")
-                    if "result" in result:
-                        print(f"📊 Result: {result['result']}")
->>>>>>> origin/feature/system-refactor-and-ui-update
->>>>>>> origin/kamis24juli2025
                 else:
                     print(f"{Colors.YELLOW}⚠️ {engine} has no start_engine function{Colors.ENDC}")
             else:
@@ -518,7 +258,6 @@ def run_specific_agent(agent_name):
     """Run a specific agent"""
     print(f"{Colors.GREEN}🤖 Running agent: {agent_name}{Colors.ENDC}")
     try:
-<<<<<<< HEAD
         agent_cls = get_agent_by_name(agent_name)
         if agent_cls:
             # Pass a default config and no memory manager for now
@@ -527,15 +266,6 @@ def run_specific_agent(agent_name):
             print(f"{Colors.GREEN}✅ Agent {agent_name} completed{Colors.ENDC}")
         else:
             print(f"{Colors.RED}❌ Agent '{agent_name}' not found in registry.{Colors.ENDC}")
-=======
-        agent_cls = get_agent(agent_name)
-        if agent_cls:
-            agent = agent_cls()
-            agent.run()
-            print(f"{Colors.GREEN}✅ Agent {agent_name} completed{Colors.ENDC}")
-        else:
-            print(f"{Colors.RED}❌ Agent {agent_name} not found{Colors.ENDC}")
->>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
     except Exception as e:
         print(f"{Colors.RED}❌ Error running agent {agent_name}: {e}{Colors.ENDC}")
 
@@ -561,11 +291,6 @@ def main():
     # Print banner
     print_banner()
     
-    # Handle direct command line arguments
-    if args.agent:
-        run_specific_agent(args.agent)
-        return
-<<<<<<< HEAD
     # Bootstrap system before running any agent logic
     bootstrap_systems()
 
@@ -573,19 +298,11 @@ def main():
     if args.agent:
         run_specific_agent(args.agent)
         return
-=======
->>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
     elif args.all:
         print(f"{Colors.GREEN}🤖 Running all agents...{Colors.ENDC}")
         try:
             for agent_name in list_all_agents():
-<<<<<<< HEAD
                 run_specific_agent(agent_name)
-=======
-                agent_cls = get_agent(agent_name)
-                agent = agent_cls()
-                agent.run()
->>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
             print(f"{Colors.GREEN}✅ All agents completed{Colors.ENDC}")
         except Exception as e:
             print(f"{Colors.RED}❌ Error running all agents: {e}{Colors.ENDC}")

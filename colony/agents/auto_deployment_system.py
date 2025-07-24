@@ -25,10 +25,11 @@ import aiohttp
 import aiofiles
 import tempfile
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+from colony.core.base_agent import BaseAgent
+from colony.core.agent_registry import register_agent
 
-class AutoDeploymentSystem:
+@register_agent(name="auto_deployment_system")
+class AutoDeploymentSystem(BaseAgent):
     """
     🚀 AUTONOMOUS DEPLOYMENT SYSTEM
     
@@ -41,23 +42,14 @@ class AutoDeploymentSystem:
     - 🛡️ Automatic rollback on failures
     - 🔍 Discover and install new features
     """
-    
-    def __init__(self):
-        self.system_id = "auto_deployment_system"
-        self.name = "Autonomous Deployment System"
-        self.version = "2.0.0"
-        self.status = "initializing"
-        self.created_at = datetime.now().isoformat()
-        
-        # Core managers
+
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.update_manager = UpdateManager()
         self.deployment_manager = DeploymentManager()
         self.download_manager = DownloadManager()
         self.installer = AutoInstaller()
         self.health_monitor = DeploymentHealthMonitor()
-        
-        # Configuration
-        self.config = self.load_configuration()
         
         # Background tasks
         self.is_running = False
@@ -74,7 +66,15 @@ class AutoDeploymentSystem:
         }
         
         self.initialize()
-    
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     def initialize(self):
         """Initialize deployment system"""
         print("🚀 Initializing Autonomous Deployment System...")
@@ -935,28 +935,3 @@ class DeploymentHealthMonitor:
             "issues": [],
             "critical": False
         }
-
-# Global deployment system instance
-auto_deployment_system = AutoDeploymentSystem()
-
-async def start_auto_deployment_system():
-    """Start the autonomous deployment system"""
-    print("🚀 Starting Autonomous Deployment System...")
-    print("📦 This system will handle all updates and deployments automatically")
-    print("🇮🇩 Made with ❤️ by Mulky Malikul Dhaher")
-    
-    # System is already started in __init__
-    print("✅ Autonomous Deployment System is FULLY OPERATIONAL!")
-    print("🔄 Monitoring for updates and handling deployments 24/7")
-
-if __name__ == "__main__":
-    # Start the deployment system
-    asyncio.run(start_auto_deployment_system())
-    
-    try:
-        # Keep running forever
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\n🛑 Autonomous Deployment System stopped")
-        auto_deployment_system.is_running = False
