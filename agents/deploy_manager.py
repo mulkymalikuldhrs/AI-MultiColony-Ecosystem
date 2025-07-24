@@ -151,6 +151,12 @@ class DeployManagerAgent:
                 result = await self._deploy_to_heroku(app_name, project_path, config)
             elif platform == "aws":
                 result = await self._deploy_to_aws(app_name, project_path, config)
+            elif platform == "gcp":
+                result = await self._deploy_to_gcp(app_name, project_path, config)
+            elif platform == "gcp":
+                result = await self._deploy_to_gcp(app_name, project_path, config)
+            elif platform == "heroku":
+                result = await self._deploy_to_heroku(app_name, project_path, config)
             elif platform == "docker":
                 result = await self._deploy_to_docker(app_name, project_path, config)
             else:
@@ -361,6 +367,18 @@ class DeployManagerAgent:
                 "error": f"Railway deployment failed: {str(e)}"
             }
     
+    async def _deploy_to_aws(self, app_name: str, project_path: str, config: Dict) -> Dict[str, Any]:
+        """Deploy to AWS"""
+        return {"success": False, "error": "AWS deployment not implemented"}
+
+    async def _deploy_to_gcp(self, app_name: str, project_path: str, config: Dict) -> Dict[str, Any]:
+        """Deploy to GCP"""
+        return {"success": False, "error": "GCP deployment not implemented"}
+
+    async def _deploy_to_heroku(self, app_name: str, project_path: str, config: Dict) -> Dict[str, Any]:
+        """Deploy to Heroku"""
+        return {"success": False, "error": "Heroku deployment not implemented"}
+
     async def _deploy_to_docker(self, app_name: str, project_path: str, config: Dict) -> Dict[str, Any]:
         """Deploy to Docker"""
         try:
@@ -558,6 +576,10 @@ CMD ["{start_command}"]
             "agent": self.agent_id,
             "timestamp": datetime.now().isoformat()
         }
+
+    async def immediate_deployment(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Immediately deploy an application without going through the full pipeline."""
+        return await self._deploy_application(task)
 
 # Global instance
 deploy_manager_agent = DeployManagerAgent()

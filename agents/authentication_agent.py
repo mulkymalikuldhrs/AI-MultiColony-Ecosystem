@@ -285,7 +285,11 @@ class AuthenticationAgent:
                 'success': False,
                 'error': f'GitHub authentication error: {str(e)}'
             }
-    
+
+    async def _handle_aws_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle AWS authentication"""
+        return {"success": False, "error": "AWS authentication not implemented"}
+
     async def _handle_google_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
         """Handle Google authentication"""
         try:
@@ -352,6 +356,62 @@ class AuthenticationAgent:
                 'success': False,
                 'error': f'OpenAI authentication error: {str(e)}'
             }
+
+    async def _handle_anthropic_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle Anthropic authentication"""
+        return {"success": False, "error": "Anthropic authentication not implemented"}
+
+    async def _handle_huggingface_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle HuggingFace authentication"""
+        return {"success": False, "error": "HuggingFace authentication not implemented"}
+
+    async def _handle_docker_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle Docker authentication"""
+        return {"success": False, "error": "Docker authentication not implemented"}
+
+    async def _handle_netlify_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle Netlify authentication"""
+        return {"success": False, "error": "Netlify authentication not implemented"}
+
+    async def _handle_vercel_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle Vercel authentication"""
+        return {"success": False, "error": "Vercel authentication not implemented"}
+
+    async def _handle_heroku_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle Heroku authentication"""
+        return {"success": False, "error": "Heroku authentication not implemented"}
+
+    async def _handle_linkedin_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle LinkedIn authentication"""
+        return {"success": False, "error": "LinkedIn authentication not implemented"}
+
+    async def _handle_twitter_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle Twitter authentication"""
+        return {"success": False, "error": "Twitter authentication not implemented"}
+
+    async def _handle_facebook_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle Facebook authentication"""
+        return {"success": False, "error": "Facebook authentication not implemented"}
+
+    async def _handle_discord_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle Discord authentication"""
+        return {"success": False, "error": "Discord authentication not implemented"}
+
+    async def _handle_slack_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle Slack authentication"""
+        return {"success": False, "error": "Slack authentication not implemented"}
+
+    async def _handle_notion_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle Notion authentication"""
+        return {"success": False, "error": "Notion authentication not implemented"}
+
+    async def _handle_figma_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle Figma authentication"""
+        return {"success": False, "error": "Figma authentication not implemented"}
+
+    async def _handle_stripe_auth(self, credential_data: Dict, action: str, auto_2fa: bool = False) -> Dict[str, Any]:
+        """Handle Stripe authentication"""
+        return {"success": False, "error": "Stripe authentication not implemented"}
     
     async def _perform_web_login(self, login_url: str, credentials: Dict, platform: str) -> Dict[str, Any]:
         """Perform web-based login using browser automation"""

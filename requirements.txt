@@ -228,7 +228,7 @@ marshmallow
 
 # Workflow Management
 prefect
-apache-airflow
+apache-airflow==3.0.3
 
 # Message Queues
 kombu
