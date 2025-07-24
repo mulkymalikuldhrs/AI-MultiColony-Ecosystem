@@ -1,0 +1,17 @@
+{
+  "task_id": "task_20250706_082430685533_camel_agent",
+  "agent_id": "camel_agent",
+  "task_data": {
+    "task_id": "assign_1751790270825",
+    "request": "do everything",
+    "context": {
+      "priority": "medium",
+      "additional_context": "",
+      "assigned_via": "web_interface",
+      "timestamp": "2025-07-06T08:24:30.825Z"
+    }
+  },
+  "submitted_at": "2025-07-06T08:24:30.685555",
+  "status": "pending",
+  "submitted_via": "web_interface"
+}

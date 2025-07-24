@@ -168,8 +168,8 @@ llm:
   providers:
     llm7:
       enabled: true
-      api_key: "${LLM7_API_KEY}"
-      base_url: "https://api.llm7.com/v1"
+      api_key: "unused"
+      base_url: "https://api.llm7.io/v1"
       models:
         - "gpt-3.5-turbo"
         - "gpt-4"
@@ -242,8 +242,10 @@ database:
 web_interface:
   enabled: true
   host: "0.0.0.0"
-  port: 5000
+  port: 8080
   debug: false
+  external_access: true
+  bind_all_interfaces: true
   
   # Security settings
   security:

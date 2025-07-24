@@ -1,0 +1,115 @@
+# AI-MultiColony-Ecosystem Unified Launcher Configuration
+# Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
+
+system:
+  name: "AI MultiColony Ecosystem"
+  version: "7.2.0"
+  owner: "Mulky Malikul Dhaher"
+  owner_id: "1108151509970001"
+  description: "Advanced multi-agent AI ecosystem with 500+ specialized agents"
+
+web_interface:
+  enabled: true
+  port: 8080
+  host: "0.0.0.0"
+  debug: false
+  allow_cors: true
+  session_timeout: 3600
+  templates_dir: "web-interface/templates"
+  static_dir: "web-interface/static"
+
+cli_interface:
+  enabled: true
+  history_file: ".colony_history"
+  max_history: 1000
+  prompt_style: "colored"
+  show_timestamps: true
+
+agents:
+  auto_discover: true
+  agents_dir: "colony/agents"
+  default_status: "inactive"
+  load_on_startup:
+    - "agent_base"
+    - "launcher_agent"
+    - "system_monitor_agent"
+
+autonomous_engines:
+  enabled: true
+  engines:
+    - name: "AUTONOMOUS_DEVELOPMENT_ENGINE"
+      enabled: true
+      interval: 3600
+      description: "Autonomously develops new agents and capabilities"
+    
+    - name: "AUTONOMOUS_EXECUTION_ENGINE"
+      enabled: true
+      interval: 300
+      description: "Executes tasks autonomously based on system goals"
+    
+    - name: "AUTONOMOUS_IMPROVEMENT_ENGINE"
+      enabled: true
+      interval: 1800
+      description: "Continuously improves existing agents and systems"
+    
+    - name: "CONTINUOUS_IMPROVEMENT_CYCLE"
+      enabled: true
+      interval: 7200
+      description: "Meta-engine that coordinates all improvement activities"
+
+logging:
+  level: "INFO"
+  file: "logs/colony_activity.log"
+  max_size: 10485760  # 10MB
+  backup_count: 5
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  console_output: true
+
+security:
+  api_key_required: false
+  api_key: ""  # Set this for production
+  allowed_origins:
+    - "http://localhost:8080"
+    - "http://127.0.0.1:8080"
+  rate_limiting:
+    enabled: true
+    max_requests: 100
+    time_window: 60  # seconds
+
+directories:
+  logs: "logs"
+  data: "data"
+  agent_output: "agent_output"
+  projects: "projects"
+  task_queue: "data/task_queue"
+
+llm_providers:
+  default: "openai"
+  providers:
+    - name: "openai"
+      enabled: true
+      api_key_env: "OPENAI_API_KEY"
+      models:
+        - "gpt-4"
+        - "gpt-3.5-turbo"
+    
+    - name: "anthropic"
+      enabled: false
+      api_key_env: "ANTHROPIC_API_KEY"
+      models:
+        - "claude-2"
+        - "claude-instant-1"
+    
+    - name: "local"
+      enabled: true
+      host: "localhost"
+      port: 8000
+      models:
+        - "llama2-7b"
+        - "mistral-7b"
+
+termux_mode:
+  enabled: true
+  optimize_for_mobile: true
+  reduced_logging: true
+  simplified_ui: true

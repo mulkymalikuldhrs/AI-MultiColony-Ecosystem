@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Autonomous Multi-Agent Intelligence System with Voice Interaction">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Agentic AI">
+    <meta name="msapplication-TileColor" content="#2563eb">
+    
+    <title>{% block title %}Agentic AI System v2.0{% endblock %}</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/icon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/icon-180x180.png">
+    <link rel="mask-icon" href="/static/icons/safari-pinned-tab.svg" color="#2563eb">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Connection Status Indicator -->
+    <div id="connection-status" class="status online">
+        <i class="fas fa-wifi"></i> Online
+    </div>
+    
+    <!-- Install Banner (hidden by default) -->
+    <div id="install-banner" style="display: none;"></div>
+    
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <div class="logo">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <span>Agentic AI System v2.0</span>
+            </a>
+            
+            <button class="navbar-toggle" id="navbar-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            
+            <ul class="navbar-nav" id="navbar-nav">
+                <li><a class="nav-link" href="/"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
+                <li><a class="nav-link" href="/agents"><i class="fas fa-robot"></i> <span>Agents</span></a></li>
+                <li><a class="nav-link" href="/workflows"><i class="fas fa-project-diagram"></i> <span>Workflows</span></a></li>
+                <li><a class="nav-link" href="/monitoring"><i class="fas fa-chart-line"></i> <span>Monitoring</span></a></li>
+                <li><a class="nav-link" href="/platform_integrations"><i class="fas fa-plug"></i> <span>Integrations</span></a></li>
+                <li><a class="nav-link" href="/credentials"><i class="fas fa-key"></i> <span>Credentials</span></a></li>
+            </ul>
+            
+            <!-- Voice Button -->
+            <button id="voice-btn" class="voice-btn" title="Voice Commands (Ctrl+Space)">
+                <i class="fas fa-microphone"></i>
+                <span class="voice-text">Voice</span>
+            </button>
+            
+            <!-- Install Button -->
+            <button id="install-btn" class="btn btn-outline">
+                <i class="fas fa-download"></i>
+                <span>Install App</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer-credit">
+        Made with ❤️ by Mulky Malikul Dhaher in Indonesia
+        <br>
+        <small>Autonomous Multi-Agent Intelligence System v2.0.0</small>
+    </footer>
+    
+    <!-- Voice Indicator (hidden by default) -->
+    <div id="voice-indicator" class="voice-indicator hidden"></div>
+    
+    <!-- Voice Controls Panel (hidden by default) -->
+    <div id="voice-controls" class="voice-controls hidden"></div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/pwa.js"></script>
+    <script src="/static/js/voice.js"></script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

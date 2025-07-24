@@ -1,0 +1,70 @@
+{
+  "agents": {
+    "prompt_master": {
+      "status": "running",
+      "start_time": "2025-07-06T07:23:25.361923",
+      "description": "",
+      "last_check": "2025-07-06T07:23:25.362692"
+    },
+    "memory_bus": {
+      "status": "running",
+      "start_time": "2025-07-06T07:23:25.862694",
+      "description": "",
+      "last_check": "2025-07-06T07:23:25.863277"
+    },
+    "scheduler": {
+      "status": "running",
+      "start_time": "2025-07-06T07:23:26.363338",
+      "description": "",
+      "last_check": "2025-07-06T07:23:26.363940"
+    },
+    "agent_maker": {
+      "status": "running",
+      "start_time": "2025-07-06T07:23:28.506152",
+      "description": "",
+      "last_check": "2025-07-06T07:23:28.506557"
+    },
+    "ui_designer": {
+      "status": "running",
+      "start_time": "2025-07-02T14:45:59.300665",
+      "description": "",
+      "last_check": "2025-07-02T14:45:59.302660"
+    },
+    "cybershell": {
+      "status": "running",
+      "start_time": "2025-07-06T07:23:28.001670",
+      "description": "",
+      "last_check": "2025-07-06T07:23:28.002146"
+    },
+    "fullstack_dev": {
+      "status": "running",
+      "start_time": "2025-07-06T07:23:30.009988",
+      "description": "",
+      "last_check": "2025-07-06T07:23:30.010383"
+    },
+    "commander_agi": {
+      "status": "running",
+      "start_time": "2025-07-06T07:23:30.512834",
+      "description": "Security monitoring & robotics coordination",
+      "last_check": "2025-07-06T07:23:30.513188"
+    },
+    "money_maker": {
+      "status": "running",
+      "start_time": "2025-07-06T07:23:31.521875",
+      "description": "Autonomous revenue generation",
+      "last_check": "2025-07-06T07:23:31.522253"
+    },
+    "marketing": {
+      "status": "running",
+      "start_time": "2025-07-06T07:23:33.672772",
+      "description": "Global promotion & outreach automation",
+      "last_check": "2025-07-06T07:23:33.673254"
+    }
+  },
+  "system": {
+    "total_agents": 9,
+    "running_agents": 9,
+    "last_update": "2025-07-06T07:23:33.673264",
+    "version": "7.0.0"
+  }
+}

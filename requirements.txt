@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 numpy
 aiohttp
 websockets
@@ -6,3 +7,95 @@ uvicorn
 requests
 redis
 # ... tambahkan dependency lain yang benar-benar dipakai di sistem utama
+=======
+# AI-MultiColony-Ecosystem Dependencies
+# Core Python packages for the AI multi-agent system
+
+# Web Framework & API
+flask>=3.1.0
+flask-socketio>=5.5.0
+flask-cors>=4.0.0
+fastapi>=0.115.0
+uvicorn>=0.34.0
+websockets>=11.0.0
+werkzeug>=3.1.0
+blinker>=1.9.0
+itsdangerous>=2.2.0
+
+# AI & Machine Learning
+openai>=1.0.0
+anthropic>=0.25.0
+transformers>=4.30.0
+torch>=2.0.0
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+
+# HTTP & Networking
+requests>=2.31.0
+aiohttp>=3.8.0
+httpx>=0.24.0
+
+# Data Processing
+pyyaml>=6.0
+python-dotenv>=1.0.0
+jsonschema>=4.17.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# Database & Storage
+sqlalchemy>=2.0.0
+redis>=4.5.0
+pymongo>=4.4.0
+
+# Async & Concurrency
+asyncio-mqtt>=0.13.0
+celery>=5.3.0
+
+# Security & Authentication
+cryptography>=41.0.0
+pyjwt>=2.8.0
+bcrypt>=4.0.0
+
+# Development & Testing
+
+# System & OS Integration
+psutil>=5.9.0
+docker>=6.1.0
+paramiko>=3.2.0
+
+# File Processing
+pypdf2>=3.0.0
+pillow>=10.0.0
+python-magic>=0.4.0
+
+# Monitoring & Logging
+prometheus-client>=0.17.0
+structlog>=23.1.0
+
+# AI Agent Frameworks
+crewai>=0.28.0          # CrewAI framework
+autogen>=0.2.0          # AutoGen framework
+langgraph>=0.0.16       # LangGraph framework
+
+# External Integrations
+boto3>=1.28.0           # AWS SDK
+netifaces>=0.11.0       # Network interfaces
+aiofiles>=23.1.0        # Async file operations
+arxiv>=1.4.7            # ArXiv API client
+qrcode>=7.4.2           # QR code generator
+dnspython>=2.0.0        # DNS toolkit
+python-nmap>=0.7.1      # Network scanning
+
+# Computer Vision & NLP
+opencv-python>=4.8.0    # For computer vision agents
+nltk>=3.8.0             # For NLP agents
+spacy>=3.6.0            # For advanced NLP
+
+# Data Visualization
+matplotlib>=3.7.0       # For data visualization
+plotly>=5.15.0          # For interactive charts
+
+# Development Tools
+jupyter>=1.0.0          # For notebook interface
+>>>>>>> origin/jules-refactor-all
