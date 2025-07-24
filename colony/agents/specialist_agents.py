@@ -20,76 +20,28 @@ from typing import Dict, List, Any, Optional
 import psutil
 import hashlib
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+from colony.core.base_agent import BaseAgent
+from colony.core.agent_registry import register_agent
 
-class BaseAutonomousAgent:
-    """Base class for all autonomous agents"""
-    
-    def __init__(self, agent_id: str, name: str, capabilities: List[str]):
-        self.agent_id = agent_id
-        self.name = name
-        self.capabilities = capabilities
-        self.status = "initialized"
-        self.created_at = datetime.now().isoformat()
-        self.last_activity = None
-        self.performance_metrics = {
-            "tasks_completed": 0,
-            "errors_handled": 0,
-            "uptime": 0,
-            "efficiency_score": 100.0
-        }
-        self.is_running = False
-        
-    async def start(self):
-        """Start autonomous operation"""
-        self.is_running = True
-        self.status = "running"
-        print(f"🚀 Starting {self.name}")
-        
-        # Main autonomous loop
-        while self.is_running:
-            try:
-                await self.autonomous_task_cycle()
-                self.last_activity = datetime.now().isoformat()
-                await asyncio.sleep(self.get_cycle_interval())
-            except Exception as e:
-                print(f"❌ {self.name} error: {e}")
-                await self.handle_error(e)
-                await asyncio.sleep(30)  # Error recovery delay
-    
-    async def autonomous_task_cycle(self):
-        """Override in subclasses"""
-        pass
-    
-    def get_cycle_interval(self) -> int:
-        """Get cycle interval in seconds (override in subclasses)"""
-        return 60
-    
-    async def handle_error(self, error: Exception):
-        """Handle errors autonomously"""
-        self.performance_metrics["errors_handled"] += 1
-        # Log error and attempt recovery
-        
-    def stop(self):
-        """Stop autonomous operation"""
-        self.is_running = False
-        self.status = "stopped"
-
-class UIHealthMonitorAgent(BaseAutonomousAgent):
+@register_agent(name="ui_health_monitor_agent")
+class UIHealthMonitorAgent(BaseAgent):
     """
     🎨 UI HEALTH MONITOR AGENT
     Continuously monitors and fixes UI issues automatically
     """
     
-    def __init__(self):
-        super().__init__(
-            "ui_health_monitor",
-            "UI Health Monitor",
-            ["ui_monitoring", "css_analysis", "javascript_debugging", "responsive_design"]
-        )
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.ui_issues_detected = []
         self.auto_fix_enabled = True
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
         
     async def autonomous_task_cycle(self):
         """Continuous UI health monitoring"""
@@ -116,8 +68,6 @@ class UIHealthMonitorAgent(BaseAutonomousAgent):
         else:
             print("✅ UI health is good")
         
-        self.performance_metrics["tasks_completed"] += 1
-    
     async def check_css_health(self) -> List[Dict]:
         """Check for CSS issues"""
         issues = []
@@ -234,22 +184,16 @@ class UIHealthMonitorAgent(BaseAutonomousAgent):
             css = re.sub(pattern, replacement, css, flags=re.MULTILINE)
         
         return css
-    
-    def get_cycle_interval(self) -> int:
-        return 120  # Check every 2 minutes
 
-class BackendHealthGuardian(BaseAutonomousAgent):
+@register_agent(name="backend_health_guardian_agent")
+class BackendHealthGuardian(BaseAgent):
     """
     🔧 BACKEND HEALTH GUARDIAN
     Monitors and maintains backend health autonomously
     """
     
-    def __init__(self):
-        super().__init__(
-            "backend_health_guardian",
-            "Backend Health Guardian",
-            ["api_monitoring", "database_optimization", "performance_tuning", "error_handling"]
-        )
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.api_endpoints = []
         self.performance_thresholds = {
             "response_time": 2000,  # ms
@@ -257,6 +201,14 @@ class BackendHealthGuardian(BaseAutonomousAgent):
             "cpu_usage": 80,  # %
             "memory_usage": 85  # %
         }
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
     
     async def autonomous_task_cycle(self):
         """Continuous backend health monitoring"""
@@ -281,8 +233,6 @@ class BackendHealthGuardian(BaseAutonomousAgent):
             await self.auto_fix_backend_issues(all_issues)
         else:
             print("✅ Backend health is optimal")
-        
-        self.performance_metrics["tasks_completed"] += 1
     
     async def check_api_health(self) -> List[Dict]:
         """Check API endpoint health"""
@@ -387,26 +337,28 @@ class BackendHealthGuardian(BaseAutonomousAgent):
         await self.add_response_compression(endpoint)
         
         print(f"🚀 Optimized slow API: {endpoint}")
-    
-    def get_cycle_interval(self) -> int:
-        return 180  # Check every 3 minutes
 
-class SecurityGuardianAgent(BaseAutonomousAgent):
+@register_agent(name="security_guardian_agent")
+class SecurityGuardianAgent(BaseAgent):
     """
     🛡️ SECURITY GUARDIAN AGENT
     Continuously monitors and enhances system security
     """
     
-    def __init__(self):
-        super().__init__(
-            "security_guardian",
-            "Security Guardian",
-            ["security_scanning", "threat_detection", "vulnerability_assessment", "incident_response"]
-        )
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.threat_patterns = []
         self.security_rules = []
         self.alert_level = "normal"
-    
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     async def autonomous_task_cycle(self):
         """Continuous security monitoring"""
         print("🛡️ Scanning for security threats...")
@@ -430,8 +382,6 @@ class SecurityGuardianAgent(BaseAutonomousAgent):
             await self.respond_to_threats(all_threats)
         else:
             print("✅ No security threats detected")
-        
-        self.performance_metrics["tasks_completed"] += 1
     
     async def check_unauthorized_access(self) -> List[Dict]:
         """Check for unauthorized access attempts"""
@@ -516,25 +466,27 @@ class SecurityGuardianAgent(BaseAutonomousAgent):
                 
             except Exception as e:
                 print(f"❌ Failed to respond to {threat['type']}: {e}")
-    
-    def get_cycle_interval(self) -> int:
-        return 300  # Check every 5 minutes
 
-class PerformanceOptimizerAgent(BaseAutonomousAgent):
+@register_agent(name="performance_optimizer_agent")
+class PerformanceOptimizerAgent(BaseAgent):
     """
     ⚡ PERFORMANCE OPTIMIZER AGENT
     Continuously optimizes system performance
     """
     
-    def __init__(self):
-        super().__init__(
-            "performance_optimizer",
-            "Performance Optimizer",
-            ["performance_analysis", "code_optimization", "resource_management", "caching"]
-        )
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.optimization_history = []
         self.performance_baseline = {}
-    
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     async def autonomous_task_cycle(self):
         """Continuous performance optimization"""
         print("⚡ Analyzing system performance...")
@@ -553,7 +505,6 @@ class PerformanceOptimizerAgent(BaseAutonomousAgent):
         
         # Update performance baseline
         self.performance_baseline = current_metrics
-        self.performance_metrics["tasks_completed"] += 1
     
     async def measure_performance(self) -> Dict:
         """Measure comprehensive system performance"""
@@ -615,25 +566,27 @@ class PerformanceOptimizerAgent(BaseAutonomousAgent):
                 
             except Exception as e:
                 print(f"❌ Failed to apply {opt['type']}: {e}")
-    
-    def get_cycle_interval(self) -> int:
-        return 240  # Check every 4 minutes
 
-class DataManagerAgent(BaseAutonomousAgent):
+@register_agent(name="data_manager_agent")
+class DataManagerAgent(BaseAgent):
     """
     💾 DATA MANAGER AGENT
     Manages data lifecycle, archival, and optimization
     """
     
-    def __init__(self):
-        super().__init__(
-            "data_manager",
-            "Data Manager",
-            ["data_lifecycle", "archival", "cleanup", "optimization", "backup"]
-        )
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.data_policies = {}
         self.cleanup_rules = []
-    
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     async def autonomous_task_cycle(self):
         """Continuous data management"""
         print("💾 Managing data lifecycle...")
@@ -657,8 +610,6 @@ class DataManagerAgent(BaseAutonomousAgent):
             await self.execute_data_tasks(all_tasks)
         else:
             print("✅ Data management is up to date")
-        
-        self.performance_metrics["tasks_completed"] += 1
     
     async def analyze_data_growth(self) -> Dict:
         """Analyze data growth patterns"""
@@ -690,25 +641,27 @@ class DataManagerAgent(BaseAutonomousAgent):
             })
         
         return tasks
-    
-    def get_cycle_interval(self) -> int:
-        return 1800  # Check every 30 minutes
 
-class ErrorRecoveryAgent(BaseAutonomousAgent):
+@register_agent(name="error_recovery_agent")
+class ErrorRecoveryAgent(BaseAgent):
     """
     🚨 ERROR RECOVERY AGENT
     Automatically detects and recovers from errors
     """
     
-    def __init__(self):
-        super().__init__(
-            "error_recovery",
-            "Error Recovery Agent",
-            ["error_detection", "automated_recovery", "rollback", "incident_management"]
-        )
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.error_patterns = []
         self.recovery_strategies = {}
-    
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     async def autonomous_task_cycle(self):
         """Continuous error monitoring and recovery"""
         print("🚨 Monitoring for errors...")
@@ -729,8 +682,6 @@ class ErrorRecoveryAgent(BaseAutonomousAgent):
             await self.recover_from_errors(all_errors)
         else:
             print("✅ No errors detected")
-        
-        self.performance_metrics["tasks_completed"] += 1
     
     async def scan_system_logs(self) -> List[Dict]:
         """Scan system logs for errors"""
@@ -775,26 +726,28 @@ class ErrorRecoveryAgent(BaseAutonomousAgent):
                 print(f"❌ Recovery failed for {error['type']}: {e}")
                 # Escalate to human if automatic recovery fails
                 await self.escalate_error(error, str(e))
-    
-    def get_cycle_interval(self) -> int:
-        return 60  # Check every minute for errors
 
-class LoadBalancerAgent(BaseAutonomousAgent):
+@register_agent(name="load_balancer_agent")
+class LoadBalancerAgent(BaseAgent):
     """
     ⚖️ LOAD BALANCER AGENT
     Automatically balances system load and resources
     """
     
-    def __init__(self):
-        super().__init__(
-            "load_balancer",
-            "Load Balancer Agent",
-            ["load_distribution", "resource_allocation", "scaling", "traffic_management"]
-        )
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.current_load = 0
         self.load_history = []
         self.scaling_rules = {}
-    
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     async def autonomous_task_cycle(self):
         """Continuous load balancing"""
         print("⚖️ Balancing system load...")
@@ -822,131 +775,3 @@ class LoadBalancerAgent(BaseAutonomousAgent):
         
         # Keep only last 100 measurements
         self.load_history = self.load_history[-100:]
-        
-        self.performance_metrics["tasks_completed"] += 1
-    
-    def get_cycle_interval(self) -> int:
-        return 30  # Check every 30 seconds
-
-# Agent Registry for the autonomous ecosystem
-AUTONOMOUS_AGENTS = {
-    "ui_health_monitor": UIHealthMonitorAgent,
-    "backend_health_guardian": BackendHealthGuardian,
-    "security_guardian": SecurityGuardianAgent,
-    "performance_optimizer": PerformanceOptimizerAgent,
-    "data_manager": DataManagerAgent,
-    "error_recovery": ErrorRecoveryAgent,
-    "load_balancer": LoadBalancerAgent
-}
-
-class AutonomousAgentOrchestrator:
-    """
-    🎭 AUTONOMOUS AGENT ORCHESTRATOR
-    Manages and coordinates all autonomous agents
-    """
-    
-    def __init__(self):
-        self.active_agents = {}
-        self.agent_performance = {}
-        self.orchestrator_running = False
-    
-    async def start_all_agents(self):
-        """Start all autonomous agents"""
-        print("🎭 Starting Autonomous Agent Ecosystem...")
-        
-        for agent_name, agent_class in AUTONOMOUS_AGENTS.items():
-            try:
-                agent = agent_class()
-                self.active_agents[agent_name] = agent
-                
-                # Start agent in background
-                asyncio.create_task(agent.start())
-                
-                print(f"✅ Started {agent.name}")
-                
-            except Exception as e:
-                print(f"❌ Failed to start {agent_name}: {e}")
-        
-        # Start orchestrator monitoring
-        self.orchestrator_running = True
-        asyncio.create_task(self.monitor_agents())
-        
-        print(f"🚀 Autonomous ecosystem running with {len(self.active_agents)} agents")
-    
-    async def monitor_agents(self):
-        """Monitor all agents performance"""
-        while self.orchestrator_running:
-            try:
-                for agent_name, agent in self.active_agents.items():
-                    # Check agent health
-                    if not agent.is_running:
-                        print(f"🚨 Agent {agent_name} stopped - restarting...")
-                        asyncio.create_task(agent.start())
-                    
-                    # Update performance metrics
-                    self.agent_performance[agent_name] = agent.performance_metrics
-                
-                # Check if we need more agents
-                if await self.should_spawn_more_agents():
-                    await self.spawn_additional_agents()
-                
-                await asyncio.sleep(60)  # Monitor every minute
-                
-            except Exception as e:
-                print(f"❌ Agent monitoring error: {e}")
-                await asyncio.sleep(60)
-    
-    async def should_spawn_more_agents(self) -> bool:
-        """Determine if more agents are needed"""
-        total_load = sum(
-            agent.performance_metrics.get("tasks_completed", 0) 
-            for agent in self.active_agents.values()
-        )
-        
-        # If total load is high, we might need more agents
-        return total_load > 1000 and len(self.active_agents) < 20
-    
-    def get_ecosystem_status(self) -> Dict:
-        """Get complete ecosystem status"""
-        return {
-            "total_agents": len(self.active_agents),
-            "active_agents": [
-                {
-                    "name": agent.name,
-                    "status": agent.status,
-                    "uptime": agent.last_activity,
-                    "metrics": agent.performance_metrics
-                }
-                for agent in self.active_agents.values()
-            ],
-            "ecosystem_health": "optimal" if all(
-                agent.status == "running" for agent in self.active_agents.values()
-            ) else "degraded"
-        }
-
-# Global orchestrator instance
-autonomous_orchestrator = AutonomousAgentOrchestrator()
-
-# Auto-start ecosystem
-async def start_autonomous_ecosystem():
-    """Start the complete autonomous ecosystem"""
-    print("🤖 Initializing Autonomous AI Ecosystem...")
-    print("🇮🇩 Made with ❤️ by Mulky Malikul Dhaher")
-    
-    await autonomous_orchestrator.start_all_agents()
-    
-    print("✅ Autonomous AI Ecosystem is now FULLY OPERATIONAL!")
-    print("🔄 All agents running independently 24/7")
-
-if __name__ == "__main__":
-    # Start the autonomous ecosystem
-    asyncio.run(start_autonomous_ecosystem())
-    
-    try:
-        # Keep running forever
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\n🛑 Autonomous Ecosystem stopped")
-        for agent in autonomous_orchestrator.active_agents.values():
-            agent.stop()

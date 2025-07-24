@@ -17,8 +17,8 @@ from .agent_registry import register_agent
 class Agent05Designer(BaseAgent):
     """Specialized design agent for visual assets creation"""
     
-    def __init__(self, config_path: str = "config/prompts.yaml"):
-        super().__init__("agent_05_designer", config_path)
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.created_assets = {}
         self.design_templates = self._load_design_templates()
         

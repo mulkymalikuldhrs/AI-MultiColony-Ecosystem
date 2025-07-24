@@ -1,46 +1,74 @@
 {
-  "name": "ai-multicolony-ecosystem-ui",
-  "version": "7.3.0",
+  "name": "ai-multicolony-ecosystem-ultimate-ui",
+  "version": "8.0.0",
   "private": true,
-  "description": "Revolutionary Web Interface for AI Multi-Agent System",
+  "description": "🚀 Ultimate Revolutionary Web Interface for 500+ Agent AI Ecosystem v8.0.0",
+  "keywords": ["ai", "multiagent", "ultimate", "quantum", "consciousness", "revenue", "ecosystem"],
+  "author": "Mulky Malikul Dhaher <mulky@ai-multicolony.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git"
+  },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3000",
     "build": "next build",
-    "start": "next start", 
+    "start": "next start --port 3000", 
     "lint": "next lint",
     "test": "vitest",
+    "test:watch": "vitest --watch",
     "format": "prettier --write .",
-    "analyze": "next build && next export"
+    "analyze": "next build && next export",
+    "ultimate": "npm run build && npm run start",
+    "quantum": "next dev --turbo"
   },
   "dependencies": {
     "next": "15.3.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^6.3.0",
+    "react-router-dom": "^6.26.0",
     "socket.io-client": "^4.8.1",
     "axios": "^1.6.0",
     "@nextui-org/react": "^2.0.0",
-    "framer-motion": "^10.0.0",
-    "tailwindcss": "^4",
-    "prettier": "^3.6.2"
+    "framer-motion": "^11.0.0",
+    "tailwindcss": "^4.0.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "@heroicons/react": "^2.0.18",
+    "recharts": "^2.8.0",
+    "date-fns": "^2.30.0",
+    "lucide-react": "^0.263.1",
+    "react-hot-toast": "^2.4.1",
+    "react-hook-form": "^7.48.2",
+    "zustand": "^4.4.7",
+    "clsx": "^2.0.0",
+    "class-variance-authority": "^0.7.0",
+    "react-query": "^3.39.3",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-markdown": "^9.0.1",
+    "prismjs": "^1.29.0",
+    "chart.js": "^4.4.0",
+    "react-chartjs-2": "^5.2.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@testing-library/jest-dom": "^6.0.0",
-    "@testing-library/react": "^14.0.0",
-    "@testing-library/user-event": "^14.0.0",
-    "eslint": "^9",
+    "@types/node": "^20.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.1",
+    "eslint": "^9.0.0",
     "eslint-config-next": "15.3.5",
-    "typescript": "^5",
-    "vitest": "^1.0.0",
-    "@vitejs/plugin-react": "^4.0.0"
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4",
+    "@vitejs/plugin-react": "^4.2.0",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.5.7",
+    "jsdom": "^23.0.1"
   },
-  "eslintConfig": {
-    "extends": [
-      "next/core-web-vitals"
-    ]
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   },
   "browserslist": {
     "production": [
@@ -53,5 +81,18 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "eslintConfig": {
+    "extends": [
+      "next/core-web-vitals"
+    ]
+  },
+  "prettier": {
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 100,
+    "tabWidth": 2,
+    "useTabs": false
   }
 }
