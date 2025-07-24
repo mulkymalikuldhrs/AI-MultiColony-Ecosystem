@@ -2,6 +2,7 @@
 # Gabungan dependency utama dari HEAD, main, dan jules-refactor-all
 # Pastikan dependency utama agent, web, AI, dan dev tools tetap ada
 
+<<<<<<< HEAD
 # Web Framework & API
 flask>=3.1.0
 flask-socketio>=5.5.0
@@ -100,83 +101,265 @@ coverage>=7.3.2
 # Advanced Networking
 paho-mqtt==1.6.1
 websocket-client==1.7.0
+=======
+# Core Framework - UPGRADED
+flask
+flask-socketio
+python-socketio
+
+# Async and HTTP - UPGRADED
+asyncio-throttle
+aiohttp
+aiofiles
+websockets
+
+# AI and ML - LATEST VERSIONS
+openai
+anthropic
+tiktoken
+groq
+mistralai
+cohere
+replicate
+
+# Database - UPGRADED
+redis
+psycopg2-binary
+sqlalchemy
+alembic
+pymongo
+
+# Data Processing - LATEST
+pandas
+numpy
+pydantic
+polars
+
+# Web Automation - UPGRADED
+selenium
+beautifulsoup4
+requests
+playwright
+
+# System and Security - ENHANCED
+python-dotenv
+cryptography
+psutil
+pathlib2
+keyring
+paramiko
+
+# Development and Testing - LATEST
+pytest
+pytest-asyncio
+pytest-cov
+black
+flake8
+mypy
+
+# Utilities - UPGRADED
+pyyaml
+colorama
+click
+jinja2
+markupsafe
+rich
+typer
+
+# Additional Libraries - ENHANCED
+pillow
+reportlab
+python-dateutil
+python-multipart
+qrcode[pil]
+
+# Platform Integrations - UPGRADED
+github3.py
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
+discord.py
+slack-sdk
+
+# FastAPI and Modern Web - LATEST
+fastapi
+uvicorn[standard]
+starlette
+pydantic-settings
+
+# Monitoring and Logging - ENHANCED
+structlog
+loguru
+sentry-sdk
+
+# JSON and Configuration - UPGRADED
+jsonschema
+toml
+dynaconf
+
+# HTTP Clients - LATEST
+httpx
+urllib3
+
+# Time and Date - UPGRADED
+pytz
+croniter
+pendulum
+
+# Text Processing - ENHANCED
+textdistance
+fuzzywuzzy
+python-levenshtein
+spacy
+
+# System Process Management - UPGRADED
+supervisor
+
+# Memory and Caching - ENHANCED
+cachetools
+diskcache
+redis-py-cluster
+
+# File Handling - UPGRADED
+watchdog
+pathspec
+
+# Network and Communication - LATEST
+eventlet
+gevent
+celery
+
+# Additional Web Framework Support - UPGRADED
+werkzeug
+itsdangerous
+
+# Machine Learning - ENHANCED
+scikit-learn
+joblib
+torch
+transformers
+numpy-ml
+
+# Development Tools - LATEST
+ipython
+notebook
+jupyter
+
+# Cloud and DevOps - NEW ADDITIONS
+docker
+kubernetes
+terraform-python
+ansible
+
+# Blockchain and Web3 - FUTURE READY
+web3
+eth-account
+
+# Audio and Video Processing
+pydub
+opencv-python
+moviepy
+
+# Advanced Security
+jwt
+passlib[bcrypt]
+python-jose[cryptography]
+
+# Performance Monitoring
+prometheus-client
+grafana-api
+
+# Data Visualization
+matplotlib
+plotly
+seaborn
+
+# Advanced Networking
+asyncio-mqtt
+paho-mqtt
+websocket-client
+>>>>>>> origin/feature/system-refactor-and-ui-update
 
 # Text-to-Speech and Speech-to-Text
-gtts==2.5.1
-speech-recognition==3.10.1
-pyttsx3==2.90
+gtts
+pyttsx3
 
 # Image Processing
-Wand==0.6.13
-imageio==2.33.1
+Wand
+imageio
 
 # Advanced Data Formats
-pyarrow==14.0.2
-h5py==3.10.0
-xlsxwriter==3.1.9
+pyarrow
+h5py
+xlsxwriter
 
 # API and Documentation
-sphinx==7.2.6
-mkdocs==1.5.3
-swagger-ui-bundle==0.0.9
+sphinx
+mkdocs
+swagger-ui-bundle
 
+<<<<<<< HEAD
+=======
+# Advanced Async Support
+trio
+anyio
+
+>>>>>>> origin/feature/system-refactor-and-ui-update
 # Compression and Archives
-py7zr==0.21.0
-rarfile==4.1
+py7zr
+rarfile
 
 # Geographic and Spatial
-geopy==2.4.1
-folium==0.15.1
+geopy
+folium
 
 # Email Support
-sendgrid==6.11.0
-yagmail==0.15.293
+sendgrid
+yagmail
 
 # Advanced Caching
-pymemcache==4.0.0
-aiocache==0.12.2
+pymemcache
+aiocache
 
 # Configuration Management
-hydra-core==1.3.2
-omegaconf==2.3.0
+hydra-core
+omegaconf
 
 # Advanced Validation
-cerberus==1.3.5
-marshmallow==3.20.2
+cerberus
+marshmallow
 
 # Workflow Management
-prefect==2.14.21
-airflow==2.8.0
+prefect
+apache-airflow
 
 # Message Queues
-kombu==5.3.4
-pika==1.3.2
+kombu
+pika
 
 # Advanced File Processing
-openpyxl==3.1.2
-python-docx==1.1.0
-PyPDF2==3.0.1
+openpyxl
+python-docx
+PyPDF2
 
 # System Information
-distro==1.9.0
-platform==1.0.8
+distro
 
 # URL Processing
-furl==2.1.3
-urlparse4==0.4.4
+furl
 
 # Advanced JSON
-ujson==5.9.0
-orjson==3.9.10
+ujson
+orjson
 
 # Memory Profiling
-memory-profiler==0.61.0
-pympler==0.9
+memory-profiler
+pympler
 
 # Advanced Hashing
-xxhash==3.4.1
-hashlib==20081119
+xxhash
 
 # Advanced String Processing
-regex==2023.12.25
-unicodedata2==15.1.0
+regex
+unicodedata2
