@@ -1,0 +1,30 @@
+# MINIMAL REQUIREMENTS for Autonomous AI System
+# Essential dependencies only - tested and working
+
+# Core Python (built-in, no install needed)
+# asyncio, json, os, sys, logging, pathlib, datetime, typing
+
+# Essential web framework
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+
+# Essential networking  
+aiohttp>=3.9.1
+websockets>=12.0
+requests>=2.31.0
+
+# Essential data processing
+numpy>=1.24.3
+pandas>=2.0.3
+
+# Essential utilities
+python-dotenv>=1.0.0
+pyyaml>=6.0.1
+psutil>=5.9.6
+
+# Essential crypto for security
+cryptography>=41.0.7
+
+# Optional but recommended
+rich>=13.7.0
+colorama>=0.4.6
