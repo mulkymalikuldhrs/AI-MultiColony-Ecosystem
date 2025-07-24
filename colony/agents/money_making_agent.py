@@ -23,6 +23,9 @@ import os
 from decimal import Decimal
 import sqlite3
 
+from colony.core.base_agent import BaseAgent
+from colony.core.agent_registry import register_agent
+
 @dataclass
 class RevenueStream:
     """Revenue stream data structure"""
@@ -51,7 +54,8 @@ class Transaction:
     description: str
     external_reference: Optional[str] = None
 
-class MoneyMakingAgent:
+@register_agent(name="money_making_agent")
+class MoneyMakingAgent(BaseAgent):
     """
     Money Making Agent: Autonomous revenue generation and financial optimization
     
@@ -68,12 +72,9 @@ class MoneyMakingAgent:
     - 💳 Payment processing optimization
     """
     
-    def __init__(self):
-        self.agent_id = "money_making_agent"
-        self.name = "Money Making Agent"
-        self.status = "initializing"
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.version = "1.0.0"
-        self.start_time = datetime.now()
         
         # Core capabilities
         self.capabilities = [
@@ -154,7 +155,15 @@ class MoneyMakingAgent:
         
         self.logger.info("Money Making Agent initialized successfully")
         self.status = "ready"
-    
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     def setup_logging(self):
         """Setup logging for Money Making Agent"""
         log_dir = Path("data/logs")
@@ -716,9 +725,3 @@ class MoneyMakingAgent:
                     total_balance -= transaction.amount
         
         return total_balance
-
-# Global instance
-money_making_agent = MoneyMakingAgent()
-
-# Export for use by other modules
-__all__ = ['MoneyMakingAgent', 'money_making_agent', 'RevenueStream', 'Transaction']

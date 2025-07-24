@@ -30,8 +30,8 @@ except ImportError:
 class Agent04Executor(BaseAgent):
     """Specialized execution agent for scripts, APIs, and automation"""
     
-    def __init__(self, config_path: str = "config/prompts.yaml"):
-        super().__init__("agent_04_executor", config_path)
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.execution_history = []
         self.active_processes = {}
         self.supported_languages = ['python', 'javascript', 'shell', 'sql']

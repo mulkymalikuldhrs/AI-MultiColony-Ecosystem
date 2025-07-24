@@ -14,26 +14,20 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 from pathlib import Path
 
-# Add project root to path
-import sys
-project_root = Path(__file__).parent.parent
-sys.path.append(str(project_root))
-
+from colony.core.base_agent import BaseAgent
+from colony.core.agent_registry import register_agent
 from connectors.llm_gateway import llm_gateway
-from core.registry import register_agent
 
-@register_agent
-class CamelAgent:
+@register_agent(name="camel_agent")
+class CamelAgent(BaseAgent):
     """
     Camel AI Agent - Multi-Agent Collaborative Intelligence
     Implements collaborative problem-solving with multiple agent personalities
     """
     
-    def __init__(self, agent_id: str = "camel_agent", llm_provider=None):
-        self.agent_id = agent_id
-        self.name = "Camel AI Collaborative Agent"
-        self.status = "initializing"
-        self.llm_provider = llm_provider or llm_gateway
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
+        self.llm_provider = llm_gateway
         
         # Owner identification
         self.owner_identity = "1108151509970001"  # Mulky Malikul Dhaher
@@ -88,6 +82,14 @@ class CamelAgent:
         print(f"🤝 Collaborative capabilities: {len(self.capabilities)} active")
         
         self.status = "ready"
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
     
     async def process_task(self, task_data: Dict) -> Dict:
         """Process task using multi-agent collaboration"""
@@ -442,26 +444,3 @@ Keep what works well and improve what needs attention.
         
         result = await self.process_task(task_data)
         return session_id if result['success'] else None
-
-# Create global instance
-camel_agent = CamelAgent()
-
-# Test function
-async def test_camel_agent():
-    """Test the Camel Agent"""
-    print("\n🧪 Testing Camel AI Agent...")
-    
-    test_task = {
-        'task_id': 'test_collaboration',
-        'content': 'Design a user-friendly mobile app for task management',
-        'complexity': 'complex'
-    }
-    
-    result = await camel_agent.process_task(test_task)
-    print(f"\nCollaboration Result: {json.dumps(result, indent=2)}")
-    
-    stats = camel_agent.get_collaboration_stats()
-    print(f"\nCollaboration Stats: {json.dumps(stats, indent=2)}")
-
-if __name__ == "__main__":
-    asyncio.run(test_camel_agent())
