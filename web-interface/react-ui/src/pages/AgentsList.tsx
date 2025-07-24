@@ -1,35 +1,17 @@
-import { useState, useEffect } from 'react'
 import AgentCard from '../components/AgentCard'
-import { getAgents, Agent } from '../api/agents'
+import { useAgents } from '../context/AgentContext'
 
 const AgentsList = () => {
-  const [agents, setAgents] = useState<Agent[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchAgents = async () => {
-      try {
-        setLoading(true)
-        const data = await getAgents()
-        setAgents(data)
-        setError(null)
-      } catch (err) {
-        setError('Failed to fetch agents. Please try again later.')
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchAgents()
-  }, [])
+  const { agents, loading, error, refetch } = useAgents()
 
   return (
     <div className="container mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">AI Agents</h1>
-        <button className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded">
+        <button
+          onClick={refetch}
+          className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded"
+        >
           Refresh
         </button>
       </div>

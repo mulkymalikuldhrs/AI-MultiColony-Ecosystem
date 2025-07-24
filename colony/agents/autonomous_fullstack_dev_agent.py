@@ -17,7 +17,11 @@ import subprocess
 import requests
 import yaml
 
-class AutonomousFullstackDevAgent:
+from colony.core.agent_registry import register_agent
+from colony.core.base_agent import BaseAgent
+
+@register_agent(name="autonomous_fullstack_dev_agent", description="Autonomous agent for fullstack development.")
+class AutonomousFullstackDevAgent(BaseAgent):
     """
     Autonomous Fullstack Development Agent
     
@@ -29,11 +33,9 @@ class AutonomousFullstackDevAgent:
     - Auto-documentation and reporting
     """
     
-    def __init__(self):
-        self.agent_id = "autonomous_fullstack_dev"
-        self.name = "Autonomous Fullstack Development Agent"
+    def __init__(self, name="autonomous_fullstack_dev_agent", config=None, memory_manager=None):
+        super().__init__(name=name, config=config, memory_manager=memory_manager)
         self.version = "1.0.0"
-        self.status = "active"
         self.capabilities = [
             "autonomous_research",
             "system_analysis",
@@ -48,10 +50,6 @@ class AutonomousFullstackDevAgent:
             "documentation_generation",
             "testing_automation"
         ]
-        
-        # Initialize logging
-        self.logger = logging.getLogger(f"AutonomousFullstackDev")
-        self.logger.setLevel(logging.INFO)
         
         # Work directories
         self.base_dir = Path(__file__).parent.parent.parent
@@ -73,8 +71,19 @@ class AutonomousFullstackDevAgent:
         self.system_state = {}
         self.last_analysis = None
         
-        self.logger.info(f"🚀 {self.name} v{self.version} initialized")
-    
+        self.logger.info(f"🚀 {self.agent_id} v{self.version} initialized")
+
+    def run(self):
+        """Starts the autonomous development mode."""
+        self.update_status("running")
+        try:
+            asyncio.run(self.start_autonomous_mode())
+        except KeyboardInterrupt:
+            self.stop()
+        except Exception as e:
+            self.logger.error(f"Error during autonomous mode: {e}")
+            self.stop()
+
     async def start_autonomous_mode(self):
         """Start autonomous development mode"""
         self.is_running = True
