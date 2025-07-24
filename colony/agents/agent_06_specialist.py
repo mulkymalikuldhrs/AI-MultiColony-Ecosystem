@@ -15,8 +15,8 @@ from .agent_registry import register_agent
 class Agent06Specialist(BaseAgent):
     """Domain specialist agent for expert consultation"""
     
-    def __init__(self, config_path: str = "config/prompts.yaml"):
-        super().__init__("agent_06_specialist", config_path)
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.specializations = self._load_specializations()
         self.consultation_history = []
         

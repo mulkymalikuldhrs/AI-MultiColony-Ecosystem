@@ -16,7 +16,11 @@ from typing import Dict, Any, List, Optional
 from pathlib import Path
 import logging
 
-class SystemOptimizerAgent:
+from colony.core.base_agent import BaseAgent
+from colony.core.agent_registry import register_agent
+
+@register_agent(name="system_optimizer")
+class SystemOptimizerAgent(BaseAgent):
     """
     Autonomous System Optimization Agent that:
     - Monitors system performance in real-time
@@ -28,11 +32,9 @@ class SystemOptimizerAgent:
     - Monitors and fixes issues automatically
     """
     
-    def __init__(self):
-        self.agent_id = "system_optimizer"
-        self.name = "System Optimizer"
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.version = "2.0.0"
-        self.status = "ready"
         self.capabilities = [
             "performance_monitoring",
             "auto_optimization",
@@ -75,7 +77,15 @@ class SystemOptimizerAgent:
         except RuntimeError:
             # No event loop running, will start monitoring when needed
             pass
-    
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process optimization tasks"""
         try:
@@ -484,7 +494,7 @@ class SystemOptimizerAgent:
     def get_performance_metrics(self) -> Dict[str, Any]:
         """Get optimizer agent performance metrics"""
         return {
-            'agent_id': self.agent_id,
+            'agent_id': self.name,
             'name': self.name,
             'status': self.status,
             'optimizations_performed': self.optimizations_performed,
@@ -496,6 +506,3 @@ class SystemOptimizerAgent:
             'performance_history_size': len(self.performance_history),
             'current_performance': self.performance_history[-1] if self.performance_history else None
         }
-
-# Global instance
-system_optimizer = SystemOptimizerAgent()

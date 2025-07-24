@@ -27,12 +27,9 @@ except ImportError:
 class DynamicAIAgent(BaseAgent):
     """Dynamically created AI agent with custom capabilities"""
     
-    def __init__(self, agent_config: Dict[str, Any]):
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
         # Initialize with dynamic configuration
-        super().__init__(
-            agent_id=agent_config['agent_id'],
-            config_path="config/prompts.yaml"
-        )
+        super().__init__(name, config, memory_manager)
         
         # Set dynamic properties
         self.name = agent_config['name']
@@ -451,16 +448,12 @@ This leverages advanced AI capabilities to deliver intelligent, adaptive solutio
             'current_task': getattr(self, 'current_task', None)
         }
 
+@register_agent(name="advanced_agent_creator")
 class AdvancedAgentCreator(BaseAgent):
     """Advanced agent creator that creates real working AI agents"""
     
-    def __init__(self):
-        super().__init__(
-            agent_id="advanced_agent_creator",
-            config_path="config/prompts.yaml"
-        )
-        
-        self.name = "Advanced Agent Creator"
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.role = "Dynamic AI Agent Creation & Management"
         self.emoji = "🏭"
         
