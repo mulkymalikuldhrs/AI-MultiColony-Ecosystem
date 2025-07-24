@@ -37,17 +37,32 @@ system_status = {
 
 # Import core components
 try:
-    from core.prompt_master import prompt_master
-    from core.memory_bus import memory_bus
-    from core.sync_engine import sync_engine
-    from core.scheduler import agent_scheduler
-    from connectors.llm_gateway import llm_gateway
-    from src.core.agent_registry import agent_registry
+    from colony.core.unified_agent_registry import unified_registry, create_agent, get_agent_by_name
+    from colony.integrations.camel_ai_integration import (
+        camel_integration, create_camel_agent, chat_with_camel_agent
+    )
+    from colony.core.system_bootstrap import bootstrap_systems
     
     print("✅ All core components loaded successfully")
     
 except ImportError as e:
     print(f"⚠️ Warning: Some components not available: {e}")
+    
+    # Fallback implementations
+    unified_registry = None
+    camel_integration = None
+    
+    def create_agent(name, config=None):
+        return None
+    
+    def get_agent_by_name(name):
+        return None
+    
+    def create_camel_agent(name, config=None):
+        return None
+    
+    def chat_with_camel_agent(agent_name, message, context=None):
+        return "Camel AI integration not available"
     agent_registry = {}
 
 @app.route('/')
@@ -315,6 +330,145 @@ def process_prompt():
             'success': False,
             'error': str(e)
         }), 500
+
+# 🔥 NEW CAMEL AI INTEGRATION ENDPOINTS v7.3.0 🔥
+
+@app.route('/api/chat', methods=['POST'])
+def api_chat():
+    """Chat API endpoint with Camel AI integration"""
+    try:
+        data = request.get_json()
+        message = data.get('message', '')
+        agent_name = data.get('agent', 'default_camel_agent')
+        context = data.get('context', {})
+        
+        if not message:
+            return jsonify({'error': 'Message is required'}), 400
+        
+        # Get or create Camel AI agent
+        if camel_integration:
+            agent = camel_integration.get_agent(agent_name)
+            if not agent:
+                # Create a new Camel AI agent
+                try:
+                    agent = create_camel_agent(agent_name, {
+                        'model_type': 'gpt-4-turbo',
+                        'role_type': 'assistant'
+                    })
+                except Exception as e:
+                    return jsonify({'error': f'Failed to create agent: {str(e)}'}), 500
+            
+            # Get response from Camel AI agent
+            response = chat_with_camel_agent(agent_name, message, context)
+        else:
+            response = "🤖 Camel AI integration not available. Please install camel-ai package."
+        
+        return jsonify({
+            'response': response,
+            'agent': agent_name,
+            'timestamp': datetime.now().isoformat(),
+            'status': 'success'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/agents/unified', methods=['GET'])
+def api_unified_agents():
+    """Get list of all available agents from unified registry"""
+    try:
+        agents_data = {
+            'unified_registry': {
+                'available': unified_registry is not None,
+                'agent_classes': unified_registry.list_all_agents() if unified_registry else [],
+                'active_instances': unified_registry.list_active_agents() if unified_registry else [],
+                'statistics': unified_registry.get_statistics() if unified_registry else {}
+            },
+            'camel_integration': {
+                'available': camel_integration is not None,
+                'agents': camel_integration.list_agents() if camel_integration else [],
+                'status': camel_integration.get_integration_status() if camel_integration else {}
+            },
+            'legacy_registry': {
+                'available': len(agent_registry) > 0,
+                'agents': list(agent_registry.keys())
+            }
+        }
+        
+        return jsonify(agents_data)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/agents/create', methods=['POST'])
+def api_create_agent():
+    """Create a new agent instance"""
+    try:
+        data = request.get_json()
+        agent_type = data.get('type', 'camel')  # 'camel' or 'colony'
+        name = data.get('name', '')
+        config = data.get('config', {})
+        
+        if not name:
+            return jsonify({'error': 'Agent name is required'}), 400
+        
+        if agent_type == 'camel':
+            if camel_integration:
+                agent = create_camel_agent(name, config)
+                return jsonify({
+                    'success': True,
+                    'agent_name': name,
+                    'agent_type': 'camel',
+                    'status': agent.get_agent_status()
+                })
+            else:
+                return jsonify({'error': 'Camel AI integration not available'}), 500
+                
+        elif agent_type == 'colony':
+            if unified_registry:
+                agent_class = config.get('class', 'BaseAgent')
+                agent = create_agent(agent_class, config, name)
+                return jsonify({
+                    'success': True,
+                    'agent_name': name,
+                    'agent_type': 'colony',
+                    'class': agent_class
+                })
+            else:
+                return jsonify({'error': 'Unified registry not available'}), 500
+        
+        else:
+            return jsonify({'error': 'Invalid agent type'}), 400
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/system/comprehensive-status', methods=['GET'])
+def api_comprehensive_system_status():
+    """Get comprehensive system status including all components"""
+    try:
+        status = {
+            'timestamp': datetime.now().isoformat(),
+            'version': '7.3.0',
+            'system_status': system_status,
+            'unified_registry': {
+                'available': unified_registry is not None,
+                'statistics': unified_registry.get_statistics() if unified_registry else {}
+            },
+            'camel_integration': {
+                'available': camel_integration is not None,
+                'status': camel_integration.get_integration_status() if camel_integration else {}
+            },
+            'legacy_agents': {
+                'count': len(agent_registry),
+                'agents': list(agent_registry.keys())
+            }
+        }
+        
+        return jsonify(status)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/llm/providers')
 def get_llm_providers():

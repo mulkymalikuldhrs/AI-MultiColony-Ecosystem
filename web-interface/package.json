@@ -1,132 +1,45 @@
 {
-<<<<<<< HEAD
-<<<<<<< HEAD:web_interface/package.json
-  "name": "web-interface",
-  "version": "1.0.0",
+  "name": "ai-multicolony-ecosystem-ui",
+  "version": "7.3.0",
   "private": true,
-  "dependencies": {
-    "axios": "^0.27.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.3.0",
-    "socket.io-client": "^4.5.1"
-  },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
-    "@types/node": "^16.11.47",
-    "@types/react": "^18.0.15",
-    "@types/react-dom": "^18.0.6",
-    "autoprefixer": "^10.4.8",
-    "eslint": "^8.21.0",
-    "eslint-config-react-app": "^7.0.1",
-    "postcss": "^8.4.16",
-    "prettier": "^2.7.1",
-    "tailwindcss": "^3.1.8",
-    "typescript": "^4.7.4",
-    "vite": "^3.0.7",
-    "@vitejs/plugin-react": "^2.0.0",
-    "vitest": "^0.21.1"
-  },
-  "scripts": {
-    "start": "vite",
-    "build": "vite build",
-    "test": "vitest"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-=======
-=======
-<<<<<<< HEAD:web-interface/package.json
->>>>>>> origin/kamis24juli2025
-  "name": "new-web-interface",
-  "version": "0.1.0",
-  "private": true,
+  "description": "Revolutionary Web Interface for AI Multi-Agent System",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start", 
     "lint": "next lint",
-    "test": "echo 'No test implemented yet' && exit 0",
+    "test": "vitest",
     "format": "prettier --write .",
     "analyze": "next build && next export"
   },
   "dependencies": {
     "next": "15.3.5",
-    "prettier": "^3.6.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "socket.io-client": "^4.8.1"
+    "react-router-dom": "^6.3.0",
+    "socket.io-client": "^4.8.1",
+    "axios": "^1.6.0",
+    "@nextui-org/react": "^2.0.0",
+    "framer-motion": "^10.0.0",
+    "tailwindcss": "^4",
+    "prettier": "^3.6.2"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-<<<<<<< HEAD
->>>>>>> origin/jules-refactor-all:web-interface/package.json
-=======
-=======
-  "name": "web-interface",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "axios": "^0.27.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.3.0",
-    "socket.io-client": "^4.5.1"
-  },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
-    "@types/node": "^16.11.47",
-    "@types/react": "^18.0.15",
-    "@types/react-dom": "^18.0.6",
-    "autoprefixer": "^10.4.8",
-    "eslint": "^8.21.0",
-    "eslint-config-react-app": "^7.0.1",
-    "postcss": "^8.4.16",
-    "prettier": "^2.7.1",
-    "tailwindcss": "^3.1.8",
-    "typescript": "^4.7.4",
-    "vite": "^3.0.7",
-    "@vitejs/plugin-react": "^2.0.0",
-    "vitest": "^0.21.1"
-  },
-  "scripts": {
-    "start": "vite",
-    "build": "vite build",
-    "test": "vitest"
+    "typescript": "^5",
+    "vitest": "^1.0.0",
+    "@vitejs/plugin-react": "^4.0.0"
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "next/core-web-vitals"
     ]
   },
   "browserslist": {
@@ -140,7 +53,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
->>>>>>> origin/feature/system-refactor-and-ui-update:web_interface/package.json
->>>>>>> origin/kamis24juli2025
   }
 }
