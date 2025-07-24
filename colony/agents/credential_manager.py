@@ -17,7 +17,11 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import sqlite3
 
-class CredentialManagerAgent:
+from colony.core.base_agent import BaseAgent
+from colony.core.agent_registry import register_agent
+
+@register_agent(name="credential_manager")
+class CredentialManagerAgent(BaseAgent):
     """
     Secure Credential Management Agent that:
     - Stores credentials with enterprise-grade encryption
@@ -28,11 +32,9 @@ class CredentialManagerAgent:
     - Supports multiple platforms (GitHub, Google, AWS, etc.)
     """
     
-    def __init__(self):
-        self.agent_id = "credential_manager"
-        self.name = "Credential Manager"
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.version = "2.0.0"
-        self.status = "ready"
         self.capabilities = [
             "credential_storage",
             "secure_encryption",
@@ -136,6 +138,14 @@ class CredentialManagerAgent:
         
         print(f"✅ {self.name} initialized with {len(self.supported_platforms)} platform integrations")
     
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     def _get_or_create_master_key(self) -> bytes:
         """Get or create master encryption key"""
         key_file = Path("data/master.key")
@@ -670,7 +680,7 @@ class CredentialManagerAgent:
     def get_performance_metrics(self) -> Dict[str, Any]:
         """Get credential manager performance metrics"""
         return {
-            'agent_id': self.agent_id,
+            'agent_id': self.name,
             'name': self.name,
             'status': self.status,
             'credentials_stored': self.credentials_stored,
@@ -681,6 +691,3 @@ class CredentialManagerAgent:
             'encryption_enabled': True,
             'last_activity': datetime.now().isoformat()
         }
-
-# Global instance
-credential_manager = CredentialManagerAgent()

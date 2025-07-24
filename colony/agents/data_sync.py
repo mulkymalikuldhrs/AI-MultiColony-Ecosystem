@@ -19,7 +19,11 @@ import hashlib
 import aiofiles
 import asyncpg
 
-class DataSyncAgent:
+from colony.core.base_agent import BaseAgent
+from colony.core.agent_registry import register_agent
+
+@register_agent(name="data_sync_agent")
+class DataSyncAgent(BaseAgent):
     """
     Data Synchronization Agent that:
     - Syncs data across multiple databases (SQLite, PostgreSQL, Redis)
@@ -29,22 +33,9 @@ class DataSyncAgent:
     - Manages data migrations and transformations
     - Implements conflict resolution strategies
     """
-    
-    def __init__(self):
-        self.agent_id = "data_sync"
-        self.name = "Data Sync Agent"
-        self.status = "ready"
-        self.capabilities = [
-            "database_sync",
-            "supabase_integration",
-            "redis_caching",
-            "json_storage",
-            "data_migration",
-            "conflict_resolution",
-            "backup_management"
-        ]
-        
-        # Database connections
+
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.connections = {}
         self.sync_configs = self._load_sync_configs()
         
@@ -52,16 +43,17 @@ class DataSyncAgent:
         self.sync_operations: Dict[str, Dict] = {}
         self.last_sync_times: Dict[str, datetime] = {}
         
-        # Import memory bus for coordination
-        try:
-            from core.memory_bus import memory_bus
-            self.memory = memory_bus
-        except ImportError:
-            self.memory = None
-        
         # Initialize connections
         self._initialize_connections()
-    
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     def _load_sync_configs(self) -> Dict[str, Dict]:
         """Load synchronization configurations"""
         return {
@@ -392,7 +384,7 @@ class DataSyncAgent:
             backup_data = {
                 "created_at": datetime.now().isoformat(),
                 "backup_type": "automated",
-                "agent_id": self.agent_id,
+                "agent_id": self.name,
                 "data": {}
             }
             
@@ -659,7 +651,7 @@ class DataSyncAgent:
     def get_sync_status(self) -> Dict[str, Any]:
         """Get current synchronization status"""
         status = {
-            "agent_id": self.agent_id,
+            "agent_id": self.name,
             "status": self.status,
             "active_connections": len(self.connections),
             "configured_databases": len(self.sync_configs),
@@ -686,9 +678,6 @@ class DataSyncAgent:
         return {
             "success": False,
             "error": error_message,
-            "agent": self.agent_id,
+            "agent": self.name,
             "timestamp": datetime.now().isoformat()
         }
-
-# Global instance
-data_sync_agent = DataSyncAgent()

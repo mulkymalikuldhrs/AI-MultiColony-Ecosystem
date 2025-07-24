@@ -12,7 +12,9 @@ import uuid
 from typing import Dict, Any, List, Optional
 
 from colony.core.base_agent import BaseAgent
+from colony.core.agent_registry import register_agent
 
+@register_agent(name="fullstack_agent")
 class FullstackAgent(BaseAgent):
     """
     Autonomous agent for fullstack development.
@@ -21,9 +23,9 @@ class FullstackAgent(BaseAgent):
     including API development, UI implementation, and integration.
     """
     
-    def __init__(self, name=None, config=None, memory=None):
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
         """Initialize the agent."""
-        super().__init__(name or "FullstackAgent", config, memory)
+        super().__init__(name, config, memory_manager)
         
         # Set up logger
         self.logger = logging.getLogger(f"agents.{self.__class__.__name__}")
@@ -42,7 +44,7 @@ class FullstackAgent(BaseAgent):
         self.config = {**self.default_config, **(config or {})}
         
         # Initialize memory if not provided
-        self.memory = memory or {}
+        self.memory = memory_manager or {}
         
         # Initialize state
         self.state = {
@@ -50,8 +52,16 @@ class FullstackAgent(BaseAgent):
             "current_task": None,
             "task_history": []
         }
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
     
-    async def run(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
         Run the agent on a task.
         
