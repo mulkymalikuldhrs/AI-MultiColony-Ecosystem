@@ -16,7 +16,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from core.registry import register_agent
+from colony.core.agent_registry import register_agent
 
 
 @register_agent

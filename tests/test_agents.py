@@ -18,13 +18,13 @@ import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agents.agent_maker import agent_maker
-from agents.data_sync import data_sync_agent
-from agents.deploy_manager import deploy_manager_agent
-from agents.dev_engine import dev_engine_agent
-from agents.fullstack_dev import fullstack_dev_agent
-from agents.prompt_generator import prompt_generator_agent
-from agents.ui_designer import ui_designer_agent
+from colony.agents.agent_maker import agent_maker
+from colony.agents.data_sync import data_sync_agent
+from colony.agents.deploy_manager import deploy_manager_agent
+from colony.agents.dev_engine import dev_engine_agent
+from colony.agents.fullstack_dev import fullstack_dev_agent
+from colony.agents.prompt_generator import prompt_generator_agent
+from colony.agents.ui_designer import ui_designer_agent
 
 from colony.agents.cybershell import cybershell_agent
 

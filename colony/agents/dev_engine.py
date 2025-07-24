@@ -29,33 +29,33 @@ class DevEngineAgent:
     - Creates documentation templates
     - Sets up testing frameworks
     """
-    
+
     def __init__(self, llm_provider=None):
         self.agent_id = "dev_engine"
         self.name = "Development Engine"
         self.status = "ready"
         self.capabilities = [
             "project_setup",
-            "architecture_design", 
+            "architecture_design",
             "code_scaffolding",
             "dependency_management",
             "build_configuration",
             "testing_setup",
-            "documentation_generation"
+            "documentation_generation",
         ]
-        
+
         # Project templates
         self.project_templates = self._load_project_templates()
         self.created_projects: Dict[str, Dict] = {}
-        
+
         # Technology stacks
         self.tech_stacks = self._initialize_tech_stacks()
-        
+
         # Set LLM provider
         self.llm = llm_provider
         if not self.llm:
             print("⚠️ LLM Gateway not available for development")
-    
+
     def _load_project_templates(self) -> Dict[str, Dict]:
         """Load project templates and configurations"""
         return {
@@ -75,8 +75,8 @@ class DevEngineAgent:
                     "src/index.css": self._get_base_css(),
                     "index.html": self._get_html_template(),
                     ".gitignore": self._get_react_gitignore(),
-                    "README.md": self._get_react_readme()
-                }
+                    "README.md": self._get_react_readme(),
+                },
             },
             "nextjs_app": {
                 "description": "Next.js application with full-stack capabilities",
@@ -93,8 +93,8 @@ class DevEngineAgent:
                     "app/layout.tsx": self._get_nextjs_layout(),
                     "app/globals.css": self._get_base_css(),
                     ".gitignore": self._get_nextjs_gitignore(),
-                    "README.md": self._get_nextjs_readme()
-                }
+                    "README.md": self._get_nextjs_readme(),
+                },
             },
             "fastapi_backend": {
                 "description": "FastAPI backend with modern Python stack",
@@ -112,8 +112,8 @@ class DevEngineAgent:
                     "tests/__init__.py": "",
                     "tests/test_main.py": self._get_fastapi_tests(),
                     ".gitignore": self._get_python_gitignore(),
-                    "README.md": self._get_fastapi_readme()
-                }
+                    "README.md": self._get_fastapi_readme(),
+                },
             },
             "python_package": {
                 "description": "Python package with modern tooling",
@@ -130,8 +130,8 @@ class DevEngineAgent:
                     "tests/__init__.py": "",
                     "tests/test_main.py": self._get_python_tests(),
                     ".gitignore": self._get_python_gitignore(),
-                    "README.md": self._get_python_readme()
-                }
+                    "README.md": self._get_python_readme(),
+                },
             },
             "fullstack_app": {
                 "description": "Full-stack application (React + FastAPI)",
@@ -145,51 +145,51 @@ class DevEngineAgent:
                     "frontend/src/App.tsx": self._get_react_app_component(),
                     "backend/requirements.txt": self._get_fastapi_requirements(),
                     "backend/main.py": self._get_fastapi_main(),
-                    "README.md": self._get_fullstack_readme()
-                }
-            }
+                    "README.md": self._get_fullstack_readme(),
+                },
+            },
         }
-    
+
     def _initialize_tech_stacks(self) -> Dict[str, Dict]:
         """Initialize technology stack configurations"""
         return {
             "MEAN": {
                 "description": "MongoDB, Express, Angular, Node.js",
                 "components": ["mongodb", "express", "angular", "nodejs"],
-                "package_manager": "npm"
+                "package_manager": "npm",
             },
             "MERN": {
-                "description": "MongoDB, Express, React, Node.js", 
+                "description": "MongoDB, Express, React, Node.js",
                 "components": ["mongodb", "express", "react", "nodejs"],
-                "package_manager": "npm"
+                "package_manager": "npm",
             },
             "LAMP": {
                 "description": "Linux, Apache, MySQL, PHP",
                 "components": ["linux", "apache", "mysql", "php"],
-                "package_manager": "composer"
+                "package_manager": "composer",
             },
             "Django_React": {
                 "description": "Django backend with React frontend",
                 "components": ["django", "react", "postgresql"],
-                "package_manager": "pip + npm"
+                "package_manager": "pip + npm",
             },
             "FastAPI_React": {
                 "description": "FastAPI backend with React frontend",
                 "components": ["fastapi", "react", "postgresql"],
-                "package_manager": "pip + npm"
+                "package_manager": "pip + npm",
             },
             "JAMstack": {
                 "description": "JavaScript, APIs, Markup",
                 "components": ["nextjs", "netlify", "headless_cms"],
-                "package_manager": "npm"
-            }
+                "package_manager": "npm",
+            },
         }
-    
+
     async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process development task"""
         try:
             action = task.get("action", "create_project")
-            
+
             if action == "create_project":
                 return await self._create_project(task)
             elif action == "setup_environment":
@@ -206,88 +206,87 @@ class DevEngineAgent:
                 return self._list_templates()
             else:
                 return self._create_error_response(f"Unknown action: {action}")
-                
+
         except Exception as e:
             return self._create_error_response(str(e))
-    
+
     async def _create_project(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new project from template"""
         project_name = task.get("project_name", "")
         template_type = task.get("template", "react_app")
         project_description = task.get("description", "")
         output_dir = task.get("output_dir", "projects")
-        
+
         if not project_name:
             return self._create_error_response("Project name is required")
-        
+
         if template_type not in self.project_templates:
             return self._create_error_response(f"Template {template_type} not found")
-        
+
         try:
             # Create project directory
             project_path = Path(output_dir) / project_name
             if project_path.exists():
-                return self._create_error_response(f"Project {project_name} already exists")
-            
+                return self._create_error_response(
+                    f"Project {project_name} already exists"
+                )
+
             project_path.mkdir(parents=True, exist_ok=True)
-            
+
             # Get template
             template = self.project_templates[template_type]
-            
+
             # Create files from template
             created_files = []
             for file_path, content in template["files"].items():
                 full_path = project_path / file_path
                 full_path.parent.mkdir(parents=True, exist_ok=True)
-                
+
                 # Process template variables
                 processed_content = self._process_template_content(
                     content, project_name, project_description, template
                 )
-                
-                with open(full_path, 'w') as f:
+
+                with open(full_path, "w") as f:
                     f.write(processed_content)
-                
+
                 created_files.append(str(full_path))
-            
+
             # Initialize git repository
             try:
                 subprocess.run(
-                    ["git", "init"], 
-                    cwd=project_path, 
-                    capture_output=True, 
-                    check=True
+                    ["git", "init"], cwd=project_path, capture_output=True, check=True
                 )
                 subprocess.run(
-                    ["git", "add", "."], 
-                    cwd=project_path, 
-                    capture_output=True, 
-                    check=True
+                    ["git", "add", "."],
+                    cwd=project_path,
+                    capture_output=True,
+                    check=True,
                 )
                 subprocess.run(
-                    ["git", "commit", "-m", "Initial commit"], 
-                    cwd=project_path, 
-                    capture_output=True, 
-                    check=True
+                    ["git", "commit", "-m", "Initial commit"],
+                    cwd=project_path,
+                    capture_output=True,
+                    check=True,
                 )
                 git_initialized = True
             except:
                 git_initialized = False
-            
+
             # Install dependencies if package.json exists
             dependencies_installed = False
             if (project_path / "package.json").exists():
                 try:
                     subprocess.run(
-                        ["npm", "install"], 
-                        cwd=project_path, 
-                        capture_output=True, 
-                        check=True
+                        ["npm", "install"],
+                        cwd=project_path,
+                        capture_output=True,
+                        check=True,
                     )
                     dependencies_installed = True
                 except:
                     pass
-            
+
             # Store project info
             project_info = {
                 "project_id": str(uuid.uuid4()),
@@ -300,69 +299,77 @@ class DevEngineAgent:
                 "git_initialized": git_initialized,
                 "dependencies_installed": dependencies_installed,
                 "framework": template.get("framework"),
-                "language": template.get("language")
+                "language": template.get("language"),
             }
-            
+
             self.created_projects[project_name] = project_info
-            
+
             return {
                 "success": True,
                 "message": f"Project {project_name} created successfully",
                 "project_info": project_info,
                 "created_files": created_files,
-                "next_steps": self._get_next_steps(template_type, project_path)
+                "next_steps": self._get_next_steps(template_type, project_path),
             }
-            
+
         except Exception as e:
             return self._create_error_response(f"Failed to create project: {str(e)}")
-    
-    def _process_template_content(self, content: str, project_name: str, 
-                                description: str, template: Dict) -> str:
+
+    def _process_template_content(
+        self, content: str, project_name: str, description: str, template: Dict
+    ) -> str:
         """Process template content with variables"""
         replacements = {
             "{{PROJECT_NAME}}": project_name,
-            "{{PROJECT_DESCRIPTION}}": description or f"A {template.get('framework', 'web')} application",
+            "{{PROJECT_DESCRIPTION}}": description
+            or f"A {template.get('framework', 'web')} application",
             "{{FRAMEWORK}}": template.get("framework", ""),
             "{{LANGUAGE}}": template.get("language", ""),
             "{{DATE}}": datetime.now().strftime("%Y-%m-%d"),
-            "{{YEAR}}": str(datetime.now().year)
+            "{{YEAR}}": str(datetime.now().year),
         }
-        
+
         processed = content
         for placeholder, value in replacements.items():
             processed = processed.replace(placeholder, value)
-        
+
         return processed
-    
+
     def _get_next_steps(self, template_type: str, project_path: Path) -> List[str]:
         """Get next steps for the created project"""
         base_steps = [
             f"cd {project_path.name}",
             "Review the generated files",
-            "Customize the configuration as needed"
+            "Customize the configuration as needed",
         ]
-        
+
         if template_type in ["react_app", "nextjs_app"]:
-            base_steps.extend([
-                "npm install (if not already done)",
-                "npm run dev",
-                "Open http://localhost:3000"
-            ])
+            base_steps.extend(
+                [
+                    "npm install (if not already done)",
+                    "npm run dev",
+                    "Open http://localhost:3000",
+                ]
+            )
         elif template_type == "fastapi_backend":
-            base_steps.extend([
-                "pip install -r requirements.txt",
-                "uvicorn main:app --reload",
-                "Open http://localhost:8000/docs"
-            ])
+            base_steps.extend(
+                [
+                    "pip install -r requirements.txt",
+                    "uvicorn main:app --reload",
+                    "Open http://localhost:8000/docs",
+                ]
+            )
         elif template_type == "fullstack_app":
-            base_steps.extend([
-                "docker-compose up -d",
-                "Visit frontend at http://localhost:3000",
-                "Visit API docs at http://localhost:8000/docs"
-            ])
-        
+            base_steps.extend(
+                [
+                    "docker-compose up -d",
+                    "Visit frontend at http://localhost:3000",
+                    "Visit API docs at http://localhost:8000/docs",
+                ]
+            )
+
         return base_steps
-    
+
     # Template content methods
     def _get_react_package_json(self) -> str:
         return """{
@@ -394,7 +401,7 @@ class DevEngineAgent:
     "vitest": "^0.28.5"
   }
 }"""
-    
+
     def _get_vite_config(self) -> str:
         return """import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -414,7 +421,7 @@ export default defineConfig({
     environment: 'jsdom'
   }
 })"""
-    
+
     def _get_tailwind_config(self) -> str:
         return """/** @type {import('tailwindcss').Config} */
 export default {
@@ -427,7 +434,7 @@ export default {
   },
   plugins: [],
 }"""
-    
+
     def _get_react_app_component(self) -> str:
         return """import React from 'react'
 import './index.css'
@@ -465,7 +472,7 @@ function App() {
 }
 
 export default App"""
-    
+
     def _get_react_main(self) -> str:
         return """import React from 'react'
 import ReactDOM from 'react-dom/client'
@@ -476,7 +483,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 )"""
-    
+
     def _get_base_css(self) -> str:
         return """@tailwind base;
 @tailwind components;
@@ -487,7 +494,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     font-family: system-ui, sans-serif;
   }
 }"""
-    
+
     def _get_html_template(self) -> str:
         return """<!doctype html>
 <html lang="en">
@@ -502,7 +509,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>"""
-    
+
     def _get_react_gitignore(self) -> str:
         return """# Dependencies
 node_modules/
@@ -534,7 +541,7 @@ Thumbs.db
 # Logs
 logs
 *.log"""
-    
+
     def _get_react_readme(self) -> str:
         return """# {{PROJECT_NAME}}
 """
@@ -682,7 +689,7 @@ passlib[bcrypt]==1.7.4
 python-dotenv==1.0.0
 pytest==7.4.3
 httpx==0.25.2"""
-    
+
     def _get_fastapi_main(self) -> str:
         return """from fastapi import FastAPI, HTTPException
 from app.database import Base, engine
@@ -721,7 +728,7 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)"""
-    
+
     def _get_fastapi_models(self) -> str:
         return """from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from datetime import datetime
@@ -758,7 +765,7 @@ class UserResponse(UserBase):
     
     class Config:
         from_attributes = True"""
-    
+
     def _get_fastapi_routes(self) -> str:
         return """from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
@@ -801,7 +808,7 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user"""
-    
+
     def _get_fastapi_database(self) -> str:
         return """from sqlalchemy import create_engine
 import os
@@ -830,7 +837,7 @@ def get_db():
         yield db
     finally:
         db.close()"""
-    
+
     def _get_fastapi_tests(self) -> str:
         return """import pytest
 from fastapi.testclient import TestClient
@@ -1039,7 +1046,7 @@ if __name__ == "__main__":
     main()
 ```
 """
-    
+
     def _get_fastapi_readme(self) -> str:
         return """# {{PROJECT_NAME}} API
 
@@ -1096,7 +1103,7 @@ pytest
 ## License
 
 MIT License"""
-    
+
     def _list_templates(self) -> Dict[str, Any]:
         """List available project templates"""
         templates_info = {}
@@ -1106,24 +1113,25 @@ MIT License"""
                 "framework": template.get("framework"),
                 "language": template.get("language"),
                 "build_tool": template.get("build_tool"),
-                "file_count": len(template["files"])
+                "file_count": len(template["files"]),
             }
-        
+
         return {
             "success": True,
             "available_templates": templates_info,
             "tech_stacks": self.tech_stacks,
-            "total_templates": len(self.project_templates)
+            "total_templates": len(self.project_templates),
         }
-    
+
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create standardized error response"""
         return {
             "success": False,
             "error": error_message,
             "agent": self.agent_id,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
+
 
 # Additional template methods would continue here...
 # Keeping the response manageable, I'm including the core structure

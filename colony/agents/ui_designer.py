@@ -26,7 +26,7 @@ class UIDesignerAgent:
     - Creates mobile-friendly designs
     - Generates interactive prototypes
     """
-    
+
     def __init__(self, llm_provider=None, dev_engine=None):
         self.agent_id = "ui_designer"
         self.name = "UI Designer Agent"
@@ -38,14 +38,14 @@ class UIDesignerAgent:
             "responsive_design",
             "component_library",
             "prototype_creation",
-            "design_system"
+            "design_system",
         ]
-        
+
         # Design templates and patterns
         self.ui_templates = self._load_ui_templates()
         self.component_library = self._initialize_component_library()
         self.design_systems = self._load_design_systems()
-        
+
         # Generated designs tracking
         self.generated_designs: Dict[str, Dict] = {}
 
@@ -59,7 +59,7 @@ class UIDesignerAgent:
         else:
             # Add Next.js template using the dev engine's methods
             self.ui_templates["nextjs_app"] = self._create_nextjs_app_template()
-    
+
     def _load_ui_templates(self) -> Dict[str, Dict]:
         """Load UI templates and patterns"""
         return {
@@ -67,34 +67,34 @@ class UIDesignerAgent:
                 "description": "Modern dashboard with sidebar and metrics",
                 "components": ["navbar", "sidebar", "cards", "charts"],
                 "layout": "sidebar-main",
-                "complexity": "medium"
+                "complexity": "medium",
             },
             "landing_page": {
                 "description": "Marketing landing page with hero section",
                 "components": ["hero", "features", "testimonials", "footer"],
                 "layout": "single-page",
-                "complexity": "simple"
+                "complexity": "simple",
             },
             "ecommerce": {
                 "description": "E-commerce product catalog and cart",
                 "components": ["product_grid", "filters", "cart", "checkout"],
                 "layout": "grid-based",
-                "complexity": "complex"
+                "complexity": "complex",
             },
             "blog": {
                 "description": "Blog with articles and navigation",
                 "components": ["header", "article_list", "sidebar", "pagination"],
                 "layout": "content-focused",
-                "complexity": "simple"
+                "complexity": "simple",
             },
             "admin_panel": {
                 "description": "Admin interface with tables and forms",
                 "components": ["data_tables", "forms", "modals", "breadcrumbs"],
                 "layout": "admin-layout",
-                "complexity": "complex"
-            }
+                "complexity": "complex",
+            },
         }
-    
+
     def _initialize_component_library(self) -> Dict[str, str]:
         """Initialize reusable component library"""
         return {
@@ -105,29 +105,29 @@ class UIDesignerAgent:
             "modal": self._get_modal_component(),
             "form": self._get_form_component(),
             "table": self._get_table_component(),
-            "hero": self._get_hero_component()
+            "hero": self._get_hero_component(),
         }
-    
+
     def _load_design_systems(self) -> Dict[str, Dict]:
         """Load design system configurations"""
         return {
             "modern": {
                 "colors": {
                     "primary": "bg-blue-600",
-                    "secondary": "bg-gray-600", 
+                    "secondary": "bg-gray-600",
                     "accent": "bg-purple-600",
                     "success": "bg-green-600",
                     "warning": "bg-yellow-600",
-                    "error": "bg-red-600"
+                    "error": "bg-red-600",
                 },
                 "typography": {
                     "heading": "font-bold text-gray-900",
                     "body": "text-gray-700",
-                    "caption": "text-sm text-gray-500"
+                    "caption": "text-sm text-gray-500",
                 },
                 "spacing": "space-y-6",
                 "rounded": "rounded-lg",
-                "shadow": "shadow-lg"
+                "shadow": "shadow-lg",
             },
             "minimal": {
                 "colors": {
@@ -135,17 +135,17 @@ class UIDesignerAgent:
                     "secondary": "bg-gray-100",
                     "accent": "bg-blue-500",
                     "success": "bg-green-500",
-                    "warning": "bg-orange-500", 
-                    "error": "bg-red-500"
+                    "warning": "bg-orange-500",
+                    "error": "bg-red-500",
                 },
                 "typography": {
                     "heading": "font-light text-gray-900",
                     "body": "text-gray-600",
-                    "caption": "text-xs text-gray-400"
+                    "caption": "text-xs text-gray-400",
                 },
                 "spacing": "space-y-4",
                 "rounded": "rounded-none",
-                "shadow": "shadow-sm"
+                "shadow": "shadow-sm",
             },
             "colorful": {
                 "colors": {
@@ -154,24 +154,24 @@ class UIDesignerAgent:
                     "accent": "bg-gradient-to-r from-yellow-400 to-orange-500",
                     "success": "bg-green-400",
                     "warning": "bg-yellow-400",
-                    "error": "bg-pink-400"
+                    "error": "bg-pink-400",
                 },
                 "typography": {
                     "heading": "font-bold text-white",
                     "body": "text-gray-800",
-                    "caption": "text-sm text-gray-600"
+                    "caption": "text-sm text-gray-600",
                 },
                 "spacing": "space-y-8",
                 "rounded": "rounded-xl",
-                "shadow": "shadow-2xl"
-            }
+                "shadow": "shadow-2xl",
+            },
         }
-    
+
     async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process UI design task"""
         try:
             action = task.get("action", "create_ui")
-            
+
             if action == "create_ui":
                 return await self._create_ui(task)
             elif action == "create_component":
@@ -186,29 +186,33 @@ class UIDesignerAgent:
                 return await self._generate_prototype(task)
             else:
                 return self._create_error_response(f"Unknown action: {action}")
-                
+
         except Exception as e:
             return self._create_error_response(str(e))
-    
+
     async def _create_ui(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Create UI based on description"""
         description = task.get("description", "")
         ui_type = task.get("ui_type", "dashboard")
         design_system = task.get("design_system", "modern")
-        
+
         if not description:
             return self._create_error_response("UI description is required")
-        
+
         try:
             # Generate UI using AI if available
             if self.llm:
-                ui_code = await self._generate_ui_with_ai(description, ui_type, design_system)
+                ui_code = await self._generate_ui_with_ai(
+                    description, ui_type, design_system
+                )
             else:
-                ui_code = self._generate_ui_with_template(description, ui_type, design_system)
-            
+                ui_code = self._generate_ui_with_template(
+                    description, ui_type, design_system
+                )
+
             # Create design ID
             design_id = f"ui_{int(time.time())}_{len(self.generated_designs)}"
-            
+
             # Save design
             design_info = {
                 "design_id": design_id,
@@ -218,33 +222,37 @@ class UIDesignerAgent:
                 "created_at": datetime.now().isoformat(),
                 "code": ui_code,
                 "framework": "react",
-                "styling": "tailwind"
+                "styling": "tailwind",
             }
-            
+
             self.generated_designs[design_id] = design_info
-            
+
             # Save to file
             output_file = f"ui/generated/{design_id}.jsx"
             self._save_ui_to_file(output_file, ui_code)
-            
+
             return {
                 "success": True,
                 "message": f"UI created successfully",
                 "design_id": design_id,
                 "design_info": design_info,
                 "output_file": output_file,
-                "preview_url": f"/preview/{design_id}"
+                "preview_url": f"/preview/{design_id}",
             }
-            
+
         except Exception as e:
             return self._create_error_response(f"Failed to create UI: {str(e)}")
-    
-    async def _generate_ui_with_ai(self, description: str, ui_type: str, design_system: str) -> str:
+
+    async def _generate_ui_with_ai(
+        self, description: str, ui_type: str, design_system: str
+    ) -> str:
         """Generate UI using AI"""
-        
-        design_config = self.design_systems.get(design_system, self.design_systems["modern"])
+
+        design_config = self.design_systems.get(
+            design_system, self.design_systems["modern"]
+        )
         template_info = self.ui_templates.get(ui_type, self.ui_templates["dashboard"])
-        
+
         system_prompt = f"""
         You are an expert React/NextJS UI designer. Create a modern, responsive component based on this description:
         
@@ -273,30 +281,32 @@ class UIDesignerAgent:
         
         Return only the complete React component code, no explanations.
         """
-        
+
         try:
             ui_code = await self.llm.generate_code(
-                system_prompt,
-                language="jsx",
-                model="auto"
+                system_prompt, language="jsx", model="auto"
             )
-            
+
             # Validate and clean the generated code
             return self._validate_and_clean_ui_code(ui_code)
-            
+
         except Exception as e:
             print(f"AI UI generation failed: {e}")
             # Fallback to template
             return self._generate_ui_with_template(description, ui_type, design_system)
-    
-    def _generate_ui_with_template(self, description: str, ui_type: str, design_system: str) -> str:
+
+    def _generate_ui_with_template(
+        self, description: str, ui_type: str, design_system: str
+    ) -> str:
         """Generate UI using templates"""
-        
-        design_config = self.design_systems.get(design_system, self.design_systems["modern"])
+
+        design_config = self.design_systems.get(
+            design_system, self.design_systems["modern"]
+        )
         template_info = self.ui_templates.get(ui_type, self.ui_templates["dashboard"])
-        
+
         component_name = "".join(word.capitalize() for word in description.split()[:3])
-        
+
         # Generate based on UI type
         if ui_type == "dashboard":
             return self._generate_dashboard_template(component_name, design_config)
@@ -305,9 +315,13 @@ class UIDesignerAgent:
         elif ui_type == "ecommerce":
             return self._generate_ecommerce_template(component_name, design_config)
         else:
-            return self._generate_basic_template(component_name, design_config, description)
-    
-    def _generate_dashboard_template(self, component_name: str, design_config: Dict) -> str:
+            return self._generate_basic_template(
+                component_name, design_config, description
+            )
+
+    def _generate_dashboard_template(
+        self, component_name: str, design_config: Dict
+    ) -> str:
         """Generate dashboard template"""
         return f"""
 import React, {{ useState, useEffect }} from 'react';
@@ -444,8 +458,10 @@ const {component_name}Dashboard = () => {{
 
 export default {component_name}Dashboard;
 """
-    
-    def _generate_landing_page_template(self, component_name: str, design_config: Dict) -> str:
+
+    def _generate_landing_page_template(
+        self, component_name: str, design_config: Dict
+    ) -> str:
         """Generate landing page template"""
         return f"""
 import React from 'react';
@@ -545,8 +561,10 @@ const {component_name}Landing = () => {{
 
 export default {component_name}Landing;
 """
-    
-    def _generate_basic_template(self, component_name: str, design_config: Dict, description: str) -> str:
+
+    def _generate_basic_template(
+        self, component_name: str, design_config: Dict, description: str
+    ) -> str:
         """Generate basic template"""
         return f"""
 import React, {{ useState }} from 'react';
@@ -580,7 +598,7 @@ const {component_name}Component = () => {{
 
 export default {component_name}Component;
 """
-    
+
     def _validate_and_clean_ui_code(self, code: str) -> str:
         """Validate and clean generated UI code"""
         # Remove any markdown code blocks
@@ -588,62 +606,66 @@ export default {component_name}Component;
             parts = code.split("```")
             for i, part in enumerate(parts):
                 if part.startswith("jsx") or part.startswith("react"):
-                    code = parts[i+1] if i+1 < len(parts) else part
+                    code = parts[i + 1] if i + 1 < len(parts) else part
                     break
-        
+
         # Ensure it's valid React component structure
         if "import React" not in code:
             code = "import React from 'react';\n\n" + code
-        
+
         if "export default" not in code:
             # Try to find component name and add export
-            lines = code.split('\n')
+            lines = code.split("\n")
             for line in lines:
                 if "const " in line and "= () => {" in line:
                     component_name = line.split("const ")[1].split(" =")[0]
                     code += f"\n\nexport default {component_name};"
                     break
-        
+
         return code
-    
+
     def _save_ui_to_file(self, file_path: str, content: str):
         """Save UI code to file"""
         try:
             file_obj = Path(file_path)
             file_obj.parent.mkdir(parents=True, exist_ok=True)
-            
-            with open(file_obj, 'w') as f:
+
+            with open(file_obj, "w") as f:
                 f.write(content)
-                
+
         except Exception as e:
             print(f"Failed to save UI file: {e}")
-    
+
     async def _create_component(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Create a specific React component"""
         component_name = task.get("component_name", "")
         component_type = task.get("component_type", "button")
         props = task.get("props", {})
-        
+
         if not component_name:
             return self._create_error_response("Component name is required")
-        
+
         # Get component from library or generate new one
         if component_type in self.component_library:
             base_component = self.component_library[component_type]
             # Customize with props
-            component_code = self._customize_component(base_component, component_name, props)
+            component_code = self._customize_component(
+                base_component, component_name, props
+            )
         else:
             # Generate new component
-            component_code = await self._generate_custom_component(component_name, component_type, props)
-        
+            component_code = await self._generate_custom_component(
+                component_name, component_type, props
+            )
+
         return {
             "success": True,
             "component_name": component_name,
             "component_type": component_type,
             "code": component_code,
-            "props": props
+            "props": props,
         }
-    
+
     def _get_button_component(self) -> str:
         """Get button component template"""
         return """
@@ -682,7 +704,7 @@ const CustomButton = ({
 
 export default CustomButton;
 """
-    
+
     def _get_card_component(self) -> str:
         """Get card component template"""
         return """
@@ -729,7 +751,7 @@ const CustomCard = ({
 
 export default CustomCard;
 """
-    
+
     def _get_navbar_component(self) -> str:
         """Get navbar component template"""
         return """
@@ -802,7 +824,7 @@ const CustomNavbar = ({
 
 export default CustomNavbar;
 """
-    
+
     def _get_form_component(self) -> str:
         """Get form component template"""
         return """
@@ -1111,14 +1133,14 @@ const HeroSection = ({
 
 export default HeroSection;
 """
-    
+
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create standardized error response"""
         return {
             "success": False,
             "error": error_message,
             "agent": self.agent_id,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
     def _create_nextjs_app_template(self) -> Dict:
@@ -1127,13 +1149,12 @@ export default HeroSection;
         """
         if not self.dev_engine:
             return {}
-            
+
         template = self.dev_engine.project_templates.get("nextjs_app", {})
         return {
             "description": template.get("description", "Next.js application"),
             "components": ["layout", "page", "globals.css"],
             "layout": "app-router",
             "complexity": "medium",
-            "files": template.get("files", {})
+            "files": template.get("files", {}),
         }
-
