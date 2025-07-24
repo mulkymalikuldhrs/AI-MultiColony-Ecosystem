@@ -18,7 +18,11 @@ import docker
 import git
 from pathlib import Path
 
-class SystemSupervisor:
+from colony.core.base_agent import BaseAgent
+from colony.core.agent_registry import register_agent
+
+@register_agent(name="system_supervisor")
+class SystemSupervisor(BaseAgent):
     """
     🤖 AUTONOMOUS SYSTEM SUPERVISOR
     
@@ -30,12 +34,9 @@ class SystemSupervisor:
     - 🚀 Autonomous scaling and evolution
     """
     
-    def __init__(self):
-        self.agent_id = "system_supervisor"
-        self.name = "System Supervisor"
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.version = "3.0.0"
-        self.status = "initializing"
-        self.created_at = datetime.now().isoformat()
         self.capabilities = [
             "system_monitoring",
             "agent_creation", 
@@ -57,7 +58,15 @@ class SystemSupervisor:
         
         # Initialize supervisor
         self.initialize_supervisor()
-    
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     def detect_environment(self) -> str:
         """Detect current sandbox/deployment environment"""
         env_indicators = {
@@ -589,7 +598,7 @@ if __name__ == "__main__":
     def get_performance_metrics(self) -> Dict:
         """Get comprehensive supervisor performance metrics"""
         return {
-            "agent_id": self.agent_id,
+            "agent_id": self.name,
             "name": self.name,
             "status": self.status,
             "version": self.version,
@@ -645,14 +654,3 @@ class DeploymentManager:
                 print(f"✅ Successfully deployed to {env}")
             else:
                 print(f"❌ Failed to deploy to {env}")
-
-# Global supervisor instance
-system_supervisor = SystemSupervisor()
-
-# Auto-start supervisor
-if __name__ == "__main__":
-    print("🚀 Starting Autonomous System Supervisor...")
-    print("🇮🇩 Made with ❤️ by Mulky Malikul Dhaher")
-    
-    # Start the supervisor
-    asyncio.run(system_supervisor.start_autonomous_monitoring())

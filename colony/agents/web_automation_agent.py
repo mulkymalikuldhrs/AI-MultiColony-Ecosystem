@@ -30,11 +30,8 @@ except ImportError:
 class WebAutomationAgent(BaseAgent):
     """Agent specialized in web automation and credential management"""
     
-    def __init__(self):
-        super().__init__(
-            agent_id="web_automation_agent",
-            config_path="config/prompts.yaml"
-        )
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         
         self.name = "Web Automation Agent"
         self.role = "Web Automation & Credential Management"

@@ -12,7 +12,11 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 import re
 
-class PromptGeneratorAgent:
+from colony.core.base_agent import BaseAgent
+from colony.core.agent_registry import register_agent
+
+@register_agent(name="prompt_generator_agent")
+class PromptGeneratorAgent(BaseAgent):
     """
     Prompt Generator Agent that:
     - Creates optimized prompts for different AI models
@@ -22,20 +26,8 @@ class PromptGeneratorAgent:
     - Analyzes and improves existing prompts
     """
     
-    def __init__(self):
-        self.agent_id = "prompt_generator"
-        self.name = "Prompt Generator Agent"
-        self.status = "ready"
-        self.capabilities = [
-            "prompt_creation",
-            "prompt_optimization",
-            "role_based_prompts",
-            "task_specific_prompts",
-            "prompt_analysis",
-            "template_generation"
-        ]
-        
-        # Prompt templates and patterns
+    def __init__(self, name: str, config: Dict[str, Any], memory_manager: Any):
+        super().__init__(name, config, memory_manager)
         self.prompt_patterns = self._load_prompt_patterns()
         self.role_templates = self._load_role_templates()
         self.optimization_techniques = self._load_optimization_techniques()
@@ -49,7 +41,15 @@ class PromptGeneratorAgent:
             self.llm = llm_gateway
         except ImportError:
             self.llm = None
-    
+
+    def run(self, **kwargs):
+        """The main entry point for the agent's execution."""
+        self.update_status("running")
+        # This agent is designed to be called with specific tasks,
+        # so the run method will just keep the agent alive.
+        while self.status == "running":
+            time.sleep(1)
+
     def _load_prompt_patterns(self) -> Dict[str, Dict]:
         """Load prompt patterns and structures"""
         return {
@@ -619,9 +619,6 @@ Please apply your professional expertise to help with the following tasks."""
         return {
             "success": False,
             "error": error_message,
-            "agent": self.agent_id,
+            "agent": self.name,
             "timestamp": datetime.now().isoformat()
         }
-
-# Global instance
-prompt_generator_agent = PromptGeneratorAgent()
