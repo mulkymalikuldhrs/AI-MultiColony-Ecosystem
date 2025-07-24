@@ -94,6 +94,12 @@ except ImportError:
     airdrop_agent = DummyAgent("AirdropAgent")
 from core.registry import register_agent
 
+try:
+    import numpy as np
+except ImportError:
+    print('[WARN] Dependency numpy tidak ditemukan. Agent tidak dijalankan.')
+    np = None
+
 @dataclass
 class SystemPerformance:
     total_daily_earnings: float
