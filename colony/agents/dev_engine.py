@@ -670,7 +670,12 @@ Frontend: [http://localhost:3000](http://localhost:3000)
 Backend API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 """
 
+<<<<<<< HEAD
 <<<<<<< HEAD:agents/dev_engine.py
+=======
+<<<<<<< HEAD:colony/agents/dev_engine.py
+=======
+>>>>>>> origin/kamis24juli2025
 3. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 ## Available Scripts
@@ -870,8 +875,12 @@ services:
     def _get_fullstack_readme(self) -> str:
         return "# {{PROJECT_NAME}}\n\n{{PROJECT_DESCRIPTION}}\n"
     
+<<<<<<< HEAD
 =======
 >>>>>>> origin/jules-refactor-all:colony/agents/dev_engine.py
+=======
+>>>>>>> origin/feature/system-refactor-and-ui-update:agents/dev_engine.py
+>>>>>>> origin/kamis24juli2025
     def _get_fastapi_requirements(self) -> str:
         return """fastapi==0.104.1
 uvicorn[standard]==0.24.0
