@@ -1,53 +1,21 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-numpy
-aiohttp
-websockets
-fastapi
-uvicorn
-requests
-redis
-# ... tambahkan dependency lain yang benar-benar dipakai di sistem utama
-=======
-# AI-MultiColony-Ecosystem Dependencies
-# Core Python packages for the AI multi-agent system
-=======
-# AI-MultiColony-Ecosystem Dependencies
-# Core Python packages for the AI multi-agent system
-=======
-<<<<<<< HEAD
-# 🧠 Agentic AI System - Ultimate Dependencies v5.0.0
+# AI-MultiColony-Ecosystem Dependencies v7.3.0
+# Consolidated dependencies for ultimate multi-agent system
 # Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
-# ULTIMATE UPGRADE - Latest Stable Versions
->>>>>>> main
->>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
 
-=======
-# AI-MultiColony-Ecosystem Dependencies (MERGED)
-# Gabungan dependency utama dari HEAD, main, dan jules-refactor-all
-# Pastikan dependency utama agent, web, AI, dan dev tools tetap ada
-
-<<<<<<< HEAD
->>>>>>> origin/kamis24juli2025
 # Web Framework & API
 flask>=3.1.0
 flask-socketio>=5.5.0
 flask-cors>=4.0.0
 fastapi>=0.115.0
 uvicorn>=0.34.0
-<<<<<<< HEAD
-websockets>=11.0.0
-=======
 websockets>=12.0
->>>>>>> origin/kamis24juli2025
 werkzeug>=3.1.0
 blinker>=1.9.0
 itsdangerous>=2.2.0
 
 # AI & Machine Learning
-<<<<<<< HEAD
 openai>=1.0.0
+camel-ai>=0.2.0
 anthropic>=0.25.0
 transformers>=4.30.0
 torch>=2.0.0
