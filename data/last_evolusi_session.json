@@ -1,0 +1,20 @@
+{
+  "shutdown_time": "2025-07-03T02:46:37.741473",
+  "uptime_seconds": 899.948832,
+  "version": "3.0.0",
+  "status": "running",
+  "analytics": {
+    "tasks_processed": 1,
+    "prompts_executed": 0,
+    "societies_created": 0,
+    "agents_interactions": 0,
+    "average_response_time": 0.000676
+  },
+  "camel_integration_available": false,
+  "enhanced_prompts_available": true,
+  "legacy_agents": [
+    "agent_maker",
+    "ui_designer"
+  ],
+  "societies_templates": 0
+}
