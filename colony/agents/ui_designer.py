@@ -803,183 +803,6 @@ const CustomNavbar = ({
 export default CustomNavbar;
 """
     
-<<<<<<< HEAD
-<<<<<<< HEAD:agents/ui_designer.py
-=======
-=======
-<<<<<<< HEAD:colony/agents/ui_designer.py
->>>>>>> origin/kamis24juli2025
-    def _get_form_component(self) -> str:
-        """Get form component template"""
-        return """
-import React, { useState } from 'react';
-
-const CustomForm = ({ 
-  onSubmit, 
-  fields = [], 
-  submitText = 'Submit',
-  className = '' 
-}) => {
-  const [formData, setFormData] = useState({});
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (onSubmit) onSubmit(formData);
-  };
-
-  const handleChange = (name, value) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className={`space-y-4 ${className}`}>
-      {fields.map((field, index) => (
-        <div key={index}>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {field.label}
-          </label>
-          {field.type === 'textarea' ? (
-            <textarea
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder={field.placeholder}
-              onChange={(e) => handleChange(field.name, e.target.value)}
-            />
-          ) : (
-            <input
-              type={field.type || 'text'}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder={field.placeholder}
-              onChange={(e) => handleChange(field.name, e.target.value)}
-            />
-          )}
-        </div>
-      ))}
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-      >
-        {submitText}
-      </button>
-    </form>
-  );
-};
-
-export default CustomForm;
-"""
-
-<<<<<<< HEAD
->>>>>>> origin/jules-refactor-all:colony/agents/ui_designer.py
-=======
-=======
->>>>>>> origin/feature/system-refactor-and-ui-update:agents/ui_designer.py
->>>>>>> origin/kamis24juli2025
-    def _get_table_component(self) -> str:
-        """Get table component template"""
-        return """
-import React from 'react';
-
-<<<<<<< HEAD
-<<<<<<< HEAD:agents/ui_designer.py
-const CustomTable = ({ columns = [], data = [], className = '' }) => {
-  return (
-    <div className={`overflow-x-auto ${className}`}>
-      <table className="min-w-full bg-white">
-        <thead className="bg-gray-50">
-          <tr>
-            {columns.map((col, index) => (
-              <th key={index} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {col.header}
-=======
-=======
-<<<<<<< HEAD:colony/agents/ui_designer.py
->>>>>>> origin/kamis24juli2025
-const CustomTable = ({ 
-  columns = [], 
-  data = [], 
-  className = '' 
-}) => {
-  return (
-    <div className={`overflow-x-auto ${className}`}>
-      <table className="min-w-full bg-white border border-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            {columns.map((column, index) => (
-              <th
-                key={index}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                {column.header}
-<<<<<<< HEAD
->>>>>>> origin/jules-refactor-all:colony/agents/ui_designer.py
-=======
-=======
-const CustomTable = ({ columns = [], data = [], className = '' }) => {
-  return (
-    <div className={`overflow-x-auto ${className}`}>
-      <table className="min-w-full bg-white">
-        <thead className="bg-gray-50">
-          <tr>
-            {columns.map((col, index) => (
-              <th key={index} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {col.header}
->>>>>>> origin/feature/system-refactor-and-ui-update:agents/ui_designer.py
->>>>>>> origin/kamis24juli2025
-              </th>
-            ))}
-          </tr>
-        </thead>
-<<<<<<< HEAD
-<<<<<<< HEAD:agents/ui_designer.py
-        <tbody className="bg-white divide-y divide-gray-200">
-          {data.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              {columns.map((col, colIndex) => (
-                <td key={colIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {row[col.accessor]}
-=======
-=======
-<<<<<<< HEAD:colony/agents/ui_designer.py
->>>>>>> origin/kamis24juli2025
-        <tbody className="divide-y divide-gray-200">
-          {data.map((row, rowIndex) => (
-            <tr key={rowIndex} className="hover:bg-gray-50">
-              {columns.map((column, colIndex) => (
-                <td
-                  key={colIndex}
-                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-                >
-                  {row[column.accessor]}
-<<<<<<< HEAD
->>>>>>> origin/jules-refactor-all:colony/agents/ui_designer.py
-=======
-=======
-        <tbody className="bg-white divide-y divide-gray-200">
-          {data.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              {columns.map((col, colIndex) => (
-                <td key={colIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {row[col.accessor]}
->>>>>>> origin/feature/system-refactor-and-ui-update:agents/ui_designer.py
->>>>>>> origin/kamis24juli2025
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-export default CustomTable;
-"""
-
-<<<<<<< HEAD
-<<<<<<< HEAD:agents/ui_designer.py
-=======
-<<<<<<< HEAD:colony/agents/ui_designer.py
-=======
->>>>>>> origin/kamis24juli2025
     def _get_form_component(self) -> str:
         """Get form component template"""
         return """
@@ -1023,112 +846,53 @@ const CustomForm = ({ fields = [], onSubmit, className = '' }) => {
 export default CustomForm;
 """
 
-    def _get_modal_component(self) -> str:
-        """Get modal component template"""
+    def _get_table_component(self) -> str:
+        """Get table component template"""
         return """
 import React from 'react';
 
-const CustomModal = ({ isOpen, onClose, title, children }) => {
-  if (!isOpen) return null;
-
+const CustomTable = ({ 
+  columns = [], 
+  data = [], 
+  className = '' 
+}) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">{title}</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-800">&times;</button>
-        </div>
-        <div>{children}</div>
-      </div>
+    <div className={`overflow-x-auto ${className}`}>
+      <table className="min-w-full bg-white border border-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            {columns.map((column, index) => (
+              <th
+                key={index}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {column.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {data.map((row, rowIndex) => (
+            <tr key={rowIndex} className="hover:bg-gray-50">
+              {columns.map((column, colIndex) => (
+                <td
+                  key={colIndex}
+                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                >
+                  {row[column.accessor]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
 
-export default CustomModal;
+export default CustomTable;
 """
 
-    def _get_sidebar_component(self) -> str:
-        """Get sidebar component template"""
-        return """
-import React, { useState } from 'react';
-
-const CustomSidebar = ({ links = [], className = '' }) => {
-  return (
-    <aside className={`bg-gray-800 text-white w-64 min-h-screen p-4 ${className}`}>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold">Dashboard</h2>
-      </div>
-      <nav>
-        <ul>
-          {links.map((link, index) => (
-            <li key={index} className="mb-4">
-              <a
-                href={link.href}
-                className="flex items-center p-2 rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                <span className="mr-3">{link.icon}</span>
-                {link.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </aside>
-  );
-};
-
-export default CustomSidebar;
-"""
-
-<<<<<<< HEAD
-=======
->>>>>>> origin/jules-refactor-all:colony/agents/ui_designer.py
-=======
->>>>>>> origin/feature/system-refactor-and-ui-update:agents/ui_designer.py
->>>>>>> origin/kamis24juli2025
-    def _get_hero_component(self) -> str:
-        """Get hero section component"""
-        return """
-import React from 'react';
-
-const HeroSection = ({ 
-  title, 
-  subtitle, 
-  backgroundImage, 
-  primaryAction, 
-  secondaryAction,
-  className = '' 
-}) => {
-  return (
-    <section 
-      className={`relative bg-gradient-to-r from-blue-600 to-purple-600 text-white py-24 ${className}`}
-      style={backgroundImage ? { backgroundImage: `url(${backgroundImage})` } : {}}
-    >
-      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-      
-      <div className="relative max-w-7xl mx-auto px-4 text-center">
-        <h1 className="text-4xl md:text-6xl font-bold mb-6">
-          {title}
-        </h1>
-        
-        {subtitle && (
-          <p className="text-xl md:text-2xl mb-8 text-opacity-90">
-            {subtitle}
-          </p>
-        )}
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          {primaryAction}
-          {secondaryAction}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default HeroSection;
-"""
-    
     def _get_modal_component(self) -> str:
         """Get modal component for agent dialogs"""
         return """
@@ -1305,6 +1069,49 @@ const AgentSidebar = ({ agents, onAgentSelect, onAgentAction, selectedAgent }) =
 export default AgentSidebar;
 """
 
+    def _get_hero_component(self) -> str:
+        """Get hero section component"""
+        return """
+import React from 'react';
+
+const HeroSection = ({ 
+  title, 
+  subtitle, 
+  backgroundImage, 
+  primaryAction, 
+  secondaryAction,
+  className = '' 
+}) => {
+  return (
+    <section 
+      className={`relative bg-gradient-to-r from-blue-600 to-purple-600 text-white py-24 ${className}`}
+      style={backgroundImage ? { backgroundImage: `url(${backgroundImage})` } : {}}
+    >
+      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+      
+      <div className="relative max-w-7xl mx-auto px-4 text-center">
+        <h1 className="text-4xl md:text-6xl font-bold mb-6">
+          {title}
+        </h1>
+        
+        {subtitle && (
+          <p className="text-xl md:text-2xl mb-8 text-opacity-90">
+            {subtitle}
+          </p>
+        )}
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {primaryAction}
+          {secondaryAction}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default HeroSection;
+"""
+    
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create standardized error response"""
         return {

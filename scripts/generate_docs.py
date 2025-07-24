@@ -1,9 +1,5 @@
 import os
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/kamis24juli2025
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -40,44 +36,6 @@ def generate_agent_registry():
             route = f'`{metadata.get("route", "N/A")}`'
             dependencies = ", ".join(metadata.get("dependencies", []))
             f.write(f"| **{name}** | {description} | {route} | {dependencies} |\n")
-<<<<<<< HEAD
-
-    print(f"✅ Agent registry documentation generated at: {OUTPUT_FILE}")
-
-if __name__ == "__main__":
-    # A bit of a hack to handle the fact that the agent registry is populated
-    # on import. We need to ensure all agents are discovered.
-    # In a real scenario, this would be handled by a proper bootstrap call.
-    print("Attempting to discover agents before generating docs...")
-    try:
-        # This will trigger the discovery process in agent_registry.py
-        from colony.core import agent_registry
-        agent_registry.reload_registry() # Use the new reload function
-        generate_docs()
-    except ImportError as e:
-        print(f"❌ Failed to import or run agent registry discovery: {e}")
-        print("Please ensure the script is run from the project root and all dependencies are installed.")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-=======
-from datetime import datetime
-
-from colony.core.agent_registry import get_all_agents
-
-AGENT_DOC = "docs/AGENT_REGISTRY.md"
-README = "docs/README.md"
-CHANGELOG = "docs/CHANGELOG.md"
-
-# 1. Generate AGENT_REGISTRY.md
-def generate_agent_registry():
-    agents = get_all_agents()
-    with open(AGENT_DOC, 'w') as f:
-        f.write(f"# Agent Registry\n\nTotal Agents: {len(agents)}\n\n")
-        for name, info in agents.items():
-            meta = info.get('metadata', {})
-            f.write(f"- **{name}**: {meta.get('description', '')} (Route: {meta.get('route', '-')})\n")
-=======
->>>>>>> origin/kamis24juli2025
     print(f"[DOC] Updated {AGENT_DOC}")
 
 # 2. Update README.md (status, agent, endpoint)
@@ -124,7 +82,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-<<<<<<< HEAD
->>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
-=======
->>>>>>> origin/kamis24juli2025

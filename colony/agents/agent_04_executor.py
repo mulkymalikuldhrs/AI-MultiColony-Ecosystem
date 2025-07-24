@@ -16,15 +16,12 @@ import requests
 from ..core.base_agent import BaseAgent
 from .agent_registry import register_agent
 
-<<<<<<< HEAD
-=======
 try:
     import requests
 except ImportError:
     print('[WARN] Dependency requests tidak ditemukan. Agent tidak dijalankan.')
     requests = None
 
->>>>>>> origin/cursor/periksa-dan-refaktor-struktur-proyek-secara-menyeluruh-8d31
 @register_agent(name="agent_04_executor", route="/api/agents/executor",
                 dependencies=["agent_base", "memory_bus"],
                 description="Specialized execution agent for scripts, APIs, and automation pipelines.")
