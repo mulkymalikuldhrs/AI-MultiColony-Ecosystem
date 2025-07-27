@@ -1,31 +1,49 @@
-# Node.js
-node_modules/
-
-# Environment
-.env
-
-# Python
-build/
+# Byte-compiled / optimized / dll files
 __pycache__/
 *.pyc
+*.pyd
 *.pyo
 *.egg-info/
-dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# IDE
+# Distribution / packaging
+.Python
+build/
+dist/
+wheels/
+*.egg
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Editors
 .vscode/
 .idea/
-*.swp
-*.swo
+*.sublime-project
+*.sublime-workspace
 
 # OS
 .DS_Store
+.Trashes
 Thumbs.db
-
-# Logs
-logs/
+ehthumbs.db
+*.stackdump
+*.aux
 *.log
+*.nav
+*.out
+*.snm
+*.toc
 
-# Temporary files
-tmp/
-temp/
+# Specific to AI-MultiColony-Ecosystem
+data/agentic.db
+data/knowledge/
+UI_AI_Colony_Ecosystem-2xdkm.zip
