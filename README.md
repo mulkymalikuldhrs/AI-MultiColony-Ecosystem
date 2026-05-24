@@ -406,6 +406,16 @@ For questions, suggestions, or collaboration opportunities, reach out to:
 
 ---
 
+## ⚠️ Disclaimer
+
+**For Education Purpose Only**
+
+This project is provided strictly for educational and research purposes. The authors and contributors assume **no responsibility or liability** for any damages, losses, or risks arising from the use of this software. **We do not bear any responsibility or risk** for how this software is used.
+
+**Contact:** Mulky Malikul Dhaher | mulkymalikuldhaher@email.com
+
+---
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
