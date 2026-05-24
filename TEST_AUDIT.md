@@ -135,3 +135,8 @@ Similar changes would need to be made to all test files.
 ## Conclusion
 
 The test suite in the AI-MultiColony-Ecosystem project is currently non-functional due to import path issues, likely resulting from a project restructuring from `src` to `colony`. By updating the import paths and implementing the recommended improvements, the test suite can be restored to a functional state and expanded to provide better coverage and reliability for the project.
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

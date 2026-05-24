@@ -145,3 +145,8 @@ This audit report provides a comprehensive analysis of the AI-MultiColony-Ecosys
 ## Conclusion
 
 The AI-MultiColony-Ecosystem project appears to be in a transitional state, possibly migrating from a `src`-based structure to a `colony`-based structure. The codebase has several issues that need to be addressed before proceeding with further development or refactoring. By addressing the recommendations in this report, the project can be brought to a more stable and maintainable state.
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

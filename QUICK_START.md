@@ -123,3 +123,8 @@ For issues or questions:
 **Core Agents**: 12 registered  
 **Web Interface**: ✅ Working  
 **API**: ✅ Functional
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

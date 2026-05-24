@@ -325,3 +325,8 @@ python AUTONOMOUS_EXECUTION_ENGINE.py
 *Analysis Date: January 2025*  
 *Confidence Level: 100%*  
 *Recommendation Strength: CRITICAL IMMEDIATE ACTION*
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

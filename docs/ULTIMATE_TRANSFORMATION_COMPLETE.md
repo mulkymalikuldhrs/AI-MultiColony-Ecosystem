@@ -269,3 +269,8 @@ AI-MultiColony-Ecosystem v8.0.0 sekarang siap untuk:
 
 **Made with ❤️ by Elite Ultimate Transformer**  
 **© 2025 AI-MultiColony-Ecosystem v8.0.0 - Ultimate Revolutionary Success! 🚀**
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)
