@@ -354,3 +354,8 @@ class ContextAwareMemory:
 **Conclusion**: Analisis ini menunjukkan bahwa dengan menggabungkan kekuatan terbaik dari existing frameworks dan menambahkan inovasi yang belum dieksplore, kita dapat membangun sistem agentic yang revolutionary dan market-leading. Focus pada Indonesian market terlebih dahulu dapat memberikan competitive advantage yang significant sebelum ekspansi global.
 
 **Next Steps**: Mulai dengan prototype yang mengimplementasikan hybrid architecture dan enhanced UI features berdasarkan insights dari analisis ini.
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

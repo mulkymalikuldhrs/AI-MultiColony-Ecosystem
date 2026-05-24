@@ -313,3 +313,8 @@ python start_ultimate_system.py
 **This is the REAL AI-MultiColony-Ecosystem. Main v7.3.0 is just the beginning! 🚀**
 
 **Made with ❤️ by Ultimate AI Branch Inspector**
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

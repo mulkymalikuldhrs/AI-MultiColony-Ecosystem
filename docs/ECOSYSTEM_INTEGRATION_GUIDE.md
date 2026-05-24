@@ -610,3 +610,8 @@ We welcome contributions to the Enhanced Ecosystem Integration:
 
 **🇮🇩 Proudly made in Indonesia with ❤️**  
 **🚀 Revolutionizing content management and AI collaboration**
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

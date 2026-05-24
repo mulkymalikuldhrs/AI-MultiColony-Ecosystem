@@ -19,3 +19,9 @@ This file tracks the remaining tasks for the AI-MultiColony-Ecosystem project.
 - [ ] Implement more complex agent collaboration workflows.
 - [ ] Add support for more LLM providers.
 - [ ] Add more detailed analytics and reporting features.
+
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

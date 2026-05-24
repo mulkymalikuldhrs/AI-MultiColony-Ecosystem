@@ -323,99 +323,45 @@ Below is a detailed catalog of the key agents available in the ecosystem. Each a
 | Autonomous Money Ecosystem | `autonomous_money_making_ecosystem` | Trading | Complete autonomous revenue generation system with market analysis and execution |
 | Code Executor | `code_executor` | Development | Safe code execution environment with sandboxing and result validation |
 | Advanced Agent Creator | `advanced_agent_creator` | Agent Creation | Sophisticated agent builder with ML-powered capability suggestions |
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! We encourage the community to help improve this project.
+
+1. **Fork** the repository
+2. Create a **feature branch** (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. Open a **Pull Request**
+
+Please make sure to update tests as appropriate and follow the existing code style.
 
 ---
 
-## Contributing
+## 📬 Contact
 
-Contributors are welcome! The AI-MultiColony-Ecosystem is an open-source project and we actively encourage community participation. Whether you want to add new agents, improve existing ones, enhance the web interface, or fix bugs, there are many ways to contribute.
+**Mulky Malikul Dhaher** — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
 
-### How to Contribute
-
-1. **Fork the Repository** — Create your own fork at [https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem/fork](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem/fork)
-2. **Create a Feature Branch** — `git checkout -b feature/your-feature-name`
-3. **Develop Your Feature** — Follow the existing code patterns and inherit from `BaseAgent` for new agents
-4. **Test Your Changes** — Ensure all existing tests pass and add new tests for your feature
-5. **Submit a Pull Request** — Describe your changes clearly and reference any related issues
-
-### Creating a New Agent
-
-```python
-from colony.core.base_agent import BaseAgent
-from colony.core.agent_registry import register_agent
-
-@register_agent(
-    name="my_custom_agent",
-    description="A custom agent that does something amazing",
-    route="/api/agents/my_custom_agent"
-)
-class MyCustomAgent(BaseAgent):
-    def __init__(self, name="my_custom_agent", config=None, memory_manager=None):
-        super().__init__(name=name, config=config, memory_manager=memory_manager)
-    
-    def run(self):
-        """Main agent execution"""
-        self.update_status("running")
-        # Your agent logic here
-        self.update_status("completed")
-    
-    async def process_task(self, task):
-        """Process incoming task"""
-        result = {"success": True, "data": "processed"}
-        return self.format_response(str(result))
-```
-
-### Development Setup
-
-```bash
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run tests
-python -m pytest tests/
-
-# Code formatting
-black colony/ connectors/
-```
-
-### Contact
-
-For questions, suggestions, or collaboration opportunities, reach out to:
-
-- **Email**: [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
-- **GitHub**: [https://github.com/mulkymalikuldhrs](https://github.com/mulkymalikuldhrs)
+GitHub: [https://github.com/mulkymalikuldhrs](https://github.com/mulkymalikuldhrs)
 
 ---
 
-## Contact
+## ⚠️ Disclaimer
 
-<p align="center">
-  <a href="mailto:mulkymalikuldhaher@email.com">
-    <img src="https://img.shields.io/badge/Email-mulkymalikuldhaher@email.com-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Email"/>
-  </a>
-  <a href="https://github.com/mulkymalikuldhrs">
-    <img src="https://img.shields.io/badge/GitHub-mulkymalikuldhrs-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"/>
-  </a>
-  <a href="https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem">
-    <img src="https://img.shields.io/badge/Repository-AI--MultiColony--Ecosystem-2E9EF7?style=for-the-badge&logo=github&logoColor=white" alt="Repository"/>
-  </a>
-  <a href="https://github.com/mulkymalikuldhrs/HermesQuantOS">
-    <img src="https://img.shields.io/badge/Related-HermesQuantOS-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="HermesQuantOS"/>
-  </a>
-</p>
+**This project is for Education Purpose only.**
+
+All content, code, and documentation provided in this repository are intended solely for educational and research purposes. Nothing in this repository constitutes financial, investment, legal, or professional advice.
+
+**Risiko apapun tidak kita tanggung.** (We are not responsible for any risks or damages.)
+
+Use at your own risk. The authors and contributors assume no liability for any losses, damages, or consequences arising from the use of this software or information provided herein.
 
 ---
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
----
+Copyright © Mulky Malikul Dhaher. All rights reserved.
 
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12&height=80&section=footer" alt="Footer Wave"/>
-</p>
-
-<p align="center">
-  Made with ❤️ by <strong>Mulky Malikul Dhaher</strong> in Indonesia 🇮🇩
-</p>

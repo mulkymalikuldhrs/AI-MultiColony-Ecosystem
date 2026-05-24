@@ -126,3 +126,8 @@ Branch `origin/workflow-verification-engine` menambahkan:
 ---
 *Laporan dibuat pada: Tue Jul 1 04:33:33 AM UTC 2025*
 *Branch saat ini: cursor/cek-branch-terbaru-dan-terunggul-183a*
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)
