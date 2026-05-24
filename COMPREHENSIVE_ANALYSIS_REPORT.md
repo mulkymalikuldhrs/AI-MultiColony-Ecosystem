@@ -347,3 +347,8 @@ The system is ready for development and testing. For production use, consider in
 **System Status**: ✅ OPERATIONAL  
 **Confidence Level**: HIGH  
 **Next Steps**: Install optional dependencies and begin development/testing
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

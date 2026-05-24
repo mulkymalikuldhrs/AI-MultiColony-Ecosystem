@@ -124,3 +124,8 @@ Error importing module quality_control_specialist: No module named 'cv2'
 ## Conclusion
 
 The dependency management in the AI-MultiColony-Ecosystem project needs significant improvement. The inconsistencies between declared dependencies and actual imports, along with the use of external dependency hosting, create both functional and security issues. By implementing the recommendations in this report, the project can achieve more reliable and secure dependency management.
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)
