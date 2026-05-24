@@ -20,3 +20,9 @@ including API development, UI implementation, and integration.
 Orchestrates the final compilation and delivery of agent results
 by coordinating a set of specialized components.
  (Route: /api/agents/outputhandler)
+
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

@@ -350,3 +350,8 @@ curl http://localhost:8080/api/system/comprehensive-status
 ---
 
 For technical support, visit our [GitHub repository](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem) or contact the development team.
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

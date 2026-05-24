@@ -495,3 +495,8 @@ These revolutionary enhancements transform the Agentic AI System from a basic mu
 **🇮🇩 Proudly Built in Indonesia with Global Ambitions! 🚀**
 
 *Making AI automation accessible to everyone, everywhere.*
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

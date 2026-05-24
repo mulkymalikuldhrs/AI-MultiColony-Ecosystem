@@ -580,3 +580,9 @@ This document provides a detailed analysis of the `main` branch of the AI-MultiC
 - `tests/test_output_handler.py`
 - `tests/test_agents.py`
 - `tests/test_agent_workflow.py`
+
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

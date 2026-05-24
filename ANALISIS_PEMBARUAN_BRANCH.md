@@ -398,3 +398,8 @@ python AUTONOMOUS_EXECUTION_ENGINE.py
 *⚡ Performance optimization akan mempercepat sistem 3x*  
 
 **SIAP UNTUK ENHANCEMENT KE LEVEL BERIKUTNYA!** 🚀🌟
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)

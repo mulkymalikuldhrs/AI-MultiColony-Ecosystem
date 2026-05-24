@@ -384,3 +384,8 @@ Branch **"Dev hasil penelitian"** telah berhasil mengintegrasikan **100 prompt p
 *Report generated on: July 3, 2025*  
 *Branch: Dev hasil penelitian*  
 *Status: COMPLETE ✅*
+---
+
+> **Contact:** Mulky Malikul Dhaher — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+>
+> **Disclaimer:** This project is for Education Purpose only. Risiko apapun tidak kita tanggung. (We are not responsible for any risks or damages.)
