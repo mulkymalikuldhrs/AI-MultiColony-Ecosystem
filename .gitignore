@@ -43,7 +43,45 @@ ehthumbs.db
 *.snm
 *.toc
 
-# Specific to AI-MultiColony-Ecosystem
-data/agentic.db
+# Sensitive data files
+*.db
+*.key
+*.sqlite
+*.sqlite3
+data/credentials.db
+data/master.key
+data/salt.key
+data/agent_memory.db
+data/smart_money_trading.db
+data/marketing/marketing.db
+data/memory.db
+data/financial/earnings.db
 data/knowledge/
+data/task_queue/
+data/daemons/
+data/analytics/
+data/*.json
+data/last_session.json
+data/last_evolusi_session.json
+data/agent_memory.json
+data/memory.json
+data/system_status.json
+data/dynamic_badges.json
+data/badges.json
+
+# Logs
+logs/
+*.log
+autonomous_system.log
+
+# Node
+node_modules/
+
+# Specific to AI-MultiColony-Ecosystem
 UI_AI_Colony_Ecosystem-2xdkm.zip
+reports/
+system_analysis_report.json
+system_analysis_report.txt
+file_dependency_report.json
+security_fixes.log
+test_report_*.json
