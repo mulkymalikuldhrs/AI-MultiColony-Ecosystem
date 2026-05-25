@@ -1,7 +1,7 @@
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=32&duration=3000&pause=1000&color=2E9EF7&center=true&vCenter=true&width=800&lines=AI-MultiColony-Ecosystem;Multi-Agent+Colony+Coordination+Platform;v8.0.0+by+Mulky+Malikul+Dhaher)](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-8.0.0-gold?style=for-the-badge&logo=semver" alt="Version 8.0.0"/>
+  <img src="https://img.shields.io/badge/version-8.1.0-gold?style=for-the-badge&logo=semver" alt="Version 8.1.0"/>
   <img src="https://img.shields.io/badge/python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.8+"/>
   <img src="https://img.shields.io/badge/multi--agent-40%2B-FF6F00?style=for-the-badge&logo=robotframework&logoColor=white" alt="40+ Agents"/>
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT License"/>
@@ -406,11 +406,29 @@ For questions, suggestions, or collaboration opportunities, reach out to:
 
 ---
 
+## 🤝 Contributors Welcome
+
+We welcome contributions from everyone! Whether you're a beginner or an experienced developer, there are many ways to contribute:
+
+- 🐛 Report bugs and issues
+- 💡 Suggest new features or agents
+- 🔧 Submit pull requests with improvements
+- 📖 Improve documentation
+- 🧪 Add tests and examples
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+
+**Contact:** mulkymalikuldhaher@email.com | Mulky Malikul Dhaher
+
+---
+
 ## ⚠️ Disclaimer
 
-**For Education Purpose Only**
+**EN (English):** For Education Purpose Only. This project is provided strictly for educational and research purposes. The authors and contributors assume no responsibility or liability for any damages, losses, or risks arising from the use of this software. We do not bear any responsibility or risk for how this software is used.
 
-This project is provided strictly for educational and research purposes. The authors and contributors assume **no responsibility or liability** for any damages, losses, or risks arising from the use of this software. **We do not bear any responsibility or risk** for how this software is used.
+**ID (Bahasa Indonesia):** Untuk Tujuan Pendidikan Saja. Proyek ini disediakan secara ketat untuk tujuan pendidikan dan penelitian. Penulis dan kontributor tidak bertanggung jawab atas kerusakan, kerugian, atau risiko yang timbul dari penggunaan perangkat lunak ini. Kami tidak menanggung tanggung jawab atau risiko atas penggunaan perangkat lunak ini.
+
+**CN (中文):** 仅供教育目的。本项目严格用于教育和研究目的。作者和贡献者不对因使用本软件而产生的任何损害、损失或风险承担责任。我们不对本软件的使用方式承担任何责任或风险。
 
 **Contact:** Mulky Malikul Dhaher | mulkymalikuldhaher@email.com
 
