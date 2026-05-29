@@ -12,7 +12,7 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Socket.IO -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
     
     <style>
         :root {
@@ -235,9 +235,15 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'integrations' %}active{% endif %}" href="/integrations">
+                            <a class="nav-link {% if request.endpoint == 'platform_integrations' %}active{% endif %}" href="/platform_integrations">
                                 <i class="fas fa-plug"></i>
                                 Integrations
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'llm_providers' %}active{% endif %}" href="/llm-providers">
+                                <i class="fas fa-brain"></i>
+                                LLM Providers
                             </a>
                         </li>
                         <li class="nav-item">

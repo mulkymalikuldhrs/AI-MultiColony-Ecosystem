@@ -16,7 +16,7 @@ from pathlib import Path
 # Configuration
 PROJECT_DIR = Path(__file__).parent.resolve()
 WEB_DIR = PROJECT_DIR / "web_interface"
-PYTHON_BIN = "/home/z/.venv/bin/python"
+PYTHON_BIN = os.getenv("PYTHON_BIN", sys.executable)
 BASE_URL = os.getenv("TEST_BASE_URL", "http://localhost:5000")
 SCREENSHOTS_DIR = PROJECT_DIR / "screenshots"
 SCREENSHOTS_DIR.mkdir(exist_ok=True)
