@@ -6,7 +6,10 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
 import asyncio
-import aiohttp
+try:
+    import aiohttp
+except ImportError:
+    aiohttp = None
 import json
 import os
 import time
@@ -29,7 +32,7 @@ class LLMGateway:
         self.providers = {
             "llm7": {
                 "base_url": "https://api.llm7.com/v1",
-                "api_key": os.getenv("LLM7_API_KEY", "llm7-free-api-key"),  # Public free API key
+                "api_key": os.getenv("LLM7_API_KEY"),  # Set LLM7_API_KEY env var
                 "models": ["gpt-3.5-turbo", "gpt-4", "claude-3-sonnet"],
                 "priority": 1,
                 "rate_limit": 60,  # requests per minute
@@ -102,13 +105,9 @@ class LLMGateway:
                              provider: str = "auto", **kwargs) -> Dict[str, Any]:
         """
         Universal chat completion across all providers
-        
-        Args:
-            messages: Chat messages in OpenAI format
-            model: Specific model or "auto" for best available
-            provider: Specific provider or "auto" for optimal selection
-            **kwargs: Additional parameters (temperature, max_tokens, etc.)
         """
+        if aiohttp is None:
+            raise Exception("aiohttp package not installed - cannot make LLM requests")
         
         # Select optimal provider and model
         selected_provider, selected_model = self._select_provider_and_model(provider, model)

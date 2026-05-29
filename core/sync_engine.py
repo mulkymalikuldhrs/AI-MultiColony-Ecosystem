@@ -13,7 +13,10 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, asdict
 from enum import Enum
-import websockets
+try:
+    import websockets
+except ImportError:
+    websockets = None
 import uuid
 
 class MessageType(Enum):
@@ -87,15 +90,18 @@ class SyncEngine:
         self.status = "starting"
         
         # Start WebSocket server for real-time communication
-        try:
-            self.websocket_server = await websockets.serve(
-                self.handle_websocket_connection,
-                "localhost",
-                self.websocket_port
-            )
-            print(f"🔄 Sync Engine WebSocket server started on port {self.websocket_port}")
-        except Exception as e:
-            print(f"⚠️ WebSocket server failed to start: {e}")
+        if websockets is not None:
+            try:
+                self.websocket_server = await websockets.serve(
+                    self.handle_websocket_connection,
+                    "localhost",
+                    self.websocket_port
+                )
+                print(f"🔄 Sync Engine WebSocket server started on port {self.websocket_port}")
+            except Exception as e:
+                print(f"⚠️ WebSocket server failed to start: {e}")
+        else:
+            print("⚠️ websockets package not installed, WebSocket communication disabled")
         
         # Start background tasks
         asyncio.create_task(self.message_processor())

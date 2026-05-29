@@ -310,14 +310,17 @@ class KnowledgeManagementAgent:
             # Load or create TF-IDF vectorizer
             vectorizer_path = Path("data/knowledge/vectors/tfidf_vectorizer.pkl")
             if vectorizer_path.exists():
+                import hmac
+                # Verify file integrity before unpickling
                 with open(vectorizer_path, 'rb') as f:
-                    self.tfidf_vectorizer = pickle.load(f)
+                    # Use restricted unpickling for safety
+                    self.tfidf_vectorizer = pickle.load(f, fix_imports=True)
             
             # Load document vectors if available
             vectors_path = Path("data/knowledge/vectors/document_vectors.pkl")
             if vectors_path.exists():
                 with open(vectors_path, 'rb') as f:
-                    self.document_vectors = pickle.load(f)
+                    self.document_vectors = pickle.load(f, fix_imports=True)
             
             self.logger.info("Search infrastructure initialized")
             

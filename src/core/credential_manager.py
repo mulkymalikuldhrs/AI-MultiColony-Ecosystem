@@ -37,12 +37,19 @@ class SecureCredentialManager:
     def _initialize_encryption(self):
         """Initialize encryption system"""
         if not self.master_password:
-            # Use default master password (should be changed in production)
-            self.master_password = "agentic_ai_indonesia_secure_2024"
+            # Require master password from environment variable in production
+            self.master_password = os.getenv('CREDENTIAL_MASTER_PASSWORD')
+            if not self.master_password:
+                raise ValueError(
+                    "CREDENTIAL_MASTER_PASSWORD environment variable is required. "
+                    "Set it before starting the system."
+                )
         
         # Derive encryption key from master password
         password = self.master_password.encode()
-        salt = b'agentic_ai_salt_indonesia'  # In production, use random salt per user
+        # Generate salt from master password hash for consistency
+        # In production, store salt separately and per-user
+        salt = hashlib.sha256(b'agentic_ai_salt_' + password).digest()[:16]
         
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -222,6 +229,7 @@ class SecureCredentialManager:
             set_clauses = []
             values = []
             
+            allowed_fields = {'website_name', 'website_url', 'username', 'email', 'notes'}
             for field, value in updates.items():
                 if field == 'password':
                     # Encrypt new password
@@ -231,7 +239,7 @@ class SecureCredentialManager:
                 elif field == 'additional_fields':
                     set_clauses.append("additional_fields = ?")
                     values.append(json.dumps(value))
-                elif field in ['website_name', 'website_url', 'username', 'email', 'notes']:
+                elif field in allowed_fields:
                     set_clauses.append(f"{field} = ?")
                     values.append(value)
             
