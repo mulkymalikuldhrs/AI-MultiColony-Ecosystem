@@ -125,10 +125,10 @@ class MoneyMakingAgent:
             }
         }
         
-        # User financial information (encrypted)
+        # User financial information (loaded from config, never hardcoded)
         self.user_wallet_info = {
-            "owner_name": "Mulky Malikul Dhaher",
-            "owner_ktp": "1107151509970001",
+            "owner_name": os.getenv('WALLET_OWNER_NAME', ''),
+            "owner_ktp": os.getenv('WALLET_OWNER_KTP', ''),
             "bank_accounts": [],
             "crypto_wallets": [],
             "payment_platforms": []
@@ -621,7 +621,7 @@ class MoneyMakingAgent:
                     stream_id="system",
                     transaction_type="withdrawal",
                     amount=withdrawal_amount,
-                    description=f"Auto-withdrawal to owner: Mulky Malikul Dhaher (KTP: {self.user_wallet_info['owner_ktp']})"
+                    description=f"Auto-withdrawal to owner: {self.user_wallet_info['owner_name']}"
                 )
                 
                 self.logger.info(f"Auto-withdrawal initiated: ${withdrawal_amount:.2f} to owner")
@@ -684,8 +684,7 @@ class MoneyMakingAgent:
             "active_streams": active_streams,
             "total_streams": len(self.revenue_streams),
             "owner_info": {
-                "name": self.user_wallet_info["owner_name"],
-                "ktp": self.user_wallet_info["owner_ktp"]
+                "name": self.user_wallet_info["owner_name"]
             },
             "last_withdrawal": None,  # TODO: Implement
             "uptime_hours": (datetime.now() - self.start_time).total_seconds() / 3600

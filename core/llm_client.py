@@ -6,7 +6,10 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
 import asyncio
-import aiohttp
+try:
+    import aiohttp
+except ImportError:
+    aiohttp = None
 import json
 import os
 import time
@@ -14,7 +17,10 @@ import logging
 from typing import Dict, List, Any, Optional, AsyncGenerator
 from dataclasses import dataclass
 from datetime import datetime
-import yaml
+try:
+    import yaml
+except ImportError:
+    yaml = None
 from pathlib import Path
 
 @dataclass
@@ -95,7 +101,7 @@ class LLMClient:
             }
         }
         
-        if config_file.exists():
+        if config_file.exists() and yaml is not None:
             try:
                 with open(config_file, 'r') as f:
                     user_config = yaml.safe_load(f)
@@ -143,6 +149,18 @@ class LLMClient:
         """
         Send chat completion request with automatic failover
         """
+        if aiohttp is None:
+            return LLMResponse(
+                content="",
+                provider="none",
+                model="none",
+                usage={},
+                response_time=0,
+                timestamp=datetime.now(),
+                success=False,
+                error="aiohttp package not installed"
+            )
+        
         start_time = time.time()
         
         # Determine provider

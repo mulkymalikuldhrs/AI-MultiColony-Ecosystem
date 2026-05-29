@@ -321,7 +321,7 @@ class Agent04Executor(BaseAgent):
                 os.unlink(script_path)
     
     def _execute_shell_script(self, item: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute shell commands"""
+        """Execute shell commands safely without shell=True"""
         commands = item.get('code', '').split('\n')
         results = []
         
@@ -331,9 +331,11 @@ class Agent04Executor(BaseAgent):
                 continue
                 
             try:
+                # SECURITY: Use shlex.split instead of shell=True to prevent injection
+                import shlex
                 result = subprocess.run(
-                    command,
-                    shell=True,
+                    shlex.split(command),
+                    shell=False,
                     capture_output=True,
                     text=True,
                     timeout=60

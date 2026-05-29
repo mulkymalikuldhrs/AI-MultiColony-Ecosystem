@@ -8,7 +8,10 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 import json
 from typing import Dict, List, Any, Optional
 from datetime import datetime
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 class AISelector:
     """

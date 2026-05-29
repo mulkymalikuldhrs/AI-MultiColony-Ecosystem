@@ -12,9 +12,13 @@ import base64
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 from pathlib import Path
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+try:
+    from cryptography.fernet import Fernet
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+    HAS_CRYPTO = True
+except ImportError:
+    HAS_CRYPTO = False
 import sqlite3
 
 class CredentialManagerAgent:
@@ -32,7 +36,7 @@ class CredentialManagerAgent:
         self.agent_id = "credential_manager"
         self.name = "Credential Manager"
         self.version = "2.0.0"
-        self.status = "ready"
+        self.status = "ready" if HAS_CRYPTO else "degraded"
         self.capabilities = [
             "credential_storage",
             "secure_encryption",
@@ -42,12 +46,17 @@ class CredentialManagerAgent:
             "security_auditing",
             "backup_management",
             "2fa_handling"
-        ]
+        ] if HAS_CRYPTO else ["credential_storage"]
         
-        # Initialize secure storage
-        self.credentials_db = "data/credentials.db"
-        self.master_key = self._get_or_create_master_key()
-        self.cipher_suite = self._initialize_encryption()
+        if not HAS_CRYPTO:
+            print("⚠️ cryptography package not installed - credential encryption disabled")
+            self.master_key = None
+            self.cipher_suite = None
+        else:
+            # Initialize secure storage
+            self.credentials_db = "data/credentials.db"
+            self.master_key = self._get_or_create_master_key()
+            self.cipher_suite = self._initialize_encryption()
         
         # Supported platforms
         self.supported_platforms = {
@@ -127,6 +136,7 @@ class CredentialManagerAgent:
         }
         
         # Initialize database
+        self.credentials_db = "data/credentials.db"
         self._initialize_database()
         
         # Performance metrics

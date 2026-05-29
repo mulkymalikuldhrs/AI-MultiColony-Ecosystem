@@ -7,7 +7,10 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 
 import json
 import sqlite3
-import redis
+try:
+    import redis
+except ImportError:
+    redis = None
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, asdict
@@ -103,6 +106,10 @@ class MemoryBus:
     
     def _init_redis(self):
         """Initialize Redis connection (optional)"""
+        if redis is None:
+            print("⚠️ Redis package not installed, using SQLite only")
+            self.redis_client = None
+            return
         try:
             redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
             self.redis_client = redis.from_url(redis_url)
@@ -403,7 +410,7 @@ class MemoryBus:
                 SELECT metric_type, value, timestamp
                 FROM agent_metrics 
                 WHERE agent_id = ? AND timestamp > datetime('now', '-{} hours')
-            """.format(hours)
+            """.format(int(hours))  # Safe: hours is an int, not user input string
             
             params = [agent_id]
             

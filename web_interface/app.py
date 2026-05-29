@@ -41,7 +41,7 @@ except ImportError:
 
 socketio = SocketIO(
     app,
-    cors_allowed_origins="*",
+    cors_allowed_origins=os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5000'),
     async_mode=_socketio_mode,
     ping_timeout=60,
     ping_interval=25,
