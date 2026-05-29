@@ -13,7 +13,10 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, asdict
 from enum import Enum
-import cron_expression
+try:
+    import croniter
+except ImportError:
+    croniter = None
 import uuid
 
 class ScheduleType(Enum):
@@ -237,7 +240,7 @@ class AgentScheduler:
                     should_run = self._should_task_run(task, current_time)
                     
                     if should_run:
-                        asyncio.create_task(self._execute_task(task))
+                        self._run_task_async(self._execute_task(task))
                 
                 # Sleep for a short interval
                 time.sleep(1)
@@ -269,18 +272,29 @@ class AgentScheduler:
     def _check_cron_schedule(self, cron_expr: str, current_time: datetime, last_run: datetime) -> bool:
         """Check if cron schedule should trigger"""
         try:
-            # Simple cron parsing for common patterns
-            parts = cron_expr.split()
-            if len(parts) != 5:
-                return False
-            
-            minute, hour, day, month, weekday = parts
-            
             # Check if enough time has passed since last run
             if last_run:
                 min_interval = 60  # Minimum 1 minute between runs
                 if (current_time - last_run).total_seconds() < min_interval:
                     return False
+
+            # Use croniter for accurate cron parsing if available
+            if croniter is not None:
+                try:
+                    cron = croniter.croniter(cron_expr, current_time)
+                    prev_run = cron.get_prev(datetime)
+                    # If the previous scheduled time is within the last 60 seconds, trigger
+                    diff = (current_time - prev_run).total_seconds()
+                    return 0 <= diff < 60
+                except (ValueError, KeyError):
+                    pass  # Fall through to simple parsing
+
+            # Simple cron parsing fallback for common patterns
+            parts = cron_expr.split()
+            if len(parts) != 5:
+                return False
+            
+            minute, hour, day, month, weekday = parts
             
             # Simple pattern matching
             if minute == "*/5":  # Every 5 minutes
@@ -573,6 +587,27 @@ class AgentScheduler:
             return True
         return False
     
+    def _run_task_async(self, coro):
+        """Safely run an async coroutine from a synchronous/thread context"""
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            asyncio.run_coroutine_threadsafe(coro, loop)
+        else:
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    asyncio.run_coroutine_threadsafe(coro, loop)
+                else:
+                    loop.run_until_complete(coro)
+            except RuntimeError:
+                new_loop = asyncio.new_event_loop()
+                new_loop.run_until_complete(coro)
+                new_loop.close()
+
     def trigger_event(self, event_name: str, event_data: Any = None):
         """Trigger event-driven tasks"""
         if event_name in self.event_handlers:
@@ -584,7 +619,7 @@ class AgentScheduler:
                         task.task_data["event_name"] = event_name
                         task.task_data["event_data"] = event_data
                         task.next_run = datetime.now()
-                        asyncio.create_task(self._execute_task(task))
+                        self._run_task_async(self._execute_task(task))
     
     def get_scheduler_status(self) -> Dict[str, Any]:
         """Get scheduler status and statistics"""

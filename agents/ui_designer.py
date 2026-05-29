@@ -799,6 +799,194 @@ const CustomNavbar = ({
 export default CustomNavbar;
 """
     
+    def _get_sidebar_component(self) -> str:
+        """Get sidebar component template"""
+        return """
+import React, { useState } from 'react';
+
+const Sidebar = ({ items = [], brand, className = '' }) => {
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <aside className={`bg-gray-900 text-white ${collapsed ? 'w-16' : 'w-64'} min-h-screen transition-all duration-300 ${className}`}>
+      <div className="p-4 flex items-center justify-between border-b border-gray-700">
+        {!collapsed && <span className="text-xl font-bold">{brand || 'App'}</span>}
+        <button onClick={() => setCollapsed(!collapsed)} className="text-gray-400 hover:text-white">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+      <nav className="mt-4">
+        {items.map((item, index) => (
+          <a key={index} href={item.href || '#'} className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors">
+            <span className="mr-3">{item.icon}</span>
+            {!collapsed && <span>{item.label}</span>}
+          </a>
+        ))}
+      </nav>
+    </aside>
+  );
+};
+
+export default Sidebar;
+"""
+
+    def _get_modal_component(self) -> str:
+        """Get modal component template"""
+        return """
+import React, { useEffect } from 'react';
+
+const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const sizes = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-w-xl' };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
+      <div className={`relative bg-white rounded-lg shadow-xl ${sizes[size]} w-full mx-4 p-6`}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">{title}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+};
+
+export default Modal;
+"""
+
+    def _get_form_component(self) -> str:
+        """Get form component template"""
+        return """
+import React, { useState } from 'react';
+
+const Form = ({ fields = [], onSubmit, submitLabel = 'Submit', className = '' }) => {
+  const [formData, setFormData] = useState(
+    fields.reduce((acc, field) => ({ ...acc, [field.name]: field.defaultValue || '' }), {})
+  );
+
+  const handleChange = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit?.(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className={`space-y-4 ${className}`}>
+      {fields.map((field) => (
+        <div key={field.name}>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
+          {field.type === 'textarea' ? (
+            <textarea
+              value={formData[field.name]}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+              rows={field.rows || 3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder={field.placeholder || ''}
+            />
+          ) : (
+            <input
+              type={field.type || 'text'}
+              value={formData[field.name]}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder={field.placeholder || ''}
+            />
+          )}
+        </div>
+      ))}
+      <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+        {submitLabel}
+      </button>
+    </form>
+  );
+};
+
+export default Form;
+"""
+
+    def _get_table_component(self) -> str:
+        """Get table component template"""
+        return """
+import React, { useState } from 'react';
+
+const DataTable = ({ columns = [], data = [], onRowClick, className = '' }) => {
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortDirection, setSortDirection] = useState('asc');
+
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedData = [...data].sort((a, b) => {
+    if (!sortColumn) return 0;
+    const aVal = a[sortColumn] || '';
+    const bVal = b[sortColumn] || '';
+    const comparison = String(aVal).localeCompare(String(bVal));
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
+
+  return (
+    <div className={`overflow-x-auto ${className}`}>
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            {columns.map((col) => (
+              <th
+                key={col.key}
+                onClick={() => col.sortable !== false && handleSort(col.key)}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+              >
+                {col.label}
+                {sortColumn === col.key && (sortDirection === 'asc' ? ' ^' : ' v')}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {sortedData.map((row, idx) => (
+            <tr key={idx} onClick={() => onRowClick?.(row)} className="hover:bg-gray-50 cursor-pointer">
+              {columns.map((col) => (
+                <td key={col.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {col.render ? col.render(row[col.key], row) : row[col.key]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default DataTable;
+"""
+
     def _get_hero_component(self) -> str:
         """Get hero section component"""
         return """
@@ -842,6 +1030,92 @@ const HeroSection = ({
 export default HeroSection;
 """
     
+    def _customize_component(self, base_component: str, component_name: str, props: Dict) -> str:
+        """Customize a base component with given props"""
+        # Replace generic names with the custom component name
+        customized = base_component.replace('Custom', component_name)
+        
+        # Add any prop-based customizations
+        if props:
+            props_str = ', '.join(f'{k}="{v}"' for k, v in props.items() if isinstance(v, str))
+            if props_str:
+                customized = customized.replace(
+                    'export default',
+                    f'// Customized with props: {props_str}\nexport default'
+                )
+        
+        return customized
+
+    async def _generate_custom_component(self, component_name: str, component_type: str, props: Dict) -> str:
+        """Generate a custom component using AI or template"""
+        # Try AI generation first
+        if self.llm:
+            try:
+                prompt = f"Generate a React {component_type} component named {component_name} with props: {json.dumps(props)}"
+                code = await self.llm.generate_code(prompt, language="jsx")
+                return self._validate_and_clean_ui_code(code)
+            except Exception:
+                pass
+        
+        # Fallback to basic template
+        return self._generate_basic_template(component_name, self.design_systems.get("modern", {}), f"Custom {component_type} component")
+
+    def _generate_ecommerce_template(self, component_name: str, design_config: Dict) -> str:
+        """Generate ecommerce template"""
+        return f"""
+import React, {{ useState }} from 'react';
+
+const {component_name}Store = () => {{
+  const [products] = useState([
+    {{ id: 1, name: 'Product 1', price: 29.99, image: '/placeholder.jpg' }},
+    {{ id: 2, name: 'Product 2', price: 49.99, image: '/placeholder.jpg' }},
+    {{ id: 3, name: 'Product 3', price: 19.99, image: '/placeholder.jpg' }},
+  ]);
+  const [cart, setCart] = useState([]);
+
+  const addToCart = (product) => {{
+    setCart(prev => [...prev, product]);
+  }};
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+          <h1 className="{design_config['typography']['heading']} text-2xl">{component_name} Store</h1>
+          <div className="flex items-center gap-4">
+            <span className="text-gray-600">Cart: {{cart.length}}</span>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {{products.map(product => (
+            <div key={{product.id}} className="bg-white {design_config['rounded']} {design_config['shadow']} overflow-hidden">
+              <div className="h-48 bg-gray-200 flex items-center justify-center">
+                <span className="text-gray-400">Image</span>
+              </div>
+              <div className="p-4">
+                <h3 className="font-semibold text-lg">{{product.name}}</h3>
+                <p className="text-green-600 font-bold mt-2">${{product.price}}</p>
+                <button
+                  onClick={{() => addToCart(product)}}
+                  className="mt-4 w-full {design_config['colors']['primary']} text-white py-2 {design_config['rounded']} hover:opacity-90"
+                >
+                  Add to Cart
+                </button>
+              </div>
+            </div>
+          ))}}
+        </div>
+      </main>
+    </div>
+  );
+}};
+
+export default {component_name}Store;
+"""
+
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create standardized error response"""
         return {

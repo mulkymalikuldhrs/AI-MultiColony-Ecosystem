@@ -22,7 +22,11 @@ class SupabaseIntegration:
         self.anon_key = os.getenv('SUPABASE_ANON_KEY')
         
         if not all([self.url, self.service_role_key, self.anon_key]):
-            raise ValueError("Supabase credentials are required")
+            self._initialized = False
+            print("⚠️ Supabase credentials not configured - integration disabled")
+            return
+        
+        self._initialized = True
         
         self.rest_url = f"{self.url}/rest/v1"
         self.auth_url = f"{self.url}/auth/v1"
@@ -44,6 +48,13 @@ class SupabaseIntegration:
             'Prefer': 'return=representation'
         }
     
+    def _check_initialized(self) -> bool:
+        """Check if Supabase integration is properly initialized"""
+        if not getattr(self, '_initialized', False):
+            print("⚠️ Supabase integration not initialized - credentials missing")
+            return False
+        return True
+
     def test_connection(self) -> Dict[str, Any]:
         """Test Supabase connection"""
         try:
@@ -90,6 +101,8 @@ class SupabaseIntegration:
     def insert_data(self, table: str, data: Union[Dict, List[Dict]], 
                    use_service_role: bool = True) -> Optional[List[Dict]]:
         """Insert data into a table"""
+        if not self._check_initialized():
+            return None
         try:
             headers = self.service_headers if use_service_role else self.anon_headers
             
@@ -107,6 +120,8 @@ class SupabaseIntegration:
     def select_data(self, table: str, columns: str = "*", 
                    filters: Dict = None, use_service_role: bool = True) -> Optional[List[Dict]]:
         """Select data from a table"""
+        if not self._check_initialized():
+            return None
         try:
             headers = self.service_headers if use_service_role else self.anon_headers
             params = {'select': columns}
@@ -133,6 +148,8 @@ class SupabaseIntegration:
     def update_data(self, table: str, data: Dict, filters: Dict,
                    use_service_role: bool = True) -> Optional[List[Dict]]:
         """Update data in a table"""
+        if not self._check_initialized():
+            return None
         try:
             headers = self.service_headers if use_service_role else self.anon_headers
             params = {}
@@ -156,6 +173,8 @@ class SupabaseIntegration:
     def delete_data(self, table: str, filters: Dict,
                    use_service_role: bool = True) -> bool:
         """Delete data from a table"""
+        if not self._check_initialized():
+            return False
         try:
             headers = self.service_headers if use_service_role else self.anon_headers
             params = {}
@@ -178,6 +197,8 @@ class SupabaseIntegration:
     def upsert_data(self, table: str, data: Union[Dict, List[Dict]],
                    on_conflict: str = None, use_service_role: bool = True) -> Optional[List[Dict]]:
         """Upsert (insert or update) data"""
+        if not self._check_initialized():
+            return None
         try:
             headers = self.service_headers.copy() if use_service_role else self.anon_headers.copy()
             
@@ -198,6 +219,8 @@ class SupabaseIntegration:
     def execute_rpc(self, function_name: str, params: Dict = None,
                    use_service_role: bool = True) -> Optional[Any]:
         """Execute a stored procedure/function"""
+        if not self._check_initialized():
+            return None
         try:
             headers = self.service_headers if use_service_role else self.anon_headers
             
@@ -214,6 +237,8 @@ class SupabaseIntegration:
     
     def create_bucket(self, bucket_name: str, public: bool = False) -> bool:
         """Create a storage bucket"""
+        if not self._check_initialized():
+            return False
         try:
             bucket_data = {
                 'id': bucket_name,
@@ -235,6 +260,8 @@ class SupabaseIntegration:
     def upload_file(self, bucket_name: str, file_path: str, file_content: bytes,
                    content_type: str = None) -> Optional[Dict]:
         """Upload file to storage"""
+        if not self._check_initialized():
+            return None
         try:
             headers = {
                 'apikey': self.service_role_key,
@@ -257,6 +284,8 @@ class SupabaseIntegration:
     
     def download_file(self, bucket_name: str, file_path: str) -> Optional[bytes]:
         """Download file from storage"""
+        if not self._check_initialized():
+            return None
         try:
             response = requests.get(
                 f"{self.storage_url}/object/{bucket_name}/{file_path}",
@@ -270,6 +299,8 @@ class SupabaseIntegration:
     
     def get_user_info(self, user_id: str) -> Optional[Dict]:
         """Get user information"""
+        if not self._check_initialized():
+            return None
         try:
             response = requests.get(
                 f"{self.auth_url}/admin/users/{user_id}",
@@ -283,6 +314,8 @@ class SupabaseIntegration:
     
     def list_users(self) -> Optional[List[Dict]]:
         """List all users"""
+        if not self._check_initialized():
+            return None
         try:
             response = requests.get(
                 f"{self.auth_url}/admin/users",

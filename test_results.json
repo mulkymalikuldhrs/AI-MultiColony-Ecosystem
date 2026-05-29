@@ -1,0 +1,172 @@
+{
+  "pages": [
+    {
+      "path": "/",
+      "name": "Home/Dashboard",
+      "status": 200,
+      "title": "Advanced Dashboard - Agentic AI System v2.0"
+    },
+    {
+      "path": "/dashboard",
+      "name": "Dashboard",
+      "status": 200,
+      "title": "Dashboard - Agentic AI System"
+    },
+    {
+      "path": "/agents",
+      "name": "Agents",
+      "status": 200,
+      "title": "Agents Management - Agentic AI System"
+    },
+    {
+      "path": "/workflows",
+      "name": "Workflows",
+      "status": 200,
+      "title": "Workflows - Agentic AI System"
+    },
+    {
+      "path": "/monitoring",
+      "name": "Monitoring",
+      "status": 200,
+      "title": "System Monitoring - Agentic AI System"
+    },
+    {
+      "path": "/platform_integrations",
+      "name": "Platform Integrations",
+      "status": 200,
+      "title": "Platform Integrations - Agentic AI System"
+    },
+    {
+      "path": "/credentials",
+      "name": "Credentials",
+      "status": 200,
+      "title": "Credential Management - Agentic AI System"
+    },
+    {
+      "path": "/llm-providers",
+      "name": "LLM Providers",
+      "status": 200,
+      "title": "LLM Provider Management - Agentic AI System"
+    }
+  ],
+  "clicks": [
+    {
+      "action": "click_link",
+      "href": "/",
+      "text": "Agentic AI System v2.0"
+    },
+    {
+      "action": "click_link",
+      "href": "/",
+      "text": " Dashboard"
+    },
+    {
+      "action": "click_link",
+      "href": "/agents",
+      "text": " Agents"
+    },
+    {
+      "action": "click_link",
+      "href": "/workflows",
+      "text": " Workflows"
+    },
+    {
+      "action": "click_link",
+      "href": "/monitoring",
+      "text": " Monitoring"
+    },
+    {
+      "action": "click_link",
+      "href": "/platform_integrations",
+      "text": " Integrations"
+    },
+    {
+      "action": "click_link",
+      "href": "/credentials",
+      "text": " Credentials"
+    },
+    {
+      "action": "click_button",
+      "text": "\n                \n                \n               "
+    },
+    {
+      "action": "click_button",
+      "text": "Voice"
+    },
+    {
+      "action": "click_button",
+      "text": "\n                \n                Install App\n    "
+    },
+    {
+      "action": "click_button",
+      "text": "Refresh"
+    },
+    {
+      "action": "click_button",
+      "text": ""
+    },
+    {
+      "action": "click_button",
+      "text": "Run"
+    }
+  ],
+  "api_tests": [
+    {
+      "endpoint": "/api/system/status",
+      "method": "GET",
+      "status": 200,
+      "data_keys": [
+        "data",
+        "success"
+      ]
+    },
+    {
+      "endpoint": "/api/agents/list",
+      "method": "GET",
+      "status": 200,
+      "data_keys": [
+        "data",
+        "success"
+      ]
+    },
+    {
+      "endpoint": "/api/llm/providers",
+      "method": "GET",
+      "status": 200,
+      "data_keys": [
+        "data",
+        "success"
+      ]
+    },
+    {
+      "endpoint": "/api/memory/stats",
+      "method": "GET",
+      "status": 200,
+      "data_keys": [
+        "data",
+        "success"
+      ]
+    },
+    {
+      "endpoint": "/api/task/submit",
+      "method": "POST",
+      "result": {
+        "error": "Agent None not found",
+        "success": false
+      }
+    }
+  ],
+  "errors": [],
+  "screenshots": [],
+  "summary": {
+    "pages_tested": 8,
+    "pages_ok": 8,
+    "pages_error": 0,
+    "api_tested": 5,
+    "clicks_found": 13,
+    "total_errors": 12,
+    "console_errors": 12,
+    "page_errors": 0,
+    "app_errors": 0
+  }
+}
