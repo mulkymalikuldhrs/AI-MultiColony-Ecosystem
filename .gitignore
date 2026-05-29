@@ -60,3 +60,4 @@ web_interface/data/credentials.db
 # =============================================================================
 .deps_installed
 *.pid
+package-lock.json
