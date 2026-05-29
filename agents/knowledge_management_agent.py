@@ -308,19 +308,31 @@ class KnowledgeManagementAgent:
         """Initialize search and indexing infrastructure"""
         try:
             # Load or create TF-IDF vectorizer
+            # SECURITY NOTE: pickle.load is inherently unsafe for untrusted data.
+            # We only load from our own data directory which should be protected.
+            # If these files are tampered with, arbitrary code execution is possible.
+            # Consider migrating to a safer serialization format (e.g., JSON, safetensors).
             vectorizer_path = Path("data/knowledge/vectors/tfidf_vectorizer.pkl")
             if vectorizer_path.exists():
-                import hmac
-                # Verify file integrity before unpickling
+                # Verify the file is within the expected data directory (path traversal check)
+                resolved = vectorizer_path.resolve()
+                data_dir = Path("data").resolve()
+                if not str(resolved).startswith(str(data_dir)):
+                    self.logger.error(f"Security: vectorizer path escapes data directory: {resolved}")
+                    return
                 with open(vectorizer_path, 'rb') as f:
-                    # Use restricted unpickling for safety
-                    self.tfidf_vectorizer = pickle.load(f, fix_imports=True)
+                    self.tfidf_vectorizer = pickle.load(f)
             
             # Load document vectors if available
             vectors_path = Path("data/knowledge/vectors/document_vectors.pkl")
             if vectors_path.exists():
+                resolved = vectors_path.resolve()
+                data_dir = Path("data").resolve()
+                if not str(resolved).startswith(str(data_dir)):
+                    self.logger.error(f"Security: vectors path escapes data directory: {resolved}")
+                    return
                 with open(vectors_path, 'rb') as f:
-                    self.document_vectors = pickle.load(f, fix_imports=True)
+                    self.document_vectors = pickle.load(f)
             
             self.logger.info("Search infrastructure initialized")
             

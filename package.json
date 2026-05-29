@@ -1,14 +1,14 @@
 {
   "name": "agentic-ai-system",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Autonomous Multi-Agent Intelligence System with Voice Interaction and PWA Support",
   "main": "main.py",
   "author": "Mulky Malikul Dhaher <mulkymalikuldhr@mail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/tokenew6/Agentic-AI-Ecosystem",
+  "homepage": "https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tokenew6/Agentic-AI-Ecosystem.git"
+    "url": "https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git"
   },
   "keywords": [
     "ai",
@@ -27,19 +27,10 @@
     "build": "python build_static.py",
     "test": "python -m pytest tests/",
     "setup": "pip install -r requirements.txt",
-    "deploy": "python deploy.py",
-    "install": "npm install && pip install -r requirements.txt"
+    "deploy": "python deploy.py"
   },
-  "dependencies": {
-    "@railway/cli": "^3.0.0",
-    "firebase-tools": "^12.0.0",
-    "netlify-cli": "^15.0.0",
-    "vercel": "^28.0.0"
-  },
-  "devDependencies": {
-    "prettier": "^2.8.0",
-    "eslint": "^8.0.0"
-  },
+  "dependencies": {},
+  "devDependencies": {},
   "engines": {
     "node": ">=18.0.0",
     "python": ">=3.8.0"

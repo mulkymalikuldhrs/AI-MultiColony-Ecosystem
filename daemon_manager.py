@@ -473,15 +473,17 @@ class DaemonManager:
         """Start web interface as background process"""
         try:
             # Start web interface
+            import os
+            project_root = str(Path(__file__).parent)
             web_process = subprocess.Popen([
                 sys.executable, "-c",
-                """
+                f"""
 import sys
-sys.path.append('/workspace/mulkymalikuldhrtech_Agentic-AI-Ecosystem')
+sys.path.insert(0, {repr(project_root)})
 from web_interface.app import app, socketio
 socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
 """
-            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=project_root)
             
             self.agent_processes['web_interface'] = web_process
             print("  ✅ Web Interface: Started on port 5000")

@@ -646,4 +646,5 @@ if __name__ == '__main__':
     port = int(os.getenv('WEB_INTERFACE_PORT', 5000))
     host = os.getenv('WEB_INTERFACE_HOST', '0.0.0.0')
 
-    socketio.run(app, host=host, port=port, debug=True, allow_unsafe_werkzeug=True)
+    debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
+    socketio.run(app, host=host, port=port, debug=debug_mode, allow_unsafe_werkzeug=True)

@@ -86,7 +86,7 @@ def test_all():
                 title = page.title()
                 
                 # Take screenshot
-                screenshot_path = f"/home/z/multi-colony-workspace/AI-MultiColony-Ecosystem/screenshots/{name.replace(' ', '_').replace('/', '_')}.png"
+                screenshot_path = os.path.join(os.path.dirname(__file__), 'screenshots', f"{name.replace(' ', '_').replace('/', '_')}.png")
                 os.makedirs(os.path.dirname(screenshot_path), exist_ok=True)
                 page.screenshot(path=screenshot_path)
                 
@@ -275,7 +275,7 @@ if __name__ == "__main__":
         print(f"  App errors: {s['app_errors']}")
         
         # Save results
-        results_path = "/home/z/multi-colony-workspace/AI-MultiColony-Ecosystem/test_results.json"
+        results_path = os.path.join(os.path.dirname(__file__), "test_results.json")
         # Remove non-serializable items
         for p in results["pages"]:
             p.pop("screenshot", None)

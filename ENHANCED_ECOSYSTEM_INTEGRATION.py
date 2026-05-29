@@ -569,9 +569,13 @@ class EnhancedEcosystemManager:
         share_id = str(uuid.uuid4())
         
         # Hash password if provided
+        # SECURITY: Use PBKDF2 with salt for password hashing (SHA-256 alone is too fast)
         password_hash = None
         if password:
-            password_hash = hashlib.sha256(password.encode()).hexdigest()
+            import os as _os
+            salt = _os.urandom(16)
+            dk = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, 100000)
+            password_hash = salt.hex() + ':' + dk.hex()
         
         conn = sqlite3.connect(self.database_path)
         cursor = conn.cursor()
@@ -637,9 +641,20 @@ class EnhancedEcosystemManager:
             if not password:
                 return {"error": "password_required"}
             
-            password_hash = hashlib.sha256(password.encode()).hexdigest()
-            if password_hash != share_data['password_hash']:
-                return {"error": "invalid_password"}
+            # Support both old (plain SHA-256) and new (PBKDF2 with salt) hash formats
+            stored_hash = share_data['password_hash']
+            if ':' in stored_hash:
+                # New PBKDF2 format: salt:hash
+                salt_hex, expected_hash = stored_hash.split(':', 1)
+                salt = bytes.fromhex(salt_hex)
+                dk = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, 100000)
+                if dk.hex() != expected_hash:
+                    return {"error": "invalid_password"}
+            else:
+                # Legacy SHA-256 format (deprecated, for backward compat)
+                password_hash = hashlib.sha256(password.encode()).hexdigest()
+                if password_hash != stored_hash:
+                    return {"error": "invalid_password"}
         
         # Increment access count
         cursor.execute("""
