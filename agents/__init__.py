@@ -74,6 +74,52 @@ try:
 except ImportError:
     llm_provider_manager = None
 
+# New agents from cursor/fix branch integration
+try:
+    from .agi_colony_connector import agi_colony_connector
+except ImportError:
+    agi_colony_connector = None
+
+try:
+    from .backup_colony_system import backup_colony_system
+except ImportError:
+    backup_colony_system = None
+
+try:
+    from .bug_hunter_bot import bug_hunter_bot
+except ImportError:
+    bug_hunter_bot = None
+
+try:
+    from .commander_agi import commander_agi
+except ImportError:
+    commander_agi = None
+
+try:
+    from .deployment_specialist import deployment_specialist
+except ImportError:
+    deployment_specialist = None
+
+try:
+    from .knowledge_management_agent import knowledge_management_agent
+except ImportError:
+    knowledge_management_agent = None
+
+try:
+    from .marketing_agent import marketing_agent
+except ImportError:
+    marketing_agent = None
+
+try:
+    from .money_making_agent import money_making_agent
+except ImportError:
+    money_making_agent = None
+
+try:
+    from .quality_control_specialist import quality_control_specialist
+except ImportError:
+    quality_control_specialist = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -104,6 +150,25 @@ if authentication_agent:
     AGENTS_REGISTRY['authentication_agent'] = authentication_agent
 if llm_provider_manager:
     AGENTS_REGISTRY['llm_provider_manager'] = llm_provider_manager
+# New agents from cursor/fix integration
+if agi_colony_connector:
+    AGENTS_REGISTRY['agi_colony_connector'] = agi_colony_connector
+if backup_colony_system:
+    AGENTS_REGISTRY['backup_colony_system'] = backup_colony_system
+if bug_hunter_bot:
+    AGENTS_REGISTRY['bug_hunter_bot'] = bug_hunter_bot
+if commander_agi:
+    AGENTS_REGISTRY['commander_agi'] = commander_agi
+if deployment_specialist:
+    AGENTS_REGISTRY['deployment_specialist'] = deployment_specialist
+if knowledge_management_agent:
+    AGENTS_REGISTRY['knowledge_management_agent'] = knowledge_management_agent
+if marketing_agent:
+    AGENTS_REGISTRY['marketing_agent'] = marketing_agent
+if money_making_agent:
+    AGENTS_REGISTRY['money_making_agent'] = money_making_agent
+if quality_control_specialist:
+    AGENTS_REGISTRY['quality_control_specialist'] = quality_control_specialist
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -184,6 +249,61 @@ AGENTS_METADATA = {
         'emoji': '🧠',
         'description': 'Multi-provider AI gateway with automatic failover and cost optimization',
         'category': 'ai'
+    },
+    # New agents from cursor/fix integration
+    'agi_colony_connector': {
+        'name': 'AGI Colony Connector',
+        'emoji': '🌐',
+        'description': 'Inter-colony communication and secure networking',
+        'category': 'networking'
+    },
+    'backup_colony_system': {
+        'name': 'Backup Colony System',
+        'emoji': '🔄',
+        'description': 'Distributed backup management and system redundancy',
+        'category': 'infrastructure'
+    },
+    'bug_hunter_bot': {
+        'name': 'Bug Hunter Bot',
+        'emoji': '🕷️',
+        'description': 'Ethical hacking and vulnerability discovery',
+        'category': 'security'
+    },
+    'commander_agi': {
+        'name': 'Commander AGI',
+        'emoji': '🛡️',
+        'description': 'Security monitoring and robotics coordination',
+        'category': 'security'
+    },
+    'deployment_specialist': {
+        'name': 'Deployment Specialist',
+        'emoji': '🚀',
+        'description': 'Autonomous colony deployment and expansion',
+        'category': 'infrastructure'
+    },
+    'knowledge_management_agent': {
+        'name': 'Knowledge Management Agent',
+        'emoji': '🧠',
+        'description': 'Advanced memory and intelligent data organization',
+        'category': 'ai'
+    },
+    'marketing_agent': {
+        'name': 'Marketing Agent',
+        'emoji': '📈',
+        'description': 'Automated promotion and outreach system',
+        'category': 'business'
+    },
+    'money_making_agent': {
+        'name': 'Money Making Agent',
+        'emoji': '💰',
+        'description': 'Autonomous revenue generation and financial optimization',
+        'category': 'business'
+    },
+    'quality_control_specialist': {
+        'name': 'Quality Control Specialist',
+        'emoji': '🔍',
+        'description': 'Visual and analytical assessment and quality validation',
+        'category': 'quality'
     }
 }
 

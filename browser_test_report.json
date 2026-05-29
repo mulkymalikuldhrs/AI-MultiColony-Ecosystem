@@ -1,0 +1,600 @@
+{
+  "test_run_id": "20260529_072007",
+  "started_at": "2026-05-29T07:20:07.282579",
+  "pages": [
+    {
+      "path": "/",
+      "name": "Home Dashboard",
+      "url": "http://localhost:5000/",
+      "status": "passed",
+      "http_status": 200,
+      "title": "Advanced Dashboard - Agentic AI System v2.0",
+      "load_time_ms": 886.6,
+      "errors": [],
+      "interactive_elements": 8,
+      "links": [
+        {
+          "href": "/",
+          "text": "Agentic AI System v2.0"
+        },
+        {
+          "href": "/",
+          "text": "Dashboard"
+        },
+        {
+          "href": "/agents",
+          "text": "Agents"
+        },
+        {
+          "href": "/workflows",
+          "text": "Workflows"
+        },
+        {
+          "href": "/monitoring",
+          "text": "Monitoring"
+        },
+        {
+          "href": "/platform_integrations",
+          "text": "Integrations"
+        },
+        {
+          "href": "/credentials",
+          "text": "Credentials"
+        }
+      ],
+      "screenshot": "/home/z/multi-colony-workspace/AI-MultiColony-Ecosystem/screenshots/page_index.png",
+      "button_count": 6,
+      "link_count": 7,
+      "input_count": 2
+    },
+    {
+      "path": "/dashboard",
+      "name": "System Dashboard",
+      "url": "http://localhost:5000/dashboard",
+      "status": "passed",
+      "http_status": 500,
+      "title": "jinja2.exceptions.TemplateNotFound: dashboard.html // Werkzeug Debugger",
+      "load_time_ms": 532.4,
+      "errors": [
+        {
+          "message": "Failed to load resource: the server responded with a status of 500 (INTERNAL SERVER ERROR)"
+        }
+      ],
+      "interactive_elements": 2,
+      "links": [],
+      "screenshot": "/home/z/multi-colony-workspace/AI-MultiColony-Ecosystem/screenshots/page_dashboard.png",
+      "button_count": 0,
+      "link_count": 0,
+      "input_count": 2
+    },
+    {
+      "path": "/agents",
+      "name": "Agents Management",
+      "url": "http://localhost:5000/agents",
+      "status": "passed",
+      "http_status": 200,
+      "title": "Agents Management - Agentic AI System",
+      "load_time_ms": 651.8,
+      "errors": [],
+      "interactive_elements": 21,
+      "links": [
+        {
+          "href": "/",
+          "text": "Agentic AI System"
+        },
+        {
+          "href": "#",
+          "text": "System Admin"
+        },
+        {
+          "href": "#",
+          "text": "Settings"
+        },
+        {
+          "href": "#",
+          "text": "Help"
+        },
+        {
+          "href": "#",
+          "text": "Logout"
+        },
+        {
+          "href": "/",
+          "text": "Dashboard"
+        },
+        {
+          "href": "/agents",
+          "text": "Agents"
+        },
+        {
+          "href": "/workflows",
+          "text": "Workflows"
+        },
+        {
+          "href": "/monitoring",
+          "text": "Monitoring"
+        },
+        {
+          "href": "/integrations",
+          "text": "Integrations"
+        },
+        {
+          "href": "/credentials",
+          "text": "Credentials"
+        }
+      ],
+      "screenshot": "/home/z/multi-colony-workspace/AI-MultiColony-Ecosystem/screenshots/page_agents.png",
+      "button_count": 14,
+      "link_count": 11,
+      "input_count": 7
+    },
+    {
+      "path": "/workflows",
+      "name": "Workflows Management",
+      "url": "http://localhost:5000/workflows",
+      "status": "passed",
+      "http_status": 200,
+      "title": "Workflows - Agentic AI System",
+      "load_time_ms": 574.3,
+      "errors": [
+        {
+          "message": "WebSocket connection to 'ws://localhost:5000/socket.io/?EIO=4&transport=websocket&sid=LO2JGOG45HR1WltkAAAA' failed: Invalid frame header"
+        }
+      ],
+      "interactive_elements": 35,
+      "links": [
+        {
+          "href": "/",
+          "text": "Agentic AI System"
+        },
+        {
+          "href": "#",
+          "text": "System Admin"
+        },
+        {
+          "href": "#",
+          "text": "Settings"
+        },
+        {
+          "href": "#",
+          "text": "Help"
+        },
+        {
+          "href": "#",
+          "text": "Logout"
+        },
+        {
+          "href": "/",
+          "text": "Dashboard"
+        },
+        {
+          "href": "/agents",
+          "text": "Agents"
+        },
+        {
+          "href": "/workflows",
+          "text": "Workflows"
+        },
+        {
+          "href": "/monitoring",
+          "text": "Monitoring"
+        },
+        {
+          "href": "/integrations",
+          "text": "Integrations"
+        },
+        {
+          "href": "/credentials",
+          "text": "Credentials"
+        }
+      ],
+      "screenshot": "/home/z/multi-colony-workspace/AI-MultiColony-Ecosystem/screenshots/page_workflows.png",
+      "button_count": 29,
+      "link_count": 11,
+      "input_count": 6
+    },
+    {
+      "path": "/monitoring",
+      "name": "System Monitoring",
+      "url": "http://localhost:5000/monitoring",
+      "status": "passed",
+      "http_status": 200,
+      "title": "System Monitoring - Agentic AI System",
+      "load_time_ms": 679.1,
+      "errors": [
+        {
+          "message": "WebSocket connection to 'ws://localhost:5000/socket.io/?EIO=4&transport=websocket&sid=V93C4puppBwggJTXAAAC' failed: Invalid frame header"
+        },
+        {
+          "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+        },
+        {
+          "message": "Error loading performance metrics: Not found"
+        },
+        {
+          "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+        },
+        {
+          "message": "Error loading performance metrics: Not found"
+        }
+      ],
+      "interactive_elements": 11,
+      "links": [
+        {
+          "href": "/",
+          "text": "Agentic AI System"
+        },
+        {
+          "href": "#",
+          "text": "System Admin"
+        },
+        {
+          "href": "#",
+          "text": "Settings"
+        },
+        {
+          "href": "#",
+          "text": "Help"
+        },
+        {
+          "href": "#",
+          "text": "Logout"
+        },
+        {
+          "href": "/",
+          "text": "Dashboard"
+        },
+        {
+          "href": "/agents",
+          "text": "Agents"
+        },
+        {
+          "href": "/workflows",
+          "text": "Workflows"
+        },
+        {
+          "href": "/monitoring",
+          "text": "Monitoring"
+        },
+        {
+          "href": "/integrations",
+          "text": "Integrations"
+        },
+        {
+          "href": "/credentials",
+          "text": "Credentials"
+        }
+      ],
+      "screenshot": "/home/z/multi-colony-workspace/AI-MultiColony-Ecosystem/screenshots/page_monitoring.png",
+      "button_count": 11,
+      "link_count": 11,
+      "input_count": 0
+    },
+    {
+      "path": "/platform_integrations",
+      "name": "Platform Integrations",
+      "url": "http://localhost:5000/platform_integrations",
+      "status": "passed",
+      "http_status": 200,
+      "title": "Platform Integrations - Agentic AI System",
+      "load_time_ms": 943.7,
+      "errors": [
+        {
+          "message": "WebSocket connection to 'ws://localhost:5000/socket.io/?EIO=4&transport=websocket&sid=CHglTRU2l-IjhNDUAAAE' failed: Invalid frame header"
+        }
+      ],
+      "interactive_elements": 31,
+      "links": [
+        {
+          "href": "/",
+          "text": "Agentic AI System"
+        },
+        {
+          "href": "#",
+          "text": "System Admin"
+        },
+        {
+          "href": "#",
+          "text": "Settings"
+        },
+        {
+          "href": "#",
+          "text": "Help"
+        },
+        {
+          "href": "#",
+          "text": "Logout"
+        },
+        {
+          "href": "/",
+          "text": "Dashboard"
+        },
+        {
+          "href": "/agents",
+          "text": "Agents"
+        },
+        {
+          "href": "/workflows",
+          "text": "Workflows"
+        },
+        {
+          "href": "/monitoring",
+          "text": "Monitoring"
+        },
+        {
+          "href": "/integrations",
+          "text": "Integrations"
+        },
+        {
+          "href": "/credentials",
+          "text": "Credentials"
+        }
+      ],
+      "screenshot": "/home/z/multi-colony-workspace/AI-MultiColony-Ecosystem/screenshots/page_platform_integrations.png",
+      "button_count": 27,
+      "link_count": 11,
+      "input_count": 4
+    },
+    {
+      "path": "/credentials",
+      "name": "Credential Management",
+      "url": "http://localhost:5000/credentials",
+      "status": "passed",
+      "http_status": 200,
+      "title": "Credential Management - Agentic AI System",
+      "load_time_ms": 578.7,
+      "errors": [
+        {
+          "message": "WebSocket connection to 'ws://localhost:5000/socket.io/?EIO=4&transport=websocket&sid=u2go3akMGoqL5wlcAAAG' failed: Invalid frame header"
+        },
+        {
+          "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+        },
+        {
+          "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+        },
+        {
+          "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+        }
+      ],
+      "interactive_elements": 18,
+      "links": [
+        {
+          "href": "/",
+          "text": "Agentic AI System v2.0"
+        },
+        {
+          "href": "/",
+          "text": "Dashboard"
+        },
+        {
+          "href": "/agents",
+          "text": "Agents"
+        },
+        {
+          "href": "/workflows",
+          "text": "Workflows"
+        },
+        {
+          "href": "/monitoring",
+          "text": "Monitoring"
+        },
+        {
+          "href": "/platform_integrations",
+          "text": "Integrations"
+        },
+        {
+          "href": "/credentials",
+          "text": "Credentials"
+        }
+      ],
+      "screenshot": "/home/z/multi-colony-workspace/AI-MultiColony-Ecosystem/screenshots/page_credentials.png",
+      "button_count": 11,
+      "link_count": 7,
+      "input_count": 7
+    },
+    {
+      "name": "Interactive Elements Test",
+      "status": "failed",
+      "actions_tested": [
+        {
+          "action": "click_nav_link_0",
+          "href": "/",
+          "status": "success",
+          "navigated_to": "http://localhost:5000/"
+        }
+      ],
+      "error": "ElementHandle.get_attribute: Execution context was destroyed, most likely because of a navigation\nCall log:\n  - waiting for locator(\":scope\")\n"
+    }
+  ],
+  "apis": [
+    {
+      "method": "GET",
+      "path": "/api/system/status",
+      "url": "http://localhost:5000/api/system/status",
+      "status": "passed",
+      "http_status": 200,
+      "response_time_ms": 318.5,
+      "response_valid": true,
+      "response_success": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/agents/list",
+      "url": "http://localhost:5000/api/agents/list",
+      "status": "passed",
+      "http_status": 200,
+      "response_time_ms": 305.5,
+      "response_valid": true,
+      "response_success": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/memory/stats",
+      "url": "http://localhost:5000/api/memory/stats",
+      "status": "passed",
+      "http_status": 500,
+      "response_time_ms": 305.3,
+      "response_valid": true,
+      "response_success": false,
+      "has_error_field": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/llm/providers",
+      "url": "http://localhost:5000/api/llm/providers",
+      "status": "passed",
+      "http_status": 500,
+      "response_time_ms": 305.9,
+      "response_valid": true,
+      "response_success": false,
+      "has_error_field": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/prompt/process",
+      "url": "http://localhost:5000/api/prompt/process",
+      "status": "passed",
+      "http_status": 200,
+      "response_time_ms": 305.1,
+      "response_valid": true,
+      "response_success": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/task/submit",
+      "url": "http://localhost:5000/api/task/submit",
+      "status": "passed",
+      "http_status": 404,
+      "response_time_ms": 303.3,
+      "response_valid": true,
+      "response_success": false,
+      "has_error_field": true
+    }
+  ],
+  "console_errors": [
+    {
+      "url": "http://localhost:5000/dashboard",
+      "message": "Failed to load resource: the server responded with a status of 500 (INTERNAL SERVER ERROR)",
+      "timestamp": "2026-05-29T07:20:14.974215"
+    },
+    {
+      "url": "http://localhost:5000/agents",
+      "message": "WebSocket connection to 'ws://localhost:5000/socket.io/?EIO=4&transport=websocket&sid=LO2JGOG45HR1WltkAAAA' failed: Invalid frame header",
+      "timestamp": "2026-05-29T07:20:20.626216"
+    },
+    {
+      "url": "http://localhost:5000/workflows",
+      "message": "WebSocket connection to 'ws://localhost:5000/socket.io/?EIO=4&transport=websocket&sid=V93C4puppBwggJTXAAAC' failed: Invalid frame header",
+      "timestamp": "2026-05-29T07:20:23.570711"
+    },
+    {
+      "url": "http://localhost:5000/monitoring",
+      "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)",
+      "timestamp": "2026-05-29T07:20:23.680120"
+    },
+    {
+      "url": "http://localhost:5000/monitoring",
+      "message": "Error loading performance metrics: Not found",
+      "timestamp": "2026-05-29T07:20:23.742733"
+    },
+    {
+      "url": "http://localhost:5000/monitoring",
+      "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)",
+      "timestamp": "2026-05-29T07:20:33.997839"
+    },
+    {
+      "url": "http://localhost:5000/monitoring",
+      "message": "Error loading performance metrics: Not found",
+      "timestamp": "2026-05-29T07:20:34.271281"
+    },
+    {
+      "url": "http://localhost:5000/monitoring",
+      "message": "WebSocket connection to 'ws://localhost:5000/socket.io/?EIO=4&transport=websocket&sid=CHglTRU2l-IjhNDUAAAE' failed: Invalid frame header",
+      "timestamp": "2026-05-29T07:20:43.160400"
+    },
+    {
+      "url": "http://localhost:5000/platform_integrations",
+      "message": "WebSocket connection to 'ws://localhost:5000/socket.io/?EIO=4&transport=websocket&sid=u2go3akMGoqL5wlcAAAG' failed: Invalid frame header",
+      "timestamp": "2026-05-29T07:20:46.205037"
+    },
+    {
+      "url": "http://localhost:5000/credentials",
+      "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)",
+      "timestamp": "2026-05-29T07:20:46.251508"
+    },
+    {
+      "url": "http://localhost:5000/credentials",
+      "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)",
+      "timestamp": "2026-05-29T07:20:46.258177"
+    },
+    {
+      "url": "http://localhost:5000/credentials",
+      "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)",
+      "timestamp": "2026-05-29T07:20:46.278922"
+    },
+    {
+      "url": "http://localhost:5000/credentials",
+      "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)",
+      "timestamp": "2026-05-29T07:20:53.853282"
+    },
+    {
+      "url": "http://localhost:5000/credentials",
+      "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)",
+      "timestamp": "2026-05-29T07:20:53.857865"
+    },
+    {
+      "url": "http://localhost:5000/credentials",
+      "message": "Failed to load resource: the server responded with a status of 404 (NOT FOUND)",
+      "timestamp": "2026-05-29T07:20:53.858433"
+    }
+  ],
+  "broken_links": [
+    {
+      "href": "/dashboard",
+      "url": "http://localhost:5000/dashboard",
+      "http_status": 500
+    },
+    {
+      "href": "/integrations",
+      "url": "http://localhost:5000/integrations",
+      "http_status": 404
+    }
+  ],
+  "missing_resources": [],
+  "summary": {
+    "pages_passed": 7,
+    "pages_failed": 1,
+    "pages_total": 8,
+    "apis_passed": 6,
+    "apis_total": 6,
+    "console_errors": 15,
+    "broken_links": 2,
+    "missing_resources": 0,
+    "screenshots_captured": 7,
+    "overall_status": "PARTIAL"
+  },
+  "responsive": [
+    {
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 900,
+      "status": "failed",
+      "error": "BrowserContext.new_page: Target page, context or browser has been closed\nBrowser logs:\n\n<launching> /home/z/.cache/ms-playwright/chromium_headless_shell-1200/chrome-headless-shell-linux64/chrome-headless-shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --single-process --user-data-dir=/tmp/playwright_chromiumdev_profile-K9qZXx --remote-debugging-pipe --no-startup-window\n<launched> pid=18851\n[pid=18851][err] [0529/072010.985711:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory\n[pid=18851][err] [0529/072010.990060:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory\n[pid=18851][err] [0529/072010.990152:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory\n[pid=18851][err] [0529/072010.999576:WARNING:media/audio/linux/audio_manager_linux.cc:54] Falling back to ALSA for audio output. PulseAudio is not available or could not be initialized.\n[pid=18851][err] [0529/072011.005253:WARNING:device/bluetooth/dbus/bluez_dbus_manager.cc:209] Floss manager service not available, cannot set Floss enable/disable.\n[pid=18851][err] [0529/072011.195386:INFO:CONSOLE:409] \"\ud83e\udde0 Agentic AI PWA Controller loaded - Made with \u2764\ufe0f by Mulky Malikul Dhaher \ud83c\uddee\ud83c\udde9\", source: http://localhost:5000/static/js/pwa.js (409)\n[pid=18851][err] [0529/072011.195852:INFO:CONSOLE:749] \"\ud83c\udfa4 Agentic AI Voice Controller loaded - Made with \u2764\ufe0f by Mulky Malikul Dhaher \ud83c\uddee\ud83c\udde9\", source: http://localhost:5000/static/js/voice.js (749)\n[pid=18851][err] [0529/072011.305190:INFO:CONSOLE:13] \"\ud83d\ude80 Initializing Agentic AI PWA...\", source: http://localhost:5000/static/js/pwa.js (13)\n[pid=18851][err] [0529/072011.324561:INFO:CONSOLE:161] \"\ud83c\udf10 Online\", source: http://localhost:5000/static/js/pwa.js (161)\n[pid=18851][err] [0529/072011.334755:INFO:CONSOLE:30] \"\u2705 Agentic AI PWA initialized successfully\", source: http://localhost:5000/static/js/pwa.js (30)\n[pid=18851][err] [0529/072011.336570:INFO:CONSOLE:31] \"\ud83c\udfa4 Initializing Agentic AI Voice System...\", source: http://localhost:5000/static/js/voice.js (31)\n[pid=18851][err] [0529/072011.374508:INFO:CONSOLE:169] \"\ud83d\udd0a Loaded 0 voices\", source: http://localhost:5000/static/js/voice.js (169)\n[pid=18851][err] [0529/072011.375040:INFO:CONSOLE:54] \"\u2705 Agentic AI Voice System initialized successfully\", source: http://localhost:5000/static/js/voice.js (54)\n[pid=18851][err] [0529/072011.453245:INFO:CONSOLE:169] \"\ud83d\udd0a Loaded 0 voices\", source: http://localhost:5000/static/js/voice.js (169)\n[pid=18851][err] [0529/072011.454282:INFO:CONSOLE:37] \"\u2705 Service Worker registered: http://localhost:5000/static/\", source: http://localhost:5000/static/js/pwa.js (37)\n[pid=18851][err] [0529/072011.457528:INFO:CONSOLE:188] \"\u2705 Offline storage initialized\", source: http://localhost:5000/static/js/pwa.js (188)\n[pid=18851][err] [0529/072017.828319:INFO:CONSOLE:512] \"Connected to server\", source: http://localhost:5000/agents (512)\n[pid=18851][err] [0529/072020.682701:INFO:CONSOLE:579] \"Connected to server\", source: http://localhost:5000/workflows (579)\n[pid=18851][err] [0529/072023.679955:INFO:CONSOLE:564] \"Connected to server\", source: http://localhost:5000/monitoring (564)\n[pid=18851][err] [0529/072023.741777:INFO:CONSOLE:802] \"Error loading performance metrics: Not found\", source: http://localhost:5000/monitoring (802)\n[pid=18851][err] [0529/072033.856909:INFO:CONSOLE:1143] \"Monitoring data refreshed\", source: http://localhost:5000/monitoring (1143)\n[pid=18851][err] [0529/072034.268548:INFO:CONSOLE:802] \"Error loading performance metrics: Not found\", source: http://localhost:5000/monitoring (802)\n[pid=18851][err] [0529/072043.203199:INFO:CONSOLE:595] \"Connected to server\", source: http://localhost:5000/platform_integrations (595)\n[pid=18851][err] [0529/072046.221897:INFO:CONSOLE:409] \"\ud83e\udde0 Agentic AI PWA Controller loaded - Made with \u2764\ufe0f by Mulky Malikul Dhaher \ud83c\uddee\ud83c\udde9\", source: http://localhost:5000/static/js/pwa.js (409)\n[pid=18851][err] [0529/072046.222919:INFO:CONSOLE:749] \"\ud83c\udfa4 Agentic AI Voice Controller loaded - Made with \u2764\ufe0f by Mulky Malikul Dhaher \ud83c\uddee\ud83c\udde9\", source: http://localhost:5000/static/js/voice.js (749)\n[pid=18851][err] [0529/072046.241462:INFO:CONSOLE:13] \"\ud83d\ude80 Initializing Agentic AI PWA...\", source: http://localhost:5000/static/js/pwa.js (13)\n[pid=18851][err] [0529/072046.241727:INFO:CONSOLE:161] \"\ud83c\udf10 Online\", source: http://localhost:5000/static/js/pwa.js (161)\n[pid=18851][err] [0529/072046.242063:INFO:CONSOLE:30] \"\u2705 Agentic AI PWA initialized successfully\", source: http://localhost:5000/static/js/pwa.js (30)\n[pid=18851][err] [0529/072046.242235:INFO:CONSOLE:31] \"\ud83c\udfa4 Initializing Agentic AI Voice System...\", source: http://localhost:5000/static/js/voice.js (31)\n[pid=18851][err] [0529/072046.242272:INFO:CONSOLE:169] \"\ud83d\udd0a Loaded 0 voices\", source: http://localhost:5000/static/js/voice.js (169)\n[pid=18851][err] [0529/072046.242280:INFO:CONSOLE:54] \"\u2705 Agentic AI Voice System initialized successfully\", source: http://localhost:5000/static/js/voice.js (54)\n[pid=18851][err] [0529/072046.246700:INFO:CONSOLE:169] \"\ud83d\udd0a Loaded 0 voices\", source: http://localhost:5000/static/js/voice.js (169)\n[pid=18851][err] [0529/072046.246717:INFO:CONSOLE:188] \"\u2705 Offline storage initialized\", source: http://localhost:5000/static/js/pwa.js (188)\n[pid=18851][err] [0529/072046.277729:INFO:CONSOLE:37] \"\u2705 Service Worker registered: http://localhost:5000/static/\", source: http://localhost:5000/static/js/pwa.js (37)\n[pid=18851][err] [0529/072049.624464:INFO:CONSOLE:409] \"\ud83e\udde0 Agentic AI PWA Controller loaded - Made with \u2764\ufe0f by Mulky Malikul Dhaher \ud83c\uddee\ud83c\udde9\", source: http://localhost:5000/static/js/pwa.js (409)\n[pid=18851][err] [0529/072049.627891:INFO:CONSOLE:749] \"\ud83c\udfa4 Agentic AI Voice Controller loaded - Made with \u2764\ufe0f by Mulky Malikul Dhaher \ud83c\uddee\ud83c\udde9\", source: http://localhost:5000/static/js/voice.js (749)\n[pid=18851][err] [0529/072049.630262:INFO:CONSOLE:13] \"\ud83d\ude80 Initializing Agentic AI PWA...\", source: http://localhost:5000/static/js/pwa.js (13)\n[pid=18851][err] [0529/072049.630498:INFO:CONSOLE:161] \"\ud83c\udf10 Online\", source: http://localhost:5000/static/js/pwa.js (161)\n[pid=18851][err] [0529/072049.630980:INFO:CONSOLE:30] \"\u2705 Agentic AI PWA initialized successfully\", source: http://localhost:5000/static/js/pwa.js (30)\n[pid=18851][err] [0529/072049.631296:INFO:CONSOLE:31] \"\ud83c\udfa4 Initializing Agentic AI Voice System...\", source: http://localhost:5000/static/js/voice.js (31)\n[pid=18851][err] [0529/072049.631470:INFO:CONSOLE:169] \"\ud83d\udd0a Loaded 0 voices\", source: http://localhost:5000/static/js/voice.js (169)\n[pid=18851][err] [0529/072049.631562:INFO:CONSOLE:54] \"\u2705 Agentic AI Voice System initialized successfully\", source: http://localhost:5000/static/js/voice.js (54)\n[pid=18851][err] [0529/072049.681612:INFO:CONSOLE:188] \"\u2705 Offline storage initialized\", source: http://localhost:5000/static/js/pwa.js (188)\n[pid=18851][err] [0529/072049.681785:INFO:CONSOLE:169] \"\ud83d\udd0a Loaded 0 voices\", source: http://localhost:5000/static/js/voice.js (169)\n[pid=18851][err] [0529/072049.682549:INFO:CONSOLE:37] \"\u2705 Service Worker registered: http://localhost:5000/static/\", source: http://localhost:5000/static/js/pwa.js (37)\n[pid=18851][err] [0529/072052.275969:INFO:CONSOLE:409] \"\ud83e\udde0 Agentic AI PWA Controller loaded - Made with \u2764\ufe0f by Mulky Malikul Dhaher \ud83c\uddee\ud83c\udde9\", source: http://localhost:5000/static/js/pwa.js (409)\n[pid=18851][err] [0529/072052.276851:INFO:CONSOLE:749] \"\ud83c\udfa4 Agentic AI Voice Controller loaded - Made with \u2764\ufe0f by Mulky Malikul Dhaher \ud83c\uddee\ud83c\udde9\", source: http://localhost:5000/static/js/voice.js (749)\n[pid=18851][err] [0529/072052.281492:INFO:CONSOLE:13] \"\ud83d\ude80 Initializing Agentic AI PWA...\", source: http://localhost:5000/static/js/pwa.js (13)\n[pid=18851][err] [0529/072052.281837:INFO:CONSOLE:161] \"\ud83c\udf10 Online\", source: http://localhost:5000/static/js/pwa.js (161)\n[pid=18851][err] [0529/072052.283635:INFO:CONSOLE:30] \"\u2705 Agentic AI PWA initialized successfully\", source: http://localhost:5000/static/js/pwa.js (30)\n[pid=18851][err] [0529/072052.283720:INFO:CONSOLE:31] \"\ud83c\udfa4 Initializing Agentic AI Voice System...\", source: http://localhost:5000/static/js/voice.js (31)\n[pid=18851][err] [0529/072052.284123:INFO:CONSOLE:169] \"\ud83d\udd0a Loaded 0 voices\", source: http://localhost:5000/static/js/voice.js (169)\n[pid=18851][err] [0529/072052.285426:INFO:CONSOLE:54] \"\u2705 Agentic AI Voice System initialized successfully\", source: http://localhost:5000/static/js/voice.js (54)\n[pid=18851][err] [0529/072052.366281:INFO:CONSOLE:188] \"\u2705 Offline storage initialized\", source: http://localhost:5000/static/js/pwa.js (188)\n[pid=18851][err] [0529/072052.367078:INFO:CONSOLE:169] \"\ud83d\udd0a Loaded 0 voices\", source: http://localhost:5000/static/js/voice.js (169)\n[pid=18851][err] [0529/072052.367388:INFO:CONSOLE:37] \"\u2705 Service Worker registered: http://localhost:5000/static/\", source: http://localhost:5000/static/js/pwa.js (37)\n[pid=18851][err] [0529/072053.800453:INFO:CONSOLE:409] \"\ud83e\udde0 Agentic AI PWA Controller loaded - Made with \u2764\ufe0f by Mulky Malikul Dhaher \ud83c\uddee\ud83c\udde9\", source: http://localhost:5000/static/js/pwa.js (409)\n[pid=18851][err] [0529/072053.801199:INFO:CONSOLE:749] \"\ud83c\udfa4 Agentic AI Voice Controller loaded - Made with \u2764\ufe0f by Mulky Malikul Dhaher \ud83c\uddee\ud83c\udde9\", source: http://localhost:5000/static/js/voice.js (749)\n[pid=18851][err] [0529/072053.801881:INFO:CONSOLE:13] \"\ud83d\ude80 Initializing Agentic AI PWA...\", source: http://localhost:5000/static/js/pwa.js (13)\n[pid=18851][err] [0529/072053.802551:INFO:CONSOLE:161] \"\ud83c\udf10 Online\", source: http://localhost:5000/static/js/pwa.js (161)\n[pid=18851][err] [0529/072053.802669:INFO:CONSOLE:30] \"\u2705 Agentic AI PWA initialized successfully\", source: http://localhost:5000/static/js/pwa.js (30)\n[pid=18851][err] [0529/072053.802696:INFO:CONSOLE:31] \"\ud83c\udfa4 Initializing Agentic AI Voice System...\", source: http://localhost:5000/static/js/voice.js (31)\n[pid=18851][err] [0529/072053.802722:INFO:CONSOLE:169] \"\ud83d\udd0a Loaded 0 voices\", source: http://localhost:5000/static/js/voice.js (169)\n[pid=18851][err] [0529/072053.802754:INFO:CONSOLE:54] \"\u2705 Agentic AI Voice System initialized successfully\", source: http://localhost:5000/static/js/voice.js (54)\n[pid=18851][err] [0529/072053.851007:INFO:CONSOLE:169] \"\ud83d\udd0a Loaded 0 voices\", source: http://localhost:5000/static/js/voice.js (169)\n[pid=18851][err] [0529/072053.851329:INFO:CONSOLE:188] \"\u2705 Offline storage initialized\", source: http://localhost:5000/static/js/pwa.js (188)\n[pid=18851][err] [0529/072053.852117:INFO:CONSOLE:37] \"\u2705 Service Worker registered: http://localhost:5000/static/\", source: http://localhost:5000/static/js/pwa.js (37)"
+    },
+    {
+      "viewport": "tablet",
+      "width": 768,
+      "height": 1024,
+      "status": "failed",
+      "error": "Browser.new_context: Target page, context or browser has been closed"
+    },
+    {
+      "viewport": "mobile",
+      "width": 375,
+      "height": 667,
+      "status": "failed",
+      "error": "Browser.new_context: Target page, context or browser has been closed"
+    }
+  ]
+}

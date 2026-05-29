@@ -948,6 +948,354 @@ MIT License"""
             "total_templates": len(self.project_templates)
         }
     
+    # Next.js template methods
+    def _get_nextjs_package_json(self) -> str:
+        return """{
+  "name": "{{PROJECT_NAME}}",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.0.0"
+  }
+}"""
+
+    def _get_nextjs_config(self) -> str:
+        return """/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+}
+
+module.exports = nextConfig"""
+
+    def _get_nextjs_page(self) -> str:
+        return """export default function Home() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+      <div className="z-10 max-w-5xl w-full items-center justify-center text-sm flex flex-col">
+        <h1 className="text-4xl font-bold mb-8">{{PROJECT_NAME}}</h1>
+        <p className="text-lg text-gray-600 mb-8">{{PROJECT_DESCRIPTION}}</p>
+        <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-3 lg:text-left gap-4">
+          <a href="#" className="group rounded-lg border border-gray-300 px-5 py-4 transition-colors hover:border-gray-400">
+            <h2 className="mb-3 text-2xl font-semibold">Docs</h2>
+            <p className="m-0 text-sm text-gray-500">Find in-depth information about Next.js features and API.</p>
+          </a>
+          <a href="#" className="group rounded-lg border border-gray-300 px-5 py-4 transition-colors hover:border-gray-400">
+            <h2 className="mb-3 text-2xl font-semibold">Learn</h2>
+            <p className="m-0 text-sm text-gray-500">Learn about Next.js in an interactive course with quizzes!</p>
+          </a>
+          <a href="#" className="group rounded-lg border border-gray-300 px-5 py-4 transition-colors hover:border-gray-400">
+            <h2 className="mb-3 text-2xl font-semibold">Deploy</h2>
+            <p className="m-0 text-sm text-gray-500">Instantly deploy your Next.js site to a shareable URL.</p>
+          </a>
+        </div>
+      </div>
+    </main>
+  )
+}"""
+
+    def _get_nextjs_layout(self) -> str:
+        return """import type { Metadata } from 'next'
+import './globals.css'
+
+export const metadata: Metadata = {
+  title: '{{PROJECT_NAME}}',
+  description: '{{PROJECT_DESCRIPTION}}',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  )
+}"""
+
+    def _get_nextjs_gitignore(self) -> str:
+        return """# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts"""
+
+    def _get_nextjs_readme(self) -> str:
+        return """# {{PROJECT_NAME}}
+
+{{PROJECT_DESCRIPTION}}
+
+## Getting Started
+
+First, install dependencies:
+```bash
+npm install
+```
+
+Then, run the development server:
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Built With
+
+- [Next.js](https://nextjs.org/) - React Framework
+- [TypeScript](https://www.typescriptlang.org/) - Type Safety
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+
+## License
+
+MIT License"""
+
+    # Python package template methods
+    def _get_python_setup(self) -> str:
+        return """from setuptools import setup, find_packages
+
+setup(
+    name="{{PROJECT_NAME}}",
+    version="0.1.0",
+    description="{{PROJECT_DESCRIPTION}}",
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
+    python_requires=">=3.8",
+    install_requires=[],
+    extras_require={
+        "dev": ["pytest>=7.0", "black>=22.0", "flake8>=5.0", "mypy>=0.990"],
+    },
+)"""
+
+    def _get_pyproject_toml(self) -> str:
+        return """[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "{{PROJECT_NAME}}"
+version = "0.1.0"
+description = "{{PROJECT_DESCRIPTION}}"
+requires-python = ">=3.8"
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "black>=22.0", "flake8>=5.0", "mypy>=0.990"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.black]
+line-length = 88
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true"""
+
+    def _get_python_requirements(self) -> str:
+        return """# Core dependencies
+# Add your project dependencies here
+
+# Development dependencies
+pytest>=7.0
+black>=22.0
+flake8>=5.0
+mypy>=0.990"""
+
+    def _get_python_main(self) -> str:
+        return """\"\"\"
+{{PROJECT_NAME}} - Main Module
+{{PROJECT_DESCRIPTION}}
+\"\"\"
+
+def main():
+    \"\"\"Main entry point\"\"\"
+    print("Hello from {{PROJECT_NAME}}!")
+
+if __name__ == "__main__":
+    main()"""
+
+    def _get_python_tests(self) -> str:
+        return """\"\"\"
+Tests for {{PROJECT_NAME}}
+\"\"\"
+
+from src.main import main
+
+
+def test_main():
+    \"\"\"Test main function runs without error\"\"\"
+    main()  # Should not raise
+
+def test_import():
+    \"\"\"Test that the module can be imported\"\"\"
+    import src.main
+    assert hasattr(src.main, 'main')"""
+
+    def _get_python_readme(self) -> str:
+        return """# {{PROJECT_NAME}}
+
+{{PROJECT_DESCRIPTION}}
+
+## Installation
+
+```bash
+pip install -e .
+```
+
+## Development
+
+```bash
+pip install -e ".[dev]"
+```
+
+## Testing
+
+```bash
+pytest
+```
+
+## License
+
+MIT License"""
+
+    # Fullstack template methods
+    def _get_docker_compose(self) -> str:
+        return """version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=sqlite:///./app.db
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: app_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:"""
+
+    def _get_fullstack_readme(self) -> str:
+        return """# {{PROJECT_NAME}}
+
+{{PROJECT_DESCRIPTION}}
+
+## Architecture
+
+- **Frontend**: React + TypeScript + Tailwind CSS
+- **Backend**: FastAPI + SQLAlchemy
+- **Database**: PostgreSQL (SQLite for development)
+
+## Quick Start
+
+### Using Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+
+### Manual Setup
+
+#### Backend
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+#### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## License
+
+MIT License"""
+    
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create standardized error response"""
         return {

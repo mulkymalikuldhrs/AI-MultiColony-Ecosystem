@@ -1,26 +1,41 @@
-# Node.js
-node_modules/
+# =============================================================================
+# Agentic AI System - Git Ignore
+# =============================================================================
 
-# Environment
+# Environment and secrets
 .env
+.env.*
+!.env.example
 
 # Python
-build/
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
 *.egg-info/
+*.egg
 dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Node.js
+node_modules/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Logs
 logs/
@@ -29,3 +44,19 @@ logs/
 # Temporary files
 tmp/
 temp/
+
+# =============================================================================
+# SENSITIVE DATA - NEVER COMMIT
+# =============================================================================
+data/master.key
+data/salt.key
+data/credentials.db
+data/*.key
+data/*.db
+web_interface/data/credentials.db
+
+# =============================================================================
+# RUNTIME ARTIFACTS
+# =============================================================================
+.deps_installed
+*.pid

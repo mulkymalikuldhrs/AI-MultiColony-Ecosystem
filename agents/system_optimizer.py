@@ -68,8 +68,13 @@ class SystemOptimizerAgent:
         
         print(f"✅ {self.name} initialized - Auto-optimization enabled")
         
-        # Start background monitoring
-        asyncio.create_task(self._start_background_monitoring())
+        # Start background monitoring (only if there's a running event loop)
+        try:
+            loop = asyncio.get_running_loop()
+            asyncio.create_task(self._start_background_monitoring())
+        except RuntimeError:
+            # No running event loop - will start when first async task is processed
+            pass
     
     async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process optimization tasks"""

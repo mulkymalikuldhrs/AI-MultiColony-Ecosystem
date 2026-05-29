@@ -1,0 +1,108 @@
+{
+  "cybershell": {
+    "name": "CyberShell Agent",
+    "capabilities": [
+      "shell_execution",
+      "cli_automation",
+      "system_administration"
+    ],
+    "status": "active",
+    "priority": 8
+  },
+  "ui_designer": {
+    "name": "UI Designer Agent",
+    "capabilities": [
+      "ui_design",
+      "react_components",
+      "tailwind_css",
+      "figma_design"
+    ],
+    "status": "active",
+    "priority": 7
+  },
+  "dev_engine": {
+    "name": "Development Engine",
+    "capabilities": [
+      "project_setup",
+      "architecture_design",
+      "code_generation"
+    ],
+    "status": "active",
+    "priority": 9
+  },
+  "agent_maker": {
+    "name": "Agent Maker",
+    "capabilities": [
+      "agent_creation",
+      "code_generation",
+      "autonomous_development"
+    ],
+    "status": "active",
+    "priority": 9
+  },
+  "fullstack_dev": {
+    "name": "Full Stack Developer",
+    "capabilities": [
+      "frontend",
+      "backend",
+      "database",
+      "api_development"
+    ],
+    "status": "active",
+    "priority": 10
+  },
+  "data_sync": {
+    "name": "Data Sync Agent",
+    "capabilities": [
+      "database_sync",
+      "supabase",
+      "redis",
+      "json_storage"
+    ],
+    "status": "active",
+    "priority": 8
+  },
+  "voice_agent": {
+    "name": "Voice Agent",
+    "capabilities": [
+      "speech_to_text",
+      "voice_commands",
+      "audio_processing"
+    ],
+    "status": "active",
+    "priority": 6
+  },
+  "github_agent": {
+    "name": "GitHub Agent",
+    "capabilities": [
+      "git_operations",
+      "repo_management",
+      "ci_cd",
+      "code_sync"
+    ],
+    "status": "active",
+    "priority": 7
+  },
+  "deploy_manager": {
+    "name": "Deploy Manager",
+    "capabilities": [
+      "web_deployment",
+      "apk_build",
+      "docker",
+      "cloud_deploy"
+    ],
+    "status": "active",
+    "priority": 8
+  },
+  "web3_plugin": {
+    "name": "Web3 Agent",
+    "capabilities": [
+      "smart_contracts",
+      "blockchain",
+      "defi",
+      "nft"
+    ],
+    "status": "active",
+    "priority": 6
+  }
+}

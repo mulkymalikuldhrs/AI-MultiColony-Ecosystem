@@ -266,6 +266,27 @@ class SyncEngine:
         
         return messages
     
+    def _run_async_safely(self, coro):
+        """Safely run an async coroutine from a synchronous/thread context"""
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            asyncio.run_coroutine_threadsafe(coro, loop)
+        else:
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    asyncio.run_coroutine_threadsafe(coro, loop)
+                else:
+                    loop.run_until_complete(coro)
+            except RuntimeError:
+                new_loop = asyncio.new_event_loop()
+                new_loop.run_until_complete(coro)
+                new_loop.close()
+
     def broadcast_message(self, from_agent: str, message_type: MessageType, 
                          content: Any, exclude_agents: List[str] = None):
         """Broadcast message to all agents"""
@@ -283,7 +304,7 @@ class SyncEngine:
                     priority=3
                 )
                 
-                asyncio.create_task(self.send_message(message))
+                self._run_async_safely(self.send_message(message))
     
     async def coordinate_workflow(self, workflow_id: str, participants: List[str], 
                                  coordination_data: Dict) -> bool:
