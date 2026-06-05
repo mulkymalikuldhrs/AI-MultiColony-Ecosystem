@@ -6,6 +6,9 @@
 .env
 .env.*
 !.env.example
+.env.local
+.env.production
+.env.*.local
 
 # Python
 __pycache__/
@@ -41,9 +44,32 @@ Desktop.ini
 logs/
 *.log
 
+# Test results and browser reports
+test_results.json
+browser_test_report.json
+
+# Screenshots
+Screenshot_*.jpg
+Screenshot_*.png
+
+# Build artifacts
+build/
+
+# Data files (runtime)
+data/memory.json
+data/agents_registry.json
+data/schedule.json
+data/financial/
+data/knowledge/
+data/marketing/
+data/backups/
+
 # Temporary files
 tmp/
 temp/
+
+# Replit
+.replit
 
 # =============================================================================
 # SENSITIVE DATA - NEVER COMMIT
@@ -61,9 +87,10 @@ web_interface/data/credentials.db
 .deps_installed
 *.pid
 package-lock.json
-.env.local
-.env.production
 .next/
 .vercel/
 *.key
 *.pem
+
+# PDF files
+*.pdf
