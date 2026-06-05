@@ -268,7 +268,7 @@ class AgenticAISystem:
         except Exception as e:
             print(f"  ❌ Web Interface failed: {e}")
     
-    async def _run_web_interface(self):
+    async def _run_web_interface(self) -> None:
         """Run the web interface server"""
         try:
             import subprocess
@@ -321,8 +321,17 @@ class AgenticAISystem:
         return '\n'.join(lines) if lines else "│   • No active agents"
     
     async def process_user_input(self, user_input: str, input_type: str = "text", 
-                                metadata: Dict = None) -> Dict[str, Any]:
-        """Process user input through the system"""
+                                metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Process user input through the system
+        
+        Args:
+            user_input: The user's text or command input
+            input_type: Type of input ('text', 'voice', 'code')
+            metadata: Optional additional metadata for processing
+            
+        Returns:
+            Dict with 'success' bool and 'result' or 'error'
+        """
         if not self.prompt_master:
             return {"success": False, "error": "Prompt Master not available"}
         
@@ -340,7 +349,11 @@ class AgenticAISystem:
             return {"success": False, "error": str(e)}
     
     async def get_system_status(self) -> Dict[str, Any]:
-        """Get comprehensive system status"""
+        """Get comprehensive system status
+        
+        Returns:
+            Dict containing system_id, version, status, uptime, components, agents, and config
+        """
         uptime = (datetime.now() - self.start_time).total_seconds()
         
         status = {
@@ -379,8 +392,8 @@ class AgenticAISystem:
         
         return status
     
-    async def run_interactive_mode(self):
-        """Run in interactive mode"""
+    async def run_interactive_mode(self) -> None:
+        """Run in interactive mode - accepts text commands from stdin"""
         print("\n🎯 Entering interactive mode. Type 'help' for commands, 'exit' to quit.")
         
         while not self.shutdown_requested:
@@ -453,13 +466,18 @@ For detailed documentation: http://localhost:5000/docs
         """
         print(help_text)
     
-    def _signal_handler(self, signum, frame):
-        """Handle shutdown signals"""
+    def _signal_handler(self, signum: int, frame) -> None:
+        """Handle shutdown signals gracefully
+        
+        Args:
+            signum: Signal number received
+            frame: Current stack frame (unused)
+        """
         print(f"\n🛑 Received signal {signum}, initiating shutdown...")
         self.shutdown_requested = True
     
-    async def shutdown(self):
-        """Gracefully shutdown the system"""
+    async def shutdown(self) -> None:
+        """Gracefully shutdown the system, stopping all components"""
         print("🛑 Shutting down Agentic AI System...")
         
         try:

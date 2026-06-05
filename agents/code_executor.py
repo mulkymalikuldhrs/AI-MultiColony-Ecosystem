@@ -9,7 +9,10 @@ import json
 import os
 import subprocess
 import tempfile
-import docker
+try:
+    import docker
+except ImportError:
+    docker = None
 import uuid
 from datetime import datetime
 from typing import Dict, Any, List, Optional
@@ -103,10 +106,12 @@ class CodeExecutorAgent:
         
         # Docker client
         try:
+            if docker is None:
+                raise ImportError("docker package not installed")
             self.docker_client = docker.from_env()
             self.docker_available = True
             print("✅ Docker client initialized")
-        except:
+        except Exception:
             self.docker_client = None
             self.docker_available = False
             print("⚠️ Docker not available, using local execution")

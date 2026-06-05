@@ -47,12 +47,14 @@ class LLMProviderManager:
                 'name': 'LLM7 (Free)',
                 'priority': 1,  # Highest priority as it's free
                 'base_url': 'https://api.llm7.com/v1',
-                'public_key': 'llm7-free-public-key-2024',  # Free public key
+                # SECURITY: Load API key from environment, never hardcode in source.
+                # Set LLM7_API_KEY env var. A free-tier key may be available from LLM7 docs.
+                'api_key': os.getenv('LLM7_API_KEY'),
                 'model_prefix': 'llm7/',
                 'supports_streaming': True,
                 'cost_per_token': 0.0,  # Free
                 'max_tokens': 4000,
-                'status': 'active',
+                'status': 'inactive',  # Will be activated if API key is provided
                 'health_score': 100,
                 'last_check': None,
                 'error_count': 0,
@@ -212,6 +214,7 @@ class LLMProviderManager:
     def _load_api_keys(self):
         """Load API keys from environment variables"""
         api_key_mapping = {
+            'llm7': 'LLM7_API_KEY',
             'openrouter': 'OPENROUTER_API_KEY',
             'deepseek': 'DEEPSEEK_API_KEY',
             'openai': 'OPENAI_API_KEY',
@@ -228,10 +231,13 @@ class LLMProviderManager:
                 print(f"✅ {self.providers[provider]['name']} API key loaded")
     
     def _initialize_llm7(self):
-        """Initialize LLM7 as primary free provider"""
-        self.providers['llm7']['status'] = 'active'
-        self.providers['llm7']['api_key'] = self.providers['llm7']['public_key']
-        print("🆓 LLM7 free provider initialized and ready")
+        """Initialize LLM7 as primary free provider (if API key is available)"""
+        if self.providers['llm7'].get('api_key'):
+            self.providers['llm7']['status'] = 'active'
+            print("🆓 LLM7 free provider initialized and ready")
+        else:
+            self.providers['llm7']['status'] = 'inactive'
+            print("⚠️ LLM7 API key not set. Set LLM7_API_KEY env var to enable.")
     
     async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process LLM provider management tasks"""
@@ -393,7 +399,7 @@ class LLMProviderManager:
                 model = 'llm7/gpt-3.5-turbo'
             
             headers = {
-                'Authorization': f"Bearer {provider['public_key']}",
+                'Authorization': f"Bearer {provider['api_key']}",
                 'Content-Type': 'application/json'
             }
             

@@ -47,9 +47,22 @@ class SecureCredentialManager:
         
         # Derive encryption key from master password
         password = self.master_password.encode()
-        # Generate salt from master password hash for consistency
-        # In production, store salt separately and per-user
-        salt = hashlib.sha256(b'agentic_ai_salt_' + password).digest()[:16]
+        # Use a stored salt file for proper key derivation.
+        # If no salt file exists, generate one (first run).
+        # SECURITY: Salt should be random and stored separately, not derived from password.
+        salt_path = Path("data/credentials.salt")
+        salt_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        if salt_path.exists():
+            salt = salt_path.read_bytes()
+        else:
+            salt = os.urandom(16)
+            salt_path.write_bytes(salt)
+            # Restrict file permissions (best-effort on Windows)
+            try:
+                os.chmod(str(salt_path), 0o600)
+            except OSError:
+                pass
         
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -240,6 +253,7 @@ class SecureCredentialManager:
                     set_clauses.append("additional_fields = ?")
                     values.append(json.dumps(value))
                 elif field in allowed_fields:
+                    # Use parameterized column name via whitelist to prevent SQL injection
                     set_clauses.append(f"{field} = ?")
                     values.append(value)
             
@@ -416,5 +430,24 @@ class SecureCredentialManager:
             print(f"Error exporting credentials: {e}")
             return {}
 
-# Global credential manager instance
-credential_manager = SecureCredentialManager()
+# Lazy-loaded global credential manager instance
+# Avoids crash at import time if CREDENTIAL_MASTER_PASSWORD is not set
+_credential_manager_instance: Optional[SecureCredentialManager] = None
+
+
+def get_credential_manager() -> SecureCredentialManager:
+    """Get or create the global credential manager instance."""
+    global _credential_manager_instance
+    if _credential_manager_instance is None:
+        _credential_manager_instance = SecureCredentialManager()
+    return _credential_manager_instance
+
+
+# Backward-compatible alias (lazy-evaluated via property pattern)
+class _CredentialManagerProxy:
+    """Proxy that lazily initializes SecureCredentialManager on first attribute access."""
+    def __getattr__(self, name: str) -> Any:
+        return getattr(get_credential_manager(), name)
+
+
+credential_manager = _CredentialManagerProxy()

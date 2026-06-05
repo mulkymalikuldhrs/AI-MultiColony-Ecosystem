@@ -160,7 +160,10 @@ def integrations():
 
 @app.route('/api/system/status')
 def get_system_status():
-    """Get current system status"""
+    """Get current system status
+    
+    Returns JSON with system status, agent counts, version, and component health.
+    """
     try:
         data = {
             'system_status': 'running' if agent_registry else 'partial',
@@ -203,7 +206,7 @@ def get_system_status():
 
 @app.route('/api/agents/list')
 def list_agents():
-    """List all agents"""
+    """List all registered agents with their status and capabilities"""
     try:
         agents_list = []
         for agent_id, agent in agent_registry.items():
@@ -261,7 +264,10 @@ def get_agent_status(agent_id):
 
 @app.route('/api/task/submit', methods=['POST'])
 def submit_task():
-    """Submit a task to specific agent"""
+    """Submit a task to a specific agent for execution
+    
+    Expects JSON body with 'agent_id' and 'task' fields.
+    """
     try:
         data = request.get_json()
         if not data:
@@ -618,14 +624,15 @@ def not_found(error):
     """Handle 404 - check if it's an API request or page request"""
     if request.path.startswith('/api/'):
         return jsonify({'success': False, 'error': 'Not found'}), 404
-    return render_template('offline.html'), 404
+    try:
+        return render_template('offline.html'), 404
+    except Exception:
+        return jsonify({'success': False, 'error': 'Page not found'}), 404
 
 
 @app.errorhandler(500)
 def internal_error(error):
-    """Handle 500 errors"""
-    if request.path.startswith('/api/'):
-        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+    """Handle 500 errors - returns JSON for both API and page requests"""
     return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 

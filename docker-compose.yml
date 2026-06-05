@@ -22,9 +22,10 @@ services:
       - "8765:8765"  # WebSocket
     environment:
       - FLASK_ENV=${FLASK_ENV:-production}
-      - DATABASE_URL=postgresql://agentic:${POSTGRES_PASSWORD:-agentic123}@postgres:5432/agentic_db
+      - DATABASE_URL=postgresql://agentic:${POSTGRES_PASSWORD:-changeme_secure_password}@postgres:5432/agentic_db
       - REDIS_URL=redis://redis:6379/0
-      - LLM7_API_KEY=${LLM7_API_KEY:-llm7-free-api-key}
+      # SECURITY: Never use default API keys in production. Set via .env file.
+      - LLM7_API_KEY=${LLM7_API_KEY:-}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - WEB_INTERFACE_HOST=0.0.0.0
@@ -59,7 +60,7 @@ services:
     environment:
       - POSTGRES_DB=agentic_db
       - POSTGRES_USER=agentic
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-agentic123}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme_secure_password}
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -79,9 +80,9 @@ services:
     image: redis:7-alpine
     container_name: agentic-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis123}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme_secure_password}
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis123}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme_secure_password}
     volumes:
       - redis_data:/data
     ports:
@@ -142,7 +143,7 @@ services:
     restart: unless-stopped
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-changeme_secure_password}
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana_data:/var/lib/grafana
@@ -203,7 +204,7 @@ services:
       - agentic_logs:/app/logs
     environment:
       - FLASK_ENV=development
-      - DATABASE_URL=postgresql://agentic:${POSTGRES_PASSWORD:-agentic123}@postgres:5432/agentic_db
+      - DATABASE_URL=postgresql://agentic:${POSTGRES_PASSWORD:-changeme_secure_password}@postgres:5432/agentic_db
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       - postgres
