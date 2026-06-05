@@ -86,7 +86,7 @@ export class AutoSwitch<T, R> {
     }
 
     async execute(params: T): Promise<{ data: R; providerId: string }> {
-        let lastError: any = null;
+        let lastError: Error | null = null;
         
         // Filter and sort providers by health
         const availableProviders = this.providers
@@ -117,10 +117,11 @@ export class AutoSwitch<T, R> {
                     const data = await provider.execute(params);
                     this.updateHealth(provider.id, true);
                     return { data, providerId: provider.id };
-                } catch (error: any) {
+                } catch (error: unknown) {
                     this.updateHealth(provider.id, false);
-                    const status = error?.status || error?.response?.status;
-                    const message = error?.message || "";
+                    const err = error instanceof Error ? error : new Error(String(error));
+                    const status = (err as { status?: number }).status || (err as { response?: { status?: number } }).response?.status;
+                    const message = err.message || "";
 
                     // If rate limited, retry with exponential backoff
                     if (status === 429 || message.includes('429') || message.toLowerCase().includes('rate limit')) {
@@ -134,7 +135,7 @@ export class AutoSwitch<T, R> {
                     // For other errors, log and try next provider if auto-switch is enabled
                     console.error(`[AutoSwitch] ${provider.name} failed:`, message);
                     this.setCooldown(provider.id, 30000); // 30s cooldown for non-rate-limit errors
-                    lastError = error;
+                    lastError = err;
                     break; // Exit retry loop to try next provider
                 }
             }

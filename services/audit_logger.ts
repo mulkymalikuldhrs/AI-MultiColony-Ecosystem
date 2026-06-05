@@ -7,7 +7,7 @@ export interface AuditEntry {
     timestamp: number;
     layer: AuditLayer;
     event: string;
-    data: any;
+    data: unknown;
     status: 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
 }
 
@@ -15,7 +15,7 @@ const MAX_LOGS = 1000;
 let logs: AuditEntry[] = [];
 
 export const AuditLogger = {
-    log: (layer: AuditLayer, event: string, data: any = {}, status: AuditEntry['status'] = 'INFO') => {
+    log: (layer: AuditLayer, event: string, data: unknown = {}, status: AuditEntry['status'] = 'INFO') => {
         const entry: AuditEntry = {
             timestamp: Date.now(),
             layer,

@@ -13,14 +13,8 @@ const ChatMessage: React.FC<Props> = ({ message }) => {
     const isModel = message.role === MessageRole.MODEL;
 
     const handleRunCode = (code: string) => {
-        try {
-            console.log("--- Manual Execution ---");
-            const func = new Function(code);
-            func();
-        } catch(e) {
-            console.error(e);
-            alert("Execution Error (Check Console)");
-        }
+        // SECURITY: Log code for review instead of executing arbitrary code
+        console.warn("[SECURITY] Code execution blocked. Review the following code manually:", code);
     }
 
     const renderChart = (jsonString: string) => {
@@ -75,11 +69,12 @@ const ChatMessage: React.FC<Props> = ({ message }) => {
             <div key={index} className={`my-4 rounded-xl overflow-hidden border shadow-inner group transition-colors duration-500 ${theme === 'dark' ? 'bg-[#000]/40 border-white/5' : 'bg-zinc-100/50 border-black/5'}`}>
               <div className={`flex items-center justify-between px-4 py-1.5 border-b transition-colors duration-500 ${theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
                  <span className={`text-[9px] font-black tracking-widest ${theme === 'dark' ? 'text-zinc-500' : 'text-zinc-400'}`}>NEURAL_KERNEL_LOG</span>
-                 <button 
+                        <button 
                     onClick={() => handleRunCode(content)}
+                    aria-label="Copy code to clipboard"
                     className={`opacity-0 group-hover:opacity-100 flex items-center gap-1 text-[9px] font-black tracking-widest transition-all px-2 py-0.5 rounded shadow-sm border ${theme === 'dark' ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10' : 'text-emerald-600 border-emerald-500/30 bg-white hover:bg-emerald-50'}`}
                  >
-                     <IconCode className="w-3 h-3" /> RUN_LOGIC
+                     <IconCode className="w-3 h-3" /> REVIEW
                  </button>
               </div>
               <pre className={`p-4 overflow-x-auto text-[11px] font-mono custom-scrollbar ${theme === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}>

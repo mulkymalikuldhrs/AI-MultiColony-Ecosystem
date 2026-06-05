@@ -4,9 +4,9 @@ import { storageManager } from './storage_manager';
 
 interface AgentMemory {
     id: string;
-    messages: any[];
+    messages: { role: string; parts: { text: string }[] }[];
     summary: string;
-    lastState: any;
+    lastState: Record<string, unknown>;
     timestamp: number;
 }
 
@@ -60,14 +60,14 @@ export class MemoryManager {
         }
     }
     
-    static saveSystemState(state: any) {
+    static saveSystemState(state: Record<string, unknown>) {
         storageManager.setItem(this.SYSTEM_STATE_KEY, JSON.stringify({
             ...state,
             timestamp: Date.now()
         })).catch(console.error);
     }
     
-    static async loadSystemState(): Promise<any | null> {
+    static async loadSystemState(): Promise<Record<string, unknown> | null> {
         const stored = await storageManager.getItem(this.SYSTEM_STATE_KEY);
         if (!stored) return null;
         try {

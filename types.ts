@@ -161,8 +161,7 @@ export type AgentCapability =
   | 'fundamental'       // News/Macro Analyst
   | 'risk-manager'      // Risk Control
   | 'algo-dev'          // Coder (Backtesting)
-  | 'general'
-  | string;
+  | 'general';
 
 export type AgentRole = AgentCapability | 'reviewer';
 export type AgentTool = 'googleSearch' | 'codeExecution' | 'browserNavigation' | 'googleDrive' | 'systemUpgrade' | 'marketData' | 'spawnAgent';
@@ -195,19 +194,27 @@ export interface AgentTask {
   result?: string;
 }
 
+export interface ApiKeys {
+  google: string;
+  groq: string;
+  openai: string;
+  huggingface: string;
+  llm7: string;
+  alphaVantage: string;
+  finnhub: string;
+  fred: string;
+  polygon: string;
+}
+
 export interface SystemConfiguration {
   enableAutoLearning: boolean;
-  apiKeys: {
-    google: string;
-    groq: string;
-    openai: string;
-    huggingface: string;
-    llm7: string;
-    alphaVantage: string;
-    finnhub: string;
-    fred: string;
-    polygon: string;
-  };
+  enableSelfHealing?: boolean;
+  enableAutoScaling?: boolean;
+  enableDynamicTools?: boolean;
+  enableScheduling?: boolean;
+  enableAutoSwitch?: boolean;
+  enableVoiceResponse?: boolean;
+  apiKeys: ApiKeys;
 }
 
 // --- MARKET DATA TYPES ---
@@ -238,3 +245,112 @@ export interface CandleData {
     close: number;
     volume?: number;
 }
+
+// --- AGENT UI TYPES ---
+
+export interface AgentState {
+  isActive: boolean;
+  currentAgent?: string;
+  currentAction?: string;
+  emotion?: string;
+  activeSwarm?: SwarmAgent[];
+  activeBrowserUrl?: string;
+  logs?: string[];
+}
+
+export interface ModelOption {
+  id: string;
+  name: string;
+  provider: string;
+}
+
+export type SystemActionType = 'OPEN_WINDOW' | 'NAVIGATE_BROWSER' | 'FETCH_MARKET' | 'EXECUTE_TRADE' | 'ANALYZE_SENTIMENT';
+
+export interface SystemAction {
+  type: SystemActionType;
+  payload: string;
+}
+
+export interface SystemNotification {
+  id: string;
+  type: 'info' | 'warning' | 'error' | 'success';
+  message: string;
+  timestamp: number;
+}
+
+// --- DATA DISPLAY TYPES ---
+
+export interface NewsItem {
+  id: string;
+  headline: string;
+  source: string;
+  url: string;
+  summary: string;
+  timestamp: number;
+}
+
+export interface ChartPoint {
+  timestamp: number;
+  price: number;
+}
+
+export interface ResearchSource {
+  id: string;
+  name: string;
+  url: string;
+  type: 'news' | 'market' | 'geo' | 'sentiment' | 'institutional' | 'ai';
+  lastScanned?: number;
+}
+
+// --- PORTFOLIO & FILE TYPES ---
+
+export interface VirtualFile {
+  name: string;
+  content: string;
+  type: string;
+  lastModified: number;
+}
+
+export interface PortfolioPosition {
+  ticker: string;
+  amount: number;
+  avgPrice: number;
+  currentPrice: number;
+  pnl: number;
+  lastUpdated: number;
+}
+
+export interface DataSource {
+  id: string;
+  name: string;
+  endpoint: string;
+}
+
+export interface TradeHistoryItem {
+  id: string;
+  timestamp: number;
+  ticker: string;
+  action: 'BUY' | 'SELL';
+  amount: number;
+  price: number;
+  totalValue: number;
+  fees: number;
+  realizedPnL?: number;
+  triggeredBySignals?: string[];
+}
+
+export interface SystemPatch {
+  id: string;
+  code: string;
+  description: string;
+  timestamp: number;
+}
+
+export interface WindowState {
+  id: string;
+  isOpen: boolean;
+  isMinimized: boolean;
+  zIndex: number;
+}
+
+export type LLMProvider = 'google' | 'groq' | 'openai' | 'llm7';

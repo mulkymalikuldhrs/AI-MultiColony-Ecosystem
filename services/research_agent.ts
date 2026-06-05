@@ -14,7 +14,7 @@ const RESEARCH_SOURCES: ResearchSource[] = [
 
 export const ResearchAgent = {
     isAutonomouslyRunning: false,
-    intervalId: null as any,
+    intervalId: null as ReturnType<typeof setInterval> | null,
     logs: [] as string[],
 
     getLogs: () => ResearchAgent.logs,
@@ -96,7 +96,7 @@ export const ResearchAgent = {
                 try {
                     const res = await fetch('https://restcountries.com/v3.1/region/southeast%20asia');
                     const data = await res.json();
-                    content = `REGIONAL INTEL (SEA):\n` + data.slice(0, 5).map((c: any) => `- ${c.name.common}: Population ${c.population?.toLocaleString() || 'N/A'}`).join('\n');
+                    content = `REGIONAL INTEL (SEA):\n` + data.slice(0, 5).map((c: { name: { common: string }; population: number }) => `- ${c.name.common}: Population ${c.population?.toLocaleString() || 'N/A'}`).join('\n');
                     path += `/GEO_REPORT_${Date.now()}.txt`;
                 } catch (e) {
                     ResearchAgent.addLog(`Skipped ${source.name}: Geo API unavailable`);
@@ -121,7 +121,7 @@ export const ResearchAgent = {
                 try {
                     const res = await fetch('https://huggingface.co/api/models?sort=downloads&direction=-1&limit=5');
                     const data = await res.json();
-                    content = `AI ECOSYSTEM UPDATE:\n` + data.map((m: any) => `- ${m.id} (Downloads: ${m.downloads?.toLocaleString() || 'N/A'})`).join('\n');
+                    content = `AI ECOSYSTEM UPDATE:\n` + data.map((m: { id: string; downloads: number }) => `- ${m.id} (Downloads: ${m.downloads?.toLocaleString() || 'N/A'})`).join('\n');
                     path += `/AI_CORE_${Date.now()}.txt`;
                 } catch (e) {
                     ResearchAgent.addLog(`Skipped ${source.name}: HuggingFace API unavailable`);

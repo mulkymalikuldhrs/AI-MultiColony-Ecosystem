@@ -7,14 +7,20 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+node_modules/
+dist/
+dist-ssr/
 *.local
+.next/
+.vercel/
+venv/
+__pycache__/
+.replit
 
 # Environment & Secrets
 .env
 .env.local
+.env.development
 .env.production
 .env*.local
 

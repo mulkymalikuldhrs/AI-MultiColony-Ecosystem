@@ -2,9 +2,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { IconChart, IconTerminal, IconGlobe } from './Icons';
 
+interface TradingViewWidget {
+    widget: new (config: Record<string, unknown>) => unknown;
+}
+
 declare global {
     interface Window {
-        TradingView: any;
+        TradingView: TradingViewWidget;
     }
 }
 
@@ -56,7 +60,7 @@ const TradingTerminalWindow: React.FC = () => {
                     ].map(item => (
                         <button 
                             key={item.id}
-                            onClick={() => setMode(item.id as any)}
+                        onClick={() => setMode(item.id as 'analysis' | 'execution' | 'risk')}
                             className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${mode === item.id ? 'bg-[var(--accent-primary)] text-black shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'text-zinc-500 hover:text-zinc-300'}`}
                         >
                             {item.icon} {item.label}

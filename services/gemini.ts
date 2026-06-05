@@ -1,4 +1,4 @@
-import { SwarmAgent, AgentState, ModelOption, Attachment, SystemConfiguration, SystemAction, GroundingSource, KnowledgeItem } from "../types";
+import { SwarmAgent, AgentState, ModelOption, Attachment, SystemConfiguration, SystemAction, SystemActionType, GroundingSource, KnowledgeItem } from "../types";
 import { BrowserFS } from "./file_system";
 import { LLMRouter } from "./llm_router";
 import { BrowserCore } from "./browser_core";
@@ -105,9 +105,10 @@ export class AutonomousAgent {
       });
 
       return { text: result.text, groundingSources, actions };
-    } catch (error: any) {
-      this.addLog(`[ERROR] ${error.message}`);
-      return { text: `Neural Link Failure: ${error.message}`, groundingSources: [] };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.addLog(`[ERROR] ${message}`);
+      return { text: `Neural Link Failure: ${message}`, groundingSources: [] };
     } finally {
       this.updateState({ isActive: false, emotion: 'idle' });
     }
@@ -142,9 +143,10 @@ export class AutonomousAgent {
             const res = await this.router.generate(this.selectedModel, agentPrompt);
             this.addLog(`[${agent.name}] Analysis complete.`);
             return { name: agent.name, output: res.text };
-        } catch (e: any) {
-            this.addLog(`[${agent.name}] Link error: ${e.message}`);
-            return { name: agent.name, output: `ERROR: ${e.message}` };
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
+            this.addLog(`[${agent.name}] Link error: ${message}`);
+            return { name: agent.name, output: `ERROR: ${message}` };
         }
     });
 
@@ -177,7 +179,7 @@ export class AutonomousAgent {
     const actions: SystemAction[] = [];
     const matches = text.matchAll(/\[ACTION:([^:]+):([^\]]+)\]/g);
     for (const match of matches) {
-        actions.push({ type: match[1] as any, payload: match[2] });
+        actions.push({ type: match[1] as SystemActionType, payload: match[2] });
     }
     return actions;
   }

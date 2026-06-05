@@ -103,6 +103,7 @@ const InputArea: React.FC<Props> = ({ onSendMessage, isLoading }) => {
                   onClick={() => fileInputRef.current?.click()}
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${theme === 'dark' ? 'hover:bg-white/5 text-zinc-500 hover:text-zinc-300' : 'hover:bg-black/5 text-zinc-400 hover:text-zinc-600'}`}
                   title="Attach File"
+                  aria-label="Attach a file"
                 >
                     <IconPaperclip className="w-4 h-4" />
                 </button>
@@ -117,6 +118,7 @@ const InputArea: React.FC<Props> = ({ onSendMessage, isLoading }) => {
                 placeholder="Ask Quant Nanggroe..."
                 disabled={isLoading}
                 rows={1}
+                aria-label="Chat message input"
                 className={`w-full bg-transparent text-sm py-2 px-1 resize-none focus:outline-none transition-colors ${theme === 'dark' ? 'text-zinc-100 placeholder-zinc-600' : 'text-zinc-800 placeholder-zinc-400'}`}
               />
             </div>
@@ -124,6 +126,7 @@ const InputArea: React.FC<Props> = ({ onSendMessage, isLoading }) => {
             <button
               type="submit"
               disabled={(!input.trim() && attachments.length === 0) || isLoading}
+              aria-label="Send message"
               className={`w-8 h-8 rounded-full flex items-center justify-center mb-0.5 transition-all duration-300 ${
                 (input.trim() || attachments.length > 0) && !isLoading
                   ? (theme === 'dark' ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 scale-105' : 'bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 scale-105')

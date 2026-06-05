@@ -1,17 +1,58 @@
 // Google Drive Service for AI Nanggroe
-// Target Folder: 1fVA-wg2sQKbpYsRCcRkb99a4vWco5y1s
+// Configure GOOGLE_DRIVE_FOLDER_ID via environment variables
 
-declare global {
-  interface Window {
-    gapi: any;
-    google: any;
-  }
+interface GapiWindow {
+    gapi: {
+        load: (modules: string, callback: () => void) => void;
+        client: {
+            init: (config: Record<string, unknown>) => Promise<void>;
+            drive: {
+                files: {
+                    list: (params: Record<string, unknown>) => Promise<{ result: { files: DriveFile[] } }>;
+                    create: (params: Record<string, unknown>) => Promise<{ result: DriveFile }>;
+                    get: (params: Record<string, unknown>) => Promise<{ result: unknown }>;
+                };
+            };
+            request: (config: Record<string, unknown>) => Promise<{ result: unknown }>;
+        };
+    };
+    google: {
+        accounts: {
+            oauth2: {
+                initTokenClient: (config: {
+                    client_id: string;
+                    scope: string;
+                    callback: (resp: TokenResponse) => void;
+                }) => TokenClient;
+            };
+        };
+    };
 }
 
-const TARGET_FOLDER_ID = '1fVA-wg2sQKbpYsRCcRkb99a4vWco5y1s';
+interface DriveFile {
+    id: string;
+    name: string;
+    mimeType: string;
+    webViewLink: string;
+}
+
+interface TokenResponse {
+    error?: string;
+    access_token: string;
+}
+
+interface TokenClient {
+    requestAccessToken: (config: { prompt: string }) => void;
+}
+
+declare global {
+  interface Window extends GapiWindow {}
+}
+
+const TARGET_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || '';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly';
 
-let tokenClient: any;
+let tokenClient: TokenClient | null = null;
 let accessToken: string | null = null;
 let gapiInited = false;
 let gisInited = false;
@@ -37,9 +78,9 @@ export const initDriveApi = (clientId: string, onInit: (success: boolean) => voi
     tokenClient = window.google.accounts.oauth2.initTokenClient({
       client_id: clientId,
       scope: SCOPES,
-      callback: (resp: any) => {
+      callback: (resp: TokenResponse) => {
         if (resp.error !== undefined) {
-          throw (resp);
+          throw new Error(resp.error);
         }
         accessToken = resp.access_token;
         localStorage.setItem('google_access_token', accessToken || '');

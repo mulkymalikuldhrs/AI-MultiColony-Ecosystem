@@ -67,7 +67,15 @@ export const SystemArchitecture: React.FC = () => {
     );
 };
 
-const Node = ({ icon, title, desc, color, highlight }: any) => (
+interface NodeProps {
+    icon: React.ReactNode;
+    title: string;
+    desc: string;
+    color: string;
+    highlight?: boolean;
+}
+
+const Node = ({ icon, title, desc, color, highlight }: NodeProps) => (
     <div className={`p-4 rounded-xl border border-white/5 bg-white/5 text-center space-y-2 ${highlight ? 'ring-2 ring-emerald-500/50 scale-105 shadow-[0_0_30px_rgba(16,185,129,0.2)]' : ''}`}>
         <div className={`mx-auto w-10 h-10 rounded-full flex items-center justify-center bg-${color}-500/20 text-${color}-500`}>
             {icon}
@@ -77,7 +85,14 @@ const Node = ({ icon, title, desc, color, highlight }: any) => (
     </div>
 );
 
-const AgentCard = ({ name, role, details, color }: any) => (
+interface AgentCardProps {
+    name: string;
+    role: string;
+    details: string;
+    color: string;
+}
+
+const AgentCard = ({ name, role, details, color }: AgentCardProps) => (
     <div className="glass-panel p-4 rounded-xl border border-white/5 hover:bg-white/[0.08] transition-all group">
         <div className={`text-[10px] font-mono text-${color}-500 mb-1 uppercase tracking-widest`}>{role}</div>
         <h4 className="font-bold text-white mb-2">{name}</h4>

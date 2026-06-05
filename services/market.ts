@@ -16,7 +16,7 @@ const COINCAP_BASE_URL = "https://api.coincap.io/v2";
 
 // Caching
 const CACHE_DURATION = 15000;
-const priceCache: Record<string, { data: any; timestamp: number }> = {};
+const priceCache: Record<string, { data: MarketTicker; timestamp: number }> = {};
 let newsCache: { data: NewsItem[], timestamp: number } | null = null;
 
 const getKeys = () => {
@@ -334,9 +334,9 @@ export const MarketService = {
                     const data = await fetchWithProxy(apiUrl);
                     
                     if (Array.isArray(data)) {
-                        return data.map((d: any) => ({
-                            timestamp: d[0], open: parseFloat(d[1]), high: parseFloat(d[2]),
-                            low: parseFloat(d[3]), close: parseFloat(d[4]), volume: parseFloat(d[5])
+                        return data.map((d: number[]) => ({
+                            timestamp: d[0], open: parseFloat(String(d[1])), high: parseFloat(String(d[2])),
+                            low: parseFloat(String(d[3])), close: parseFloat(String(d[4])), volume: parseFloat(String(d[5]))
                         }));
                     }
                 } catch (e) {}
@@ -353,7 +353,7 @@ export const MarketService = {
                 const url = `${POLY_BASE_URL}/v2/aggs/ticker/${id}/range/1/hour/${fromStr}/${toStr}?adjusted=true&sort=asc&limit=500&apiKey=${keys.polygon}`;
                 const data = await fetchWithProxy(url);
                 if (data.results) {
-                    return data.results.map((r: any) => ({ timestamp: r.t, open: r.o, high: r.h, low: r.l, close: r.c, volume: r.v }));
+                    return data.results.map((r: { t: number; o: number; h: number; l: number; c: number; v: number }) => ({ timestamp: r.t, open: r.o, high: r.h, low: r.l, close: r.c, volume: r.v }));
                 }
             } catch (e) {}
         }
@@ -370,8 +370,8 @@ export const MarketService = {
         if (!keys.finnhub) return [];
         try {
             const data = await fetchWithProxy(`${FH_BASE_URL}/news?category=general&token=${keys.finnhub}`);
-            const items = data.slice(0, 10).map((item: any) => ({
-                id: item.id, headline: item.headline, source: item.source, url: item.url,
+            const items = data.slice(0, 10).map((item: { id: number; headline: string; source: string; url: string; summary: string; datetime: number }) => ({
+                id: String(item.id), headline: item.headline, source: item.source, url: item.url,
                 summary: item.summary, timestamp: item.datetime * 1000
             }));
             newsCache = { data: items, timestamp: Date.now() };

@@ -27,6 +27,7 @@ import NexusWindow from './components/NexusWindow';
 import { IconCode, IconBot, IconSettings, IconBrain, IconBook, IconMaximize, IconGlobe, IconLogo, IconChart, IconBrowser, IconTerminal, IconSearch, IconSun, IconMoon, IconDatabase, IconLayers } from './components/Icons';
 import { useAdaptiveLayout } from './services/adaptive_layout';
 import { ResearchAgent } from './services/research_agent';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // --- THEME CONTEXT ---
 export const ThemeContext = React.createContext<{ theme: 'light' | 'dark', toggleTheme: () => void }>({ theme: 'light', toggleTheme: () => {} });
@@ -162,8 +163,9 @@ const App: React.FC = () => {
               } else {
                   throw new Error(`Could not fetch data for ${symbol}`);
               }
-          } catch (e: any) {
-              setMessages(prev => [...prev, { id: Date.now().toString(), role: MessageRole.MODEL, text: `Scan failed: ${e.message}`, error: true, timestamp: Date.now() }]);
+          } catch (e: unknown) {
+              const message = e instanceof Error ? e.message : String(e);
+              setMessages(prev => [...prev, { id: Date.now().toString(), role: MessageRole.MODEL, text: `Scan failed: ${message}`, error: true, timestamp: Date.now() }]);
               setIsLoading(false);
               setAgentState(prev => ({ ...prev, isActive: false, emotion: 'focused' }));
               return;
@@ -178,8 +180,9 @@ const App: React.FC = () => {
 
         const response = await agent.run(text, attachments);
         setMessages(prev => [...prev, { id: Date.now().toString(), role: MessageRole.MODEL, text: response.text, timestamp: Date.now() }]);
-      } catch (error: any) {
-        setMessages(prev => [...prev, { id: Date.now().toString(), role: MessageRole.MODEL, text: `Error: ${error.message}`, error: true, timestamp: Date.now() }]);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        setMessages(prev => [...prev, { id: Date.now().toString(), role: MessageRole.MODEL, text: `Error: ${message}`, error: true, timestamp: Date.now() }]);
       } finally { setIsLoading(false); }
     };
 
@@ -191,8 +194,9 @@ const App: React.FC = () => {
     }));
 
     return (
+        <ErrorBoundary>
         <ThemeContext.Provider value={{ theme, toggleTheme }}>
-            <div className={`h-screen w-screen relative overflow-hidden transition-all duration-700 font-sans ${theme === 'dark' ? 'bg-[#020205] text-white' : 'bg-[#f5f5f7] text-zinc-900'}`}>
+            <div className={`h-screen w-screen relative overflow-hidden transition-all duration-700 font-sans ${theme === 'dark' ? 'bg-[#020205] text-white' : 'bg-[#f5f5f7] text-zinc-900'}`} role="main" aria-label="Quant Nanggroe AI Dashboard">
             
             {/* WALLPAPER */}
             <div className="absolute inset-0 z-0 overflow-hidden">
@@ -211,7 +215,7 @@ const App: React.FC = () => {
             </div>
             
             {/* TOP BAR */}
-            <div className={`fixed top-0 left-0 w-full h-8 backdrop-blur-[40px] border-b flex items-center justify-between px-4 z-[9999] select-none text-[12px] font-medium transition-all duration-500 ${theme === 'dark' ? 'bg-black/30 border-white/5 text-white/90' : 'bg-white/60 border-black/5 text-zinc-800'}`}>
+            <div className={`fixed top-0 left-0 w-full h-8 backdrop-blur-[40px] border-b flex items-center justify-between px-4 z-[9999] select-none text-[12px] font-medium transition-all duration-500 ${theme === 'dark' ? 'bg-black/30 border-white/5 text-white/90' : 'bg-white/60 border-black/5 text-zinc-800'}`} role="banner" aria-label="System top bar">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-70 transition-opacity" onClick={() => setIsLaunchpadOpen(true)}>
                         <IconLogo className="w-4 h-4" />
@@ -231,10 +235,10 @@ const App: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center gap-3">
-                        <button onClick={() => setIsOmniBarOpen(true)} className="hover:opacity-60 transition-opacity">
+                        <button onClick={() => setIsOmniBarOpen(true)} className="hover:opacity-60 transition-opacity" aria-label="Open search command bar">
                             <IconSearch className="w-4 h-4" />
                         </button>
-                        <button onClick={() => setIsControlCenterOpen(!isControlCenterOpen)} className="hover:opacity-60 transition-opacity">
+                        <button onClick={() => setIsControlCenterOpen(!isControlCenterOpen)} className="hover:opacity-60 transition-opacity" aria-label="Toggle control center">
                             <div className="flex flex-col gap-0.5 w-4">
                                 <div className="h-[1.5px] w-full bg-current rounded-full" />
                                 <div className="h-[1.5px] w-[70%] bg-current rounded-full self-center" />
@@ -306,6 +310,7 @@ const App: React.FC = () => {
             <Taskbar windows={windows} onToggleWindow={toggleWindow} onStartClick={() => setIsLaunchpadOpen(true)} />
             </div>
         </ThemeContext.Provider>
+        </ErrorBoundary>
     );
 };
 
