@@ -1,12 +1,17 @@
 {
-  "name": "quant-nanggroe-ai-|-autonomous-hedge-fund",
+  "name": "quant-nanggroe-ai",
   "private": true,
-  "version": "2.0.0",
+  "version": "15.3.0",
+  "description": "Multi-Agent Quant Research & Decision Intelligence OS",
+  "author": "Mulky Malikul Dhaher",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "react-dom": "^19.2.3",
@@ -16,6 +21,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"

@@ -66,7 +66,7 @@ export const BacktestEngine = {
             const flow = MarketService.getFlowWhaleOutput();
 
             // 3. Normalize Pressure
-            const pressures = PressureNormalizationEngine.normalize(quant, smc, news, flow, state);
+            const pressures = PressureNormalizationEngine.normalize(state, quant, smc, news, flow);
 
             // 4. Synthesize Decision
             const synthesis = DecisionSynthesisEngine.synthesize(state, pressures, price);

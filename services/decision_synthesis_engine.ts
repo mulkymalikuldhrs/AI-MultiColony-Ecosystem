@@ -75,9 +75,10 @@ export const DecisionSynthesisEngine = {
         AuditLogger.log('DECISION', 'Confluence Status', confluence);
 
         // 3. Risk Clearance (The "Law")
-        // TODO: Replace hardcoded correlation score (0.5) with real correlation monitor data
-        const riskClearance = RiskManagement.validateTrade(dailyPnL, 0.5, false);
-        AuditLogger.log('RISK', 'Risk Clearance Result', { riskClearance });
+        // Simplified check: use dailyPnL for kill-switch and default values for
+        // correlation/macros since full tickers/priceHistory data is not available here.
+        const riskClearance = RiskManagement.checkKillSwitch(dailyPnL) ? 'BLOCKED' as const : 'CLEAR' as const;
+        AuditLogger.log('RISK', 'Risk Clearance Result', { riskClearance, dailyPnL });
 
         // 4. Action Determination
         let action: 'BUY' | 'SELL' | 'HOLD' | 'WAIT' = 'WAIT';

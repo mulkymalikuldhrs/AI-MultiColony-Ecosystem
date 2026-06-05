@@ -22,7 +22,7 @@ export const ResearchAgent = {
     startAutonomousResearch: (intervalMs: number = 60000) => {
         if (ResearchAgent.isAutonomouslyRunning) return;
         ResearchAgent.isAutonomouslyRunning = true;
-        ResearchAgent.addLog("Autonomous Research Agent v11.4 started.");
+        ResearchAgent.addLog("Autonomous Research Agent v15.3.0 started.");
         
         ResearchAgent.executeRound();
         ResearchAgent.intervalId = setInterval(() => {
@@ -83,7 +83,7 @@ export const ResearchAgent = {
                 const btc = await MarketService.getPrice('BTC');
                 const eth = await MarketService.getPrice('ETH');
                 if (btc || eth) {
-                    content = `MARKET SNAPSHOT:\nBTC: $${btc?.current_price || 'N/A'} (${btc?.price_change_percentage_24h || 0}%)\nETH: $${eth?.current_price || 'N/A'} (${eth?.price_change_percentage_24h || 0}%)`;
+                    content = `MARKET SNAPSHOT:\nBTC: $${btc?.currentPrice || 'N/A'} (${btc?.priceChange24h || 0}%)\nETH: $${eth?.currentPrice || 'N/A'} (${eth?.priceChange24h || 0}%)`;
                     path += `/SNAPSHOT_${Date.now()}.txt`;
                 } else {
                     ResearchAgent.addLog(`Skipped ${source.name}: Market data unavailable`);

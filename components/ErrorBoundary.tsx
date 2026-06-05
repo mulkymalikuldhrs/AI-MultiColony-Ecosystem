@@ -52,7 +52,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             </div>
             <h2 className="text-xl font-black uppercase tracking-tighter">System Error</h2>
             <p className="text-sm text-zinc-400 font-mono">
-              {this.state.error?.message || 'An unexpected error occurred.'}
+              {process.env.NODE_ENV === 'development'
+                ? (this.state.error?.message || 'An unexpected error occurred.')
+                : 'An unexpected error occurred. Please try again.'}
             </p>
             <div className="flex gap-3 justify-center">
               <button

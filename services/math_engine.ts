@@ -221,6 +221,33 @@ export const MathEngine = {
         return Math.min(diff * 1000, 100); // Scale factor approximation
     },
 
+    // --- CORRELATION COEFFICIENT (Pearson) ---
+    calculateCorrelation: (x: number[], y: number[]): number => {
+        const n = Math.min(x.length, y.length);
+        if (n < 2) return 0;
+
+        const xSlice = x.slice(-n);
+        const ySlice = y.slice(-n);
+
+        const meanX = xSlice.reduce((a, b) => a + b, 0) / n;
+        const meanY = ySlice.reduce((a, b) => a + b, 0) / n;
+
+        let sumXY = 0;
+        let sumX2 = 0;
+        let sumY2 = 0;
+
+        for (let i = 0; i < n; i++) {
+            const dx = xSlice[i] - meanX;
+            const dy = ySlice[i] - meanY;
+            sumXY += dx * dy;
+            sumX2 += dx * dx;
+            sumY2 += dy * dy;
+        }
+
+        const denom = Math.sqrt(sumX2 * sumY2);
+        return denom === 0 ? 0 : sumXY / denom;
+    },
+
     // MASTER FUNCTION: Generate Institutional Technical Sheet
     analyzeSequence: (candles: CandleData[]): TechnicalIndicators => {
         const closes = candles.map(c => c.close);

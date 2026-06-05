@@ -32,7 +32,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 // --- THEME CONTEXT ---
 export const ThemeContext = React.createContext<{ theme: 'light' | 'dark', toggleTheme: () => void }>({ theme: 'light', toggleTheme: () => {} });
 
-const INSTITUTIONAL_LOGIC = `You are Nanggroe AI (v11.5.0).
+const INSTITUTIONAL_LOGIC = `You are Nanggroe AI (v15.3.0).
 
 CORE MISSION:
 - SWARM INTELLIGENCE: Coordinate specialized agents for market analysis.
@@ -103,7 +103,7 @@ const App: React.FC = () => {
         };
         initStorage();
 
-        // Start Autonomous Research Agent v11.5
+        // Start Autonomous Research Agent v15.3
         ResearchAgent.startAutonomousResearch(60000); // 1 minute interval
 
         return () => {
@@ -141,7 +141,7 @@ const App: React.FC = () => {
               const data = await MarketService.getPrice(symbol);
               if (data) {
                   let output = `### Market Analysis: ${symbol}\n\n`;
-                  output += `**Price:** $${data.current_price.toLocaleString()} (${data.price_change_percentage_24h.toFixed(2)}%)\n`;
+                  output += `**Price:** $${data.currentPrice.toLocaleString()} (${data.priceChange24h.toFixed(2)}%)\n`;
                   output += `**Source:** ${data.source}\n\n`;
                   
                   if (data.consensus) {
@@ -256,7 +256,7 @@ const App: React.FC = () => {
             <Launchpad isOpen={isLaunchpadOpen} onClose={() => setIsLaunchpadOpen(false)} apps={launchpadApps} onLaunch={(id) => focusWindow(id as WindowId)} />
             <ControlCenter isOpen={isControlCenterOpen} onClose={() => setIsControlCenterOpen(false)} />
             <OmniBar isOpen={isOmniBarOpen} onClose={() => setIsOmniBarOpen(false)} onCommand={(cmd) => handleSendMessage(cmd)} />
-            <SystemUpdater currentVersion="11.5.0" />
+            <SystemUpdater currentVersion="15.3.0" />
 
             {/* WINDOWS */}
             <div className="relative w-full h-full pt-8 pb-20">
@@ -281,7 +281,7 @@ const App: React.FC = () => {
                                 {messages.length === 0 ? (
                                     <div className="h-full flex flex-col items-center justify-center text-center opacity-20">
                                         <IconLogo className="w-24 h-24 mb-4" />
-                                        <h2 className="text-2xl font-black uppercase tracking-tighter">Quant Nanggroe v11.5</h2>
+                                        <h2 className="text-2xl font-black uppercase tracking-tighter">Quant Nanggroe v15.3</h2>
                                     </div>
                                 ) : (
                                     <div className="space-y-6 max-w-3xl mx-auto">

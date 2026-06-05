@@ -103,7 +103,7 @@ const ControlCenter: React.FC<ControlCenterProps> = ({ isOpen, onClose }) => {
                     </div>
                     <div className="flex flex-col">
                         <span className="text-[11px] font-bold">Quant Nanggroe AI</span>
-                        <span className="text-[9px] opacity-60">v15.1.0 Advanced Intelligence</span>
+                        <span className="text-[9px] opacity-60">v15.3.0 Advanced Intelligence</span>
                     </div>
                 </div>
 

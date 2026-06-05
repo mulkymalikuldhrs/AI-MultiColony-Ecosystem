@@ -7,15 +7,33 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 dist-ssr/
 *.local
 .next/
 .vercel/
+
+# Python
 venv/
 __pycache__/
-.replit
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS Files
+.DS_Store
+Thumbs.db
 
 # Environment & Secrets
 .env
@@ -23,10 +41,13 @@ __pycache__/
 .env.development
 .env.production
 .env*.local
+.env.example
 
-# Sensitive
+# Sensitive Files
 *.db
 *.key
+*.crt
+*.p12
 *.sqlite
 *.sqlite3
 credentials.db
@@ -34,13 +55,9 @@ master.key
 salt.key
 cred
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Test Coverage
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo

@@ -32,9 +32,12 @@ export const AuditLogger = {
         
         // Save to system audit log file in memory (mocking persistence)
         try {
-            const currentAudit = BrowserFS.loadFile('system_audit_trail.json') || [];
+            const rawAudit = BrowserFS.readFile('system_audit_trail.json');
+            const currentAudit: AuditEntry[] = rawAudit ? JSON.parse(rawAudit) : [];
             currentAudit.unshift(entry);
-            BrowserFS.saveFile('system_audit_trail.json', currentAudit.slice(0, MAX_LOGS));
+            // Keep only last MAX_LOGS entries to prevent unbounded growth
+            const trimmed = currentAudit.slice(0, MAX_LOGS);
+            BrowserFS.writeFile('system_audit_trail.json', JSON.stringify(trimmed));
         } catch (e) {
             // Silently fail if FS is not ready
         }
@@ -49,6 +52,10 @@ export const AuditLogger = {
 
     clear: () => {
         logs = [];
-        BrowserFS.saveFile('system_audit_trail.json', []);
+        try {
+            BrowserFS.writeFile('system_audit_trail.json', JSON.stringify([]));
+        } catch (e) {
+            // Silently fail if FS is not ready
+        }
     }
 };

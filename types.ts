@@ -183,6 +183,7 @@ export interface KnowledgeItem {
   timestamp: number;
   confidence: number;
   tags: string[];
+  path?: string;
 }
 
 export interface AgentTask {
@@ -221,9 +222,14 @@ export interface SystemConfiguration {
 
 export interface TechnicalIndicators {
     rsi: number;
+    stoch: { k: number; d: number };
+    cci: number;
+    adx: number;
     macd: { macdLine: number; signalLine: number; histogram: number; };
+    bollinger: { upper: number; middle: number; lower: number };
+    vwap: number;
     atr: number;
-    sma: { ma20: number; ma50: number; ma200: number; };
+    sma: { ma10: number; ma20: number; ma50: number; ma100: number; ma200: number; };
 }
 
 export interface MarketTicker {
@@ -354,3 +360,48 @@ export interface WindowState {
 }
 
 export type LLMProvider = 'google' | 'groq' | 'openai' | 'llm7';
+
+// --- STRATEGY & CONSENSUS TYPES ---
+
+export interface StrategySignal {
+    name: string;
+    category: 'SMC' | 'STRUCTURE' | 'RETAIL';
+    type: 'BUY' | 'SELL';
+    strength: number;
+    weight: number;
+    description: string;
+}
+
+export interface ConsensusReport {
+    score: number;
+    verdict: 'STRONG BUY' | 'BUY' | 'NEUTRAL' | 'SELL' | 'STRONG SELL';
+    totalSignals: number;
+    bullishCount: number;
+    bearishCount: number;
+    topFactors: string[];
+}
+
+// --- VIRTUAL DISK NODE (Knowledge Base) ---
+
+export interface VirtualDiskNode {
+    id: string;
+    name: string;
+    type: 'folder' | 'file';
+    path: string;
+    children?: VirtualDiskNode[];
+    contentId?: string;
+    lastModified?: number;
+}
+
+// --- ML / EVOLUTION TYPES ---
+
+export interface NeuralWeights {
+    [signalName: string]: number;
+}
+
+export interface EvolutionState {
+    generation: number;
+    lastOptimization: number;
+    bestStrategies: string[];
+    weights: NeuralWeights;
+}
