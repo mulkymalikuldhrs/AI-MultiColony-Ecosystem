@@ -66,12 +66,20 @@ pip install pip-audit
 pip-audit -r requirements.txt
 ```
 
+### Duplicate Credential Managers
+There are two credential manager implementations:
+- `agents/credential_manager.py` - `CredentialManagerAgent` class. Generates a master key file at `data/master.key` on first run without requiring a master password. **Less secure** for production use.
+- `src/core/credential_manager.py` - `SecureCredentialManager` class. **Requires** `CREDENTIAL_MASTER_PASSWORD` environment variable. Uses a random salt stored in `data/credentials.salt`. **Recommended** for production.
+
+Both use the same database path (`data/credentials.db`) which could cause conflicts if both are active.
+
+### Module-Level Instantiation
+- `agents/credential_manager.py` creates a global `credential_manager` instance at module import time (line 696). This will crash if the `cryptography` package is not installed, though it does have a graceful degradation path.
+- `src/core/credential_manager.py` uses a lazy-loading proxy pattern (`_CredentialManagerProxy`) that defers initialization until first access. This is the safer approach.
+
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.0.1 | 2025-03 | Documentation audit: honest claims, fix repo URLs, .gitignore updates |
 | 2.0.0 | 2024-06 | Initial security audit by AGENT-01 (Dhaher Corp) |
-
-## Credits
-
-Security audit and improvements by **AGENT-01 (Swarm Worker)** - Dhaher Corporation

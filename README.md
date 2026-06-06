@@ -1,4 +1,4 @@
-# 🧠 Agentic AI System v2.0.0 - Autonomous Multi-Agent Intelligence
+# Agentic AI System v2.0.0 - Autonomous Multi-Agent Intelligence
 
 <div align="center">
 
@@ -7,89 +7,78 @@
 ![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-green.svg)
 ![PWA](https://img.shields.io/badge/PWA-enabled-purple.svg)
-![Voice](https://img.shields.io/badge/voice-interaction-orange.svg)
 ![Security](https://img.shields.io/badge/security-AES256-red.svg)
 ![LLM](https://img.shields.io/badge/LLM-Multi--Provider-ff6b6b.svg)
 ![License](https://img.shields.io/badge/license-MIT-yellow.svg)
-![Made with ❤️](https://img.shields.io/badge/made%20with-❤️%20in%20Indonesia-red.svg)
+![Made with love](https://img.shields.io/badge/made%20with-❤️%20in%20Indonesia-red.svg)
 
-**🌟 Revolutionary Multi-Agent AI System with Voice Interaction, PWA Support, Enterprise Security & Multi-LLM Gateway 🌟**
+**Multi-Agent AI System with PWA Support, Encrypted Credential Storage & Multi-LLM Gateway**
 
-[![Deploy to Railway](https://img.shields.io/badge/Deploy-Railway-purple.svg)](https://railway.app/new)
-[![Deploy to Vercel](https://img.shields.io/badge/Deploy-Vercel-black.svg)](https://vercel.com/new)
-[![Deploy to Netlify](https://img.shields.io/badge/Deploy-Netlify-teal.svg)](https://app.netlify.com/start)
-[![Deploy to AWS](https://img.shields.io/badge/Deploy-AWS-orange.svg)](https://aws.amazon.com/lambda/)
-
-**🇮🇩 Proudly Made in Indonesia by Mulky Malikul Dhaher 🇮🇩**
-
-*Building the future of AI-human collaboration with Indonesian innovation*
+**Made in Indonesia by Mulky Malikul Dhaher**
 
 </div>
 
 ---
 
-## 🌟 Project Overview
+## Project Overview
 
-**Agentic AI System** is a groundbreaking autonomous multi-agent AI platform that revolutionizes how humans interact with artificial intelligence. Built with Indonesian innovation and global standards, this system represents the next generation of AI automation and collaboration.
+**Agentic AI System** is a multi-agent AI platform built with Flask. It provides a web-based interface for managing specialized AI agents, storing credentials securely, and routing requests through multiple LLM providers with automatic failover.
 
-### 🎯 **Mission Statement**
-*"To democratize AI automation and empower users worldwide with intelligent agents that work seamlessly together, making advanced AI accessible, affordable, and reliable for everyone."*
+> **Note**: This is an early-stage project under active development. Some features described below are partially implemented or planned. See the [Known Limitations](#known-limitations) section for details.
 
 ---
 
-## 🚀 Revolutionary Features v2.0.0
+## Features
 
-### 🎤 **Advanced Voice Interaction System**
-- **Natural conversation** in 10+ languages (Indonesian, English, Japanese, Korean, Chinese, Spanish, French, German, Portuguese, Russian)
-- **Hotkey activation** with Ctrl+Space for instant voice control
-- **Real-time speech processing** with <500ms latency
-- **Offline voice support** - works without internet connection
-- **Context-aware responses** with voice feedback
-
-### 📱 **Progressive Web App (PWA)**
-- **Native app experience** - install on any device
-- **Offline functionality** - full system access without internet
-- **Background sync** - automatic data synchronization when online
-- **Push notifications** - real-time alerts and updates
-- **Responsive design** - optimized for mobile, tablet, desktop
-- **Home screen integration** - one-tap access
-
-### 🔐 **Enterprise Credential Management**
-- **Military-grade AES-256 encryption** for all stored credentials
-- **Auto-authentication** across 10+ platforms (GitHub, Google, AWS, OpenAI, Anthropic, Docker, Netlify, Vercel, Heroku)
-- **Secure credential vault** with audit logging and compliance tracking
-- **Bulk authentication** - login to multiple platforms simultaneously
-- **Platform-specific handlers** - optimized authentication for each service
-- **Session management** with automatic renewal and security monitoring
-
-### 🧠 **Multi-LLM Provider Gateway**
+### Multi-LLM Provider Gateway
 - **7 LLM providers** with automatic failover: LLM7 (free), OpenRouter, DeepSeek, OpenAI, Anthropic, Google AI, Hugging Face
-- **LLM7 free priority** - zero-cost primary provider with public API key
 - **Intelligent failover** - automatic provider switching on failures
-- **Cost optimization** - smart routing to minimize expenses
-- **Real-time monitoring** - health checks and performance tracking
+- **Cost optimization** - LLM7 free tier used as primary provider
 - **Response caching** - improved efficiency and reduced costs
 
-### 🤖 **Advanced Agent Ecosystem (14+ Specialists)**
-- **Meta Agent Creator** - AI that creates specialized agents dynamically
-- **System Optimizer** - auto-optimizes performance and system health
-- **Code Executor** - multi-language execution environment (Python, JavaScript, TypeScript, Java, C++, Rust, Go, Bash)
-- **AI Research Agent** - monitors latest AI developments from ArXiv, Google AI, OpenAI, Anthropic
-- **Credential Manager** - enterprise security with military-grade encryption
-- **Authentication Agent** - automated login/registration across platforms
-- **LLM Provider Manager** - multi-model AI gateway with failover
-- **Plus 7 core agents** - CyberShell, Agent Maker, UI Designer, Dev Engine, Data Sync, Full Stack Developer, Prompt Master
+### Encrypted Credential Management
+- **AES-256 encryption** via Fernet for stored credentials (requires `cryptography` package)
+- **PBKDF2HMAC key derivation** with SHA-256 and 100,000 iterations
+- **Master password required** via `CREDENTIAL_MASTER_PASSWORD` environment variable
+- **10 platform integrations**: GitHub, Google, AWS, OpenAI, Anthropic, HuggingFace, Docker, Netlify, Vercel, Heroku
+- **Audit logging** for credential access events
+- **Web UI** for credential management at `/credentials`
+
+### Agent Ecosystem
+The system includes agents across two directories:
+
+**`agents/` directory (24 agent modules)**:
+- Core: CyberShell, Agent Maker, UI Designer, Dev Engine, Data Sync, Full Stack Dev, Prompt Generator
+- Advanced: Meta Agent Creator, System Optimizer, Code Executor, AI Research Agent
+- Security: Credential Manager, Authentication Agent, Bug Hunter Bot
+- Infrastructure: LLM Provider Manager, Deploy Manager, Deployment Specialist, Data Sync
+- Specialized: Marketing Agent, Knowledge Management Agent, Quality Control Specialist, AGI Colony Connector, Backup Colony System, Money Making Agent, Commander AGI
+
+**`src/agents/` directory (12 agent modules)**:
+- Agent Base, Advanced Agent Creator, Dynamic Agent Factory, Launcher Agent
+- Agent 02-06: Meta Spawner, Planner, Executor, Designer, Specialist
+- Deployment Agent, Output Handler, Web Automation Agent
+
+### Progressive Web App (PWA)
+- **Installable** on supported browsers
+- **Service worker** for offline caching of static assets
+- **Responsive design** - mobile, tablet, desktop
+
+### Code Execution Environment
+- **8+ Languages**: Python, JavaScript, TypeScript, Java, C++, Rust, Go, Bash
+- **Real-time output** with syntax highlighting and error detection
+- **Docker sandboxing** support for secure execution
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
-### 🎯 **Core Philosophy**
+### Core Philosophy
 ```
-Human Intent → AI Understanding → Agent Coordination → Intelligent Execution → Real Results
+Human Intent -> AI Understanding -> Agent Coordination -> Intelligent Execution -> Results
 ```
 
-### 🧠 **Agent Network**
+### Agent Network
 ```mermaid
 graph TD
     A[Prompt Master] --> B[Meta Agent Creator]
@@ -102,838 +91,217 @@ graph TD
     E --> I[CyberShell Agent]
 ```
 
-### 💻 **Technology Stack**
+### Technology Stack
 - **Backend**: Python 3.8+, Flask, SQLite/PostgreSQL
 - **Frontend**: HTML5, CSS3, JavaScript ES6+, Bootstrap 5
 - **AI Integration**: Multi-provider LLM support with failover
-- **Security**: AES-256 encryption, PBKDF2HMAC key derivation
-- **PWA**: Service Worker, Web App Manifest, Background Sync
-- **Voice**: Web Speech API with offline support
-- **Deployment**: Docker, Kubernetes, Multi-cloud support
+- **Security**: AES-256 encryption (Fernet), PBKDF2HMAC key derivation
+- **PWA**: Service Worker, Web App Manifest
+- **Deployment**: Docker, Kubernetes configurations provided
 
 ---
 
-## 🌟 Key Capabilities
+## Quick Start Guide
 
-### 🎤 **Voice Commands**
-```bash
-"Create a new agent for data analysis"     → Spawns AI data scientist
-"Execute Python code to analyze CSV"       → Opens code execution environment
-"Login to all my platforms"               → Bulk authentication
-"Show system performance"                  → Displays real-time metrics
-"Optimize system now"                     → Triggers auto-optimization
-"Research latest AI papers"               → AI research agent activation
-```
-
-### 💻 **Code Execution Environment**
-- **8+ Languages**: Python, JavaScript, TypeScript, Java, C++, Rust, Go, Bash
-- **Real-time output** with syntax highlighting and error detection
-- **Package management** - automatic dependency installation
-- **Sandboxed execution** with Docker support for security
-- **Multi-session support** - parallel code execution environments
-
-### 🔐 **Platform Integration**
-- **GitHub** (Token, OAuth, Username/Password)
-- **Google Services** (OAuth, Service Account, API Key)
-- **AWS** (Access Keys, IAM Roles, Temporary Credentials)
-- **OpenAI & Anthropic** (API Keys with secure storage)
-- **Docker Hub, Netlify, Vercel, Heroku** (Full automation support)
-- **Extensible architecture** for easy platform additions
-
-### 🧠 **LLM Provider Support**
-```python
-Priority Order (Cost Optimization):
-1. LLM7 (Free) ← Always tried first
-2. OpenRouter ← Multi-model hub
-3. DeepSeek ← Advanced reasoning
-4. OpenAI ← GPT models
-5. Anthropic ← Claude models
-6. Google AI ← Gemini models
-7. Hugging Face ← Open source models
-```
-
----
-
-## 🚀 Quick Start Guide
-
-### 1. **Prerequisites**
+### Prerequisites
 ```bash
 Python 3.8+ (recommended: Python 3.11+)
-4GB RAM minimum (8GB recommended)
+4GB RAM minimum
 Modern web browser (Chrome, Firefox, Safari, Edge)
-Internet connection for setup
 ```
 
-### 2. **Installation**
+### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/tokenew6/Agentic-AI-Ecosystem.git
-cd Agentic-AI-Ecosystem
+git clone https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git
+cd AI-MultiColony-Ecosystem
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Setup environment
 cp .env.example .env
-# Edit .env with your preferred configurations
+# Edit .env with your API keys and configurations
+# IMPORTANT: Set CREDENTIAL_MASTER_PASSWORD and SECRET_KEY before running
 ```
 
-### 3. **Launch System**
+### Launch System
 ```bash
-# Start the system
+# Start the web interface
 python web_interface/app.py
 
-# Or use the enhanced launcher
+# Or use the system launcher
 python start_system.py
+
+# Or use the CLI
+python cli.py start
 ```
 
-### 4. **Access & Install**
+### Access
 - **Web Interface**: http://localhost:5000
-- **Install PWA**: Click install button in browser
-- **Voice Activation**: Press Ctrl+Space anywhere
-- **Mobile Access**: Open in mobile browser and "Add to Home Screen"
-
-### 5. **First Steps**
-1. **Voice Setup**: Test voice commands with Ctrl+Space
-2. **Credential Management**: Add your platform credentials at `/credentials`
-3. **LLM Providers**: Configure additional providers at `/llm_providers`
-4. **Agent Network**: Explore agents at `/agents`
-5. **Code Execution**: Try the code environment at `/code`
+- **Credential Management**: http://localhost:5000/credentials
+- **Agent Dashboard**: http://localhost:5000/agents
+- **LLM Providers**: http://localhost:5000/llm_providers
 
 ---
 
-## 💡 Usage Examples
+## Known Limitations
 
-### 🎯 **Business Automation**
-```python
-# Automate GitHub workflow
-"Create a new repository for my project" → Auto-creates with templates
-"Deploy to production" → Automated CI/CD pipeline
-"Update documentation" → AI-generated docs with current codebase
-```
+> This section documents areas where the project is still maturing. Contributions are welcome!
 
-### 📊 **Data Analysis**
-```python
-# AI-powered data science
-import pandas as pd
-data = pd.read_csv('sales_data.csv')
-# AI agent automatically suggests analysis approaches
-# Generates insights, visualizations, and reports
-```
-
-### 🔐 **Security Operations**
-```python
-# Automated security management
-"Audit all stored credentials" → Comprehensive security scan
-"Test all API connections" → Health check all integrations
-"Rotate expired tokens" → Automatic credential renewal
-```
-
-### 🌍 **Multi-Language Voice**
-```bash
-# Indonesian
-"Buat agen baru untuk analisis data"
-
-# English  
-"Create a new agent for data analysis"
-
-# Japanese
-"データ分析用の新しいエージェントを作成"
-
-# Korean
-"데이터 분석을 위한 새 에이전트 생성"
-```
+- **No built-in user authentication**: The web interface and API endpoints do not require login. For production, place behind a reverse proxy with authentication (see [SECURITY.md](SECURITY.md)).
+- **Voice interaction**: Uses the Web Speech API (browser-dependent). Offline voice support depends on the browser's capabilities.
+- **Money Making Agent**: This agent provides scaffolding for revenue-generating workflows (bug bounty, freelancing, etc.) but does not autonomously generate income. Claims of automatic revenue should not be taken literally.
+- **SOC 2 / GDPR compliance**: The project uses industry-standard encryption but has not undergone formal compliance audits. "SOC 2 Type II ready" and "GDPR compliant" claims from previous documentation were inaccurate.
+- **Performance benchmarks**: Previously published benchmark numbers were aspirational targets, not measured results. Actual performance depends on hardware, network, and LLM provider response times.
+- **Some agents are scaffolding**: A few agent modules contain TODO placeholders and are not fully implemented (notably `agent_maker.py` has 4 unresolved TODOs, `money_making_agent.py` has 2).
+- **Duplicate credential managers**: Both `agents/credential_manager.py` and `src/core/credential_manager.py` exist. The `src/core/` version is the more secure implementation (requires `CREDENTIAL_MASTER_PASSWORD` env var).
+- **Many third-party imports not in requirements.txt**: Some agent code imports packages like `arxiv`, `boto3`, `cv2`, `playwright`, `selenium`, `paramiko`, etc. that are not listed in requirements.txt. These are optional and will fail gracefully if not installed.
 
 ---
 
-## 🏢 Enterprise Features
+## Configuration
 
-### 🔒 **Security & Compliance**
-- **AES-256 encryption** for all sensitive data storage
-- **PBKDF2HMAC key derivation** with SHA256 (100,000+ iterations)
-- **Comprehensive audit logging** for compliance tracking
-- **Role-based access control** (configurable permissions)
-- **SOC 2 Type II ready** architecture and documentation
-- **GDPR compliant** data handling and privacy controls
-
-### 📊 **Monitoring & Analytics**
-- **Real-time performance dashboards** with custom metrics
-- **Agent activity tracking** with detailed execution logs
-- **System health monitoring** with predictive alerts
-- **Cost analytics** across all LLM providers
-- **Usage analytics** with detailed reporting
-- **Historical performance analysis** with trend identification
-
-### 🚀 **Deployment & Scaling**
-- **Docker containerization** with optimized images
-- **Kubernetes support** with auto-scaling configurations
-- **Multi-cloud deployment** (AWS, GCP, Azure, DigitalOcean)
-- **Edge computing** integration for reduced latency
-- **CDN support** for global content delivery
-- **CI/CD pipeline** integration with automated testing
-
-### 🔧 **Management & Control**
-- **Multi-tenant architecture** for enterprise customers
-- **SSO integration** (SAML, OAuth, LDAP, Active Directory)
-- **API gateway** with rate limiting and authentication
-- **Backup and disaster recovery** with automated snapshots
-- **Configuration management** with version control
-- **Health checks** and automated failover
-
----
-
-## 🔧 Configuration
-
-### 🌐 **Environment Variables**
+### Environment Variables
 ```bash
 # Core System
-AGENTIC_SYSTEM_NAME="Agentic AI System"
-AGENTIC_VERSION="2.0.0"
+SECRET_KEY=your_secure_secret_key          # REQUIRED in production
+CREDENTIAL_MASTER_PASSWORD=your_password   # REQUIRED for credential storage
+FLASK_ENV=production
 WEB_INTERFACE_PORT=5000
 WEB_INTERFACE_HOST=0.0.0.0
-SECRET_KEY=your_secure_secret_key
 
-# Database Configuration
-DATABASE_URL=sqlite:///agentic.db
+# Database
+DATABASE_URL=sqlite:///data/agentic.db
 # For production: postgresql://user:pass@host:5432/db
 
-# Security
-ENCRYPTION_KEY=auto_generated_on_first_run
-CREDENTIAL_MASTER_PASSWORD=your_ultra_secure_password
-
-# LLM Providers (Optional - LLM7 works without keys)
-LLM7_API_KEY=public_free_key_included
+# LLM Providers (at least one recommended)
+LLM7_API_KEY=your_llm7_key
 OPENROUTER_API_KEY=your_openrouter_key
-DEEPSEEK_API_KEY=your_deepseek_key
 OPENAI_API_KEY=your_openai_key
 ANTHROPIC_API_KEY=your_anthropic_key
-GOOGLE_AI_API_KEY=your_google_key
-HUGGINGFACE_API_KEY=your_huggingface_key
+HUGGINGFACE_TOKEN=your_hf_token
 
-# Platform Integrations (Optional)
+# Platform Integrations (optional)
 GITHUB_TOKEN=your_github_token
-GOOGLE_CREDENTIALS_PATH=path/to/google_credentials.json
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_client_secret
 
-# Voice & PWA Features
-ENABLE_VOICE_INTERACTION=true
-ENABLE_PWA=true
-ENABLE_OFFLINE_MODE=true
-
-# Performance & Monitoring
+# Agent Configuration
 MAX_CONCURRENT_AGENTS=10
-ENABLE_PERFORMANCE_MONITORING=true
-LOG_LEVEL=INFO
+DEFAULT_AI_MODEL=gpt-3.5-turbo
 ```
 
-### ⚙️ **Advanced Configuration**
-```yaml
-# config/system_config.yaml
-system:
-  name: "Agentic AI System"
-  version: "2.0.0"
-  max_agents: 20
-  auto_optimize: true
-
-agents:
-  prompt_master:
-    enabled: true
-    max_concurrent_tasks: 10
-    response_timeout: 30
-  
-  llm_provider_manager:
-    enabled: true
-    primary_provider: "llm7"
-    cache_responses: true
-    cache_ttl: 300
-  
-  credential_manager:
-    encryption_method: "AES-256"
-    key_derivation: "PBKDF2HMAC"
-    backup_enabled: true
-
-voice:
-  languages: ["en", "id", "ja", "ko", "zh", "es", "fr", "de", "pt", "ru"]
-  activation_key: "ctrl+space"
-  offline_support: true
-
-pwa:
-  cache_strategy: "cache_first"
-  offline_pages: ["/", "/agents", "/credentials", "/llm_providers"]
-  notification_enabled: true
-```
+See [.env.example](.env.example) for the complete list with documentation.
 
 ---
 
-## 🛠️ Development
+## API Documentation
 
-### 🔨 **Adding Custom Agents**
-```python
-# agents/my_custom_agent.py
-class MyCustomAgent:
-    def __init__(self):
-        self.agent_id = "my_custom_agent"
-        self.name = "My Custom Agent"
-        self.version = "1.0.0"
-        self.capabilities = [
-            "custom_processing",
-            "data_transformation",
-            "automated_reporting"
-        ]
-    
-    async def process_task(self, task):
-        """Process incoming tasks with AI enhancement"""
-        try:
-            # Your custom agent logic here
-            result = await self.custom_processing(task)
-            
-            return {
-                "success": True,
-                "result": result,
-                "metadata": {
-                    "processing_time": "1.2s",
-                    "confidence": 0.95
-                }
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
-    
-    def get_performance_metrics(self):
-        """Return agent performance metrics"""
-        return {
-            "total_tasks": 150,
-            "success_rate": 0.98,
-            "avg_response_time": 1.2
-        }
-
-# Register agent
-my_custom_agent = MyCustomAgent()
-```
-
-### 🔌 **Platform Integration**
-```python
-# Add new platform to credential manager
-SUPPORTED_PLATFORMS = {
-    'my_platform': {
-        'name': 'My Platform',
-        'auth_methods': ['api_key', 'oauth', 'username_password'],
-        'endpoints': {
-            'api': 'https://api.myplatform.com',
-            'auth': 'https://auth.myplatform.com'
-        },
-        'models': ['platform-gpt', 'platform-claude'],
-        'cost_per_token': 0.001
-    }
-}
-```
-
-### 🎨 **UI Customization**
-```css
-/* Custom themes and styling */
-:root {
-    --primary-color: #667eea;
-    --secondary-color: #764ba2;
-    --accent-color: #f093fb;
-    --success-color: #4caf50;
-    --warning-color: #ff9800;
-    --error-color: #f44336;
-}
-
-.custom-agent-card {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    border-radius: 12px;
-    padding: 2rem;
-    color: white;
-}
-```
-
----
-
-## 📚 API Documentation
-
-### 🌐 **REST API Endpoints**
+### REST API Endpoints
 ```bash
 # System Management
 GET    /api/system/status           # System health and metrics
-GET    /api/system/performance      # Performance analytics
-POST   /api/system/optimize         # Trigger system optimization
 
-# Agent Management  
+# Agent Management
 GET    /api/agents                  # List all agents
-GET    /api/agents/{id}             # Get specific agent details
-POST   /api/agents/{id}/task        # Submit task to agent
-GET    /api/agents/{id}/metrics     # Agent performance metrics
+POST   /api/task/submit             # Submit task to agent
 
 # LLM Provider Management
-GET    /api/llm/providers           # List all LLM providers
-POST   /api/llm/providers/test      # Test provider connections
+GET    /api/llm/providers           # List LLM providers
 POST   /api/llm/chat                # Chat completion with failover
-GET    /api/llm/usage               # Usage statistics and costs
 
 # Credential Management
-GET    /api/credentials             # List stored credentials
+GET    /api/credentials             # List stored credentials (no passwords)
 POST   /api/credentials             # Add new credential
-PUT    /api/credentials/{id}        # Update credential
 DELETE /api/credentials/{id}        # Delete credential
 POST   /api/credentials/test        # Test credential validity
-
-# Task Processing
-POST   /api/task/submit             # Submit task to system
-GET    /api/task/{id}/status        # Get task status
-GET    /api/task/{id}/result        # Get task result
-POST   /api/task/cancel/{id}        # Cancel running task
-```
-
-### 🔌 **WebSocket API**
-```javascript
-// Real-time system updates
-const ws = new WebSocket('ws://localhost:5000/ws');
-
-// Listen for system events
-ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    
-    switch(data.type) {
-        case 'agent_status':
-            updateAgentStatus(data.agent_id, data.status);
-            break;
-        case 'task_completed':
-            handleTaskCompletion(data.task_id, data.result);
-            break;
-        case 'system_alert':
-            showSystemAlert(data.message, data.severity);
-            break;
-    }
-};
-
-// Send commands
-ws.send(JSON.stringify({
-    type: 'agent_command',
-    agent_id: 'system_optimizer',
-    command: 'optimize',
-    parameters: { target: 'performance' }
-}));
-```
-
-### 📊 **Webhook Support**
-```python
-# Configure webhooks for external integrations
-webhook_config = {
-    "events": ["task_completed", "agent_created", "system_error"],
-    "url": "https://your-service.com/webhook",
-    "secret": "your_webhook_secret",
-    "retry_count": 3
-}
 ```
 
 ---
 
-## 🌐 Deployment Guide
+## Deployment
 
-### 🐳 **Docker Deployment**
+### Docker
 ```bash
-# Build and run with Docker
 docker build -t agentic-ai:latest .
 docker run -p 5000:5000 -v $(pwd)/data:/app/data agentic-ai:latest
+```
 
-# Or use Docker Compose
+### Docker Compose
+```bash
 docker-compose up -d
-
-# Scale for production
-docker-compose up -d --scale agent-worker=5
 ```
 
-### ☸️ **Kubernetes Deployment**
-```yaml
-# k8s-deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: agentic-ai
-  labels:
-    app: agentic-ai
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: agentic-ai
-  template:
-    metadata:
-      labels:
-        app: agentic-ai
-    spec:
-      containers:
-      - name: agentic-ai
-        image: agentic-ai:latest
-        ports:
-        - containerPort: 5000
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: agentic-secrets
-              key: database-url
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "2Gi"
-            cpu: "1000m"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: agentic-ai-service
-spec:
-  selector:
-    app: agentic-ai
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 5000
-  type: LoadBalancer
-```
+### Kubernetes
+A `k8s-deployment.yaml` is provided for Kubernetes deployment.
 
-### 🚀 **Cloud Platform Deployment**
-
-#### **Railway (Recommended for Beginners)**
-```bash
-# Install Railway CLI
-npm install -g @railway/cli
-
-# Deploy to Railway
-railway login
-railway init
-railway up
-```
-
-#### **Vercel (Serverless)**
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Deploy to Vercel
-vercel
-```
-
-#### **AWS (Enterprise)**
-```bash
-# Using AWS SAM
-pip install aws-sam-cli
-sam build
-sam deploy --guided
-```
-
-#### **Google Cloud Platform**
-```bash
-# Using Cloud Run
-gcloud run deploy agentic-ai \
-  --image gcr.io/PROJECT_ID/agentic-ai \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated
-```
+> **Important**: Always set `SECRET_KEY` and `CREDENTIAL_MASTER_PASSWORD` as environment variables or secrets. Never use default values in production.
 
 ---
 
-## 📊 Performance Metrics
+## Security
 
-### 🎯 **System Benchmarks**
-| Metric | Development | Production | Enterprise |
-|--------|-------------|------------|------------|
-| **Agent Response Time** | < 100ms | < 50ms | < 25ms |
-| **Voice Recognition** | < 500ms | < 300ms | < 200ms |
-| **PWA Load Time** | < 2s | < 1s | < 500ms |
-| **LLM Failover Time** | < 1s | < 500ms | < 200ms |
-| **Credential Encryption** | < 10ms | < 5ms | < 2ms |
-| **Concurrent Users** | 100+ | 1000+ | 10000+ |
-| **Agent Instances** | 10+ | 100+ | 1000+ |
-| **Database Ops/sec** | 1000+ | 10000+ | 100000+ |
-| **WebSocket Connections** | 100+ | 1000+ | 10000+ |
-| **Uptime** | 99%+ | 99.9%+ | 99.99%+ |
-
-### 📈 **Scalability Features**
-- **Horizontal scaling** with load balancer support
-- **Database sharding** for large datasets
-- **Caching layers** (Redis, Memcached) for performance
-- **CDN integration** for global content delivery
-- **Edge computing** for reduced latency
-- **Auto-scaling** based on demand and metrics
+See [SECURITY.md](SECURITY.md) for the full security policy, including:
+- Encryption architecture (AES-256 via Fernet)
+- API key handling practices
+- Code execution sandboxing
+- Known security considerations
+- Deployment security checklist
 
 ---
 
-## 🔮 Roadmap
+## Contributing
 
-### 🎯 **Version 2.1.0 (Q1 2024)**
-- [ ] **Visual Workflow Builder** - Drag & drop agent workflows
-- [ ] **Mobile App** - Native iOS/Android companion
-- [ ] **Advanced Analytics** - ML-powered insights dashboard
-- [ ] **Plugin Marketplace** - Community-driven extensions
-
-### 🚀 **Version 2.2.0 (Q2 2024)**
-- [ ] **Real-time Collaboration** - Multi-user workspaces
-- [ ] **Custom AI Training** - Fine-tuning for domain-specific models
-- [ ] **IoT Integration** - Smart home and device control
-- [ ] **Blockchain Features** - Web3 capabilities and NFT support
-
-### 🌟 **Version 3.0.0 (Q3 2024)**
-- [ ] **AGI Agent Capabilities** - Advanced reasoning and planning
-- [ ] **Quantum Computing** - Integration with quantum processors
-- [ ] **Global Agent Network** - Distributed agent coordination
-- [ ] **AI Marketplace** - Buy/sell AI services and models
-
----
-
-## 🤝 Contributing
-
-### 👥 **How to Contribute**
-We welcome contributions from developers worldwide! Here's how you can help:
+Contributions are welcome! Please follow these steps:
 
 ```bash
 # 1. Fork the repository
-git clone https://github.com/yourusername/Agentic-AI-Ecosystem.git
+git clone https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git
 
 # 2. Create a feature branch
-git checkout -b feature/amazing-feature
+git checkout -b feature/your-feature
 
-# 3. Make your changes
-# Add your improvements, fix bugs, or add new features
-
-# 4. Test your changes
+# 3. Make your changes and test
 python -m pytest tests/
-python test_integration.py
 
-# 5. Commit with descriptive messages
-git commit -m "feat: add amazing new feature that does X"
+# 4. Commit with descriptive messages
+git commit -m "feat: add your feature description"
 
-# 6. Push to your branch
-git push origin feature/amazing-feature
-
-# 7. Open a Pull Request
-# Describe your changes and why they're beneficial
+# 5. Push and open a Pull Request
+git push origin feature/your-feature
 ```
 
-### 🔧 **Development Guidelines**
-- **Code Style**: Follow PEP 8 for Python, ESLint for JavaScript
-- **Testing**: Write tests for new features (pytest, Jest)
-- **Documentation**: Update docs for any new functionality
-- **Security**: Security-first approach for all contributions
-- **Performance**: Optimize for speed and resource efficiency
-
-### 🌟 **Areas for Contribution**
-- **New Agents**: Create specialized agents for different domains
-- **LLM Integrations**: Add support for new AI providers
-- **Platform Connectors**: Integrate with new services and APIs
-- **UI/UX Improvements**: Enhance user interface and experience
-- **Performance Optimization**: Improve speed and efficiency
-- **Security Enhancements**: Strengthen security measures
-- **Documentation**: Improve guides and tutorials
-- **Translations**: Add support for more languages
+### Priority Areas for Contribution
+- **Authentication**: Add user authentication to web interface and API
+- **Agent completion**: Implement remaining TODO items in agent_maker.py
+- **Tests**: Expand test coverage (currently minimal)
+- **Documentation**: Improve API docs and usage examples
+- **Security audit**: Independent security review of credential storage
+- **Missing requirements**: Document optional dependencies for agent modules
 
 ---
 
-## 👨‍💻 Creator & Credits
+## Creator
 
-<div align="center">
+**Mulky Malikul Dhaher** - AI Engineer from Indonesia
 
-### **🇮🇩 Mulky Malikul Dhaher**
-**Founder & Lead Architect**
-
-*Visionary AI Engineer from Indonesia*
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Mulky%20Dhaher-blue.svg)](https://linkedin.com/in/mulky-dhaher)
-[![GitHub](https://img.shields.io/badge/GitHub-@tokenew6-black.svg)](https://github.com/tokenew6)
+[![GitHub](https://img.shields.io/badge/GitHub-@mulkymalikuldhrs-black.svg)](https://github.com/mulkymalikuldhrs)
 [![Email](https://img.shields.io/badge/Email-Contact-red.svg)](mailto:mulkymalikuldhr@gmail.com)
 
-**🏆 Achievements:**
-- 🥇 **First-ever real AI agent creation system** with dynamic agent generation
-- 🔒 **Military-grade security implementation** with AES-256 enterprise standards  
-- 🌍 **Multi-platform deployment architecture** ready for global scale
-- 🇮🇩 **Indonesian technological excellence** with international recognition
-- 🚀 **Production-ready AI automation platform** used worldwide
-
-*"Building the future of AI automation with Indonesian innovation for global impact"*
-
-</div>
-
-### 🤖 **AI Contributors & Tools**
-
-Special thanks to the AI tools and platforms that helped accelerate development:
-
-<div align="center">
-
-| AI Tool | Contribution | Usage |
-|---------|-------------|--------|
-| **🤖 Mentat AI** | *Primary Development Assistant* | Code generation, architecture design, debugging |
-| **💻 Replit AI** | *Code Completion & Optimization* | Real-time coding assistance, performance optimization |
-| **❤️ Lovable AI** | *UI/UX Design Enhancement* | Interface design, user experience optimization |
-| **🧠 ChatGPT** | *Documentation & Planning* | Technical documentation, feature planning |
-
-</div>
-
-### 🌟 **Acknowledgments**
-
-- **🇮🇩 Indonesian Tech Community** - Local support and inspiration
-- **🌍 Global Open Source Community** - Collaboration and feedback
-- **🏢 Enterprise Early Adopters** - Real-world testing and validation
-- **🎓 Academic Partners** - Research collaboration and insights
-- **💡 Beta Testers** - Quality assurance and user feedback
-
 ---
 
-## 📄 License & Usage
+## License
 
-### 📜 **MIT License**
-```
-MIT License
+MIT License - see [LICENSE](LICENSE) for details.
 
 Copyright (c) 2024 Mulky Malikul Dhaher
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-### 🤝 **Commercial Usage**
-- ✅ **Free for personal use** - No restrictions
-- ✅ **Free for commercial use** - Including enterprise deployment
-- ✅ **Modification rights** - Customize for your needs
-- ✅ **Distribution rights** - Share and redistribute
-- ✅ **Private use** - Use in closed-source projects
-
-### 🔗 **Attribution Requirements**
-When using this software, please maintain attribution to:
-- **Creator**: Mulky Malikul Dhaher (Indonesia)
-- **Project**: Agentic AI System
-- **Source**: https://github.com/tokenew6/Agentic-AI-Ecosystem
-
----
-
-## 📞 Support & Community
-
-### 🆘 **Getting Help**
-
-#### **Community Support (Free)**
-- **📱 Discord**: [Join our Discord Server](https://discord.gg/agentic-ai)
-- **🐛 GitHub Issues**: [Report bugs and request features](https://github.com/tokenew6/Agentic-AI-Ecosystem/issues)
-- **💬 Discussions**: [Community Q&A and discussions](https://github.com/tokenew6/Agentic-AI-Ecosystem/discussions)
-- **📚 Documentation**: [Complete documentation wiki](https://github.com/tokenew6/Agentic-AI-Ecosystem/wiki)
-
-#### **Professional Support (Paid)**
-- **📧 Email Support**: support@agentic-ai.com
-- **🏢 Enterprise Support**: enterprise@agentic-ai.com
-- **🎓 Training & Consulting**: consulting@agentic-ai.com
-- **🔧 Custom Development**: development@agentic-ai.com
-
-### 🌍 **Global Community**
-
-- **🇮🇩 Indonesia**: Local meetups and events
-- **🇺🇸 United States**: Enterprise partnerships
-- **🇪🇺 Europe**: Research collaborations
-- **🇯🇵 Japan**: AI innovation partnerships
-- **🌏 Asia-Pacific**: Regional development hubs
-
-### 🎯 **Community Guidelines**
-- **Be respectful** and inclusive to all members
-- **Help others** learn and grow in AI automation
-- **Share knowledge** and contribute to collective learning
-- **Report issues** constructively with details
-- **Follow code of conduct** for positive environment
-
----
-
-## 📈 Analytics & Metrics
-
-### 🌟 **Project Statistics**
-
-<div align="center">
-
-[![GitHub Stars](https://img.shields.io/github/stars/tokenew6/Agentic-AI-Ecosystem?style=social)](https://github.com/tokenew6/Agentic-AI-Ecosystem/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/tokenew6/Agentic-AI-Ecosystem?style=social)](https://github.com/tokenew6/Agentic-AI-Ecosystem/network/members)
-[![GitHub Watchers](https://img.shields.io/github/watchers/tokenew6/Agentic-AI-Ecosystem?style=social)](https://github.com/tokenew6/Agentic-AI-Ecosystem/watchers)
-[![GitHub Contributors](https://img.shields.io/github/contributors/tokenew6/Agentic-AI-Ecosystem)](https://github.com/tokenew6/Agentic-AI-Ecosystem/graphs/contributors)
-
-### **📊 Development Metrics**
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/tokenew6/Agentic-AI-Ecosystem)
-![GitHub last commit](https://img.shields.io/github/last-commit/tokenew6/Agentic-AI-Ecosystem)
-![GitHub code size](https://img.shields.io/github/languages/code-size/tokenew6/Agentic-AI-Ecosystem)
-![GitHub repo size](https://img.shields.io/github/repo-size/tokenew6/Agentic-AI-Ecosystem)
-
-### **🔢 Technical Statistics**
-- **Total Lines of Code**: 30,000+
-- **Number of Files**: 150+
-- **Supported Languages**: 10+
-- **AI Agents**: 14+ specialized agents
-- **LLM Providers**: 7 with failover
-- **Platform Integrations**: 10+
-- **Deployment Options**: 7+ platforms
-- **Security Features**: Military-grade
-
-</div>
-
----
-
-## 🌟 Star History
-
-<div align="center">
-
-[![Star History Chart](https://api.star-history.com/svg?repos=tokenew6/Agentic-AI-Ecosystem&type=Date)](https://star-history.com/#tokenew6/Agentic-AI-Ecosystem&Date)
-
-</div>
-
----
-
-## 🎯 Call to Action
-
-<div align="center">
-
-### **🚀 Ready to Transform Your AI Experience?**
-
-**Choose your path to get started:**
-
-[![🔥 Quick Start](https://img.shields.io/badge/🔥-Quick%20Start-red.svg?style=for-the-badge)](https://github.com/tokenew6/Agentic-AI-Ecosystem#-quick-start-guide)
-[![📚 Documentation](https://img.shields.io/badge/📚-Documentation-blue.svg?style=for-the-badge)](https://github.com/tokenew6/Agentic-AI-Ecosystem/wiki)
-[![🚀 Deploy Now](https://img.shields.io/badge/🚀-Deploy%20Now-green.svg?style=for-the-badge)](https://railway.app/new)
-[![💬 Join Community](https://img.shields.io/badge/💬-Join%20Community-purple.svg?style=for-the-badge)](https://discord.gg/agentic-ai)
-
-### **⭐ Star this project if you believe in the future of AI automation!**
-
-**Share the innovation • Contribute to the revolution • Build the future together**
-
----
-
-### **🇮🇩 PROUDLY MADE IN INDONESIA WITH ❤️**
-
-**🌟 Building World-Class AI Technology from Indonesia for Global Impact 🌟**
-
-*Membangun masa depan AI yang lebih baik untuk Indonesia dan dunia*
-
-**🚀 Ready to revolutionize AI automation? Let's build the future together!**
-
-</div>
-
 ---
 
 <div align="center">
 
-**© 2024 Mulky Malikul Dhaher • Made with ❤️ in Indonesia 🇮🇩**
+**Made with love in Indonesia**
 
 *Advancing the future of AI-human collaboration, one agent at a time.*
 

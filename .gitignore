@@ -52,35 +52,43 @@ browser_test_report.json
 Screenshot_*.jpg
 Screenshot_*.png
 
-# Build artifacts
-build/
-
-# Data files (runtime)
+# =============================================================================
+# DATA FILES (runtime - never commit)
+# =============================================================================
 data/memory.json
 data/agents_registry.json
 data/schedule.json
+data/system_config.json
+data/last_session.json
 data/financial/
 data/knowledge/
 data/marketing/
 data/backups/
-data/credentials.salt
-
-# Temporary files
-tmp/
-temp/
-
-# Replit
-.replit
+data/bug_reports/
+data/logs/
+data/cache/
 
 # =============================================================================
 # SENSITIVE DATA - NEVER COMMIT
 # =============================================================================
+data/credentials.salt
 data/master.key
 data/salt.key
 data/credentials.db
 data/*.key
 data/*.db
+data/*.salt
 web_interface/data/credentials.db
+credentials.local.json
+
+# =============================================================================
+# CRYPTOGRAPHIC MATERIAL - NEVER COMMIT
+# =============================================================================
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
 
 # =============================================================================
 # RUNTIME ARTIFACTS
@@ -90,26 +98,12 @@ web_interface/data/credentials.db
 package-lock.json
 .next/
 .vercel/
-*.key
-*.pem
+tmp/
+temp/
+temp_sessions/
 
 # PDF files
 *.pdf
 
-# =============================================================================
-# CODE EXECUTION SESSIONS (temporary)
-# =============================================================================
-temp_sessions/
-
-# =============================================================================
-# RUNTIME DATABASE FILES
-# =============================================================================
-data/*.db
-
-# =============================================================================
-# SECURITY - NEVER COMMIT THESE
-# =============================================================================
-*.pem
-*.key
-*.crt
-credentials.local.json
+# Replit
+.replit
