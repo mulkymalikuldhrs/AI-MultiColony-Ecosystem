@@ -4,7 +4,7 @@ import { LLMRouter } from "./llm_router";
 import { BrowserCore } from "./browser_core";
 import { DesktopIntelligence } from "./desktop_intelligence";
 import { MemoryManager } from "./memory_manager";
-import { MarketService } from "./market.ts";
+import { MarketService } from "./market";
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 

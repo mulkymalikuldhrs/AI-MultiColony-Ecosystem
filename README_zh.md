@@ -7,7 +7,7 @@
 
 <div align="center">
 
-[![版本](https://img.shields.io/badge/版本-15.2.0-gold?style=for-the-badge&logo=semver&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![版本](https://img.shields.io/badge/版本-15.3.0-gold?style=for-the-badge&logo=semver&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![许可证](https://img.shields.io/badge/许可证-MIT-green?style=for-the-badge&logo=open-source-initiative&logoColor=white)](./LICENSE)
@@ -306,7 +306,7 @@ Quant-Nanggroe-AI/
 </p>
 
 <p align="center">
-  <strong>&copy; 2026 Quant Nanggroe AI</strong><br/>
+  <strong>&copy; 2025-2026 Quant Nanggroe AI</strong><br/>
   由 <a href="https://github.com/mulkymalikuldhrs">Mulky Malikul Dhaher</a> 用 💎 构建<br/>
   <em>期待来自世界各地的贡献者 🌎</em>
 </p>

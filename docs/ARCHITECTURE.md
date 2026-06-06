@@ -1,5 +1,5 @@
 # 🏛️ SYSTEM ARCHITECTURE: QUANT NANGGROE AI
-### **Version 15.2.0 | Multi-Agent Decision Intelligence OS**
+### **Version 15.3.0 | Multi-Agent Decision Intelligence OS**
 
 Quant Nanggroe AI is an advanced **Decision Intelligence Operating System** designed for quantitative research in financial markets. It focuses on eliminating psychological bias and AI hallucinations by enforcing a **Deterministic Agent Execution** framework.
 
@@ -70,7 +70,7 @@ The **StorageManager** uses an **Adapter Pattern** to manage data:
 
 ---
 
-© 2026 Quant Nanggroe AI | Technical Reference v15.2.0
+© 2025-2026 Quant Nanggroe AI | Technical Reference v15.3.0
 
 ---
 

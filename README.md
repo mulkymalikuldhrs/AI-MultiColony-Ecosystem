@@ -262,12 +262,27 @@ This project is licensed under the MIT License. See the [LICENSE](./LICENSE) fil
 
 ---
 
+## ⚠️ Current Limitations
+
+The following features are currently **stub implementations** or **simplified approximations** and should not be relied upon for production trading:
+
+| Feature | Status | Details |
+|---|---|---|
+| **FlowAgent** | Stub | Always returns neutral state; requires WhaleAlert/Coinglass API integration for real institutional flow data |
+| **ADX Calculation** | Approximation | Uses SMA-slope proxy instead of Wilders Smoothing; not production-accurate |
+| **Trade Execution** | No live execution | The system generates analysis and decision outputs but does **not** connect to any exchange API for order placement |
+| **Quantum Nexus** | UI visualization only | Dashboard displays cosmetic metrics; not related to quantum computing |
+| **Sentiment Analysis** | Keyword-based | Uses simple keyword matching, not NLP-based sentiment analysis |
+| **CORS Proxies** | Third-party | Market data relies on public CORS proxy services whose availability is not guaranteed |
+
+---
+
 <p align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0D9488,50:065F46,100:020205&height=120&section=footer" width="100%" />
 </p>
 
 <p align="center">
-  <strong>&copy; 2026 Quant Nanggroe AI</strong><br/>
+  <strong>&copy; 2025-2026 Quant Nanggroe AI</strong><br/>
   Built with 💎 by <a href="https://github.com/mulkymalikuldhrs">Mulky Malikul Dhaher</a><br/>
   <em>Waiting for Contributors from Around the World 🌎</em>
 </p>
@@ -311,9 +326,5 @@ GitHub: [https://github.com/mulkymalikuldhrs](https://github.com/mulkymalikuldhr
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
-Copyright © Mulky Malikul Dhaher. All rights reserved.
+Copyright © 2025-2026 Mulky Malikul Dhaher. All rights reserved.
 

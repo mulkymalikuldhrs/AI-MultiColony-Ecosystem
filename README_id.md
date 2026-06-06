@@ -7,7 +7,7 @@
 
 <div align="center">
 
-[![Versi](https://img.shields.io/badge/Versi-15.2.0-gold?style=for-the-badge&logo=semver&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![Versi](https://img.shields.io/badge/Versi-15.3.0-gold?style=for-the-badge&logo=semver&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Lisensi](https://img.shields.io/badge/Lisensi-MIT-green?style=for-the-badge&logo=open-source-initiative&logoColor=white)](./LICENSE)
@@ -306,7 +306,7 @@ Proyek ini dilisensikan di bawah Lisensi MIT. Lihat file [LICENSE](./LICENSE) un
 </p>
 
 <p align="center">
-  <strong>&copy; 2026 Quant Nanggroe AI</strong><br/>
+  <strong>&copy; 2025-2026 Quant Nanggroe AI</strong><br/>
   Dibangun dengan 💎 oleh <a href="https://github.com/mulkymalikuldhrs">Mulky Malikul Dhaher</a><br/>
   <em>Menunggu Kontributor dari Seluruh Dunia 🌎</em>
 </p>
