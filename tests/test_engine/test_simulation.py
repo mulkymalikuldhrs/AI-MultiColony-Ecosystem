@@ -268,7 +268,7 @@ class TestPaperTradingSimulator:
 
     def test_market_sell_order(self):
         """Test market sell order execution (after buying)."""
-        sim = PaperTradingSimulator(initial_capital=100000.0)
+        sim = PaperTradingSimulator(initial_capital=100000.0, partial_fill_probability=0.0)
 
         # Buy first
         sim.submit_order("AAPL", "BUY", 100, order_type="MARKET")
@@ -284,7 +284,7 @@ class TestPaperTradingSimulator:
 
     def test_limit_buy_order(self):
         """Test limit buy order - should not execute above limit."""
-        sim = PaperTradingSimulator(initial_capital=100000.0)
+        sim = PaperTradingSimulator(initial_capital=100000.0, partial_fill_probability=0.0)
         sim.submit_order("AAPL", "BUY", 100, order_type="LIMIT", price=145.0)
 
         # Price above limit - should NOT execute
@@ -299,7 +299,7 @@ class TestPaperTradingSimulator:
 
     def test_limit_sell_order(self):
         """Test limit sell order - should not execute below limit."""
-        sim = PaperTradingSimulator(initial_capital=100000.0)
+        sim = PaperTradingSimulator(initial_capital=100000.0, partial_fill_probability=0.0)
 
         # Buy first
         sim.submit_order("AAPL", "BUY", 100, order_type="MARKET")
@@ -322,6 +322,7 @@ class TestPaperTradingSimulator:
         sim = PaperTradingSimulator(
             initial_capital=100000.0,
             commission_rate=0.001,
+            partial_fill_probability=0.0,
         )
         sim.submit_order("AAPL", "BUY", 100, order_type="MARKET")
         fills = sim.tick({"AAPL": 150.0})
@@ -344,7 +345,7 @@ class TestPaperTradingSimulator:
 
     def test_portfolio_value_tracking(self):
         """Test portfolio value tracking with positions."""
-        sim = PaperTradingSimulator(initial_capital=100000.0)
+        sim = PaperTradingSimulator(initial_capital=100000.0, partial_fill_probability=0.0)
 
         # Buy stock
         sim.submit_order("AAPL", "BUY", 100, order_type="MARKET")
@@ -364,6 +365,7 @@ class TestPaperTradingSimulator:
         sim = PaperTradingSimulator(
             initial_capital=100000.0,
             slippage_bps=0,  # No slippage for clean test
+            partial_fill_probability=0.0,
         )
 
         # Buy at 150
@@ -378,7 +380,7 @@ class TestPaperTradingSimulator:
 
     def test_reset(self):
         """Test simulator reset."""
-        sim = PaperTradingSimulator(initial_capital=100000.0)
+        sim = PaperTradingSimulator(initial_capital=100000.0, partial_fill_probability=0.0)
         sim.submit_order("AAPL", "BUY", 100, order_type="MARKET")
         sim.tick({"AAPL": 150.0})
 
@@ -391,7 +393,7 @@ class TestPaperTradingSimulator:
 
     def test_multiple_symbols(self):
         """Test trading multiple symbols."""
-        sim = PaperTradingSimulator(initial_capital=100000.0)
+        sim = PaperTradingSimulator(initial_capital=100000.0, partial_fill_probability=0.0)
 
         sim.submit_order("AAPL", "BUY", 50, order_type="MARKET")
         sim.submit_order("MSFT", "BUY", 30, order_type="MARKET")
@@ -403,7 +405,7 @@ class TestPaperTradingSimulator:
 
     def test_full_sell_removes_position(self):
         """Test that selling entire position removes it from tracking."""
-        sim = PaperTradingSimulator(initial_capital=100000.0)
+        sim = PaperTradingSimulator(initial_capital=100000.0, partial_fill_probability=0.0)
 
         sim.submit_order("AAPL", "BUY", 100, order_type="MARKET")
         sim.tick({"AAPL": 150.0})
@@ -415,7 +417,7 @@ class TestPaperTradingSimulator:
 
     def test_get_fills_returns_copy(self):
         """Test that get_fills returns a copy, not a reference."""
-        sim = PaperTradingSimulator(initial_capital=100000.0)
+        sim = PaperTradingSimulator(initial_capital=100000.0, partial_fill_probability=0.0)
         sim.submit_order("AAPL", "BUY", 100, order_type="MARKET")
         sim.tick({"AAPL": 150.0})
 
