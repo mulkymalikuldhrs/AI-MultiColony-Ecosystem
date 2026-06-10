@@ -115,9 +115,18 @@ class PressureNormalizationEngine:
 
         # ── News Sentinel contribution — 20% ────────────────────────
         weight = self.SENSOR_WEIGHTS["news_sentinel"]
+        # News with high uncertainty adds to BOTH sides (unknown direction),
+        # but the net contribution is proportional to directional_factor.
+        # This avoids inflating total pressure while reflecting uncertainty.
         directional_factor = 1.0 - inputs.news_uncertainty
-        buy += weight * inputs.news_impact * directional_factor
-        sell += weight * inputs.news_impact * inputs.news_uncertainty
+        if directional_factor >= 0.5:
+            # More certain direction — add primarily to the directional side
+            buy += weight * inputs.news_impact * directional_factor
+            sell += weight * inputs.news_impact * (1 - directional_factor) * 0.3
+        else:
+            # High uncertainty — split more evenly but with less total contribution
+            buy += weight * inputs.news_impact * 0.5
+            sell += weight * inputs.news_impact * 0.5
 
         # ── Flow Agent contribution (Whale/COT) — 25% ──────────────
         weight = self.SENSOR_WEIGHTS["flow_agent"]
@@ -127,14 +136,21 @@ class PressureNormalizationEngine:
             sell += weight * inputs.flow_imbalance
 
         # ── Normalize pressures to 0.0 - 1.0 ───────────────────────
-        total = buy + sell
-        if total > 0:
-            buy_pressure = buy / total
-            sell_pressure = sell / total
-            confidence = max(buy, sell) / total
+        # Use the sum of absolute sensor weights (1.0) as the reference for normalization.
+        # This avoids the distortion where both sides being strong makes each appear moderate.
+        max_possible = sum(self.SENSOR_WEIGHTS.values())  # 1.0
+        if max_possible > 0:
+            buy_pressure = min(buy / max_possible, 1.0)
+            sell_pressure = min(sell / max_possible, 1.0)
         else:
             buy_pressure = 0.0
             sell_pressure = 0.0
+
+        # Confidence = how strong the dominant side is relative to total
+        total = buy + sell
+        if total > 0:
+            confidence = max(buy, sell) / total
+        else:
             confidence = 0.0
 
         # ── Determine verdict ───────────────────────────────────────

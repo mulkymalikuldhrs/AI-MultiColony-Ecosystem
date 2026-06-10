@@ -1,6 +1,6 @@
 # Architecture: Quant Nanggroe AI
 
-**Version 15.3.0 | Multi-Agent Decision Intelligence Operating System**
+**Version 1.0.0 | Multi-Agent Decision Intelligence Operating System**
 
 This document provides a comprehensive technical reference for the architecture of Quant Nanggroe AI. It covers the system's layered execution model, data flow pathways, service interactions, component relationships, and the deterministic reasoning framework that governs all decision-making processes.
 
@@ -533,4 +533,4 @@ StorageManager
 
 ---
 
-© 2025-2026 Quant Nanggroe AI | Technical Architecture Reference v15.3.0
+© 2025-2026 Quant Nanggroe AI | Technical Architecture Reference v1.0.0

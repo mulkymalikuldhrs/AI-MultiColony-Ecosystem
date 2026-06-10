@@ -7,7 +7,7 @@
 
 <div align="center">
 
-[![Version](https://img.shields.io/badge/Version-15.3.0-gold?style=for-the-badge&logo=semver&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![Version](https://img.shields.io/badge/Version-1.0.0-gold?style=for-the-badge&logo=semver&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge&logo=open-source-initiative&logoColor=white)](./LICENSE)
@@ -115,34 +115,56 @@ The **MathEngine** provides a comprehensive suite of pure mathematical indicator
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- **Node.js** >= 18.0.0
-- **npm** >= 9.0.0 (or yarn/pnpm)
-- API Keys (optional but recommended):
-  - **Google Gemini** — for LLM-powered swarm intelligence
-  - **Finnhub** — for real-time market data
-  - **AlphaVantage** — for stock/forex technical data
+Quant Nanggroe AI is a **dual-stack** project: a Python backend (FastAPI + agents + engines) and a Node.js/TypeScript frontend (React 19 desktop-OS UI). Both stacks must be set up for full functionality.
 
-### Installation
+### Prerequisites
+
+| Stack | Requirement |
+|---|---|
+| **Python Backend** | Python >= 3.12, [Poetry](https://python-poetry.org/) >= 1.8 |
+| **Node.js Frontend** | Node.js >= 18.0.0, npm >= 9.0.0 (or yarn/pnpm) |
+| **External** | PostgreSQL 16+, Redis 7+, QuestDB (optional for time-series) |
+
+### 1. Clone the Repository
 
 ```bash
-# Clone the repository
 git clone https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI.git
-
-# Navigate to the project directory
 cd Quant-Nanggroe-AI
+```
 
-# Install dependencies
+### 2. Python Backend Setup
+
+```bash
+# Install Poetry if you don't have it
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Install Python dependencies
+poetry install
+
+# Copy the environment template and fill in your values
+cp .env.example .env
+
+# Run database migrations
+poetry run alembic upgrade head
+
+# Start the FastAPI server
+poetry run uvicorn quant_nanggroe_ai.main:app --reload
+```
+
+### 3. Node.js Frontend Setup
+
+```bash
+# Install Node.js dependencies
 npm install
 
 # Start the development server
 npm run dev
 ```
 
-### Configuration
+### 4. Configuration
 
-1. Launch the application with `npm run dev`
-2. Open the **Settings** panel from the Control Center or Taskbar
+1. Copy `.env.example` to `.env` and fill in your API keys and service URLs
+2. From the frontend UI, open the **Settings** panel from the Control Center or Taskbar
 3. Enter your API keys in the configuration section:
    - `Google API Key` — Required for Gemini-powered agent swarm
    - `Finnhub API Key` — For real-time market data feeds
@@ -153,11 +175,12 @@ npm run dev
 ### Build for Production
 
 ```bash
-# Create optimized production build
-npm run build
+# Python backend
+poetry build
 
-# Preview the production build locally
-npm run preview
+# Node.js frontend — optimized production build
+npm run build
+npm run preview   # Preview the production build locally
 ```
 
 ---

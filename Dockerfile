@@ -49,7 +49,8 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
 COPY --chown=qna:qna src/ ./src/
-COPY --chown=qna:qna alembic.ini* ./
+COPY --chown=qna:qna alembic/ ./alembic/
+COPY --chown=qna:qna alembic.ini ./alembic.ini
 COPY --chown=qna:qna scripts/ ./scripts/
 
 # Environment
@@ -65,8 +66,14 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE ${PORT}
 
+# Make entrypoint executable
+RUN chmod +x /app/scripts/entrypoint.sh
+
 # Run as non-root user
 USER qna
 
-# Start command
+# Entrypoint runs migrations then starts the app
+ENTRYPOINT ["/app/scripts/entrypoint.sh"]
+
+# Default command (can be overridden for worker service)
 CMD ["uvicorn", "quant_nanggroe_ai.api.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

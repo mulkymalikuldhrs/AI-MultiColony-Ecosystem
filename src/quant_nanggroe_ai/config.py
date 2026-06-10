@@ -28,14 +28,14 @@ class DatabaseSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DB_")
 
     url: str = Field(
-        default="postgresql+asyncpg://qna:qna_dev_password@localhost:5432/quant_nanggroe",
+        default="postgresql+asyncpg://qna:changeme@localhost:5432/quant_nanggroe",
         alias="DATABASE_URL",
-        description="Async database URL",
+        description="Async database URL (set via env var in production)",
     )
     sync_url: str = Field(
-        default="postgresql://qna:qna_dev_password@localhost:5432/quant_nanggroe",
+        default="postgresql://qna:changeme@localhost:5432/quant_nanggroe",
         alias="DATABASE_SYNC_URL",
-        description="Sync database URL for migrations",
+        description="Sync database URL for migrations (set via env var in production)",
     )
     pool_size: int = Field(default=10, ge=1, le=50)
     max_overflow: int = Field(default=20, ge=0, le=50)
@@ -110,7 +110,10 @@ class Settings(BaseSettings):
     app_name: str = Field(default="Quant-Nanggroe-AI")
     app_env: str = Field(default="development")
     log_level: str = Field(default="INFO")
-    secret_key: str = Field(default="change-me-to-a-secure-random-string")
+    secret_key: str = Field(
+        default="change-me-to-a-secure-random-string",
+        description="Application secret key. MUST be changed in production.",
+    )
     debug: bool = Field(default=False)
 
     # Sub-settings
@@ -140,6 +143,48 @@ class Settings(BaseSettings):
         if upper not in allowed:
             raise ValueError(f"log_level must be one of {allowed}, got '{v}'")
         return upper
+
+    @field_validator("secret_key")
+    @classmethod
+    def validate_secret_key(cls, v: str) -> str:
+        insecure_defaults = {
+            "change-me-to-a-secure-random-string",
+            "secret",
+            "changeme",
+            "password",
+            "",
+        }
+        # Only enforce in production - dev/test can use defaults
+        import os
+        env = os.getenv("APP_ENV", os.getenv("app_env", "development"))
+        if env == "production" and v.lower().strip() in insecure_defaults:
+            raise ValueError(
+                "SECRET_KEY must be set to a secure random string in production. "
+                "Generate one with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+            )
+        if len(v) < 16:
+            import warnings
+            warnings.warn(
+                "SECRET_KEY is shorter than 16 characters. "
+                "Consider using a longer, randomly generated key.",
+                stacklevel=2,
+            )
+        return v
+
+    @field_validator("debug")
+    @classmethod
+    def validate_debug_not_in_production(cls, v: bool) -> bool:
+        import os
+        env = os.getenv("APP_ENV", os.getenv("app_env", "development"))
+        if env == "production" and v:
+            import warnings
+            warnings.warn(
+                "DEBUG=True in production is a security risk. "
+                "Force-setting to False.",
+                stacklevel=2,
+            )
+            return False
+        return v
 
     @property
     def is_production(self) -> bool:

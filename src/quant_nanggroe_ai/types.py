@@ -7,7 +7,7 @@ with Python-native enhancements for the engine layer.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -169,7 +169,7 @@ class MarketState(BaseModel):
     regime: MarketRegime = MarketRegime.UNKNOWN
     volatility: VolatilityLevel = VolatilityLevel.NORMAL
     liquidity: LiquidityLevel = LiquidityLevel.NORMAL
-    timestamp: datetime = Field(default_factory=datetime.now)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class RiskCheckpointResult(BaseModel):
@@ -191,7 +191,7 @@ class RiskVerdict(BaseModel):
     checkpoints: dict[str, RiskCheckpointResult]
     veto_count_total: int = 0
     approval_count_total: int = 0
-    timestamp: datetime = Field(default_factory=datetime.now)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class DecisionSynthesis(BaseModel):
@@ -204,7 +204,7 @@ class DecisionSynthesis(BaseModel):
     reason: str = ""
     confidence: float = 0.0
     matched_rules: list[str] = Field(default_factory=list)
-    timestamp: datetime = Field(default_factory=datetime.now)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class EntryParameters(BaseModel):
@@ -283,7 +283,7 @@ class PortfolioPosition(BaseModel):
     avg_price: float
     current_price: float
     pnl: float = 0.0
-    last_updated: datetime = Field(default_factory=datetime.now)
+    last_updated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class TradeHistoryItem(BaseModel):

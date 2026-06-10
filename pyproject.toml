@@ -40,13 +40,16 @@ ccxt = "^4.4.0"
 polygon-api-client = "^1.14.0"
 alpaca-trade-api = "^3.2.0"
 alpha-vantage = "^2.3.0"
-fred-api = "^0.5.1"
+# fred-api removed — package not available on PyPI for Python 3.12+
+# Use `pip install fredapi` or direct FRED API calls via httpx instead.
 sec-edgar-downloader = "^5.0.0"
 
 # ── Backtesting ──────────────────────────────────────────────
 vectorbt = "^0.26.0"
 quantstats = "^0.0.64"
-empyrical = "^0.5.5"
+# empyrical removed — incompatible with Python 3.12+ (SafeConfigParser deprecation).
+# Key metrics (annual_return, max_drawdown, sharpe_ratio, calmar_ratio, sortino_ratio)
+# are available via quantstats or can be computed manually with numpy/pandas/scipy.
 
 # ── Risk ─────────────────────────────────────────────────────
 pyportfolioopt = "^1.5.0"
@@ -104,18 +107,21 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = ["yfinance.*", "ccxt.*", "vectorbt.*", "quantstats.*", "empyrical.*", "pyportfolioopt.*", "crewai.*", "langgraph.*", "langchain.*", "alpha_vantage.*"]
+module = ["yfinance.*", "ccxt.*", "vectorbt.*", "quantstats.*", "pyportfolioopt.*", "crewai.*", "langgraph.*", "langchain.*", "alpha_vantage.*"]
 ignore_missing_imports = true
 
 # ── Pytest Configuration ────────────────────────────────────
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+pythonpath = ["src"]
 markers = [
     "engine: Engine deterministic tests",
     "agents: Agent layer tests",
     "data: Data layer tests",
     "api: API endpoint tests",
+    "risk: Risk management tests",
+    "backtest: Backtesting tests",
     "slow: Slow-running tests",
 ]
 addopts = "-v --tb=short"

@@ -20,6 +20,8 @@ from quant_nanggroe_ai.types import StrategyStatus
 class StrategyState(BaseModel):
     """State of a single strategy."""
 
+    model_config = {"arbitrary_types_allowed": True}
+
     name: str
     description: str = ""
     state: StrategyStatus = StrategyStatus.ACTIVE
@@ -33,6 +35,11 @@ class StrategyState(BaseModel):
     registered_at: datetime = Field(default_factory=datetime.now)
     last_evaluated: datetime | None = None
     state_history: list[dict[str, Any]] = Field(default_factory=list)
+
+    # Cumulative win/loss amounts for proper average calculation
+    # Using private attributes via model__privates__ pattern for Pydantic v2 compat
+    _cum_wins: float = 0.0
+    _cum_losses: float = 0.0
 
 
 class StrategyLifecycleManager:
@@ -96,10 +103,7 @@ class StrategyLifecycleManager:
         strategy.max_drawdown = max(strategy.max_drawdown, current_drawdown)
 
         # Track cumulative win/loss amounts for proper average calculation
-        if not hasattr(strategy, "_cum_wins"):
-            strategy._cum_wins = 0.0
-            strategy._cum_losses = 0.0
-
+        # Use private fields instead of dynamic setattr (Pydantic v2 compat)
         if is_win:
             strategy.wins += 1
             strategy._cum_wins += pnl
@@ -115,6 +119,10 @@ class StrategyLifecycleManager:
             strategy.expectancy = strategy.win_rate * avg_win - (1 - strategy.win_rate) * avg_loss
 
         strategy.last_evaluated = datetime.now()
+
+        # Guard: reject updates to KILLED strategies
+        if strategy.state == StrategyStatus.KILLED:
+            return strategy
 
         # Evaluate lifecycle
         self._evaluate_lifecycle(name)

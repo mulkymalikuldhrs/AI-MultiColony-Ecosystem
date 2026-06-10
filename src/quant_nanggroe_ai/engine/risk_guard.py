@@ -88,25 +88,37 @@ class ConstitutionalRiskGuard:
         7. Direction is valid (BUY/SELL/LONG/SHORT)
         8. Not overtrading (≤ 5 trades/day)
         9. Correlated position check (≤ 3 correlated)
+
+    PnL is tracked as a PERCENTAGE of account balance.
+    Use update_pnl_pct() to update with a percentage value,
+    or update_pnl_raw() to convert a raw dollar PnL to percentage.
     """
 
-    def __init__(self) -> None:
-        self.daily_pnl: float = 0.0
-        self.weekly_pnl: float = 0.0
+    def __init__(self, account_balance: float = 10000.0) -> None:
+        self.account_balance: float = account_balance
+        self.daily_pnl: float = 0.0  # Stored as PERCENTAGE (e.g., -0.005 = -0.5%)
+        self.weekly_pnl: float = 0.0  # Stored as PERCENTAGE
         self.trade_count_today: int = 0
         self.trade_count_week: int = 0
         self.active_positions: list[str] = []
         self.veto_count: int = 0
         self.approval_count: int = 0
         self.last_reset: date = datetime.now().date()
+        self._weekly_reset_date: date | None = datetime.now().date()
 
     def _reset_daily_if_needed(self) -> None:
-        """Reset daily counters if new day."""
+        """Reset daily counters if new day. Also handle weekly reset."""
         today = datetime.now().date()
         if today > self.last_reset:
             self.daily_pnl = 0.0
             self.trade_count_today = 0
             self.last_reset = today
+
+        # Weekly reset: if the last reset was in a different ISO week
+        if self._weekly_reset_date is None or today.isocalendar()[1] != self._weekly_reset_date.isocalendar()[1] or today.year != self._weekly_reset_date.year:
+            self.weekly_pnl = 0.0
+            self.trade_count_week = 0
+            self._weekly_reset_date = today
 
     def check_trade(
         self,
@@ -160,22 +172,24 @@ class ConstitutionalRiskGuard:
             all_passed = False
 
         # ── Checkpoint 2: Daily loss limit ───────────────────────────
-        daily_loss_pct = abs(min(0.0, self.daily_pnl)) if self.daily_pnl < 0 else 0.0
+        # daily_pnl is already a percentage (e.g., -0.005 = -0.5%)
+        daily_loss_pct = abs(self.daily_pnl) if self.daily_pnl < 0 else 0.0
         checkpoints["2_daily_loss"] = RiskCheckpointResult(
             name="2_daily_loss",
-            value=f"{daily_loss_pct:.4f}",
-            limit=f"{MAX_DAILY_LOSS:.4f}",
+            value=f"{daily_loss_pct:.4%}",
+            limit=f"{MAX_DAILY_LOSS:.4%}",
             passed=daily_loss_pct < MAX_DAILY_LOSS,
         )
         if not checkpoints["2_daily_loss"].passed:
             all_passed = False
 
         # ── Checkpoint 3: Weekly loss limit ──────────────────────────
-        weekly_loss_pct = abs(min(0.0, self.weekly_pnl)) if self.weekly_pnl < 0 else 0.0
+        # weekly_pnl is already a percentage
+        weekly_loss_pct = abs(self.weekly_pnl) if self.weekly_pnl < 0 else 0.0
         checkpoints["3_weekly_loss"] = RiskCheckpointResult(
             name="3_weekly_loss",
-            value=f"{weekly_loss_pct:.4f}",
-            limit=f"{MAX_WEEKLY_LOSS:.4f}",
+            value=f"{weekly_loss_pct:.4%}",
+            limit=f"{MAX_WEEKLY_LOSS:.4%}",
             passed=weekly_loss_pct < MAX_WEEKLY_LOSS,
         )
         if not checkpoints["3_weekly_loss"].passed:
@@ -313,17 +327,45 @@ class ConstitutionalRiskGuard:
             "note": "Risk percentage capped at hardcoded maximum. No override possible.",
         }
 
-    def update_pnl(self, trade_pnl: float) -> None:
+    def update_pnl_pct(self, pnl_pct: float) -> None:
         """
-        Update daily and weekly PnL tracking.
+        Update daily and weekly PnL tracking with a PERCENTAGE value.
 
-        Also checks if kill switch should auto-activate.
+        Args:
+            pnl_pct: PnL as a fraction of account balance (e.g., -0.005 for -0.5%)
         """
         self._reset_daily_if_needed()
-        self.daily_pnl += trade_pnl
-        self.weekly_pnl += trade_pnl
+        self.daily_pnl += pnl_pct
+        self.weekly_pnl += pnl_pct
         self.trade_count_today += 1
         self.trade_count_week += 1
+
+    def update_pnl_raw(self, pnl_dollars: float) -> None:
+        """
+        Update daily and weekly PnL tracking with a raw dollar PnL value.
+
+        Converts the raw PnL to a percentage of account balance before storing.
+
+        Args:
+            pnl_dollars: PnL in absolute dollar terms (e.g., -50.0 for a $50 loss)
+        """
+        if self.account_balance > 0:
+            pnl_pct = pnl_dollars / self.account_balance
+        else:
+            pnl_pct = 0.0
+        self.update_pnl_pct(pnl_pct)
+
+    # Keep backward compatibility
+    update_pnl = update_pnl_raw
+
+    def add_position(self, symbol: str) -> None:
+        """Add a symbol to the active positions list."""
+        if symbol.upper() not in [p.upper() for p in self.active_positions]:
+            self.active_positions.append(symbol.upper())
+
+    def remove_position(self, symbol: str) -> None:
+        """Remove a symbol from the active positions list."""
+        self.active_positions = [p for p in self.active_positions if p.upper() != symbol.upper()]
 
     def status(self) -> dict[str, Any]:
         """Get current risk status."""

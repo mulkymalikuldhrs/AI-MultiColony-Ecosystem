@@ -18,16 +18,15 @@ services:
       - path: .env
         required: false
     environment:
-      - APP_ENV=${APP_ENV:-development}
+      - APP_ENV=${APP_ENV:-production}
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-qna}:${POSTGRES_PASSWORD:-qna_dev_password}@postgres:5432/${POSTGRES_DB:-quant_nanggroe}
       - REDIS_URL=redis://redis:6379/0
+      - QUESTDB_URL=http://questdb:9000
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./src:/app/src
     networks:
       - qna-network
     healthcheck:
@@ -35,6 +34,38 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  # ── Trading Worker ──────────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: qna-worker
+    restart: unless-stopped
+    command: ["python", "-m", "quant_nanggroe_ai.worker"]
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-qna}:${POSTGRES_PASSWORD:-qna_dev_password}@postgres:5432/${POSTGRES_DB:-quant_nanggroe}
+      - REDIS_URL=redis://redis:6379/0
+      - QUESTDB_URL=http://questdb:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - qna-network
+    deploy:
+      resources:
+        limits:
+          memory: 1g
 
   # ── PostgreSQL ──────────────────────────────────────────────────────
   postgres:

@@ -717,11 +717,13 @@ class TradingWorker:
             id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
             email="system@quant-nanggroe-ai.internal",
             username="system",
-            hashed_password="no-login",
-            is_active=True,
-            is_admin=True,
+            hashed_password="no-login",  # Not a real password — user cannot authenticate
+            is_active=False,  # Cannot log in
+            is_admin=False,  # No admin privileges — service account only
+            display_name="System Service Account",
         )
         session.add(system_user)
+        await session.flush()
         return system_user.id
 
 

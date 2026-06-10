@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify poetry.lock exists
+        run: test -f poetry.lock || (echo "ERROR: poetry.lock is missing — run 'poetry lock' and commit it" && exit 1)
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -23,7 +25,7 @@ jobs:
       - name: Ruff check
         run: ruff check src/ tests/ --output-format=github
       - name: MyPy type check
-        run: mypy src/quant_nanggroe_ai/ --ignore-missing-imports || true
+        run: mypy src/quant_nanggroe_ai/ --ignore-missing-imports
 
   security:
     name: Security (Bandit)
@@ -36,7 +38,7 @@ jobs:
       - name: Install Bandit
         run: pip install bandit
       - name: Bandit scan
-        run: bandit -r src/ -ll -ii -f json -o bandit-report.json || true
+        run: bandit -r src/ -ll -ii -f json -o bandit-report.json
       - name: Check for hardcoded secrets
         run: |
           ! grep -rn "sk-\|api_key\s*=\s*[\"'][^\"']\{10,\}" src/ --include="*.py" || (echo "HARDCODED SECRET DETECTED" && exit 1)
@@ -81,11 +83,11 @@ jobs:
           pip install -e . || true
       - name: Run tests
         env:
-          QNA_ENV: test
-          QNA_DATABASE_URL: postgresql://qna_test:qna_test@localhost:5432/qna_test
-          QNA_REDIS_URL: redis://localhost:6379/15
+          APP_ENV: test
+          DATABASE_URL: postgresql://qna_test:qna_test@localhost:5432/qna_test
+          REDIS_URL: redis://localhost:6379/15
         run: |
-          pytest tests/ -v --tb=short --cov=src/quant_nanggroe_ai --cov-report=xml --cov-report=term-missing || true
+          pytest tests/ -v --tb=short --cov=src/quant_nanggroe_ai --cov-report=xml --cov-report=term-missing --cov-fail-under=50
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         if: always()
