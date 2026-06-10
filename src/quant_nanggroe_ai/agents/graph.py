@@ -8,18 +8,59 @@ The graph uses conditional routing:
 - If regime is NO_TRADE → skip to end
 - Portfolio Manager has final gate approval
 
-LangGraph passes state as a Pydantic model — access fields via attribute
-notation, not dict .get(). Enum comparisons use enum members, not strings.
+Stateful engine components (RiskGuard, MarketEngine, DecisionEngine) are
+resolved from shared singletons when a FastAPI app is available, ensuring
+PnL tracking and regime history persist across graph invocations.  When
+running outside an app context (e.g. tests), fresh instances are used.
 """
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable, TYPE_CHECKING
 
 from langgraph.graph import StateGraph, END
 
 from quant_nanggroe_ai.agents.state import AgentState
 from quant_nanggroe_ai.types import MarketRegime, RiskClearance, DecisionAction
+
+if TYPE_CHECKING:
+    from fastapi import FastAPI
+
+# ══════════════════════════════════════════════════════════════════════
+# App context — allows nodes to access shared service singletons
+# ══════════════════════════════════════════════════════════════════════
+
+_app: FastAPI | None = None
+
+
+def set_app(app: FastAPI | None) -> None:
+    """Set the FastAPI app reference so graph nodes can access shared singletons."""
+    global _app
+    _app = app
+
+
+def get_app() -> FastAPI | None:
+    """Return the current FastAPI app reference (or None if outside app context)."""
+    return _app
+
+
+def _get_service(getter_fn: Callable, fallback_factory: Callable) -> Any:
+    """
+    Try to obtain a shared service singleton via *getter_fn(app)*.
+    Fall back to *fallback_factory()* when no app context is available.
+    """
+    app = get_app()
+    if app is not None:
+        try:
+            return getter_fn(app)
+        except Exception:
+            pass
+    return fallback_factory()
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Node implementations
+# ══════════════════════════════════════════════════════════════════════
 
 
 def researcher_node(state: AgentState) -> dict[str, Any]:
@@ -59,12 +100,15 @@ def analyst_node(state: AgentState) -> dict[str, Any]:
 
     Processes research data into actionable intelligence using the
     deterministic MathEngine indicator suite and pressure normalization.
+    Uses the shared MarketStateEngine when available for regime history.
     """
     from quant_nanggroe_ai.agents.tools.technical import TechnicalAnalysisTool
     from quant_nanggroe_ai.engine.market_state import MarketStateEngine
+    from quant_nanggroe_ai.services import get_market_engine
 
     tech_tool = TechnicalAnalysisTool()
-    market_engine = MarketStateEngine()
+    # Use shared singleton to preserve regime history across calls
+    market_engine = _get_service(get_market_engine, MarketStateEngine)
 
     # Run technical analysis on available data
     tech_analysis = tech_tool.analyze(state.symbol, state.timeframe)
@@ -105,14 +149,17 @@ def strategist_node(state: AgentState) -> dict[str, Any]:
 
     Combines analysis with market state to produce trade plans.
     Uses pressure normalization and decision synthesis for deterministic
-    signal generation.
+    signal generation. Leverages shared DecisionSynthesisEngine when
+    available for decision cache persistence.
     """
     from quant_nanggroe_ai.engine.pressure import PressureNormalizationEngine, PressureInput
     from quant_nanggroe_ai.engine.decision import DecisionSynthesisEngine
     from quant_nanggroe_ai.agents.tools.technical import TechnicalAnalysisTool
+    from quant_nanggroe_ai.services import get_decision_engine
 
     pressure_engine = PressureNormalizationEngine()
-    decision_engine = DecisionSynthesisEngine()
+    # Use shared singleton for decision cache
+    decision_engine = _get_service(get_decision_engine, DecisionSynthesisEngine)
     tech_tool = TechnicalAnalysisTool()
 
     # Build pressure input from technical analysis
@@ -161,13 +208,12 @@ def strategist_node(state: AgentState) -> dict[str, Any]:
 
     if decision_result.action in (DecisionAction.ALLOW_LONG, DecisionAction.ALLOW_LONG_TRENDING):
         signal = "BUY"
-        # Calculate entry/exit based on ATR
         atr = ta.get("atr_14", 0.0)
         current_price = ta.get("current_price", 0.0)
         if current_price > 0:
             entry_price = current_price
-            stop_loss = current_price - 2.0 * atr  # 2 ATR stop
-            take_profit = [current_price + 2.0 * atr, current_price + 4.0 * atr]  # 1:2, 1:4 RR
+            stop_loss = current_price - 2.0 * atr
+            take_profit = [current_price + 2.0 * atr, current_price + 4.0 * atr]
     elif decision_result.action in (DecisionAction.ALLOW_SHORT, DecisionAction.ALLOW_SHORT_TRENDING):
         signal = "SELL"
         atr = ta.get("atr_14", 0.0)
@@ -208,12 +254,14 @@ def risk_manager_node(state: AgentState) -> dict[str, Any]:
     Risk Engine Agent — 9-checkpoint VETO system.
 
     Has FULL VETO authority. Cannot be overridden.
-    Uses the shared ConstitutionalRiskGuard instance for state persistence.
+    Uses the shared ConstitutionalRiskGuard instance for state persistence
+    so daily/weekly PnL limits work correctly across graph invocations.
     """
     from quant_nanggroe_ai.engine.risk_guard import ConstitutionalRiskGuard
+    from quant_nanggroe_ai.services import get_risk_guard
 
-    # Use shared instance from app state if available, otherwise create
-    risk_guard = ConstitutionalRiskGuard()
+    # Use shared singleton to preserve PnL tracking across calls
+    risk_guard = _get_service(get_risk_guard, ConstitutionalRiskGuard)
 
     # Check the trade through the 9-checkpoint system
     result = risk_guard.check_trade(
@@ -310,6 +358,11 @@ def portfolio_manager_node(state: AgentState) -> dict[str, Any]:
     }
 
 
+# ══════════════════════════════════════════════════════════════════════
+# Conditional routing
+# ══════════════════════════════════════════════════════════════════════
+
+
 def should_continue_after_risk(state: AgentState) -> str:
     """Conditional routing: if risk VETOED, skip to end."""
     if state.risk_clearance == RiskClearance.CLEAR:
@@ -322,6 +375,11 @@ def should_continue_after_regime(state: AgentState) -> str:
     if state.regime in (MarketRegime.NO_TRADE, MarketRegime.PANIC, MarketRegime.RISK_OFF):
         return "end"
     return "analyst"
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Graph builder
+# ══════════════════════════════════════════════════════════════════════
 
 
 def build_trading_graph() -> StateGraph:

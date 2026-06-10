@@ -213,8 +213,16 @@ def _kelly_criterion_check(
     # Validate current position size against Kelly recommendation
     risk_distance = abs(entry_price - stop_loss) if entry_price > 0 and stop_loss > 0 else 0.0
     kelly_position = kelly_result.get("fractional_kelly", 0.0)
-    # position_size_ok if we're within Kelly bounds
-    position_size_ok = True  # Already constrained by risk guard's 0.5% rule
+
+    # Calculate the maximum position value allowed by Kelly
+    account_balance = DEFAULT_ACCOUNT_BALANCE
+    max_kelly_value = account_balance * kelly_position
+
+    # Calculate the proposed position value
+    proposed_value = position_size * entry_price if entry_price > 0 else 0.0
+
+    # Position is OK if within Kelly bounds (with 10% buffer for slippage)
+    position_size_ok = proposed_value <= max_kelly_value * 1.10 if max_kelly_value > 0 else True
 
     return {
         "method": "kelly_criterion",

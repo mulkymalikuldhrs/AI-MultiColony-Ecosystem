@@ -34,6 +34,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     init_all_services(app)
 
+    # Wire the app into the graph module so nodes can access shared singletons
+    from quant_nanggroe_ai.agents.graph import set_app
+
+    set_app(app)
+
     # Initialize database (graceful degradation if unavailable)
     try:
         from quant_nanggroe_ai.data.database import init_db

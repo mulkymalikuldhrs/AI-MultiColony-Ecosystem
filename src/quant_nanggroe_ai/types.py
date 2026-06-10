@@ -83,6 +83,7 @@ class DecisionAction(str, Enum):
 class StrategyStatus(str, Enum):
     """Strategy lifecycle status."""
 
+    INCUBATING = "INCUBATING"
     ACTIVE = "ACTIVE"
     HIBERNATING = "HIBERNATING"
     KILLED = "KILLED"

@@ -43,7 +43,7 @@ def _get_portfolio_data():
         _positions = trading_positions
         _trade_history = trading_history
     except (ImportError, AttributeError):
-        pass
+        logger.warning("portfolio_import_failed", msg="Could not import trading route stores")
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -174,8 +174,8 @@ async def get_portfolio_risk(request: Request) -> PortfolioRiskResponse:
 
                 metrics = calculate_metrics(returns)
                 sharpe_ratio = metrics.get("sharpe_ratio", 0.0)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("sharpe_calculation_failed", error=str(exc))
 
     # Parse daily/weekly PnL from risk status
     daily_pnl_str = risk_status.get("daily_pnl", "0.00%")
@@ -244,10 +244,29 @@ async def calculate_position_sizing(
             avg_loss=avg_loss,
             account_balance=account_balance,
         )
+    elif method == "risk_parity":
+        from quant_nanggroe_ai.risk.position_sizing import risk_parity_weights
+
+        # Risk parity requires asset volatilities — accept as query params
+        return {
+            "method": "risk_parity",
+            "message": "Provide asset_volatilities as a list of volatility series for risk parity calculation",
+            "usage": "POST /api/portfolio/position-sizing?method=risk_parity with asset_volatilities in body",
+        }
+    elif method == "fixed_fractional":
+        risk_pct = 0.005  # 0.5% risk per trade (constitutional default)
+        position_value = account_balance * risk_pct
+        return {
+            "method": "fixed_fractional",
+            "risk_pct": risk_pct,
+            "account_balance": account_balance,
+            "position_value": position_value,
+            "message": f"Fixed fractional: {risk_pct*100:.1f}% of account = {position_value:.2f}",
+        }
     else:
         return {
             "method": method,
-            "message": f"Position sizing method '{method}' not yet implemented",
+            "message": f"Position sizing method '{method}' not yet implemented. Available: kelly, risk_parity, fixed_fractional",
         }
 
 

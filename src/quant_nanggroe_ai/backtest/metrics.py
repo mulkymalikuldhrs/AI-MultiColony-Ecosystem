@@ -44,9 +44,9 @@ class BacktestMetrics:
         max_dd = metrics.max_drawdown(equity_curve)
     """
 
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
     # SHARPE RATIO
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
 
     def sharpe_ratio(
         self,
@@ -57,12 +57,12 @@ class BacktestMetrics:
         """
         Calculate annualized Sharpe ratio.
 
-        Sharpe = (E[R] - Rf) / σ(R) * √(periods_per_year)
+        Sharpe = (E[R] - Rf) / sigma(R) * sqrt(periods_per_year)
 
         Where:
         - E[R] = mean return
         - Rf = risk-free rate (annualized, e.g. 0.02 for 2%)
-        - σ(R) = standard deviation of returns
+        - sigma(R) = standard deviation of returns
 
         Args:
             returns: Period returns (daily, hourly, etc.)
@@ -96,9 +96,9 @@ class BacktestMetrics:
 
         return float(sharpe)
 
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
     # SORTINO RATIO
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
 
     def sortino_ratio(
         self,
@@ -110,7 +110,7 @@ class BacktestMetrics:
         """
         Calculate annualized Sortino ratio.
 
-        Sortino = (E[R] - Rf) / σ_downside(R) * √(periods_per_year)
+        Sortino = (E[R] - Rf) / sigma_downside(R) * sqrt(periods_per_year)
 
         Unlike Sharpe, Sortino only penalizes downside volatility,
         making it more appropriate for asymmetric return distributions.
@@ -136,7 +136,7 @@ class BacktestMetrics:
         # Downside deviation: only returns below MAR
         downside = arr[arr < mar] - mar
         if len(downside) == 0:
-            # No downside returns — perfect performance
+            # No downside returns - perfect performance
             return float("inf") if mean_return > mar else 0.0
 
         downside_std = np.sqrt(np.mean(downside ** 2))
@@ -151,9 +151,9 @@ class BacktestMetrics:
 
         return float(sortino)
 
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
     # MAX DRAWDOWN
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
 
     def max_drawdown(
         self,
@@ -242,9 +242,9 @@ class BacktestMetrics:
             "recovery_idx": recovery_idx,
         }
 
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
     # WIN RATE
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
 
     def win_rate(self, trades: list[dict[str, Any]]) -> float:
         """
@@ -266,9 +266,9 @@ class BacktestMetrics:
         wins = sum(1 for p in pnls if p > 0)
         return round(wins / len(pnls), 4)
 
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
     # PROFIT FACTOR
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
 
     def profit_factor(self, trades: list[dict[str, Any]]) -> float:
         """
@@ -296,9 +296,9 @@ class BacktestMetrics:
 
         return round(gross_profit / gross_loss, 4)
 
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
     # CALMAR RATIO
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
 
     def calmar_ratio(
         self,
@@ -347,9 +347,9 @@ class BacktestMetrics:
 
         return float(calmar)
 
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
     # VALUE AT RISK (Historical)
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
 
     def value_at_risk(
         self,
@@ -375,9 +375,9 @@ class BacktestMetrics:
         var = float(np.percentile(arr, (1 - confidence) * 100))
         return abs(var)
 
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
     # CONDITIONAL VaR (CVaR / Expected Shortfall)
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
 
     def conditional_var(
         self,
@@ -410,9 +410,9 @@ class BacktestMetrics:
 
         return abs(float(np.mean(tail)))
 
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
     # COMPREHENSIVE METRICS
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
 
     def calculate_all(
         self,
@@ -475,9 +475,9 @@ class BacktestMetrics:
 
         return result
 
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
     # INTERNAL HELPERS
-    # ══════════════════════════════════════════════════════════════════
+    # ==================================================================
 
     @staticmethod
     def _extract_pnls(trades: list[Any]) -> list[float]:
@@ -519,3 +519,60 @@ class BacktestMetrics:
         kurt = ((n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3))) * m4 - \
                (3 * (n - 1) ** 2) / ((n - 2) * (n - 3))
         return float(kurt) if np.isfinite(kurt) else 0.0
+
+
+# ======================================================================
+# Module-level convenience function
+# ======================================================================
+
+
+def calculate_metrics(
+    returns: list[float] | np.ndarray,
+    benchmark: list[float] | np.ndarray | None = None,
+    equity_curve: list[float] | list[dict[str, Any]] | np.ndarray | None = None,
+    trades: list[dict[str, Any]] | None = None,
+    risk_free_rate: float = 0.02,
+    periods_per_year: int = 252,
+) -> dict[str, Any]:
+    """
+    Convenience function to calculate all backtest metrics at once.
+
+    This is a module-level wrapper around BacktestMetrics.calculate_all()
+    for easy import and use in API routes and other modules.
+
+    Args:
+        returns: Period returns (daily, hourly, etc.)
+        benchmark: Optional benchmark returns for comparison.
+        equity_curve: Optional equity curve for drawdown calculations.
+        trades: Optional trade list for trade-based metrics.
+        risk_free_rate: Annualized risk-free rate (default 2%).
+        periods_per_year: Number of periods per year (252 for daily).
+
+    Returns:
+        Dict with all calculated metrics including optional benchmark comparison.
+
+    Example::
+
+        from quant_nanggroe_ai.backtest.metrics import calculate_metrics
+        result = calculate_metrics(daily_returns)
+    """
+    calculator = BacktestMetrics()
+    result = calculator.calculate_all(
+        returns=returns,
+        equity_curve=equity_curve,
+        trades=trades,
+        risk_free_rate=risk_free_rate,
+        periods_per_year=periods_per_year,
+    )
+
+    # Add benchmark comparison if provided
+    if benchmark is not None and len(benchmark) > 1:
+        bench_metrics = calculator.calculate_all(
+            returns=benchmark,
+            risk_free_rate=risk_free_rate,
+            periods_per_year=periods_per_year,
+        )
+        result["benchmark_sharpe"] = bench_metrics.get("sharpe_ratio", 0.0)
+        result["benchmark_total_return"] = bench_metrics.get("total_return", 0.0)
+
+    return result
