@@ -1,127 +1,109 @@
-[tool.poetry]
+[project]
 name = "quant-nanggroe-ai"
-version = "1.0.0"
-description = "Agentic Trading Intelligence OS — Production-grade quantitative trading system with multi-agent AI, deterministic engines, and constitutional risk management."
-authors = ["Quant-Nanggroe-AI Team"]
-license = "MIT"
+version = "0.2.0"
+description = "Agentic Trading Intelligence OS — Multi-agent trading framework with LangGraph orchestration, constitutional risk management, and production-grade execution"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Quant Nanggroe AI Team"},
+]
 readme = "README.md"
-packages = [{include = "quant_nanggroe_ai", from = "src"}]
+keywords = ["trading", "ai", "agents", "langgraph", "quant", "crypto", "forex"]
 
-[tool.poetry.dependencies]
-python = "^3.12"
+dependencies = [
+    # Agent Framework
+    "langgraph>=0.2",
+    "langchain>=0.3",
+    "langchain-openai>=0.2",
+    "langchain-anthropic>=0.2",
+    "langchain-google-genai>=2.0",
+    "langchain-core>=0.3",
+    # Data & Computation
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "scipy>=1.11",
+    # Data Sources
+    "yfinance>=0.2",
+    "ccxt>=4.0",
+    # Database & Caching
+    "sqlalchemy>=2.0",
+    "alembic>=1.12",
+    "redis>=5.0",
+    # API Server
+    "fastapi>=0.100",
+    "uvicorn>=0.24",
+    # HTTP & Async
+    "httpx>=0.25",
+    "aiohttp>=3.9",
+    # Logging & CLI
+    "structlog>=23.0",
+    "rich>=13.0",
+    "click>=8.0",
+    # ML (optional core)
+    "scikit-learn>=1.3",
+]
 
-# ── Core ──────────────────────────────────────────────────────
-fastapi = "^0.115.0"
-uvicorn = {version = "^0.32.0", extras = ["standard"]}
-pydantic = "^2.10.0"
-pydantic-settings = "^2.7.0"
-sqlalchemy = "^2.0.36"
-alembic = "^1.14.0"
-asyncpg = "^0.30.0"
-redis = {version = "^5.2.0", extras = ["hiredis"]}
+[project.optional-dependencies]
+ml = [
+    "xgboost>=2.0",
+    "torch>=2.0",
+]
+alpaca = [
+    "alpaca-py>=0.20",
+]
+polygon = [
+    "polygon-api-client>=1.12",
+]
+data = [
+    "alpaca-py>=0.20",
+    "polygon-api-client>=1.12",
+    "twelvedata>=0.5",
+]
+memory = [
+    "chromadb>=0.4",
+]
+all = [
+    "quant-nanggroe-ai[ml,data,memory]",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+    "ruff>=0.1",
+    "mypy>=1.5",
+    "pre-commit>=3.5",
+]
 
-# ── Engine (Deterministic Math) ──────────────────────────────
-numpy = "^2.1.0"
-pandas = "^2.2.0"
-scipy = "^1.14.0"
-scikit-learn = "^1.6.0"
-
-# ── Agents (LangGraph / CrewAI / Pydantic-AI) ────────────────
-langgraph = "^0.2.60"
-langchain-core = "^0.3.0"
-langchain-openai = "^0.3.0"
-langchain-anthropic = "^0.3.0"
-crewai = "^1.14.0"
-pydantic-ai = "^0.0.30"
-
-# ── Data Sources ──────────────────────────────────────────────
-yfinance = "^0.2.50"
-ccxt = "^4.4.0"
-polygon-api-client = "^1.14.0"
-alpaca-trade-api = "^3.2.0"
-alpha-vantage = "^2.3.0"
-# fred-api removed — package not available on PyPI for Python 3.12+
-# Use `pip install fredapi` or direct FRED API calls via httpx instead.
-sec-edgar-downloader = "^5.0.0"
-
-# ── Backtesting ──────────────────────────────────────────────
-vectorbt = "^0.26.0"
-quantstats = "^0.0.64"
-# empyrical removed — incompatible with Python 3.12+ (SafeConfigParser deprecation).
-# Key metrics (annual_return, max_drawdown, sharpe_ratio, calmar_ratio, sortino_ratio)
-# are available via quantstats or can be computed manually with numpy/pandas/scipy.
-
-# ── Risk ─────────────────────────────────────────────────────
-pyportfolioopt = "^1.5.0"
-
-# ── API & HTTP ───────────────────────────────────────────────
-httpx = "^0.28.0"
-websockets = "^14.0"
-python-multipart = "^0.0.18"
-
-# ── Auth ─────────────────────────────────────────────────────
-python-jose = {version = "^3.3.0", extras = ["cryptography"]}
-passlib = {version = "^1.7.4", extras = ["bcrypt"]}
-
-# ── Utilities ────────────────────────────────────────────────
-orjson = "^3.10.0"
-rich = "^13.9.0"
-click = "^8.1.0"
-structlog = "^24.4.0"
-tenacity = "^9.0.0"
-psutil = "^6.1.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.0"
-pytest-asyncio = "^0.24.0"
-pytest-cov = "^6.0.0"
-ruff = "^0.8.0"
-mypy = "^1.13.0"
-pre-commit = "^4.0.0"
-bandit = "^1.8.0"
-ipython = "^8.29.0"
+[project.scripts]
+qnai = "quant_nanggroe.cli:main"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
-# ── Ruff Configuration ──────────────────────────────────────
+[tool.setuptools.packages.find]
+include = ["quant_nanggroe*"]
+
 [tool.ruff]
-target-version = "py312"
+target-version = "py311"
 line-length = 100
-src = ["src", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM", "TCH", "RUF"]
-ignore = ["E501", "SIM108"]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM"]
+ignore = ["E501"]
 
-[tool.ruff.lint.isort]
-known-first-party = ["quant_nanggroe_ai"]
-
-# ── MyPy Configuration ──────────────────────────────────────
-[tool.mypy]
-python_version = "3.12"
-strict = true
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = ["yfinance.*", "ccxt.*", "vectorbt.*", "quantstats.*", "pyportfolioopt.*", "crewai.*", "langgraph.*", "langchain.*", "alpha_vantage.*"]
-ignore_missing_imports = true
-
-# ── Pytest Configuration ────────────────────────────────────
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-pythonpath = ["src"]
 markers = [
-    "engine: Engine deterministic tests",
-    "agents: Agent layer tests",
-    "data: Data layer tests",
-    "api: API endpoint tests",
-    "risk: Risk management tests",
-    "backtest: Backtesting tests",
-    "slow: Slow-running tests",
+    "slow: marks tests as slow",
+    "integration: marks integration tests requiring API keys",
 ]
-addopts = "-v --tb=short"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
