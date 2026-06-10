@@ -259,6 +259,13 @@ Full Docker, Docker Compose, and Kubernetes deployment support with health check
 
 ```bash
 # Clone the repository
+
+<!-- AUTO-PACKAGE-BADGES:START -->
+<!-- Auto-generated package badges -->
+
+![npm version](https://img.shields.io/npm/v/agentic-ai-system?style=flat-square&logo=npm&color=blue) ![npm downloads](https://img.shields.io/npm/dw/agentic-ai-system?style=flat-square&color=brightgreen) ![npm license](https://img.shields.io/npm/l/agentic-ai-system?style=flat-square) [![Deployed](https://img.shields.io/badge/deployed-2.1.0-blue?style=flat-square)](https://www.npmjs.com/package/agentic-ai-system)
+
+<!-- AUTO-PACKAGE-BADGES:END -->
 git clone https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git
 cd AI-MultiColony-Ecosystem
 
