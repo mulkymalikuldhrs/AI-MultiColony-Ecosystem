@@ -228,6 +228,10 @@ The final layer combines the normalized pressure vector with portfolio state and
 
 ```bash
 # Clone the repository
+
+<!-- AUTO-PACKAGE-BADGES:START -->
+
+<!-- AUTO-PACKAGE-BADGES:END -->
 git clone https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI.git
 cd Quant-Nanggroe-AI
 
