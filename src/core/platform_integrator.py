@@ -8,11 +8,16 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 import os
 import json
 import asyncio
-import aiohttp
 import requests
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 from pathlib import Path
+
+try:
+    import aiohttp
+    AIOHTTP_AVAILABLE = True
+except ImportError:
+    AIOHTTP_AVAILABLE = False
 
 class PlatformIntegrator:
     """Manages platform integrations and external service connections"""
@@ -72,13 +77,20 @@ class GitHubIntegration:
         """Initialize GitHub integration"""
         if self.token:
             try:
-                async with aiohttp.ClientSession() as session:
-                    headers = {'Authorization': f'token {self.token}'}
-                    async with session.get(f'{self.base_url}/user', headers=headers) as resp:
-                        if resp.status == 200:
-                            self.connected = True
-                            user_data = await resp.json()
-                            print(f"🐙 GitHub connected as: {user_data.get('login')}")
+                headers = {'Authorization': f'token {self.token}'}
+                if AIOHTTP_AVAILABLE:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(f'{self.base_url}/user', headers=headers) as resp:
+                            if resp.status == 200:
+                                self.connected = True
+                                user_data = await resp.json()
+                                print(f"GitHub connected as: {user_data.get('login')}")
+                else:
+                    resp = requests.get(f'{self.base_url}/user', headers=headers, timeout=10)
+                    if resp.status_code == 200:
+                        self.connected = True
+                        user_data = resp.json()
+                        print(f"GitHub connected as: {user_data.get('login')}")
             except Exception as e:
                 print(f"GitHub connection failed: {e}")
     

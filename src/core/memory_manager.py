@@ -13,9 +13,14 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 import hashlib
-import pickle
 import threading
 from dataclasses import dataclass, asdict
+
+try:
+    import aiohttp
+    AIOHTTP_AVAILABLE = True
+except ImportError:
+    AIOHTTP_AVAILABLE = False
 
 @dataclass
 class MemoryEntry:
@@ -288,96 +293,111 @@ class ExternalKnowledgeAPI:
     async def fetch_wikipedia_knowledge(self, topic: str) -> Optional[Dict]:
         """Fetch knowledge from Wikipedia API"""
         try:
-            # Search for the topic
             search_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{topic}"
-            
-            async with requests.Session() as session:
-                response = requests.get(search_url, headers={
-                    'User-Agent': 'Agentic-AI-System/1.0 (Indonesia)'
-                })
-                
+            headers = {'User-Agent': 'Agentic-AI-System/1.0 (Indonesia)'}
+
+            if AIOHTTP_AVAILABLE:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(search_url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                        else:
+                            return None
+            else:
+                # Fallback to synchronous requests
+                response = requests.get(search_url, headers=headers, timeout=10)
                 if response.status_code == 200:
                     data = response.json()
-                    
-                    knowledge = {
-                        'topic': topic,
-                        'content': data.get('extract', ''),
-                        'source': 'Wikipedia',
-                        'source_url': data.get('content_urls', {}).get('desktop', {}).get('page', ''),
-                        'last_updated': datetime.now().isoformat()
-                    }
-                    
-                    # Store in knowledge base
-                    self._store_knowledge(knowledge)
-                    
-                    return knowledge
-                    
+                else:
+                    return None
+
+            knowledge = {
+                'topic': topic,
+                'content': data.get('extract', ''),
+                'source': 'Wikipedia',
+                'source_url': data.get('content_urls', {}).get('desktop', {}).get('page', ''),
+                'last_updated': datetime.now().isoformat()
+            }
+            self._store_knowledge(knowledge)
+            return knowledge
+
         except Exception as e:
             print(f"Error fetching Wikipedia knowledge: {e}")
-            
+
         return None
     
     async def fetch_news_knowledge(self, query: str) -> List[Dict]:
         """Fetch news from public news API"""
         try:
-            # Using free news API (no key required for basic usage)
-            url = f"https://newsapi.org/v2/everything"
+            url = "https://newsapi.org/v2/everything"
             params = {
                 'q': query,
                 'sortBy': 'publishedAt',
                 'pageSize': 5,
                 'language': 'en'
             }
-            
-            response = requests.get(url, params=params)
-            
-            if response.status_code == 200:
+
+            if AIOHTTP_AVAILABLE:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                        if resp.status != 200:
+                            return []
+                        data = await resp.json()
+            else:
+                response = requests.get(url, params=params, timeout=10)
+                if response.status_code != 200:
+                    return []
                 data = response.json()
-                news_items = []
-                
-                for article in data.get('articles', []):
-                    knowledge = {
-                        'topic': query,
-                        'content': f"{article.get('title', '')} - {article.get('description', '')}",
-                        'source': 'News API',
-                        'source_url': article.get('url', ''),
-                        'last_updated': datetime.now().isoformat()
-                    }
-                    
-                    news_items.append(knowledge)
-                    self._store_knowledge(knowledge)
-                
-                return news_items
-                
+
+            news_items = []
+            for article in data.get('articles', []):
+                knowledge = {
+                    'topic': query,
+                    'content': f"{article.get('title', '')} - {article.get('description', '')}",
+                    'source': 'News API',
+                    'source_url': article.get('url', ''),
+                    'last_updated': datetime.now().isoformat()
+                }
+                news_items.append(knowledge)
+                self._store_knowledge(knowledge)
+
+            return news_items
+
         except Exception as e:
             print(f"Error fetching news: {e}")
-            
+
         return []
     
     async def fetch_general_facts(self) -> Optional[Dict]:
         """Fetch random facts from free API"""
         try:
             url = "https://uselessfacts.jsph.pl/random.json?language=en"
-            
-            response = requests.get(url)
-            
-            if response.status_code == 200:
+
+            if AIOHTTP_AVAILABLE:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                        if resp.status != 200:
+                            return None
+                        data = await resp.json()
+            else:
+                response = requests.get(url, timeout=10)
+                if response.status_code != 200:
+                    return None
                 data = response.json()
-                
-                knowledge = {
-                    'topic': 'Random Fact',
-                    'content': data.get('text', ''),
-                    'source': 'Useless Facts API',
-                    'source_url': data.get('permalink', ''),
-                    'last_updated': datetime.now().isoformat()
-                }
-                
-                self._store_knowledge(knowledge)
-                return knowledge
-                
+
+            knowledge = {
+                'topic': 'Random Fact',
+                'content': data.get('text', ''),
+                'source': 'Useless Facts API',
+                'source_url': data.get('permalink', ''),
+                'last_updated': datetime.now().isoformat()
+            }
+            self._store_knowledge(knowledge)
+            return knowledge
+
         except Exception as e:
             print(f"Error fetching facts: {e}")
-            
+
         return None
     
     async def fetch_quotes(self, topic: Optional[str] = None) -> Optional[Dict]:
@@ -385,29 +405,34 @@ class ExternalKnowledgeAPI:
         try:
             url = "https://api.quotable.io/random"
             params = {}
-            
             if topic:
                 params['tags'] = topic
-                
-            response = requests.get(url, params=params)
-            
-            if response.status_code == 200:
+
+            if AIOHTTP_AVAILABLE:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                        if resp.status != 200:
+                            return None
+                        data = await resp.json()
+            else:
+                response = requests.get(url, params=params, timeout=10)
+                if response.status_code != 200:
+                    return None
                 data = response.json()
-                
-                knowledge = {
-                    'topic': f"Quote - {topic or 'General'}",
-                    'content': f'"{data.get("content", "")}" - {data.get("author", "")}',
-                    'source': 'Quotable API',
-                    'source_url': 'https://quotable.io',
-                    'last_updated': datetime.now().isoformat()
-                }
-                
-                self._store_knowledge(knowledge)
-                return knowledge
-                
+
+            knowledge = {
+                'topic': f"Quote - {topic or 'General'}",
+                'content': f'"{data.get("content", "")}" - {data.get("author", "")}',
+                'source': 'Quotable API',
+                'source_url': 'https://quotable.io',
+                'last_updated': datetime.now().isoformat()
+            }
+            self._store_knowledge(knowledge)
+            return knowledge
+
         except Exception as e:
             print(f"Error fetching quotes: {e}")
-            
+
         return None
     
     def _store_knowledge(self, knowledge: Dict):
