@@ -37,7 +37,6 @@ from quant_nanggroe.engine.risk.kill_switch import KillSwitch
 from quant_nanggroe.engine.risk.drawdown import DrawdownMonitor
 from quant_nanggroe.engine.risk.kelly import KellyCriterion
 from quant_nanggroe.engine.risk.var import VaRCalculator
-from quant_nanggroe.engine.risk.emotional_lockout import EmotionalLockoutService
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +93,6 @@ class RiskManager:
         self.drawdown_monitor = DrawdownMonitor(max_drawdown=MAX_DRAWDOWN)
         self.kelly = KellyCriterion()
         self.var_calculator = VaRCalculator()
-        self.emotional_lockout = EmotionalLockoutService(initial_equity=initial_equity)
         self._veto_count: int = 0
         self._approval_count: int = 0
 
@@ -127,23 +125,7 @@ class RiskManager:
         """
         self._reset_daily_if_needed()
 
-        # First check emotional lockout
-        lockout_check = self.emotional_lockout.check_order_allowed(
-            symbol=symbol,
-            is_closing=False,
-        )
-        if not lockout_check["allowed"]:
-            return {
-                "symbol": symbol,
-                "direction": direction.upper(),
-                "verdict": "VETOED",
-                "reason": "EMOTIONAL_LOCKOUT_ACTIVE",
-                "message": f"Trading locked out: {lockout_check['reason']}",
-                "lockout_state": lockout_check["lockout_state"].value,
-                "lockout_expires_at": lockout_check.get("expires_at"),
-            }
-
-        # Check kill switch
+        # First check kill switch
         if self.kill_switch.is_active:
             return {
                 "symbol": symbol,
@@ -186,8 +168,6 @@ class RiskManager:
     def update_pnl(self, trade_pnl: float, symbol: Optional[str] = None) -> None:
         """Update daily and weekly P&L tracking.
 
-        Also feeds trade results into the emotional lockout service.
-
         Args:
             trade_pnl: P&L from the completed trade.
             symbol: Symbol of the trade (for position tracking).
@@ -197,10 +177,6 @@ class RiskManager:
         self.state.weekly_pnl += trade_pnl
         self.state.trade_count_today += 1
         self.state.trade_count_week += 1
-
-        # Feed trade result into emotional lockout
-        if symbol:
-            self.emotional_lockout.record_trade_result(symbol=symbol, pnl=trade_pnl)
 
         # Update equity
         self.state.current_equity += trade_pnl

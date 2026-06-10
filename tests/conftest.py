@@ -96,19 +96,12 @@ def sample_portfolio_state() -> dict:
 @pytest.fixture
 def risk_guard():
     """ConstitutionalRiskGuard instance for testing."""
-    from quant_nanggroe_ai.engine.risk_guard import ConstitutionalRiskGuard
-    return ConstitutionalRiskGuard()
+    from quant_nanggroe.engine.risk.checks import RiskCheckGate
+    return RiskCheckGate()
 
 
 @pytest.fixture
-def market_engine():
-    """MarketStateEngine instance for testing."""
-    from quant_nanggroe_ai.engine.market_state import MarketStateEngine
-    return MarketStateEngine()
-
-
-@pytest.fixture
-def kill_switch(tmp_path):
-    """KillSwitch instance with isolated temp directory for state persistence."""
-    from quant_nanggroe_ai.engine.kill_switch import KillSwitch
-    return KillSwitch(state_dir=str(tmp_path))
+def kill_switch():
+    """KillSwitch instance for testing."""
+    from quant_nanggroe.engine.risk.kill_switch import KillSwitch
+    return KillSwitch()

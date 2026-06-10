@@ -38,10 +38,6 @@ def __getattr__(name: str):
         "CorrelationMonitor": ".correlation",
         "RiskCheckGate": ".checks",
         "KillSwitch": ".kill_switch",
-        "EmotionalLockoutService": ".emotional_lockout",
-        "LockoutState": ".emotional_lockout",
-        "LockoutReason": ".emotional_lockout",
-        "EmotionalLockoutConfig": ".emotional_lockout",
     }
     if name in _lazy_imports:
         import importlib
@@ -60,8 +56,4 @@ __all__ = [
     "CorrelationMonitor",
     "RiskCheckGate",
     "KillSwitch",
-    "EmotionalLockoutService",
-    "LockoutState",
-    "LockoutReason",
-    "EmotionalLockoutConfig",
 ]
