@@ -227,6 +227,46 @@ class ErrorRecoverySystem:
     def register_escalation_handler(self, handler: Callable):
         """Register an escalation handler"""
         self.escalation_handlers.append(handler)
+    
+    def record_failure(self, service_name: str):
+        """Record a failure for a service (for circuit breaker pattern)"""
+        if service_name not in self.circuit_breakers:
+            self.circuit_breakers[service_name] = {
+                "failure_count": 0,
+                "last_failure": None,
+                "state": "closed",
+                "opened_at": None,
+            }
+        
+        cb = self.circuit_breakers[service_name]
+        cb["failure_count"] += 1
+        cb["last_failure"] = datetime.now().isoformat()
+        
+        # Open circuit breaker if too many failures
+        if cb["failure_count"] >= self.max_retry_attempts and cb["state"] == "closed":
+            cb["state"] = "open"
+            cb["opened_at"] = datetime.now().isoformat()
+    
+    def get_circuit_status(self, service_name: str) -> str:
+        """Get the circuit breaker status for a service"""
+        if service_name not in self.circuit_breakers:
+            return "closed"
+        
+        cb = self.circuit_breakers[service_name]
+        state = cb.get("state", "closed")
+        
+        # Check if we should transition from open to half_open
+        if state == "open" and cb.get("opened_at"):
+            try:
+                opened_time = datetime.fromisoformat(cb["opened_at"])
+                elapsed = (datetime.now() - opened_time).total_seconds()
+                if elapsed > self.retry_delay_base * 60:
+                    cb["state"] = "half_open"
+                    return "half_open"
+            except (ValueError, TypeError):
+                pass
+        
+        return state
 
     def get_error_stats(self) -> Dict[str, Any]:
         """Get error statistics"""

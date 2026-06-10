@@ -288,6 +288,55 @@ You create educational content that:
         except Exception as e:
             return self._create_error_response(str(e))
     
+    async def _optimize_prompt(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Optimize an existing prompt"""
+        original_prompt = task.get("original_prompt", "")
+        target_model = task.get("target_model", "gpt-4")
+        optimization_goals = task.get("optimization_goals", ["specificity", "clarity"])
+        
+        if not original_prompt:
+            return self._create_error_response("Original prompt is required")
+        
+        # Apply optimization techniques
+        optimized_prompt = original_prompt
+        
+        # Add specificity if requested
+        if "specificity" in optimization_goals:
+            if not optimized_prompt.strip().endswith("."):
+                optimized_prompt = optimized_prompt.rstrip() + "."
+            if "be specific" not in optimized_prompt.lower():
+                optimized_prompt += "\n\nPlease be specific and detailed in your response."
+        
+        # Add clarity improvements
+        if "clarity" in optimization_goals:
+            if "step by step" not in optimized_prompt.lower():
+                optimized_prompt += "\n\nThink step by step."
+        
+        # Add structure if requested
+        if "structure" in optimization_goals:
+            optimized_prompt += "\n\nProvide your response in a clear, structured format."
+        
+        # Add context if requested
+        if "context" in optimization_goals:
+            optimized_prompt += "\n\nConsider the broader context and implications."
+        
+        # Add examples if requested
+        if "examples" in optimization_goals:
+            optimized_prompt += "\n\nInclude examples to illustrate key points."
+        
+        # Optimize for target model
+        optimized_prompt = self._optimize_for_model(optimized_prompt, target_model)
+        
+        return {
+            "success": True,
+            "original_prompt": original_prompt,
+            "optimized_prompt": optimized_prompt,
+            "target_model": target_model,
+            "optimization_goals": optimization_goals,
+            "improvements": [f"Applied {goal}" for goal in optimization_goals],
+            "timestamp": datetime.now().isoformat()
+        }
+    
     async def _generate_prompt(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Generate optimized prompt based on requirements"""
         try:

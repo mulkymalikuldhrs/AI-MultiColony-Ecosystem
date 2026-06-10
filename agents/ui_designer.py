@@ -172,7 +172,7 @@ class UIDesignerAgent:
                 return await self._create_ui(task)
             elif action == "create_component":
                 return await self._create_component(task)
-            elif action == "generate_page":
+            elif action in ("generate_page", "create_page"):
                 return await self._generate_page(task)
             elif action == "create_app":
                 return await self._create_complete_app(task)
@@ -616,12 +616,11 @@ export default {component_name}Component;
     
     async def _create_component(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Create a specific React component"""
-        component_name = task.get("component_name", "")
+        component_name = task.get("component_name", "") or "".join(word.capitalize() for word in task.get("component_type", "button").split("_"))
         component_type = task.get("component_type", "button")
         props = task.get("props", {})
-        
-        if not component_name:
-            return self._create_error_response("Component name is required")
+        framework = task.get("framework", "react")
+        styling = task.get("styling", "tailwind")
         
         # Get component from library or generate new one
         if component_type in self.component_library:
@@ -636,8 +635,11 @@ export default {component_name}Component;
             "success": True,
             "component_name": component_name,
             "component_type": component_type,
+            "component_code": component_code,
             "code": component_code,
-            "props": props
+            "props": props,
+            "framework": framework,
+            "styling": styling
         }
     
     def _get_button_component(self) -> str:
@@ -1115,6 +1117,41 @@ const {component_name}Store = () => {{
 
 export default {component_name}Store;
 """
+
+    async def _generate_page(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate a full page with components"""
+        page_type = task.get("page_type", "dashboard")
+        components = task.get("components", [])
+        framework = task.get("framework", "react")
+        design_system = task.get("design_system", "modern")
+        
+        # Generate page based on type
+        design_config = self.design_systems.get(design_system, self.design_systems["modern"])
+        template_info = self.ui_templates.get(page_type, self.ui_templates["dashboard"])
+        
+        component_name = "".join(word.capitalize() for word in page_type.split("_"))
+        
+        # Generate page code using template
+        page_code = self._generate_ui_with_template(
+            f"{page_type} page", page_type, design_system
+        )
+        
+        # Build component list
+        component_list = components or template_info.get("components", [])
+        
+        return {
+            "success": True,
+            "page_type": page_type,
+            "page_code": page_code,
+            "code": page_code,
+            "components": component_list,
+            "framework": framework,
+            "design_system": design_system
+        }
+    
+    def get_supported_frameworks(self) -> List[str]:
+        """Get list of supported UI frameworks"""
+        return ["react", "vue", "angular", "svelte", "nextjs"]
 
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create standardized error response"""
