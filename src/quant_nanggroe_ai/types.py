@@ -156,8 +156,8 @@ class TradingConstitution(BaseModel):
 class PressureState(BaseModel):
     """Normalized buy/sell pressure state."""
 
-    buy_pressure: float = Field(ge=0.0, le=1.0)
-    sell_pressure: float = Field(ge=0.0, le=1.0)
+    buy_pressure: float = Field(ge=0.0, le=1.0, default=0.0)
+    sell_pressure: float = Field(ge=0.0, le=1.0, default=0.0)
     volatility_risk: VolatilityLevel = VolatilityLevel.NORMAL
     liquidity_condition: LiquidityLevel = LiquidityLevel.NORMAL
     confidence_score: float = Field(ge=0.0, le=1.0, default=0.0)

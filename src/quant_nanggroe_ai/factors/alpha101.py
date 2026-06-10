@@ -25,7 +25,7 @@ def alpha002(close: pd.Series, open_: pd.Series, volume: pd.Series) -> pd.Series
     return -1 * delta_log_vol.rolling(6).corr(price_ratio)
 
 
-def alpha003(close: pd.Series, open_: pd.Series, returns: pd.Series) -> pd.Series:
+def alpha003(close: pd.Series, open_: pd.Series, volume: pd.Series) -> pd.Series:
     """Alpha#3: (-1 * correlation(rank(open), rank(volume), 10))"""
     return -1 * open_.rank(pct=True).rolling(10).corr(volume.rank(pct=True))
 
@@ -51,13 +51,13 @@ def alpha015(close: pd.Series, high: pd.Series, volume: pd.Series) -> pd.Series:
     return -1 * corr.rank(pct=True).rolling(3).sum()
 
 
-def alpha020(close: pd.Series, open_: pd.Series, high: pd.Series) -> pd.Series:
+def alpha020(close: pd.Series, open_: pd.Series, high: pd.Series, low: pd.Series) -> pd.Series:
     """Alpha#20: (((-1 * rank((open - delay(high, 1)))) * rank((open - delay(close, 1)))) * rank((open - delay(low, 1))))"""
     return (
         -1
         * (open_ - high.shift(1)).rank(pct=True)
         * (open_ - close.shift(1)).rank(pct=True)
-        * (open_ - close.shift(1)).rank(pct=True)
+        * (open_ - low.shift(1)).rank(pct=True)
     )
 
 

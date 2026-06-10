@@ -46,6 +46,11 @@ logs/
 data/
 *.db
 *.sqlite3
+dev_qna.db
+test_qna.db
+
+# ── Kill Switch State ─────────────────────────────────────────────────
+.kill_switch_state.json
 
 # ── Docker ────────────────────────────────────────────────────────────
 docker-compose.override.yml

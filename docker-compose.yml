@@ -15,7 +15,12 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - path: .env
+        required: false
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-qna}:${POSTGRES_PASSWORD:-qna_dev_password}@postgres:5432/${POSTGRES_DB:-quant_nanggroe}
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       postgres:
         condition: service_healthy
@@ -30,24 +35,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-  # ── Background Worker ───────────────────────────────────────────────
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: qna-worker
-    restart: unless-stopped
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    command: ["python", "-m", "quant_nanggroe_ai.worker"]
-    networks:
-      - qna-network
 
   # ── PostgreSQL ──────────────────────────────────────────────────────
   postgres:

@@ -185,6 +185,8 @@ class ConstitutionalRiskGuard:
         rr_ratio = 0.0
         if take_profit and stop_loss and abs(entry - stop_loss) > 0:
             rr_ratio = abs(take_profit - entry) / abs(entry - stop_loss)
+            # Round to 4 decimal places to avoid floating point precision issues
+            rr_ratio = round(rr_ratio, 4)
         checkpoints["4_risk_reward"] = RiskCheckpointResult(
             name="4_risk_reward",
             value=f"1:{rr_ratio:.1f}",

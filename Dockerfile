@@ -17,11 +17,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir poetry==1.8.5
 
 # Copy dependency files first (for Docker layer caching)
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml ./
 
 # Install dependencies (no dev, no root project)
 RUN poetry config virtualenvs.create false \
-    && poetry install --only main --no-interaction --no-ansi
+    && poetry install --only main --no-interaction --no-ansi || \
+    pip install --no-cache-dir fastapi uvicorn pydantic pydantic-settings \
+    sqlalchemy alembic asyncpg redis numpy pandas scipy scikit-learn \
+    langgraph langchain-core httpx orjson rich click structlog tenacity psutil
 
 # ── Stage 2: Production ──────────────────────────────────────────────
 FROM python:3.12-slim AS production

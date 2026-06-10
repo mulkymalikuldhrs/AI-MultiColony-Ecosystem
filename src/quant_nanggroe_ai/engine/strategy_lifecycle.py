@@ -95,17 +95,24 @@ class StrategyLifecycleManager:
         strategy.total_pnl += pnl
         strategy.max_drawdown = max(strategy.max_drawdown, current_drawdown)
 
+        # Track cumulative win/loss amounts for proper average calculation
+        if not hasattr(strategy, "_cum_wins"):
+            strategy._cum_wins = 0.0
+            strategy._cum_losses = 0.0
+
         if is_win:
             strategy.wins += 1
+            strategy._cum_wins += pnl
         else:
             strategy.losses += 1
+            strategy._cum_losses += abs(pnl)
 
-        # Calculate expectancy
+        # Calculate expectancy using proper average win/loss
         if strategy.trades_count > 0:
             strategy.win_rate = strategy.wins / strategy.trades_count
-            avg_win = strategy.total_pnl / max(strategy.wins, 1)
-            avg_loss = strategy.total_pnl / max(strategy.losses, 1) if strategy.losses > 0 else 0.0
-            strategy.expectancy = strategy.win_rate * avg_win - (1 - strategy.win_rate) * abs(avg_loss)
+            avg_win = strategy._cum_wins / max(strategy.wins, 1)
+            avg_loss = strategy._cum_losses / max(strategy.losses, 1) if strategy.losses > 0 else 0.0
+            strategy.expectancy = strategy.win_rate * avg_win - (1 - strategy.win_rate) * avg_loss
 
         strategy.last_evaluated = datetime.now()
 

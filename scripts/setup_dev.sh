@@ -41,20 +41,11 @@ if [ ! -f .env ]; then
     echo "⚠️  Edit .env with your API keys!"
 fi
 
-# Setup frontend
-if [ -f apps/dashboard/package.json ]; then
-    echo "📦 Setting up dashboard frontend..."
-    cd apps/dashboard
-    npm install || true
-    cd ../..
-fi
-
 echo ""
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║   Setup Complete!                                        ║"
 echo "║                                                          ║"
 echo "║   Run the API:      make run-api                         ║"
 echo "║   Run tests:        make test                            ║"
-echo "║   Run dashboard:    make run-dashboard                   ║"
 echo "║   Docker full stack: make docker-up                      ║"
 echo "╚══════════════════════════════════════════════════════════╝"

@@ -11,11 +11,11 @@ from typing import Generator
 import pytest
 import numpy as np
 
-# Set test environment before importing app modules
-os.environ.setdefault("QNA_ENV", "test")
-os.environ.setdefault("QNA_DATABASE_URL", "sqlite:///test_qna.db")
-os.environ.setdefault("QNA_REDIS_URL", "redis://localhost:6379/15")
-os.environ.setdefault("QNA_SECRET_KEY", "test-secret-key-not-for-production")
+# Set test environment BEFORE importing app modules — must match config.py
+os.environ.setdefault("APP_ENV", "test")
+os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///test_qna.db")
+os.environ.setdefault("REDIS_URL", "redis://localhost:6379/15")
+os.environ.setdefault("SECRET_KEY", "test-secret-key-not-for-production")
 
 
 @pytest.fixture
@@ -34,13 +34,13 @@ def sample_ohlcv() -> dict[str, list[float]]:
     np.random.seed(42)
     returns = np.random.normal(0.0002, 0.015, 100)
     closes = 100.0 * np.cumprod(1 + returns)
-    
-    highs = [round(float(c * (1 + abs(np.random.normal(0, 0.005))), 2)) for c in closes]
-    lows = [round(float(c * (1 - abs(np.random.normal(0, 0.005))), 2)) for c in closes]
+
+    highs = [round(float(c) * (1 + abs(float(np.random.normal(0, 0.005)))), 2) for c in closes]
+    lows = [round(float(c) * (1 - abs(float(np.random.normal(0, 0.005)))), 2) for c in closes]
     volumes = [round(float(max(np.random.lognormal(15, 1), 1000)), 0) for _ in range(100)]
-    
+
     return {
-        "opens": [round(float(c * (1 + np.random.normal(0, 0.002)), 2)) for c in closes],
+        "opens": [round(float(c) * (1 + float(np.random.normal(0, 0.002))), 2) for c in closes],
         "highs": highs,
         "lows": lows,
         "closes": [round(float(c), 2) for c in closes],
@@ -88,3 +88,27 @@ def sample_portfolio_state() -> dict:
         "weekly_pnl": 1200.0,
         "max_drawdown_pct": 2.1,
     }
+
+
+# ── Engine Fixtures ────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def risk_guard():
+    """ConstitutionalRiskGuard instance for testing."""
+    from quant_nanggroe_ai.engine.risk_guard import ConstitutionalRiskGuard
+    return ConstitutionalRiskGuard()
+
+
+@pytest.fixture
+def market_engine():
+    """MarketStateEngine instance for testing."""
+    from quant_nanggroe_ai.engine.market_state import MarketStateEngine
+    return MarketStateEngine()
+
+
+@pytest.fixture
+def kill_switch(tmp_path):
+    """KillSwitch instance with isolated temp directory for state persistence."""
+    from quant_nanggroe_ai.engine.kill_switch import KillSwitch
+    return KillSwitch(state_dir=str(tmp_path))

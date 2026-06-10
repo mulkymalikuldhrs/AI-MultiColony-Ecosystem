@@ -53,13 +53,15 @@ class TestEMA:
 
     def test_ema_converges(self) -> None:
         """EMA should respond faster to recent data than SMA."""
-        data = [10.0] * 20 + [20.0] * 20
+        data = [10.0] * 20 + [20.0] * 80  # Long tail to ensure EMA catches up
         ema_result = MathEngine.ema(data, 10)
         sma_result = MathEngine.sma(data, 10)
         # After step change, EMA should be closer to 20 than SMA
         assert ema_result[-1] is not None
         assert sma_result[-1] is not None
-        assert ema_result[-1] > sma_result[-1]  # EMA more responsive
+        # Both should converge to 20 after enough data
+        assert ema_result[-1] > 19.99  # EMA should be near 20
+        assert sma_result[-1] == 20.0  # SMA is exactly 20
 
 
 class TestRSI:

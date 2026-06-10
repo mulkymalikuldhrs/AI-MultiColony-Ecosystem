@@ -10,12 +10,15 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
+import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from quant_nanggroe_ai.config import get_settings
 from quant_nanggroe_ai.logging import setup_logging
+
+logger = structlog.get_logger(__name__)
 
 
 @asynccontextmanager
@@ -24,23 +27,61 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     settings = get_settings()
     setup_logging(log_level=settings.log_level, json_output=settings.is_production)
 
-    # Startup
+    # ── Startup ─────────────────────────────────────────────────────
+    # Initialize shared engine singletons eagerly so import errors
+    # surface immediately rather than on the first request.
+    from quant_nanggroe_ai.services import init_all_services
+
+    init_all_services(app)
+
+    # Initialize database (graceful degradation if unavailable)
     try:
         from quant_nanggroe_ai.data.database import init_db
+
         await init_db()
-    except Exception:
-        pass  # Database may not be available in dev mode
+        logger.info("startup_database_connected")
+    except Exception as exc:
+        logger.warning(
+            "startup_database_unavailable",
+            error=str(exc),
+            msg="Database not available — running without persistence",
+        )
+
+    # Initialize Redis cache (graceful degradation if unavailable)
+    try:
+        from quant_nanggroe_ai.data.cache import init_redis
+
+        await init_redis(url=settings.redis.url)
+        logger.info("startup_redis_connected")
+    except Exception as exc:
+        logger.warning(
+            "startup_redis_unavailable",
+            error=str(exc),
+            msg="Redis not available — running without cache",
+        )
+
+    logger.info("startup_complete", app=settings.app_name, env=settings.app_env)
 
     yield
 
-    # Shutdown
+    # ── Shutdown ────────────────────────────────────────────────────
+    try:
+        from quant_nanggroe_ai.data.cache import close_redis
+
+        await close_redis()
+        logger.info("shutdown_redis_closed")
+    except Exception as exc:
+        logger.error("shutdown_redis_close_failed", error=str(exc))
+
     try:
         from quant_nanggroe_ai.data.database import close_db
-        from quant_nanggroe_ai.data.cache import close_redis
+
         await close_db()
-        await close_redis()
-    except Exception:
-        pass
+        logger.info("shutdown_database_closed")
+    except Exception as exc:
+        logger.error("shutdown_database_close_failed", error=str(exc))
+
+    logger.info("shutdown_complete")
 
 
 def create_app() -> FastAPI:
@@ -86,6 +127,13 @@ def create_app() -> FastAPI:
     # ── Global Exception Handler ────────────────────────────────────
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        logger.error(
+            "unhandled_exception",
+            method=request.method,
+            path=str(request.url),
+            error_type=type(exc).__name__,
+            error=str(exc),
+        )
         return JSONResponse(
             status_code=500,
             content={"detail": "Internal server error", "type": type(exc).__name__},
