@@ -1,8 +1,8 @@
 """Memory and knowledge persistence for Quant Nanggroe AI.
 
 Provides session memory, trade journal, knowledge base,
-Letta-style memory paging, and knowledge graph for agents
-to learn from past decisions and outcomes.
+Letta-style memory paging, knowledge graph for agents,
+and vector storage for semantic search across trading history.
 """
 
 from quant_nanggroe.memory.session import SessionMemory
@@ -25,6 +25,15 @@ from quant_nanggroe.memory.knowledge_graph import (
     EntityType,
     RelationType,
 )
+from quant_nanggroe.memory.vector import (
+    VectorStore,
+    CollectionName,
+    EmbeddingProvider,
+    VectorDocument,
+    SearchResult,
+    VectorStoreStats,
+    get_vector_store,
+)
 
 __all__ = [
     # Legacy memory
@@ -46,4 +55,12 @@ __all__ = [
     "Relationship",
     "EntityType",
     "RelationType",
+    # Vector store (ChromaDB)
+    "VectorStore",
+    "CollectionName",
+    "EmbeddingProvider",
+    "VectorDocument",
+    "SearchResult",
+    "VectorStoreStats",
+    "get_vector_store",
 ]
