@@ -124,8 +124,17 @@ class {class_name}:
     
     def _initialize_agent(self):
         """Initialize agent-specific components"""
-        # TODO: Add agent-specific initialization
-        pass
+        self.config = {{
+            "max_retries": 3,
+            "timeout": 30,
+            "log_level": "INFO"
+        }}
+        self._task_handlers = {{}}
+        self._metrics = {{
+            "tasks_processed": 0,
+            "errors": 0,
+            "last_task_time": None
+        }}
     
     async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process incoming task"""
@@ -143,12 +152,30 @@ class {class_name}:
             return self._create_error_response(str(e))
     
     async def _handle_custom_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle agent-specific tasks"""
-        # TODO: Implement agent-specific task handling
+        """Handle agent-specific tasks by routing to capability-based handlers"""
+        task_type = task.get("action", "unknown")
+
+        # Dispatch to registered capability handler if available
+        handler = self._task_handlers.get(task_type)
+        if handler and callable(handler):
+            try:
+                result = handler(task)
+                self._metrics["tasks_processed"] += 1
+                self._metrics["last_task_time"] = datetime.now().isoformat()
+                return result
+            except Exception as e:
+                self._metrics["errors"] += 1
+                return self._create_error_response(f"Handler error for {{task_type}}: {{e}}")
+
+        # Default: acknowledge with capability check
+        matched_capabilities = [c for c in self.capabilities if task_type.startswith(c)]
+        self._metrics["tasks_processed"] += 1
+        self._metrics["last_task_time"] = datetime.now().isoformat()
         return {{
             "success": True,
             "message": f"Task processed by {{self.name}}",
-            "task_type": task.get("action", "unknown"),
+            "task_type": task_type,
+            "matched_capabilities": matched_capabilities,
             "agent": self.agent_id,
             "timestamp": datetime.now().isoformat()
         }}
@@ -440,12 +467,25 @@ class {class_name}:
             if "capabilities" in modifications:
                 new_capabilities = modifications["capabilities"]
                 agent_info["capabilities"] = new_capabilities
-                # TODO: Implement code modification for capabilities
+                # Update capabilities list in source code
+                new_capabilities_json = json.dumps(new_capabilities, indent=8)
+                import re
+                capabilities_pattern = r'self\.capabilities\s*=\s*\[.*?\]'
+                modified_code = re.sub(
+                    capabilities_pattern,
+                    f'self.capabilities = {new_capabilities_json}',
+                    modified_code,
+                    flags=re.DOTALL
+                )
             
             if "description" in modifications:
                 new_description = modifications["description"]
                 agent_info["description"] = new_description
-                # TODO: Implement code modification for description
+                # Update docstring description in source code
+                import re
+                desc_pattern = r'("""[\s\S]*?Auto-generated agent by Agent Maker[\s\S]*?""")'
+                replacement = f'"""{new_description}\nAuto-generated agent by Agent Maker\n\nMade with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩\n"""'
+                modified_code = re.sub(desc_pattern, replacement, modified_code, count=1)
             
             # Save modified code
             with open(agent_file, 'w') as f:

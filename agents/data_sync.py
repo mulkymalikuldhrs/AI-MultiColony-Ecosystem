@@ -10,14 +10,23 @@ import json
 import os
 import time
 import sqlite3
-import redis
+try:
+    import redis
+except ImportError:
+    redis = None
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 import uuid
 import hashlib
-import aiofiles
-import asyncpg
+try:
+    import aiofiles
+except ImportError:
+    aiofiles = None
+try:
+    import asyncpg
+except ImportError:
+    asyncpg = None
 
 class DataSyncAgent:
     """
@@ -111,17 +120,20 @@ class DataSyncAgent:
             print(f"⚠️ SQLite connection failed: {e}")
         
         # Redis connection
-        try:
-            redis_config = self.sync_configs["redis_cache"]
-            self.connections["redis"] = redis.Redis(
-                host=redis_config["host"],
-                port=redis_config["port"],
-                decode_responses=True
-            )
-            self.connections["redis"].ping()
-            print("✅ Redis connection established")
-        except Exception as e:
-            print(f"⚠️ Redis connection failed: {e}")
+        if redis is None:
+            print("⚠️ Redis package not installed, using SQLite only")
+        else:
+            try:
+                redis_config = self.sync_configs["redis_cache"]
+                self.connections["redis"] = redis.Redis(
+                    host=redis_config["host"],
+                    port=redis_config["port"],
+                    decode_responses=True
+                )
+                self.connections["redis"].ping()
+                print("✅ Redis connection established")
+            except Exception as e:
+                print(f"⚠️ Redis connection failed: {e}")
     
     def _setup_sqlite_tables(self):
         """Setup SQLite tables for system data"""
@@ -433,8 +445,12 @@ class DataSyncAgent:
                 backup_data["data"]["system_metrics"] = metrics_data
             
             # Save backup file
-            async with aiofiles.open(backup_file, 'w') as f:
-                await f.write(json.dumps(backup_data, indent=2))
+            if aiofiles is not None:
+                async with aiofiles.open(backup_file, 'w') as f:
+                    await f.write(json.dumps(backup_data, indent=2))
+            else:
+                with open(backup_file, 'w') as f:
+                    f.write(json.dumps(backup_data, indent=2))
             
             # Clean up old backups (keep last 10)
             backups = sorted(backup_dir.glob("backup_*.json"))

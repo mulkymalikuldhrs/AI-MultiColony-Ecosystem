@@ -111,7 +111,12 @@ class AgentWatcherAgent:
                     "discovered_at": datetime.now().isoformat(),
                 }
         except ImportError:
-            pass
+            # AGENTS_REGISTRY not available; will rely on manual registration
+            # and the known-agents fallback below
+            import logging as _logging
+            _logging.getLogger(__name__).debug(
+                "AGENTS_REGISTRY not importable; agent discovery will use known-agents fallback"
+            )
 
         # Also try to import agents that aren't yet in the registry
         # but are known to the prompt_master

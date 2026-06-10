@@ -7,10 +7,13 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 
 import os
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+
+logger = logging.getLogger(__name__)
 
 class MigrationManager:
     """Manages database schema migrations"""
@@ -51,21 +54,24 @@ Description: {description}
 Created: {datetime.now().isoformat()}
 """
 
+import logging
 from sqlalchemy import text
+
+logger = logging.getLogger(__name__)
 
 def up(connection):
     """Apply migration"""
     # Add your migration code here
     # Example:
     # connection.execute(text("ALTER TABLE agents ADD COLUMN new_field VARCHAR(100)"))
-    pass
+    logger.debug("Migration up: no-op")
 
 def down(connection):
     """Rollback migration""" 
     # Add rollback code here
     # Example:
     # connection.execute(text("ALTER TABLE agents DROP COLUMN new_field"))
-    pass
+    logger.debug("Migration down: no-op")
 '''
         
         with open(filepath, 'w') as f:
@@ -200,13 +206,16 @@ Initial schema migration
 Creates all core tables for the Agentic AI System
 """
 
+import logging
 from sqlalchemy import text
+
+logger = logging.getLogger(__name__)
 
 def up(connection):
     """Apply initial schema"""
     # This migration is handled by the initial database setup
     # All tables are created by SQLAlchemy models
-    pass
+    logger.debug("Migration 000001 (initial_schema): no-op, tables created by SQLAlchemy models")
 
 def down(connection):
     """Rollback initial schema"""
@@ -229,7 +238,10 @@ Add performance tracking fields to agents
 Adds metrics and monitoring capabilities
 """
 
+import logging
 from sqlalchemy import text
+
+logger = logging.getLogger(__name__)
 
 def up(connection):
     """Add performance tracking"""
@@ -269,7 +281,10 @@ Add workflow template support
 Enables reusable workflow definitions
 """
 
+import logging
 from sqlalchemy import text
+
+logger = logging.getLogger(__name__)
 
 def up(connection):
     """Add workflow template support"""

@@ -74,7 +74,8 @@ class SystemOptimizerAgent:
             asyncio.create_task(self._start_background_monitoring())
         except RuntimeError:
             # No running event loop - will start when first async task is processed
-            pass
+            logger = logging.getLogger(__name__)
+            logger.debug("No running event loop at init; background monitoring will start on first async task")
     
     async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process optimization tasks"""

@@ -1,0 +1,33 @@
+{
+  "report_id": "d5fd0ca4",
+  "generated_at": "2026-06-10T21:49:31.493110",
+  "period": "week",
+  "period_start": "2026-06-03T21:49:31.493110",
+  "period_end": "2026-06-10T21:49:31.493110",
+  "summary": {
+    "total_assessments": 2,
+    "average_score": 92.5,
+    "pass_rate": 100.0,
+    "passing_assessments": 2
+  },
+  "category_breakdown": {
+    "code": {
+      "count": 2,
+      "average_score": 92.5,
+      "scores": [
+        100.0,
+        85.0
+      ]
+    }
+  },
+  "top_issues": [],
+  "quality_trends": {
+    "2026-06-10": {
+      "average_score": 92.5,
+      "assessments_count": 2
+    }
+  },
+  "recommendations": [
+    "Quality is on track - continue monitoring and maintain current standards"
+  ]
+}

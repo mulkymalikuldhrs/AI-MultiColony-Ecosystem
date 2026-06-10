@@ -14,15 +14,17 @@
 
 ## 🎯 Welcome to the Future of AI Automation
 
-**Agentic AI System v2.0.0** is your gateway to revolutionary AI-powered automation. This Flow Start guide will take you from zero to AI automation hero in minutes, not hours.
+**Agentic AI System v2.1.0** is your gateway to revolutionary AI-powered automation. This Flow Start guide will take you from zero to AI automation hero in minutes, not hours.
 
 ### 🌟 **What You're About to Experience:**
-- **14+ AI Agents** working in perfect harmony
+- **40+ AI Agents** working in perfect harmony — including new GitHub Agent, Voice Agent, Web3 Plugin, and Agent Watcher
 - **Voice Control** in 10+ languages with offline support
-- **Military-grade Security** with enterprise encryption
+- **Military-grade Security** with enterprise encryption and Nginx rate limiting
 - **Multi-LLM Gateway** with free LLM7 priority
+- **Production Monitoring** with Prometheus + Grafana observability stack
 - **Progressive Web App** that works offline
-- **One-click Deployment** to 7+ cloud platforms
+- **One-click Deployment** to 8+ cloud platforms
+- **Blockchain Integration** with read-only Web3 queries across 8 networks
 
 ---
 
@@ -43,10 +45,15 @@ cp .env.example .env
 
 ### **Step 2: Launch System (1 minute)**
 ```bash
-# 🔥 Start the AI revolution
+# 🐳 Start with full monitoring stack (recommended)
+docker compose up -d
+
+# OR: Start standalone
 python web_interface/app.py
 
 # 🌐 Open your browser to: http://localhost:5000
+# 📊 Grafana dashboard: http://localhost:3000
+# 🔍 Prometheus metrics: http://localhost:9090
 ```
 
 ### **Step 3: Voice Activation (30 seconds)**
@@ -63,10 +70,15 @@ python web_interface/app.py
 - **Pin to Taskbar** on desktop
 
 ### **Step 5: Explore & Automate (Forever)**
-- 🤖 **Agent Network**: `/agents` - See all 14+ AI agents
+- 🤖 **Agent Network**: `/agents` - See all 40+ AI agents
 - 🔐 **Credentials**: `/credentials` - Secure platform access
-- 🧠 **LLM Providers**: `/llm_providers` - Multi-AI management  
+- 🧠 **LLM Providers**: `/llm_providers` - Multi-AI management
 - 💻 **Code Execution**: `/code` - Multi-language playground
+- 🐙 **GitHub Agent**: Manage repos, PRs, and issues via voice or API
+- 🔊 **Voice Agent**: Transcribe audio, generate speech, route voice commands
+- ⛓️ **Web3 Plugin**: Query blockchain data, DeFi protocols, token balances
+- 👁️ **Agent Watcher**: Monitor agent health, get alerts, auto-restart failed agents
+- 📊 **Monitoring**: Grafana dashboards for system and agent metrics
 
 ---
 
@@ -131,17 +143,23 @@ graph LR
 "Deploy my app to production"
 "Optimize system performance"
 "Login to all my platforms"
+"Check my GitHub repositories"
+"Monitor agent health"
+"What's the ETH balance for 0x..."
 ```
 
 ### **🔐 Security-First Flow**
-1. **Encrypt**: Store all credentials securely
-2. **Authenticate**: Auto-login to 10+ platforms
-3. **Monitor**: Track all security activities
-4. **Audit**: Review security logs
+1. **Encrypt**: Store all credentials securely with AES-256
+2. **Authenticate**: Use basic auth endpoints with Nginx rate limiting
+3. **Monitor**: Track all security activities via audit logs
+4. **Audit**: Review security logs and Prometheus metrics
 
 **Security Features:**
-- 🔒 AES-256 encryption
-- 🛡️ Military-grade security
+- 🔒 AES-256 encryption with PBKDF2HMAC (100k iterations)
+- 🛡️ Nginx reverse proxy with TLS 1.2/1.3
+- 🚦 Rate limiting (general: 30r/s, API: 10r/s, auth: 5r/s)
+- 🔗 CORS configuration via `CORS_ALLOWED_ORIGINS`
+- ⛓️ Web3 read-only mode — no transaction signing
 - 📊 Comprehensive audit logs
 - 🔄 Automatic session management
 
@@ -186,13 +204,34 @@ graph LR
 
 ### **🔗 GitHub Flow**
 ```bash
-# Connect GitHub account
-"Add GitHub credentials"
+# Connect GitHub account (set GITHUB_TOKEN in .env)
+"List my GitHub repositories"
 
 # Automate workflow
 "Create a new repository for my AI project"
 "Deploy latest changes to production"
 "Generate documentation from code"
+"List open pull requests"
+"Check CI status for the main branch"
+```
+
+### **⛓️ Web3 Flow**
+```bash
+# Query blockchain data (read-only)
+"What's the ETH balance for 0x..."
+"Get token info for USDT on Ethereum"
+"Estimate gas for a transaction"
+"Check the latest block on Polygon"
+"Get the current ETH price"
+```
+
+### **👁️ Agent Watcher Flow**
+```bash
+# Monitor agent health
+"Monitor agents"
+"Check agent health"
+"Get metrics for all agents"
+"Generate health report"
 ```
 
 ### **📊 Data Flow**
@@ -267,6 +306,7 @@ PLATFORMS = {
 | **Voice Commands/Day** | 5-10 | 10-50 | 50+ |
 | **Automation Hours Saved** | 1-2h | 3-8h | 8h+ |
 | **Cost Savings** | $10-50 | $50-200 | $200+ |
+| **Web3 Queries/Day** | 1-5 | 5-20 | 20+ |
 
 ### **🎯 Achievement Unlocks**
 - 🥉 **Bronze**: First agent created
@@ -306,7 +346,11 @@ PLATFORMS = {
 
 ### **🔥 Instant Deployment (2 minutes)**
 ```bash
-# Railway (Recommended)
+# Docker Compose with full monitoring stack (Recommended)
+docker compose up -d
+# Includes: Flask app, Nginx, Prometheus, Grafana, PostgreSQL, Redis
+
+# Railway
 npm install -g @railway/cli
 railway login && railway init && railway up
 
@@ -326,6 +370,9 @@ docker run -p 5000:5000 agentic-ai
 # Kubernetes
 kubectl apply -f k8s-deployment.yaml
 kubectl scale deployment agentic-ai --replicas=10
+
+# With monitoring stack
+docker compose --profile monitoring up -d
 ```
 
 ### **🌐 Global Deployment**
@@ -367,19 +414,24 @@ kubectl scale deployment agentic-ai --replicas=10
 - Use **LLM7 free provider** for cost savings
 - Enable **response caching** for faster responses
 - Configure **auto-scaling** for high load
-- Monitor **health metrics** continuously
+- Monitor **health metrics** continuously via Grafana dashboards
+- Use **Agent Watcher** to detect and auto-restart unhealthy agents
 
 ### **🔒 Security Best Practices**
-- Store all credentials in **encrypted vault**
+- Store all credentials in **encrypted vault** (AES-256)
 - Enable **audit logging** for compliance
-- Use **strong master passwords**
+- Use **strong master passwords** for `CREDENTIAL_MASTER_PASSWORD`
 - Regular **security audits**
+- Configure **CORS origins** via `CORS_ALLOWED_ORIGINS`
+- Enable **Nginx rate limiting** for production deployments
+- Keep **Web3 Plugin in read-only mode** unless transaction signing is explicitly needed
 
 ### **🎤 Voice Command Mastery**
 - Speak **clearly and naturally**
 - Use **specific commands** for better results
 - Try **different languages** for fun
 - Practice **complex workflows**
+- Use **Voice Agent** for speech-to-text transcription and text-to-speech generation
 
 ### **🤝 Community Engagement**
 - **Share your use cases** for inspiration
@@ -396,10 +448,14 @@ kubectl scale deployment agentic-ai --replicas=10
 | Issue | Solution |
 |-------|----------|
 | **Voice not working** | Check microphone permissions, try Ctrl+Space |
-| **Agents not responding** | Restart system, check logs |
-| **Credentials not saving** | Verify encryption setup, check permissions |
-| **Slow performance** | Enable caching, check system resources |
+| **Agents not responding** | Check Agent Watcher health, restart system, check logs |
+| **Credentials not saving** | Verify encryption setup, check `CREDENTIAL_MASTER_PASSWORD` |
+| **Slow performance** | Enable caching, check system resources, review Grafana dashboards |
 | **Deployment fails** | Check environment variables, verify platform setup |
+| **GitHub Agent errors** | Verify `GITHUB_TOKEN` is set, check API rate limits |
+| **Web3 queries fail** | Verify RPC URL, install `web3.py`, check network connectivity |
+| **Prometheus not scraping** | Check `monitoring/prometheus.yml`, verify targets are reachable |
+| **Agent Watcher alerts** | Check `data/health_reports/` for reports, review watcher configuration |
 
 ### **📞 Get Help**
 - **🐛 Bug Reports**: [GitHub Issues](https://github.com/tokenew6/Agentic-AI-Ecosystem/issues)
@@ -434,7 +490,7 @@ kubectl scale deployment agentic-ai --replicas=10
 
 <div align="center">
 
-**© 2024 Mulky Malikul Dhaher • Made with ❤️ in Indonesia 🇮🇩**
+**© 2024-2026 Mulky Malikul Dhaher • Made with ❤️ in Indonesia 🇮🇩**
 
 *Your journey to AI mastery starts now. Welcome to the future!*
 
