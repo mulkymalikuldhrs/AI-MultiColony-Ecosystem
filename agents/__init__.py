@@ -120,6 +120,27 @@ try:
 except ImportError:
     quality_control_specialist = None
 
+# Core platform agents (github, voice, web3, watcher)
+try:
+    from .github_agent import github_agent
+except ImportError:
+    github_agent = None
+
+try:
+    from .voice_agent import voice_agent
+except ImportError:
+    voice_agent = None
+
+try:
+    from .web3_plugin import web3_plugin
+except ImportError:
+    web3_plugin = None
+
+try:
+    from .agent_watcher import agent_watcher
+except ImportError:
+    agent_watcher = None
+
 # Global agents registry
 AGENTS_REGISTRY = {}
 
@@ -169,6 +190,15 @@ if money_making_agent:
     AGENTS_REGISTRY['money_making_agent'] = money_making_agent
 if quality_control_specialist:
     AGENTS_REGISTRY['quality_control_specialist'] = quality_control_specialist
+# Core platform agents
+if github_agent:
+    AGENTS_REGISTRY['github_agent'] = github_agent
+if voice_agent:
+    AGENTS_REGISTRY['voice_agent'] = voice_agent
+if web3_plugin:
+    AGENTS_REGISTRY['web3_plugin'] = web3_plugin
+if agent_watcher:
+    AGENTS_REGISTRY['agent_watcher'] = agent_watcher
 
 # Agent metadata for UI
 AGENTS_METADATA = {
@@ -304,6 +334,31 @@ AGENTS_METADATA = {
         'emoji': '🔍',
         'description': 'Visual and analytical assessment and quality validation',
         'category': 'quality'
+    },
+    # Core platform agents
+    'github_agent': {
+        'name': 'GitHub Agent',
+        'emoji': '🐙',
+        'description': 'GitHub API integration, repo management, and CI/CD coordination',
+        'category': 'development'
+    },
+    'voice_agent': {
+        'name': 'Voice Agent',
+        'emoji': '🎙️',
+        'description': 'Speech-to-text, text-to-speech, and voice command processing',
+        'category': 'ai'
+    },
+    'web3_plugin': {
+        'name': 'Web3 Agent',
+        'emoji': '⛓️',
+        'description': 'Blockchain, smart contracts, DeFi, and multi-chain wallet queries',
+        'category': 'blockchain'
+    },
+    'agent_watcher': {
+        'name': 'Agent Watcher',
+        'emoji': '👁️',
+        'description': 'Agent health monitoring, diagnostics, auto-restart, and alerting',
+        'category': 'system'
     }
 }
 
