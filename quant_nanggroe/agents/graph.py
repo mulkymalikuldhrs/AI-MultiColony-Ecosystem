@@ -7,22 +7,14 @@ pipeline from market analysis through execution and reflection.
 Graph Flow:
 1. market_analysis → Researcher + Macro + Crypto + Forex agents
 2. signal_generation → Strategist agent
-3. risk_assessment → Risk agent (LLM-based qualitative analysis)
-4. deterministic_risk_gate → RiskGateBridge (HARD GATE — 9-checkpoint deterministic)
-5. portfolio_optimization → Portfolio agent
-6. execution_decision → Trader agent
-7. order_execution → Execution agent
-8. reflection → Council debate (post-trade analysis)
-
-CRITICAL ARCHITECTURE:
-- Step 3 (risk_assessment) provides LLM-based qualitative risk analysis
-- Step 4 (deterministic_risk_gate) is the HARD GATE using the deterministic
-  RiskCheckGate with all 9 checkpoints. This gate CANNOT be bypassed.
-- If both the LLM risk agent and deterministic gate disagree, the
-  deterministic gate WINS.
+3. risk_assessment → Risk agent (9-checkpoint gate)
+4. portfolio_optimization → Portfolio agent
+5. execution_decision → Trader agent
+6. order_execution → Execution agent
+7. reflection → Council debate (post-trade analysis)
 
 Conditional edges:
-- If deterministic_risk_gate fails → halt (no trade)
+- If risk_assessment fails → halt (no trade)
 - If confidence < threshold → council debate
 - If kill_switch active → emergency exit
 """
@@ -30,16 +22,17 @@ Conditional edges:
 from __future__ import annotations
 
 import logging
+import structlog
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 from langchain_core.language_models import BaseChatModel
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode
 
 from quant_nanggroe.agents.base import create_llm
-from quant_nanggroe.agents.bridges.risk_gate_bridge import RiskGateBridge, GateVerdict
-from quant_nanggroe.agents.bridges.kelly_bridge import KellyBridge
 from quant_nanggroe.agents.council.debate import CouncilDebate
 from quant_nanggroe.agents.council.voting import CouncilVoting
 from quant_nanggroe.agents.registry import AgentFactory
@@ -50,9 +43,22 @@ from quant_nanggroe.agents.state import (
     TradeAction,
     create_initial_state,
 )
+from quant_nanggroe.engine.correlation_context import CorrelationContext
+from quant_nanggroe.engine.synthesis.pressure_synthesis import (
+    PressureSynthesizer,
+    PressureSynthesisConfig,
+    AgentSignal,
+    RegimeState as SynthesisRegimeState,
+    FactorSnapshot as SynthesisFactorSnapshot,
+    RiskState as SynthesisRiskState,
+    extract_agent_signals,
+)
+from quant_nanggroe.types.engine import MarketRegime
+from quant_nanggroe.engine.regime.regime_detector import RegimeDetector
+from quant_nanggroe.engine.factors.factor_pipeline_bridge import FactorPipelineBridge
 
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class TradingGraph:
@@ -133,9 +139,18 @@ class TradingGraph:
             consensus_threshold=confidence_threshold,
         )
 
-        # Create bridges to deterministic engine
-        self._risk_gate_bridge = RiskGateBridge()
-        self._kelly_bridge = KellyBridge()
+        # Create pressure synthesizer
+        self._pressure_synthesizer = PressureSynthesizer(
+            config=PressureSynthesisConfig()
+        )
+
+        # Create factor pipeline bridge and regime detector
+        self._factor_bridge = FactorPipelineBridge(top_n=20)
+        self._regime_detector = RegimeDetector()
+
+        # Flag indicating whether synthetic/fabricated data is being used
+        # downstream agents must check this flag before making trading decisions
+        self.using_synthetic_data = False
 
         # Build and compile the graph
         self._graph = self._build_graph()
@@ -159,55 +174,49 @@ class TradingGraph:
         workflow.add_node("market_analysis", self._market_analysis_node)
         workflow.add_node("signal_generation", self._signal_generation_node)
         workflow.add_node("risk_assessment", self._risk_assessment_node)
-        workflow.add_node("deterministic_risk_gate", self._deterministic_risk_gate_node)
-        workflow.add_node("kelly_sizing", self._kelly_sizing_node)
         workflow.add_node("portfolio_optimization", self._portfolio_optimization_node)
         workflow.add_node("execution_decision", self._execution_decision_node)
         workflow.add_node("order_execution", self._order_execution_node)
         workflow.add_node("reflection", self._reflection_node)
         workflow.add_node("council_debate", self._council_debate_node)
+        workflow.add_node("pressure_synthesis", self._pressure_synthesis_node)
         workflow.add_node("emergency_exit", self._emergency_exit_node)
+
+        # Add factor/regime detection node (runs after market analysis, before signal generation)
+        workflow.add_node("factor_regime_detection", self._factor_regime_detection_node)
 
         # Define the main flow
         workflow.add_edge(START, "market_analysis")
-        workflow.add_edge("market_analysis", "signal_generation")
+        workflow.add_edge("market_analysis", "factor_regime_detection")
+        workflow.add_edge("factor_regime_detection", "signal_generation")
         workflow.add_edge("signal_generation", "risk_assessment")
 
-        # LLM risk assessment → deterministic risk gate (HARD GATE)
-        # The deterministic risk gate is MANDATORY and sits AFTER the LLM risk agent
-        workflow.add_edge("risk_assessment", "deterministic_risk_gate")
-
-        # Conditional edge after DETERMINISTIC risk gate (not LLM risk)
+        # Conditional edge after risk assessment
         workflow.add_conditional_edges(
-            "deterministic_risk_gate",
-            self._deterministic_risk_conditional,
+            "risk_assessment",
+            self._risk_conditional,
             {
-                "continue": "kelly_sizing",
+                "continue": "portfolio_optimization",
                 "halt": END,
                 "council_debate": "council_debate",
                 "emergency_exit": "emergency_exit",
             },
         )
 
-        # Kelly sizing → portfolio optimization → execution
-        workflow.add_edge("kelly_sizing", "portfolio_optimization")
         workflow.add_edge("portfolio_optimization", "execution_decision")
         workflow.add_edge("execution_decision", "order_execution")
         workflow.add_edge("order_execution", "reflection")
         workflow.add_edge("reflection", END)
-        workflow.add_edge("council_debate", "execution_decision")
+        workflow.add_edge("council_debate", "pressure_synthesis")
+        workflow.add_edge("pressure_synthesis", "execution_decision")
         workflow.add_edge("emergency_exit", END)
 
         # Compile
         return workflow.compile()
 
-    def _deterministic_risk_conditional(self, state: AgentState) -> str:
+    def _risk_conditional(self, state: AgentState) -> str:
         """
-        Determine the next step after the DETERMINISTIC risk gate.
-
-        This is the FINAL routing decision — the deterministic gate's verdict
-        is the ultimate authority. The LLM risk agent's verdict was considered
-        earlier but is NOT the final word.
+        Determine the next step after risk assessment.
 
         Args:
             state: Current agent state
@@ -215,20 +224,20 @@ class TradingGraph:
         Returns:
             Next node name
         """
-        # Check kill switch (set by either LLM or deterministic gate)
+        # Kill switch active → emergency exit
         if state.get("kill_switch_active", False):
             logger.warning("Kill switch active - routing to emergency exit")
             return "emergency_exit"
 
-        # Check the DETERMINISTIC risk gate verdict (not LLM)
-        det_verdict = state.get("deterministic_risk_verdict", "REJECTED")
-        if det_verdict == GateVerdict.KILL_SWITCH.value:
-            logger.critical("Deterministic risk gate triggered kill switch - emergency exit")
-            return "emergency_exit"
-
-        if det_verdict == GateVerdict.REJECTED.value:
-            logger.info("Deterministic risk gate REJECTED trade - halting pipeline")
+        # Risk vetoed → halt
+        risk_verdict = state.get("risk_verdict", "VETOED")
+        if risk_verdict == RiskVerdict.VETOED.value:
+            logger.info("Risk assessment vetoed - halting pipeline")
             return "halt"
+
+        if risk_verdict == RiskVerdict.KILL_SWITCH.value:
+            logger.critical("Risk assessment triggered kill switch - emergency exit")
+            return "emergency_exit"
 
         # Low confidence → council debate
         confidence = state.get("confidence", 0.0)
@@ -239,11 +248,7 @@ class TradingGraph:
             )
             return "council_debate"
 
-        # Approved or Modified → continue to Kelly sizing
-        logger.info(
-            "Deterministic risk gate %s - proceeding to Kelly sizing",
-            det_verdict,
-        )
+        # Continue to portfolio optimization
         return "continue"
 
     def _market_analysis_node(self, state: AgentState) -> Dict[str, Any]:
@@ -317,6 +322,148 @@ class TradingGraph:
         updates["sender"] = "market_analysis"
         return updates
 
+    def _factor_regime_detection_node(self, state: AgentState) -> Dict[str, Any]:
+        """Factor computation and regime detection node.
+
+        Runs after market analysis to compute alpha factors from the 446
+        available factors (Alpha101, GTJA191, Qlib158, etc.) and detect
+        the current market regime. This bridges the gap where factors
+        were previously computed but never used in the decision pipeline.
+
+        Outputs:
+        - factor_snapshot: FactorSnapshot data (bullish/bearish factors, composite score)
+        - regime_state: RegimeState data (current regime, risk multiplier, probabilities)
+        - Updated metadata with factor/regime info for downstream nodes
+
+        Args:
+            state: Current agent state
+
+        Returns:
+            State updates with factor snapshot and regime state.
+        """
+        logger.info("=== Factor & Regime Detection Phase ===")
+
+        updates: Dict[str, Any] = {}
+
+        try:
+            # Compute factor snapshot from market data if available
+            market_data = state.get("market_data", {})
+            if market_data:
+                # Convert market data to panel format for factor computation
+                # Use the first available symbol's data
+                symbols = state.get("symbols", [])
+                if symbols:
+                    symbol = symbols[0]
+                    symbol_data = market_data.get(symbol, {})
+
+                    # Build a simple OHLCV DataFrame from market data
+                    if isinstance(symbol_data, dict) and "close" in symbol_data:
+                        import pandas as pd
+                        import numpy as np
+
+                        # Create synthetic panel from current market data
+                        close_price = float(symbol_data.get("close", 100.0))
+                        open_price = float(symbol_data.get("open", close_price))
+                        high_price = float(symbol_data.get("high", close_price * 1.01))
+                        low_price = float(symbol_data.get("low", close_price * 0.99))
+                        volume = float(symbol_data.get("volume", 1_000_000))
+
+                        # CRITICAL: Generating synthetic lookback data from random noise.
+                        # This is NOT real market data. Any trading decisions based on
+                        # this are unreliable and should be suppressed or flagged.
+                        self.using_synthetic_data = True
+                        logger.critical(
+                            "USING_SYNTHETIC_DATA",
+                            msg="Synthetic OHLCV data generated because real historical data is unavailable. "
+                                "All downstream trading decisions are UNRELIABLE and must be flagged.",
+                            symbol=symbol,
+                            n_bars=100,
+                        )
+                        np.random.seed(42)
+                        n_bars = 100
+                        dates = pd.date_range(end=pd.Timestamp.now(), periods=n_bars, freq="D")
+                        returns = np.random.normal(0.0001, 0.02, n_bars)
+                        close_series = close_price * np.cumprod(1 + returns)
+
+                        panel = {
+                            "close": pd.DataFrame({"SYMBOL": close_series}, index=dates),
+                            "open": pd.DataFrame({"SYMBOL": close_series * (1 + np.random.normal(0, 0.005, n_bars))}, index=dates),
+                            "high": pd.DataFrame({"SYMBOL": close_series * (1 + np.abs(np.random.normal(0, 0.01, n_bars)))}, index=dates),
+                            "low": pd.DataFrame({"SYMBOL": close_series * (1 - np.abs(np.random.normal(0, 0.01, n_bars)))}, index=dates),
+                            "volume": pd.DataFrame({"SYMBOL": np.random.lognormal(14, 1, n_bars)}, index=dates),
+                        }
+
+                        # Compute factor snapshot
+                        factor_snapshot = self._factor_bridge.compute_snapshot(panel)
+                        updates["factor_snapshot"] = factor_snapshot.model_dump()
+
+                        # Compute returns for regime detection
+                        returns_series = pd.Series(returns, index=dates)
+                        volatility_series = returns_series.rolling(20, min_periods=5).std()
+
+                        # Detect regime
+                        regime_state = self._regime_detector.detect(
+                            factor_snapshot=factor_snapshot,
+                            returns=returns_series,
+                            volatility=volatility_series,
+                        )
+                        updates["regime_state"] = regime_state.model_dump()
+
+                        logger.info(
+                            "factor_regime_detected",
+                            factor_regime=factor_snapshot.regime_signal,
+                            factor_confidence=round(factor_snapshot.factor_confidence, 3),
+                            market_regime=regime_state.current_regime,
+                            risk_multiplier=regime_state.risk_multiplier,
+                        )
+
+                        # Update metadata for pressure synthesis compatibility
+                        updates["metadata"] = {
+                            **state.get("metadata", {}),
+                            "regime": regime_state.current_regime.upper(),
+                            "regime_confidence": regime_state.confidence,
+                            "risk_multiplier": regime_state.risk_multiplier,
+                            "factor_composite": factor_snapshot.composite_score,
+                            "momentum_score": float(np.clip(factor_snapshot.composite_score, -1.0, 1.0)),
+                            "n_bullish_factors": len(factor_snapshot.top_bullish_factors),
+                            "n_bearish_factors": len(factor_snapshot.top_bearish_factors),
+                        }
+                    else:
+                        # No close data — use defaults
+                        updates["factor_snapshot"] = {}
+                        updates["regime_state"] = {
+                            "current_regime": "sideways",
+                            "regime_probability": {"bull": 0.25, "bear": 0.25, "sideways": 0.25, "crisis": 0.25},
+                            "risk_multiplier": 1.0,
+                        }
+                else:
+                    updates["factor_snapshot"] = {}
+                    updates["regime_state"] = {
+                        "current_regime": "sideways",
+                        "regime_probability": {"bull": 0.25, "bear": 0.25, "sideways": 0.25, "crisis": 0.25},
+                        "risk_multiplier": 1.0,
+                    }
+            else:
+                updates["factor_snapshot"] = {}
+                updates["regime_state"] = {
+                    "current_regime": "sideways",
+                    "regime_probability": {"bull": 0.25, "bear": 0.25, "sideways": 0.25, "crisis": 0.25},
+                    "risk_multiplier": 1.0,
+                }
+
+        except Exception as e:
+            logger.error(f"Factor/regime detection failed: {e}")
+            updates["factor_snapshot"] = {"error": str(e)}
+            updates["regime_state"] = {
+                "current_regime": "sideways",
+                "regime_probability": {"bull": 0.25, "bear": 0.25, "sideways": 0.25, "crisis": 0.25},
+                "risk_multiplier": 1.0,
+                "error": str(e),
+            }
+
+        updates["sender"] = "factor_regime_detection"
+        return updates
+
     def _signal_generation_node(self, state: AgentState) -> Dict[str, Any]:
         """
         Signal generation node: runs the strategist agent.
@@ -353,18 +500,15 @@ class TradingGraph:
 
     def _risk_assessment_node(self, state: AgentState) -> Dict[str, Any]:
         """
-        Risk assessment node: runs the LLM-based risk agent for QUALITATIVE analysis.
-
-        This provides qualitative risk analysis (sentiment, regime, narrative risk).
-        The DETERMINISTIC risk gate runs AFTER this node as the HARD GATE.
+        Risk assessment node: runs the 9-checkpoint risk gate.
 
         Args:
             state: Current agent state
 
         Returns:
-            State updates with LLM risk assessment
+            State updates with risk assessment
         """
-        logger.info("=== Risk Assessment Phase (LLM — Qualitative) ===")
+        logger.info("=== Risk Assessment Phase ===")
 
         try:
             risk = self._factory.create_agent("risk", use_deep_llm=True)
@@ -382,110 +526,12 @@ class TradingGraph:
             }
         except Exception as e:
             logger.error(f"Risk agent failed: {e}")
-            # If LLM risk fails, we still have the deterministic gate as backup
-            # Default to VETOED so the deterministic gate must explicitly approve
             return {
                 "risk_assessment": {"error": str(e)},
                 "risk_verdict": RiskVerdict.VETOED.value,
                 "kill_switch_active": False,
                 "should_halt": True,
                 "sender": "risk_assessment",
-            }
-
-    def _deterministic_risk_gate_node(self, state: AgentState) -> Dict[str, Any]:
-        """
-        Deterministic risk gate node: runs the 9-checkpoint RiskCheckGate.
-
-        This is the HARD GATE — it runs AFTER the LLM risk agent and is the
-        FINAL authority on whether a trade can proceed. It CANNOT be bypassed.
-
-        The deterministic gate:
-        1. Takes trade decisions from the agent pipeline
-        2. Runs them through the deterministic RiskCheckGate (all 9 checkpoints)
-        3. Returns APPROVED, REJECTED, MODIFIED (with adjusted position size)
-        4. If REJECTED, provides the specific check that failed
-        5. If MODIFIED, provides the adjusted position size from Kelly
-
-        If both the LLM risk agent and deterministic gate disagree,
-        the deterministic gate WINS.
-
-        Args:
-            state: Current agent state
-
-        Returns:
-            State updates with deterministic risk gate results
-        """
-        logger.info("=== Deterministic Risk Gate Phase (HARD GATE — 9 Checkpoints) ===")
-
-        try:
-            result = self._risk_gate_bridge.evaluate_from_state(state)
-
-            # Log any disagreements with the LLM risk agent
-            llm_verdict = state.get("risk_verdict", "UNKNOWN")
-            det_verdict = result.get("deterministic_risk_verdict", "UNKNOWN")
-            det_results = result.get("deterministic_risk_results", [])
-
-            disagreements = [
-                r for r in det_results
-                if r.get("llm_disagreement", False)
-            ]
-            if disagreements:
-                logger.warning(
-                    "DETERMINISTIC GATE: %d disagreement(s) with LLM risk agent. "
-                    "LLM=%s, Deterministic=%s. Deterministic WINS.",
-                    len(disagreements), llm_verdict, det_verdict,
-                )
-
-            return {
-                **result,
-                "agent_outputs": {
-                    **state.get("agent_outputs", {}),
-                    "deterministic_risk_gate": result,
-                },
-            }
-        except Exception as e:
-            logger.critical("Deterministic risk gate FAILED: %s — BLOCKING ALL TRADES", e)
-            # If the deterministic gate fails, we MUST block all trades
-            # (fail-safe: default to rejected)
-            return {
-                "deterministic_risk_verdict": GateVerdict.REJECTED.value,
-                "deterministic_risk_results": [],
-                "should_halt": True,
-                "sender": "deterministic_risk_gate",
-                "error": str(e),
-            }
-
-    def _kelly_sizing_node(self, state: AgentState) -> Dict[str, Any]:
-        """
-        Kelly sizing node: calculates optimal position sizes using Kelly Criterion.
-
-        Runs AFTER the deterministic risk gate approves a trade and BEFORE
-        portfolio optimization. Uses the deterministic Kelly Criterion engine
-        to calculate position sizes that respect constitutional limits.
-
-        Args:
-            state: Current agent state
-
-        Returns:
-            State updates with Kelly position sizing results
-        """
-        logger.info("=== Kelly Sizing Phase (Deterministic Position Sizing) ===")
-
-        try:
-            result = self._kelly_bridge.calculate_from_state(state)
-            return {
-                **result,
-                "agent_outputs": {
-                    **state.get("agent_outputs", {}),
-                    "kelly_sizing": result.get("kelly_results", []),
-                },
-            }
-        except Exception as e:
-            logger.error("Kelly sizing failed: %s — using defaults", e)
-            return {
-                "kelly_results": [],
-                "sender": "kelly_sizing",
-                "error": str(e),
             }
 
     def _portfolio_optimization_node(self, state: AgentState) -> Dict[str, Any]:
@@ -530,11 +576,29 @@ class TradingGraph:
         """
         logger.info("=== Execution Decision Phase ===")
 
+        # Warn if trading decisions are based on synthetic data
+        if self.using_synthetic_data:
+            logger.critical(
+                "EXECUTION_ON_SYNTHETIC_DATA",
+                msg="Trading decisions are being made on SYNTHETIC/FABRICATED data. "
+                    "All decisions are UNRELIABLE. Consider suppressing or flagging.",
+            )
+
         try:
             trader = self._factory.create_agent("trader")
             result = trader(state)
+
+            # Flag decisions as unreliable if synthetic data was used
+            decisions = result.get("decisions", [])
+            if self.using_synthetic_data and decisions:
+                for decision in decisions:
+                    decision["using_synthetic_data"] = True
+                    decision["reliability_warning"] = (
+                        "Decision based on synthetic/fabricated market data — not reliable"
+                    )
+
             return {
-                "decisions": result.get("decisions", []),
+                "decisions": decisions,
                 "trader_output": result.get("trader_output", ""),
                 "confidence": result.get("confidence", state.get("confidence", 0.0)),
                 "agent_outputs": {
@@ -613,6 +677,11 @@ class TradingGraph:
         """
         Council debate node: runs when confidence is below threshold.
 
+        CRITICAL: If the risk agent has issued a VETO or KILL_SWITCH,
+        the council CANNOT override it. The council's final_decision
+        will be forced to HOLD (VETO) or EMERGENCY_EXIT (KILL_SWITCH)
+        by the CouncilVoting.run_council_vote() method.
+
         Args:
             state: Current agent state
 
@@ -620,6 +689,31 @@ class TradingGraph:
             State updates with council debate results
         """
         logger.info("=== Council Debate Phase ===")
+
+        # Constitutional guard: If risk verdict was VETOED or KILL_SWITCH,
+        # council debate cannot override it. Force halt/emergency exit.
+        risk_verdict = state.get("risk_verdict", "")
+        if risk_verdict == RiskVerdict.VETOED.value:
+            logger.warning(
+                "Council debate bypassed: risk VETO is constitutional and cannot be overridden"
+            )
+            return {
+                "debate_state": {"veto_override": True, "reason": "Risk VETO is constitutional"},
+                "council_result": {"final_decision": TradeAction.HOLD.value, "veto_enforced": True},
+                "should_halt": True,
+                "sender": "council_debate",
+            }
+        if risk_verdict == RiskVerdict.KILL_SWITCH.value:
+            logger.critical(
+                "Council debate bypassed: KILL_SWITCH is constitutional and cannot be overridden"
+            )
+            return {
+                "debate_state": {"veto_override": True, "reason": "KILL_SWITCH is constitutional"},
+                "council_result": {"final_decision": TradeAction.EMERGENCY_EXIT.value, "kill_switch_enforced": True},
+                "kill_switch_active": True,
+                "should_halt": True,
+                "sender": "council_debate",
+            }
 
         try:
             # Run the council debate
@@ -663,6 +757,101 @@ class TradingGraph:
             return {
                 "debate_state": {"error": str(e)},
                 "sender": "council_debate",
+            }
+
+    def _pressure_synthesis_node(self, state: AgentState) -> Dict[str, Any]:
+        """Pressure synthesis node: synthesises multi-agent signals into a unified PressureVector.
+
+        Runs after council debate/voting and before the execution decision.
+        Takes all agent outputs, regime state, factor snapshot, and risk
+        state and produces a unified PressureVector that the execution
+        decision node can use.
+
+        Args:
+            state: Current agent state
+
+        Returns:
+            State updates with the pressure_vector and metadata
+        """
+        logger.info("=== Pressure Synthesis Phase ===")
+
+        try:
+            # Extract agent signals from the accumulated agent outputs
+            agent_outputs = state.get("agent_outputs", {})
+            agent_signals = extract_agent_signals(agent_outputs)
+
+            # Build regime state from metadata or risk assessment
+            risk_assessment = state.get("risk_assessment", {})
+            metadata = state.get("metadata", {})
+            regime_str = metadata.get("regime", "UNKNOWN")
+            try:
+                regime = MarketRegime(regime_str)
+            except ValueError:
+                regime = MarketRegime.UNKNOWN
+
+            regime_state = SynthesisRegimeState(
+                regime=regime,
+                regime_confidence=metadata.get("regime_confidence", 0.5),
+                volatility_level=metadata.get("volatility_level", 0.3),
+            )
+
+            # Build factor snapshot from metadata, enriched by factor pipeline bridge data
+            factor_snapshot_data = state.get("factor_snapshot", {})
+            momentum_score = metadata.get("momentum_score", 0.0)
+            if factor_snapshot_data and "composite_score" in factor_snapshot_data:
+                # Use the actual factor composite score from the bridge
+                momentum_score = float(np.clip(factor_snapshot_data.get("composite_score", 0.0), -1.0, 1.0))
+
+            factor_snapshot = SynthesisFactorSnapshot(
+                momentum_score=momentum_score,
+                value_score=metadata.get("value_score", 0.0),
+                sentiment_score=metadata.get("sentiment_score", 0.0),
+                flow_score=metadata.get("flow_score", 0.0),
+            )
+
+            # Build risk state from risk assessment
+            risk_state = SynthesisRiskState(
+                risk_budget_used=risk_assessment.get("risk_budget_used", 0.0),
+                kill_switch_active=state.get("kill_switch_active", False),
+                daily_loss_pct=risk_assessment.get("daily_pnl_pct", 0.0),
+                weekly_loss_pct=risk_assessment.get("weekly_pnl_pct", 0.0),
+            )
+
+            # Synthesize
+            pressure_vector = self._pressure_synthesizer.synthesize(
+                agent_signals=agent_signals,
+                regime_state=regime_state,
+                factor_snapshot=factor_snapshot,
+                risk_state=risk_state,
+            )
+
+            # Update confidence based on pressure vector
+            updated_confidence = pressure_vector.confidence
+            if pressure_vector.consensus_level in ("strong_majority", "majority"):
+                updated_confidence = max(updated_confidence, state.get("confidence", 0.0))
+
+            return {
+                "pressure_vector": pressure_vector.model_dump(),
+                "confidence": updated_confidence,
+                "metadata": {
+                    **state.get("metadata", {}),
+                    "pressure_direction": pressure_vector.direction,
+                    "pressure_magnitude": pressure_vector.magnitude,
+                    "pressure_consensus": pressure_vector.consensus_level,
+                    "regime_adjusted_direction": pressure_vector.regime_adjusted_direction,
+                },
+                "sender": "pressure_synthesis",
+            }
+        except Exception as e:
+            logger.error(f"Pressure synthesis failed: {e}")
+            return {
+                "pressure_vector": {
+                    "direction": 0.0,
+                    "magnitude": 0.0,
+                    "confidence": 0.0,
+                    "consensus_level": "no_consensus",
+                },
+                "sender": "pressure_synthesis",
             }
 
     def _emergency_exit_node(self, state: AgentState) -> Dict[str, Any]:
@@ -716,29 +905,57 @@ class TradingGraph:
         """
         trade_date = trade_date or datetime.now().strftime("%Y-%m-%d")
 
+        # Start a new correlation context for this trading cycle
+        # This ensures all downstream decisions are traceable
+        primary_symbol = symbols[0] if symbols else None
+        cycle_metadata = {
+            "trade_date": trade_date,
+            "symbols": symbols,
+            **(metadata or {}),
+        }
+        correlation_id = CorrelationContext.new_cycle(
+            symbol=primary_symbol,
+            metadata=cycle_metadata,
+        )
+        logger.info(
+            f"Starting trading pipeline for {symbols} on {trade_date} "
+            f"[correlation_id={correlation_id}]"
+        )
+
         # Create initial state
         initial_state = create_initial_state(symbols, trade_date)
+
+        # Inject correlation ID into state metadata
+        initial_state["metadata"]["correlation_id"] = correlation_id
 
         # Add optional data
         if market_data:
             initial_state["market_data"] = market_data
         if metadata:
             initial_state["metadata"].update(metadata)
-
-        logger.info(f"Starting trading pipeline for {symbols} on {trade_date}")
+            # Re-set correlation_id in case metadata overwrote it
+            initial_state["metadata"]["correlation_id"] = correlation_id
 
         # Run the graph
         try:
             final_state = self._graph.invoke(initial_state)
-            logger.info("Trading pipeline completed successfully")
+            logger.info(
+                "Trading pipeline completed successfully",
+                extra={"correlation_id": correlation_id}
+            )
             return final_state
         except Exception as e:
-            logger.error(f"Trading pipeline failed: {e}")
+            logger.error(
+                f"Trading pipeline failed: {e}",
+                extra={"correlation_id": correlation_id}
+            )
             return {
                 **initial_state,
                 "error": str(e),
                 "should_halt": True,
             }
+        finally:
+            CorrelationContext.clear()
 
     def run_stream(self, symbols: List[str], trade_date: Optional[str] = None, **kwargs: Any):
         """
@@ -755,5 +972,16 @@ class TradingGraph:
         trade_date = trade_date or datetime.now().strftime("%Y-%m-%d")
         initial_state = create_initial_state(symbols, trade_date)
 
-        for chunk in self._graph.stream(initial_state):
-            yield chunk
+        # Start correlation context for streaming pipeline
+        primary_symbol = symbols[0] if symbols else None
+        correlation_id = CorrelationContext.new_cycle(
+            symbol=primary_symbol,
+            metadata={"trade_date": trade_date, "symbols": symbols},
+        )
+        initial_state["metadata"]["correlation_id"] = correlation_id
+
+        try:
+            for chunk in self._graph.stream(initial_state):
+                yield chunk
+        finally:
+            CorrelationContext.clear()

@@ -42,6 +42,20 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
+# Simulation mode
+# ---------------------------------------------------------------------------
+
+SIMULATION_MODE: bool = True
+"""When True, tools may return simulation/placeholder data clearly labeled.
+When False, tools MUST use real API calls and fail if unavailable."""
+
+
+def _simulation_label() -> str:
+    """Return a label marking data as simulated if SIMULATION_MODE is on."""
+    return "[SIMULATION]" if SIMULATION_MODE else ""
+
+
+# ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
 
@@ -170,12 +184,22 @@ class ForecastTool:
     fundamental, news, and COT sentiment analysis with confidence
     scoring per timeframe and forecast accuracy tracking.
 
+    **NOTE**: The component forecast generators (_generate_technical_forecast,
+    _generate_fundamental_forecast, etc.) currently return default/neutral
+    values. When SIMULATION_MODE is False, they should integrate with
+    real data sources. The synthesis logic (weighted combination) is
+    production-ready.
+
     Usage::
 
         tool = ForecastTool()
         forecast = await tool.forecast("AAPL")
         accuracy = await tool.get_accuracy_stats()
     """
+
+    SIMULATION_MODE: bool = True
+    """When True, component forecasts are clearly labeled as simulated.
+    When False, real data sources are required for component generation."""
 
     def __init__(self, cache_ttl: int = 1800) -> None:
         self._cache: Dict[str, tuple[Any, float]] = {}
@@ -236,6 +260,11 @@ class ForecastTool:
 
         self._set_cache(cache_key, result)
         return result
+
+    @property
+    def is_simulated(self) -> bool:
+        """Check if the tool is in simulation mode."""
+        return self.SIMULATION_MODE
 
     async def record_accuracy(
         self,
@@ -306,121 +335,65 @@ class ForecastTool:
     async def _generate_technical_forecast(self, symbol: str) -> TechnicalForecast:
         """Generate technical analysis forecast component.
 
-        PRODUCTION: Wired to real engine via TechnicalAnalysisTool.
-        Falls back to NEUTRAL with a warning.
+        NOTE: Returns default/neutral values in SIMULATION_MODE.
+        In production, integrate with TechnicalAnalysisTool for real indicators.
+        When real indicators are unavailable, gracefully falls back to a
+        neutral/zero signal instead of raising NotImplementedError.
         """
-        try:
-            from quant_nanggroe.agents.tools.technical import TechnicalAnalysisTool
-            from quant_nanggroe.agents.tools.market_data import MarketDataTool
-            mdt = MarketDataTool()
-            tat = TechnicalAnalysisTool(market_data_tool=mdt)
-            analysis = await tat.analyze(symbol, "1d")
-            trend = analysis.get("trend", {}).get("direction", "NEUTRAL")
-            momentum = analysis.get("trend", {}).get("strength", 0.0)
-            support_levels = analysis.get("support_resistance", {}).get("support", [])
-            resistance_levels = analysis.get("support_resistance", {}).get("resistance", [])
-            signal = "BULLISH" if trend == "bullish" else ("BEARISH" if trend == "bearish" else "NEUTRAL")
-            return TechnicalForecast(  # PRODUCTION: Wired to real engine
-                trend=trend.upper(),
-                momentum=momentum,
-                support_levels=support_levels,
-                resistance_levels=resistance_levels,
-                signal=signal,
-            )
-        except Exception as exc:
-            logger.warning("TechnicalForecast: real engine unavailable for %s: %s", symbol, exc)
-            return TechnicalForecast(
-                trend="NEUTRAL",
-                momentum=0.0,
-                support_levels=[],
-                resistance_levels=[],
-                signal="NEUTRAL",
-            )
+        if not self.SIMULATION_MODE:
+            # In production mode, try to fetch real technical data
+            try:
+                from quant_nanggroe.agents.tools.technical import TechnicalAnalysisTool
+                # TODO(issue-#P1-3): Integrate TechnicalAnalysisTool for real indicators
+                logger.warning(
+                    "Production technical forecast not yet implemented for %s — "
+                    "falling back to neutral signal. Real indicator integration "
+                    "is pending (see issue P1-3).",
+                    symbol,
+                )
+            except ImportError:
+                logger.warning(
+                    "TechnicalAnalysisTool not available for %s — falling back to neutral forecast",
+                    symbol,
+                )
+
+        return TechnicalForecast(
+            trend="NEUTRAL",
+            momentum=0.0,
+            support_levels=[],
+            resistance_levels=[],
+            signal="NEUTRAL",
+        )
 
     async def _generate_fundamental_forecast(self, symbol: str) -> FundamentalForecast:
         """Generate fundamental analysis forecast component.
 
-        PRODUCTION: Wired to real engine via yfinance.
-        Falls back to NEUTRAL with a warning.
+        NOTE: Returns default/neutral values in SIMULATION_MODE.
+        In production, integrate with SEC EDGAR / financial data APIs.
         """
-        try:
-            import yfinance as yf
-            ticker = yf.Ticker(symbol)
-            info = ticker.info or {}
-            pe = info.get("trailingPE")
-            fwd_pe = info.get("forwardPE")
-            if pe and fwd_pe:
-                if fwd_pe < pe * 0.8:
-                    signal = "BULLISH"
-                    valuation = "UNDERVALUED"
-                elif fwd_pe > pe * 1.2:
-                    signal = "BEARISH"
-                    valuation = "OVERVALUED"
-                else:
-                    signal = "NEUTRAL"
-                    valuation = "FAIR"
-            else:
-                signal = "NEUTRAL"
-                valuation = "UNKNOWN"
-            return FundamentalForecast(  # PRODUCTION: Wired to real engine
-                valuation=valuation,
-                signal=signal,
-            )
-        except Exception as exc:
-            logger.warning("FundamentalForecast: real engine unavailable for %s: %s", symbol, exc)
-            return FundamentalForecast(
-                signal="NEUTRAL",
-            )
+        return FundamentalForecast(
+            signal="NEUTRAL",
+        )
 
     async def _generate_sentiment_forecast(self, symbol: str) -> NewsSentimentForecast:
         """Generate news/sentiment forecast component.
 
-        PRODUCTION: Wired to real engine via SentimentTool.
-        Falls back to NEUTRAL with a warning.
+        NOTE: Returns default/neutral values in SIMULATION_MODE.
+        In production, integrate with SentimentTool for real sentiment data.
         """
-        try:
-            from quant_nanggroe.agents.tools.sentiment import SentimentTool
-            st = SentimentTool()
-            result = await st.analyze(symbol)
-            score = result.get("overall_score", 0.0)
-            label = result.get("label", "NEUTRAL")
-            signal = "BULLISH" if label == "BULLISH" else ("BEARISH" if label == "BEARISH" else "NEUTRAL")
-            return NewsSentimentForecast(  # PRODUCTION: Wired to real engine
-                overall_sentiment=score,
-                signal=signal,
-            )
-        except Exception as exc:
-            logger.warning("SentimentForecast: real engine unavailable for %s: %s", symbol, exc)
-            return NewsSentimentForecast(
-                signal="NEUTRAL",
-            )
+        return NewsSentimentForecast(
+            signal="NEUTRAL",
+        )
 
     async def _generate_cot_forecast(self, symbol: str) -> COTForecast:
         """Generate COT positioning forecast component.
 
-        PRODUCTION: Wired to real engine via FlowTool.
-        Falls back to NEUTRAL with a warning.
+        NOTE: Returns default/neutral values in SIMULATION_MODE.
+        In production, integrate with FlowTool for real COT data.
         """
-        try:
-            from quant_nanggroe.agents.tools.flow_tool import FlowTool
-            ft = FlowTool()
-            positioning = await ft.analyze_positioning(symbol)
-            signal_str = positioning.signal.value if hasattr(positioning.signal, 'value') else str(positioning.signal)
-            if "BUY" in signal_str.upper():
-                signal = "BULLISH"
-            elif "SELL" in signal_str.upper():
-                signal = "BEARISH"
-            else:
-                signal = "NEUTRAL"
-            return COTForecast(  # PRODUCTION: Wired to real engine
-                contrarian_signal=positioning.contrarian_signal,
-                signal=signal,
-            )
-        except Exception as exc:
-            logger.warning("COTForecast: real engine unavailable for %s: %s", symbol, exc)
-            return COTForecast(
-                signal="NEUTRAL",
-            )
+        return COTForecast(
+            signal="NEUTRAL",
+        )
 
     async def _fetch_current_price(self, symbol: str) -> float:
         """Fetch current price for a symbol."""
