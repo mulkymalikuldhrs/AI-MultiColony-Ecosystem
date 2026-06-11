@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from src.memory.message_processing import detect_correction, detect_reinforcement, filter_messages_for_memory
 from src.memory.queue import get_memory_queue
-from src.agents.middlewares.summarization_middleware import SummarizationEvent
+from src.middlewares.summarization_middleware import SummarizationEvent
 from src.config.memory_config import get_memory_config
 from src.runtime.user_context import resolve_runtime_user_id
 

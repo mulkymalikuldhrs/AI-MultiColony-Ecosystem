@@ -27,7 +27,7 @@ except ImportError:
     RunnableConfig = None  # type: ignore[assignment]
     create_agent = None  # type: ignore[assignment]
 
-from src.agents.thread_state import SandboxState, ThreadDataState, ThreadState
+from src.agents.deer_thread_state import SandboxState, ThreadDataState, ThreadState
 from src.config import get_app_config
 from src.config.app_config import AppConfig
 from src.llm_models import create_chat_model
@@ -346,7 +346,7 @@ class SubagentExecutor:
             self.model_name = resolve_subagent_model_name(self.config, self.parent_model, app_config=app_config)
         model = create_chat_model(name=self.model_name, thinking_enabled=False, app_config=app_config)
 
-        from src.agents.middlewares.tool_error_handling_middleware import build_subagent_runtime_middlewares
+        from src.middlewares.tool_error_handling_middleware import build_subagent_runtime_middlewares
 
         # Reuse shared middleware composition with lead agent.
         middlewares = build_subagent_runtime_middlewares(app_config=app_config, model_name=self.model_name, lazy_init=True, deferred_setup=deferred_setup)

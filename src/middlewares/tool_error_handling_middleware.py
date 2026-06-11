@@ -134,9 +134,9 @@ def _build_runtime_middlewares(
     lazy_init: bool = True,
 ) -> list[AgentMiddleware]:
     """Build shared base middlewares for agent execution."""
-    from src.agents.middlewares.llm_error_handling_middleware import LLMErrorHandlingMiddleware
-    from src.agents.middlewares.thread_data_middleware import ThreadDataMiddleware
-    from src.agents.middlewares.tool_output_budget_middleware import ToolOutputBudgetMiddleware
+    from src.middlewares.llm_error_handling_middleware import LLMErrorHandlingMiddleware
+    from src.middlewares.thread_data_middleware import ThreadDataMiddleware
+    from src.middlewares.tool_output_budget_middleware import ToolOutputBudgetMiddleware
     from src.sandbox.middleware import SandboxMiddleware
 
     middlewares: list[AgentMiddleware] = [
@@ -146,12 +146,12 @@ def _build_runtime_middlewares(
     ]
 
     if include_uploads:
-        from src.agents.middlewares.uploads_middleware import UploadsMiddleware
+        from src.middlewares.uploads_middleware import UploadsMiddleware
 
         middlewares.insert(2, UploadsMiddleware())
 
     if include_dangling_tool_call_patch:
-        from src.agents.middlewares.dangling_tool_call_middleware import DanglingToolCallMiddleware
+        from src.middlewares.dangling_tool_call_middleware import DanglingToolCallMiddleware
 
         middlewares.append(DanglingToolCallMiddleware())
 
@@ -180,7 +180,7 @@ def _build_runtime_middlewares(
         provider = provider_cls(**provider_kwargs)
         middlewares.append(GuardrailMiddleware(provider, fail_closed=guardrails_config.fail_closed, passport=guardrails_config.passport))
 
-    from src.agents.middlewares.sandbox_audit_middleware import SandboxAuditMiddleware
+    from src.middlewares.sandbox_audit_middleware import SandboxAuditMiddleware
 
     middlewares.append(SandboxAuditMiddleware())
     middlewares.append(ToolErrorHandlingMiddleware())
@@ -222,7 +222,7 @@ def build_subagent_runtime_middlewares(
 
     model_config = app_config.get_model_config(model_name) if model_name else None
     if model_config is not None and model_config.supports_vision:
-        from src.agents.middlewares.view_image_middleware import ViewImageMiddleware
+        from src.middlewares.view_image_middleware import ViewImageMiddleware
 
         middlewares.append(ViewImageMiddleware())
 
@@ -232,7 +232,7 @@ def build_subagent_runtime_middlewares(
     # tool-policy filtering); promotion is read from graph state. Empty/None
     # setup (deferral disabled or no MCP tool survived) is a pure no-op.
     if deferred_setup is not None and deferred_setup.deferred_names:
-        from src.agents.middlewares.deferred_tool_filter_middleware import DeferredToolFilterMiddleware
+        from src.middlewares.deferred_tool_filter_middleware import DeferredToolFilterMiddleware
 
         middlewares.append(DeferredToolFilterMiddleware(deferred_setup.deferred_names, deferred_setup.catalog_hash))
 
@@ -242,7 +242,7 @@ def build_subagent_runtime_middlewares(
     # propagate back to the lead agent via the task tool result.
     safety_config = app_config.safety_finish_reason
     if safety_config.enabled:
-        from src.agents.middlewares.safety_finish_reason_middleware import SafetyFinishReasonMiddleware
+        from src.middlewares.safety_finish_reason_middleware import SafetyFinishReasonMiddleware
 
         middlewares.append(SafetyFinishReasonMiddleware.from_config(safety_config))
 

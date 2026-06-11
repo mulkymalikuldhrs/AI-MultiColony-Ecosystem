@@ -28,18 +28,18 @@ from langchain_core.runnables import RunnableConfig
 
 from src.agents.lead_agent.prompt import apply_prompt_template
 from src.memory.summarization_hook import memory_flush_hook
-from src.agents.middlewares.clarification_middleware import ClarificationMiddleware
-from src.agents.middlewares.loop_detection_middleware import LoopDetectionMiddleware
-from src.agents.middlewares.memory_middleware import MemoryMiddleware
-from src.agents.middlewares.safety_finish_reason_middleware import SafetyFinishReasonMiddleware
-from src.agents.middlewares.subagent_limit_middleware import SubagentLimitMiddleware
-from src.agents.middlewares.summarization_middleware import BeforeSummarizationHook, DeerFlowSummarizationMiddleware
-from src.agents.middlewares.title_middleware import TitleMiddleware
-from src.agents.middlewares.todo_middleware import TodoMiddleware
-from src.agents.middlewares.token_usage_middleware import TokenUsageMiddleware
-from src.agents.middlewares.tool_error_handling_middleware import build_lead_runtime_middlewares
-from src.agents.middlewares.view_image_middleware import ViewImageMiddleware
-from src.agents.thread_state import ThreadState
+from src.middlewares.clarification_middleware import ClarificationMiddleware
+from src.middlewares.loop_detection_middleware import LoopDetectionMiddleware
+from src.middlewares.memory_middleware import MemoryMiddleware
+from src.middlewares.safety_finish_reason_middleware import SafetyFinishReasonMiddleware
+from src.middlewares.subagent_limit_middleware import SubagentLimitMiddleware
+from src.middlewares.summarization_middleware import BeforeSummarizationHook, DeerFlowSummarizationMiddleware
+from src.middlewares.title_middleware import TitleMiddleware
+from src.middlewares.todo_middleware import TodoMiddleware
+from src.middlewares.token_usage_middleware import TokenUsageMiddleware
+from src.middlewares.tool_error_handling_middleware import build_lead_runtime_middlewares
+from src.middlewares.view_image_middleware import ViewImageMiddleware
+from src.agents.deer_thread_state import ThreadState
 from src.config.agents_config import load_agent_config, validate_agent_name
 from src.config.app_config import AppConfig, get_app_config
 from src.llm_models import create_chat_model
@@ -301,14 +301,14 @@ def build_middlewares(
 
     # Always inject current date (and optionally memory) as <system-reminder> into the
     # first HumanMessage to keep the system prompt fully static for prefix-cache reuse.
-    from src.agents.middlewares.dynamic_context_middleware import DynamicContextMiddleware
+    from src.middlewares.dynamic_context_middleware import DynamicContextMiddleware
 
     middlewares.append(DynamicContextMiddleware(agent_name=agent_name, app_config=resolved_app_config))
 
     # Deterministically load a full SKILL.md when the user starts the turn with
     # /skill-name. This keeps the base system prompt metadata-only while giving
     # explicit user activation priority over model-side relevance guessing.
-    from src.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from src.middlewares.skill_activation_middleware import SkillActivationMiddleware
 
     middlewares.append(SkillActivationMiddleware(available_skills=available_skills, app_config=resolved_app_config))
 
@@ -344,7 +344,7 @@ def build_middlewares(
     # The deferred set + catalog hash come from the build-time setup (assembled
     # after tool-policy filtering); promotion is read from graph state.
     if deferred_setup is not None and deferred_setup.deferred_names:
-        from src.agents.middlewares.deferred_tool_filter_middleware import DeferredToolFilterMiddleware
+        from src.middlewares.deferred_tool_filter_middleware import DeferredToolFilterMiddleware
 
         middlewares.append(DeferredToolFilterMiddleware(deferred_setup.deferred_names, deferred_setup.catalog_hash))
 

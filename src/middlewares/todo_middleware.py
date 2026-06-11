@@ -25,7 +25,7 @@ from langchain.agents.middleware.types import ModelCallResult, ModelRequest, Mod
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.runtime import Runtime
 
-from src.agents.thread_state import ThreadState
+from src.agents.deer_thread_state import ThreadState
 
 
 def _todos_in_messages(messages: list[Any]) -> bool:

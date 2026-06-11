@@ -8,7 +8,7 @@ from pathlib import Path
 
 from langchain.tools import tool
 
-from src.agents.thread_state import ThreadDataState
+from src.agents.deer_thread_state import ThreadDataState
 from src.config import get_app_config
 from src.config.paths import VIRTUAL_PATH_PREFIX
 from src.sandbox.exceptions import (

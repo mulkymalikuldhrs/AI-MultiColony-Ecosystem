@@ -19,10 +19,10 @@ from langchain.agents import create_agent
 from langchain.agents.middleware import AgentMiddleware
 
 from src.agents.features import RuntimeFeatures
-from src.agents.middlewares.clarification_middleware import ClarificationMiddleware
-from src.agents.middlewares.dangling_tool_call_middleware import DanglingToolCallMiddleware
-from src.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
-from src.agents.thread_state import ThreadState
+from src.middlewares.clarification_middleware import ClarificationMiddleware
+from src.middlewares.dangling_tool_call_middleware import DanglingToolCallMiddleware
+from src.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
+from src.agents.deer_thread_state import ThreadState
 from src.tools.builtins import ask_clarification_tool
 
 if TYPE_CHECKING:
@@ -194,8 +194,8 @@ def _assemble_from_features(
         if isinstance(feat.sandbox, AgentMiddleware):
             chain.append(feat.sandbox)
         else:
-            from src.agents.middlewares.thread_data_middleware import ThreadDataMiddleware
-            from src.agents.middlewares.uploads_middleware import UploadsMiddleware
+            from src.middlewares.thread_data_middleware import ThreadDataMiddleware
+            from src.middlewares.uploads_middleware import UploadsMiddleware
             from src.sandbox.middleware import SandboxMiddleware
 
             chain.append(ThreadDataMiddleware(lazy_init=True))
@@ -224,7 +224,7 @@ def _assemble_from_features(
 
     # --- [7] TodoMiddleware (plan_mode) ---
     if plan_mode:
-        from src.agents.middlewares.todo_middleware import TodoMiddleware
+        from src.middlewares.todo_middleware import TodoMiddleware
 
         chain.append(TodoMiddleware(system_prompt=_TODO_SYSTEM_PROMPT, tool_description=_TODO_TOOL_DESCRIPTION))
 
@@ -233,7 +233,7 @@ def _assemble_from_features(
         if isinstance(feat.auto_title, AgentMiddleware):
             chain.append(feat.auto_title)
         else:
-            from src.agents.middlewares.title_middleware import TitleMiddleware
+            from src.middlewares.title_middleware import TitleMiddleware
 
             chain.append(TitleMiddleware())
 
@@ -242,7 +242,7 @@ def _assemble_from_features(
         if isinstance(feat.memory, AgentMiddleware):
             chain.append(feat.memory)
         else:
-            from src.agents.middlewares.memory_middleware import MemoryMiddleware
+            from src.middlewares.memory_middleware import MemoryMiddleware
 
             chain.append(MemoryMiddleware(agent_name=name))
 
@@ -251,7 +251,7 @@ def _assemble_from_features(
         if isinstance(feat.vision, AgentMiddleware):
             chain.append(feat.vision)
         else:
-            from src.agents.middlewares.view_image_middleware import ViewImageMiddleware
+            from src.middlewares.view_image_middleware import ViewImageMiddleware
 
             chain.append(ViewImageMiddleware())
 
@@ -265,7 +265,7 @@ def _assemble_from_features(
         if isinstance(feat.subagent, AgentMiddleware):
             chain.append(feat.subagent)
         else:
-            from src.agents.middlewares.subagent_limit_middleware import SubagentLimitMiddleware
+            from src.middlewares.subagent_limit_middleware import SubagentLimitMiddleware
 
             chain.append(SubagentLimitMiddleware())
         from src.tools.builtins import task_tool
@@ -277,7 +277,7 @@ def _assemble_from_features(
         if isinstance(feat.loop_detection, AgentMiddleware):
             chain.append(feat.loop_detection)
         else:
-            from src.agents.middlewares.loop_detection_middleware import LoopDetectionMiddleware
+            from src.middlewares.loop_detection_middleware import LoopDetectionMiddleware
             from src.config.loop_detection_config import LoopDetectionConfig
 
             chain.append(LoopDetectionMiddleware.from_config(LoopDetectionConfig()))

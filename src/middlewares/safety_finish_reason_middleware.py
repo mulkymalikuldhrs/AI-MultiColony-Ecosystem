@@ -42,12 +42,12 @@ from langchain.agents.middleware import AgentMiddleware
 from langchain_core.messages import AIMessage
 from langgraph.runtime import Runtime
 
-from src.agents.middlewares.safety_termination_detectors import (
+from src.middlewares.safety_termination_detectors import (
     SafetyTermination,
     SafetyTerminationDetector,
     default_detectors,
 )
-from src.agents.middlewares.tool_call_metadata import clone_ai_message_with_tool_calls
+from src.middlewares.tool_call_metadata import clone_ai_message_with_tool_calls
 
 if TYPE_CHECKING:
     from src.config.safety_finish_reason_config import SafetyFinishReasonConfig

@@ -5,7 +5,7 @@ Provides an **async context manager** aligned with
 
 Usage (e.g. FastAPI lifespan)::
 
-    from src.agents.stream_bridge import make_stream_bridge
+    from src.runtime.stream_bridge import make_stream_bridge
 
     async with make_stream_bridge() as bridge:
         app.state.stream_bridge = bridge

@@ -7,7 +7,7 @@ from langchain.agents import AgentState
 from langchain.agents.middleware import AgentMiddleware
 from langgraph.runtime import Runtime
 
-from src.agents.middlewares.tool_call_metadata import clone_ai_message_with_tool_calls
+from src.middlewares.tool_call_metadata import clone_ai_message_with_tool_calls
 from src.subagents.executor import MAX_CONCURRENT_SUBAGENTS
 
 logger = logging.getLogger(__name__)

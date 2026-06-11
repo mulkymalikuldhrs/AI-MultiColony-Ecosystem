@@ -16,11 +16,17 @@ try:
 except ImportError:
     _LANGCHAIN_AVAILABLE = False
     AgentState = dict  # type: ignore[assignment,misc]
-    AgentMiddleware = object  # type: ignore[assignment,misc]
-    ToolMessage = None  # type: ignore[assignment]
+
+    class _FallbackBase:
+        """Fallback base that supports subscript syntax (e.g. Foo[Bar])."""
+        def __class_getitem__(cls, item):
+            return cls
+
+    AgentMiddleware = _FallbackBase  # type: ignore[assignment,misc]
+    ToolMessage = object  # type: ignore[assignment,misc]
     GraphBubbleUp = Exception  # type: ignore[assignment,misc]
-    ToolCallRequest = None  # type: ignore[assignment]
-    Command = None  # type: ignore[assignment]
+    ToolCallRequest = dict  # type: ignore[assignment,misc]
+    Command = object  # type: ignore[assignment,misc]
 
 from src.guardrails.provider import GuardrailDecision, GuardrailProvider, GuardrailReason, GuardrailRequest
 

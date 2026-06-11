@@ -15,8 +15,8 @@ from langgraph.constants import TAG_NOSTREAM
 from langgraph.graph.message import REMOVE_ALL_MESSAGES
 from langgraph.runtime import Runtime
 
-from src.agents.middlewares.dynamic_context_middleware import is_dynamic_context_reminder
-from src.agents.middlewares.tool_call_metadata import clone_ai_message_with_tool_calls
+from src.middlewares.dynamic_context_middleware import is_dynamic_context_reminder
+from src.middlewares.tool_call_metadata import clone_ai_message_with_tool_calls
 
 logger = logging.getLogger(__name__)
 

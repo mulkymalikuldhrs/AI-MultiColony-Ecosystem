@@ -9,7 +9,7 @@ from langchain.agents.middleware import AgentMiddleware
 from langgraph.config import get_config
 from langgraph.runtime import Runtime
 
-from src.agents.middlewares.dynamic_context_middleware import is_dynamic_context_reminder
+from src.middlewares.dynamic_context_middleware import is_dynamic_context_reminder
 from src.config.title_config import get_title_config
 from src.llm_models import create_chat_model
 

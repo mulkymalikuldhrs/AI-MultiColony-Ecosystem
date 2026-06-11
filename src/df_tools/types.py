@@ -2,7 +2,7 @@ from typing import Any
 
 from langchain.tools import ToolRuntime
 
-from src.agents.thread_state import ThreadState
+from src.agents.deer_thread_state import ThreadState
 
 # Concrete runtime type used by all DeerFlow tools.
 # Using dict[str, Any] for the context parameter instead of the unbound ContextT

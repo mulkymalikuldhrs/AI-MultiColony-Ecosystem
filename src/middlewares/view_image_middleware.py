@@ -7,7 +7,7 @@ from langchain.agents.middleware import AgentMiddleware
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.runtime import Runtime
 
-from src.agents.thread_state import ThreadState
+from src.agents.deer_thread_state import ThreadState
 
 logger = logging.getLogger(__name__)
 
