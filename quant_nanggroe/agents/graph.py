@@ -7,14 +7,22 @@ pipeline from market analysis through execution and reflection.
 Graph Flow:
 1. market_analysis → Researcher + Macro + Crypto + Forex agents
 2. signal_generation → Strategist agent
-3. risk_assessment → Risk agent (9-checkpoint gate)
-4. portfolio_optimization → Portfolio agent
-5. execution_decision → Trader agent
-6. order_execution → Execution agent
-7. reflection → Council debate (post-trade analysis)
+3. risk_assessment → Risk agent (LLM-based qualitative analysis)
+4. deterministic_risk_gate → RiskGateBridge (HARD GATE — 9-checkpoint deterministic)
+5. portfolio_optimization → Portfolio agent
+6. execution_decision → Trader agent
+7. order_execution → Execution agent
+8. reflection → Council debate (post-trade analysis)
+
+CRITICAL ARCHITECTURE:
+- Step 3 (risk_assessment) provides LLM-based qualitative risk analysis
+- Step 4 (deterministic_risk_gate) is the HARD GATE using the deterministic
+  RiskCheckGate with all 9 checkpoints. This gate CANNOT be bypassed.
+- If both the LLM risk agent and deterministic gate disagree, the
+  deterministic gate WINS.
 
 Conditional edges:
-- If risk_assessment fails → halt (no trade)
+- If deterministic_risk_gate fails → halt (no trade)
 - If confidence < threshold → council debate
 - If kill_switch active → emergency exit
 """
@@ -30,6 +38,8 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode
 
 from quant_nanggroe.agents.base import create_llm
+from quant_nanggroe.agents.bridges.risk_gate_bridge import RiskGateBridge, GateVerdict
+from quant_nanggroe.agents.bridges.kelly_bridge import KellyBridge
 from quant_nanggroe.agents.council.debate import CouncilDebate
 from quant_nanggroe.agents.council.voting import CouncilVoting
 from quant_nanggroe.agents.registry import AgentFactory
@@ -123,6 +133,10 @@ class TradingGraph:
             consensus_threshold=confidence_threshold,
         )
 
+        # Create bridges to deterministic engine
+        self._risk_gate_bridge = RiskGateBridge()
+        self._kelly_bridge = KellyBridge()
+
         # Build and compile the graph
         self._graph = self._build_graph()
 
@@ -145,6 +159,8 @@ class TradingGraph:
         workflow.add_node("market_analysis", self._market_analysis_node)
         workflow.add_node("signal_generation", self._signal_generation_node)
         workflow.add_node("risk_assessment", self._risk_assessment_node)
+        workflow.add_node("deterministic_risk_gate", self._deterministic_risk_gate_node)
+        workflow.add_node("kelly_sizing", self._kelly_sizing_node)
         workflow.add_node("portfolio_optimization", self._portfolio_optimization_node)
         workflow.add_node("execution_decision", self._execution_decision_node)
         workflow.add_node("order_execution", self._order_execution_node)
@@ -157,18 +173,24 @@ class TradingGraph:
         workflow.add_edge("market_analysis", "signal_generation")
         workflow.add_edge("signal_generation", "risk_assessment")
 
-        # Conditional edge after risk assessment
+        # LLM risk assessment → deterministic risk gate (HARD GATE)
+        # The deterministic risk gate is MANDATORY and sits AFTER the LLM risk agent
+        workflow.add_edge("risk_assessment", "deterministic_risk_gate")
+
+        # Conditional edge after DETERMINISTIC risk gate (not LLM risk)
         workflow.add_conditional_edges(
-            "risk_assessment",
-            self._risk_conditional,
+            "deterministic_risk_gate",
+            self._deterministic_risk_conditional,
             {
-                "continue": "portfolio_optimization",
+                "continue": "kelly_sizing",
                 "halt": END,
                 "council_debate": "council_debate",
                 "emergency_exit": "emergency_exit",
             },
         )
 
+        # Kelly sizing → portfolio optimization → execution
+        workflow.add_edge("kelly_sizing", "portfolio_optimization")
         workflow.add_edge("portfolio_optimization", "execution_decision")
         workflow.add_edge("execution_decision", "order_execution")
         workflow.add_edge("order_execution", "reflection")
@@ -179,9 +201,13 @@ class TradingGraph:
         # Compile
         return workflow.compile()
 
-    def _risk_conditional(self, state: AgentState) -> str:
+    def _deterministic_risk_conditional(self, state: AgentState) -> str:
         """
-        Determine the next step after risk assessment.
+        Determine the next step after the DETERMINISTIC risk gate.
+
+        This is the FINAL routing decision — the deterministic gate's verdict
+        is the ultimate authority. The LLM risk agent's verdict was considered
+        earlier but is NOT the final word.
 
         Args:
             state: Current agent state
@@ -189,20 +215,20 @@ class TradingGraph:
         Returns:
             Next node name
         """
-        # Kill switch active → emergency exit
+        # Check kill switch (set by either LLM or deterministic gate)
         if state.get("kill_switch_active", False):
             logger.warning("Kill switch active - routing to emergency exit")
             return "emergency_exit"
 
-        # Risk vetoed → halt
-        risk_verdict = state.get("risk_verdict", "VETOED")
-        if risk_verdict == RiskVerdict.VETOED.value:
-            logger.info("Risk assessment vetoed - halting pipeline")
-            return "halt"
-
-        if risk_verdict == RiskVerdict.KILL_SWITCH.value:
-            logger.critical("Risk assessment triggered kill switch - emergency exit")
+        # Check the DETERMINISTIC risk gate verdict (not LLM)
+        det_verdict = state.get("deterministic_risk_verdict", "REJECTED")
+        if det_verdict == GateVerdict.KILL_SWITCH.value:
+            logger.critical("Deterministic risk gate triggered kill switch - emergency exit")
             return "emergency_exit"
+
+        if det_verdict == GateVerdict.REJECTED.value:
+            logger.info("Deterministic risk gate REJECTED trade - halting pipeline")
+            return "halt"
 
         # Low confidence → council debate
         confidence = state.get("confidence", 0.0)
@@ -213,7 +239,11 @@ class TradingGraph:
             )
             return "council_debate"
 
-        # Continue to portfolio optimization
+        # Approved or Modified → continue to Kelly sizing
+        logger.info(
+            "Deterministic risk gate %s - proceeding to Kelly sizing",
+            det_verdict,
+        )
         return "continue"
 
     def _market_analysis_node(self, state: AgentState) -> Dict[str, Any]:
@@ -323,15 +353,18 @@ class TradingGraph:
 
     def _risk_assessment_node(self, state: AgentState) -> Dict[str, Any]:
         """
-        Risk assessment node: runs the 9-checkpoint risk gate.
+        Risk assessment node: runs the LLM-based risk agent for QUALITATIVE analysis.
+
+        This provides qualitative risk analysis (sentiment, regime, narrative risk).
+        The DETERMINISTIC risk gate runs AFTER this node as the HARD GATE.
 
         Args:
             state: Current agent state
 
         Returns:
-            State updates with risk assessment
+            State updates with LLM risk assessment
         """
-        logger.info("=== Risk Assessment Phase ===")
+        logger.info("=== Risk Assessment Phase (LLM — Qualitative) ===")
 
         try:
             risk = self._factory.create_agent("risk", use_deep_llm=True)
@@ -349,12 +382,110 @@ class TradingGraph:
             }
         except Exception as e:
             logger.error(f"Risk agent failed: {e}")
+            # If LLM risk fails, we still have the deterministic gate as backup
+            # Default to VETOED so the deterministic gate must explicitly approve
             return {
                 "risk_assessment": {"error": str(e)},
                 "risk_verdict": RiskVerdict.VETOED.value,
                 "kill_switch_active": False,
                 "should_halt": True,
                 "sender": "risk_assessment",
+            }
+
+    def _deterministic_risk_gate_node(self, state: AgentState) -> Dict[str, Any]:
+        """
+        Deterministic risk gate node: runs the 9-checkpoint RiskCheckGate.
+
+        This is the HARD GATE — it runs AFTER the LLM risk agent and is the
+        FINAL authority on whether a trade can proceed. It CANNOT be bypassed.
+
+        The deterministic gate:
+        1. Takes trade decisions from the agent pipeline
+        2. Runs them through the deterministic RiskCheckGate (all 9 checkpoints)
+        3. Returns APPROVED, REJECTED, MODIFIED (with adjusted position size)
+        4. If REJECTED, provides the specific check that failed
+        5. If MODIFIED, provides the adjusted position size from Kelly
+
+        If both the LLM risk agent and deterministic gate disagree,
+        the deterministic gate WINS.
+
+        Args:
+            state: Current agent state
+
+        Returns:
+            State updates with deterministic risk gate results
+        """
+        logger.info("=== Deterministic Risk Gate Phase (HARD GATE — 9 Checkpoints) ===")
+
+        try:
+            result = self._risk_gate_bridge.evaluate_from_state(state)
+
+            # Log any disagreements with the LLM risk agent
+            llm_verdict = state.get("risk_verdict", "UNKNOWN")
+            det_verdict = result.get("deterministic_risk_verdict", "UNKNOWN")
+            det_results = result.get("deterministic_risk_results", [])
+
+            disagreements = [
+                r for r in det_results
+                if r.get("llm_disagreement", False)
+            ]
+            if disagreements:
+                logger.warning(
+                    "DETERMINISTIC GATE: %d disagreement(s) with LLM risk agent. "
+                    "LLM=%s, Deterministic=%s. Deterministic WINS.",
+                    len(disagreements), llm_verdict, det_verdict,
+                )
+
+            return {
+                **result,
+                "agent_outputs": {
+                    **state.get("agent_outputs", {}),
+                    "deterministic_risk_gate": result,
+                },
+            }
+        except Exception as e:
+            logger.critical("Deterministic risk gate FAILED: %s — BLOCKING ALL TRADES", e)
+            # If the deterministic gate fails, we MUST block all trades
+            # (fail-safe: default to rejected)
+            return {
+                "deterministic_risk_verdict": GateVerdict.REJECTED.value,
+                "deterministic_risk_results": [],
+                "should_halt": True,
+                "sender": "deterministic_risk_gate",
+                "error": str(e),
+            }
+
+    def _kelly_sizing_node(self, state: AgentState) -> Dict[str, Any]:
+        """
+        Kelly sizing node: calculates optimal position sizes using Kelly Criterion.
+
+        Runs AFTER the deterministic risk gate approves a trade and BEFORE
+        portfolio optimization. Uses the deterministic Kelly Criterion engine
+        to calculate position sizes that respect constitutional limits.
+
+        Args:
+            state: Current agent state
+
+        Returns:
+            State updates with Kelly position sizing results
+        """
+        logger.info("=== Kelly Sizing Phase (Deterministic Position Sizing) ===")
+
+        try:
+            result = self._kelly_bridge.calculate_from_state(state)
+            return {
+                **result,
+                "agent_outputs": {
+                    **state.get("agent_outputs", {}),
+                    "kelly_sizing": result.get("kelly_results", []),
+                },
+            }
+        except Exception as e:
+            logger.error("Kelly sizing failed: %s — using defaults", e)
+            return {
+                "kelly_results": [],
+                "sender": "kelly_sizing",
+                "error": str(e),
             }
 
     def _portfolio_optimization_node(self, state: AgentState) -> Dict[str, Any]:
