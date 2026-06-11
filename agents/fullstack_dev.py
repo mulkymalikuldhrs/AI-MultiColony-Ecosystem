@@ -155,7 +155,7 @@ class FullStackDevAgent:
                 return await self._setup_authentication(task)
             elif action == "create_api":
                 return await self._create_api_endpoints(task)
-            elif action == "setup_database":
+            elif action in ("setup_database", "create_models"):
                 return await self._setup_database(task)
             elif action == "deploy_app":
                 return await self._deploy_application(task)
@@ -883,6 +883,136 @@ docker-compose -f docker-compose.prod.yml up -d
             "error": error_message,
             "agent": self.agent_id,
             "timestamp": datetime.now().isoformat()
+        }
+    
+    async def _create_api_endpoints(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Create API endpoints"""
+        api_type = task.get("api_type", "rest")
+        framework = task.get("framework", "fastapi")
+        endpoints = task.get("endpoints", [])
+        
+        # Generate API code based on framework
+        if framework.lower() == "fastapi":
+            api_code = self._generate_fastapi_code(api_type, endpoints)
+        else:
+            api_code = self._generate_generic_api_code(api_type, framework, endpoints)
+        
+        return {
+            "success": True,
+            "api_type": api_type,
+            "framework": framework,
+            "api_code": api_code,
+            "endpoints": endpoints,
+        }
+    
+    def _generate_fastapi_code(self, api_type: str, endpoints: List[Dict]) -> str:
+        """Generate FastAPI code"""
+        endpoints_code = ""
+        for ep in endpoints:
+            path = ep.get("path", "/")
+            method = ep.get("method", "GET").lower()
+            func_name = path.strip("/").replace("/", "_").replace("{", "").replace("}", "") or "root"
+            if not func_name:
+                func_name = "root"
+            
+            if method == "get":
+                endpoints_code += f"""
+@router.get("{path}")
+async def {func_name}():
+    return {{"message": "GET {path}"}}
+"""
+            elif method == "post":
+                endpoints_code += f"""
+@router.post("{path}")
+async def {func_name}():
+    return {{"message": "POST {path}"}}
+"""
+            elif method == "put":
+                endpoints_code += f"""
+@router.put("{path}")
+async def {func_name}():
+    return {{"message": "PUT {path}"}}
+"""
+            elif method == "delete":
+                endpoints_code += f"""
+@router.delete("{path}")
+async def {func_name}():
+    return {{"message": "DELETE {path}"}}
+"""
+        
+        return f"""from fastapi import FastAPI, APIRouter
+from pydantic import BaseModel
+
+app = FastAPI()
+router = APIRouter()
+{endpoints_code}
+
+app.include_router(router)
+"""
+    
+    def _generate_generic_api_code(self, api_type: str, framework: str, endpoints: List[Dict]) -> str:
+        """Generate generic API code"""
+        return f"""# {api_type.upper()} API using {framework}
+# Endpoints: {json.dumps(endpoints)}
+"""
+    
+    async def _setup_database(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Setup database and create models"""
+        database = task.get("database", "postgresql")
+        models = task.get("models", [])
+        
+        # Generate model code
+        model_code = self._generate_sqlalchemy_models(database, models)
+        
+        return {
+            "success": True,
+            "database": database,
+            "model_code": model_code,
+            "models_count": len(models),
+        }
+    
+    def _generate_sqlalchemy_models(self, database: str, models: List[Dict]) -> str:
+        """Generate SQLAlchemy model code"""
+        models_code = ""
+        for model_def in models:
+            model_name = model_def.get("name", "BaseModel")
+            fields = model_def.get("fields", {})
+            
+            field_definitions = ""
+            type_mapping = {
+                "Integer": "Integer",
+                "String": "String(255)",
+                "DateTime": "DateTime",
+                "Boolean": "Boolean",
+                "Float": "Float",
+                "Text": "Text",
+            }
+            
+            for field_name, field_type in fields.items():
+                sa_type = type_mapping.get(field_type, "String(255)")
+                field_definitions += f"    {field_name} = Column({sa_type})\n"
+            
+            models_code += f"""
+class {model_name}(Base):
+    __tablename__ = '{model_name.lower()}s'
+    
+    id = Column(Integer, primary_key=True, index=True)
+{field_definitions}
+"""
+        
+        return f"""from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, Text
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+{models_code}
+"""
+    
+    def get_supported_frameworks(self) -> Dict[str, List[str]]:
+        """Get supported development frameworks"""
+        return {
+            "backend": ["fastapi", "django", "flask", "express"],
+            "frontend": ["react", "vue", "angular", "nextjs", "svelte"],
+            "mobile": ["react_native", "flutter"],
         }
 
 # Global instance

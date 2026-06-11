@@ -1,0 +1,48 @@
+{
+  "data_scientist": {
+    "agent_id": "data_scientist",
+    "name": "data_scientist",
+    "description": "data_scientist agent",
+    "capabilities": [],
+    "template": "basic_agent",
+    "created_at": "2026-06-11T16:01:04.383980",
+    "status": "tested",
+    "requirements": {
+      "specialization": "machine_learning",
+      "experience_level": "senior"
+    },
+    "file_path": "agents/data_scientist.py",
+    "note": "Agent file already existed; registered existing agent",
+    "test_result": {
+      "success": true,
+      "status": {
+        "agent_id": "data_scientist",
+        "name": "data_scientist",
+        "status": "ready",
+        "capabilities": [],
+        "timestamp": "2026-06-11T16:01:04.384931"
+      },
+      "test_result": {
+        "success": true,
+        "message": "data_scientist is functioning correctly",
+        "agent": "data_scientist",
+        "capabilities": [],
+        "status": "ready",
+        "timestamp": "2026-06-11T16:01:04.384939"
+      },
+      "message": "Agent tested successfully"
+    }
+  },
+  "test_agent": {
+    "agent_id": "test_agent",
+    "name": "test_agent",
+    "description": "test_agent agent",
+    "capabilities": [],
+    "template": "basic_agent",
+    "created_at": "2026-06-11T16:01:08.383233",
+    "status": "created",
+    "requirements": {},
+    "file_path": "agents/test_agent.py",
+    "note": "Agent file already existed; registered existing agent"
+  }
+}

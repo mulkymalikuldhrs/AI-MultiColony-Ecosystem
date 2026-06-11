@@ -87,6 +87,18 @@ class AgentMakerAgent:
                 "capabilities": ["domain_expertise", "specialized_processing"],
                 "base_class": "SpecialistAgent",
                 "required_methods": ["process_domain_task", "provide_expertise"]
+            },
+            "data_scientist": {
+                "description": "Data science and machine learning specialist agent",
+                "capabilities": ["data_analysis", "machine_learning", "visualization", "statistics"],
+                "base_class": "DataScientistAgent",
+                "required_methods": ["process_data", "train_model", "analyze_dataset"]
+            },
+            "web_developer": {
+                "description": "Full-stack web development agent",
+                "capabilities": ["frontend_development", "backend_development", "api_design", "database_design"],
+                "base_class": "WebDeveloperAgent",
+                "required_methods": ["create_frontend", "create_backend", "design_api"]
             }
         }
     
@@ -202,6 +214,8 @@ class {class_name}:
                 return await self._delete_agent(task)
             elif action == "generate_template":
                 return await self._generate_agent_template(task)
+            elif action == "validate_template":
+                return self._validate_template(task)
             else:
                 return self._create_error_response(f"Unknown action: {action}")
                 
@@ -211,32 +225,29 @@ class {class_name}:
     async def _create_agent(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new agent based on specifications"""
         
-        # Extract requirements
-        agent_name = task.get("agent_name", "")
-        description = task.get("description", "")
+        # Extract requirements - support both agent_name and agent_type keys
+        agent_type = task.get("agent_type", "")
+        agent_name = task.get("agent_name", agent_type)
+        description = task.get("description", f"{agent_name} agent")
         capabilities = task.get("capabilities", [])
+        requirements = task.get("requirements", {})
         template_type = task.get("template", "basic_agent")
         
         if not agent_name:
             return self._create_error_response("Agent name is required")
         
-        # Generate agent ID
+        # Derive agent_id from agent_name/agent_type
         agent_id = agent_name.lower().replace(" ", "_").replace("-", "_")
         
-        # Check if agent already exists
-        agent_file = Path(f"agents/{agent_id}.py")
-        if agent_file.exists():
-            return self._create_error_response(f"Agent {agent_id} already exists")
+        # Check if agent already exists in our registry
+        if agent_id in self.created_agents:
+            return self._create_error_response(f"Agent {agent_id} already exists in registry")
         
         try:
             # Generate agent code
             agent_code = await self._generate_agent_code(
                 agent_id, agent_name, description, capabilities, template_type
             )
-            
-            # Create agent file
-            with open(agent_file, 'w') as f:
-                f.write(agent_code)
             
             # Register agent
             agent_info = {
@@ -246,9 +257,19 @@ class {class_name}:
                 "capabilities": capabilities,
                 "template": template_type,
                 "created_at": datetime.now().isoformat(),
-                "file_path": str(agent_file),
-                "status": "created"
+                "status": "created",
+                "requirements": requirements,
             }
+            
+            # Only create file if it doesn't already exist on disk
+            agent_file = Path(f"agents/{agent_id}.py")
+            if not agent_file.exists():
+                with open(agent_file, 'w') as f:
+                    f.write(agent_code)
+                agent_info["file_path"] = str(agent_file)
+            else:
+                agent_info["file_path"] = str(agent_file)
+                agent_info["note"] = "Agent file already existed; registered existing agent"
             
             self.created_agents[agent_id] = agent_info
             
@@ -269,6 +290,7 @@ class {class_name}:
                 "message": f"Agent {agent_name} created successfully",
                 "agent_info": agent_info,
                 "agent_id": agent_id,
+                "agent_type": agent_type or agent_name,
                 "file_created": str(agent_file)
             }
             
@@ -555,6 +577,32 @@ class {class_name}:
             "agents": list(self.created_agents.values()),
             "available_templates": list(self.agent_templates.keys())
         }
+    
+    def _validate_template(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate an agent template"""
+        template_name = task.get("template_name", "")
+        if not template_name:
+            return self._create_error_response("Template name is required")
+        
+        if template_name in self.agent_templates:
+            template = self.agent_templates[template_name]
+            return {
+                "success": True,
+                "template_valid": True,
+                "template_name": template_name,
+                "template": template,
+            }
+        else:
+            return {
+                "success": True,
+                "template_valid": False,
+                "template_name": template_name,
+                "message": f"Template '{template_name}' not found. Available: {list(self.agent_templates.keys())}",
+            }
+    
+    def get_available_templates(self) -> Dict[str, Dict]:
+        """Get all available agent templates"""
+        return self.agent_templates
     
     def _save_created_agents_registry(self):
         """Save created agents registry"""

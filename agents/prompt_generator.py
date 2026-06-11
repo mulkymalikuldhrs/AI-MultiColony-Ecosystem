@@ -622,6 +622,124 @@ Please apply your professional expertise to help with the following tasks."""
             "agent": self.agent_id,
             "timestamp": datetime.now().isoformat()
         }
+    
+    async def _optimize_prompt(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Optimize an existing prompt"""
+        original_prompt = task.get("original_prompt", "")
+        target_model = task.get("target_model", "gpt-4")
+        optimization_goals = task.get("optimization_goals", ["specificity", "clarity"])
+        
+        if not original_prompt:
+            return self._create_error_response("Original prompt is required")
+        
+        optimized = original_prompt
+        
+        # Apply optimization techniques based on goals
+        for goal in optimization_goals:
+            if goal == "specificity":
+                # Add specificity improvements
+                if not any(w in optimized.lower() for w in ["specifically", "exactly", "precisely"]):
+                    optimized = f"Please be specific: {optimized}"
+            elif goal == "clarity":
+                # Add clarity improvements
+                if not any(w in optimized.lower() for w in ["clearly", "step by step"]):
+                    optimized += "\n\nPlease provide a clear, step-by-step response."
+            elif goal == "context":
+                optimized = f"Context: You are working on a professional task.\n\n{optimized}"
+            elif goal == "format":
+                optimized += "\n\nPlease format your response with clear headings and bullet points."
+            elif goal == "examples":
+                optimized += "\n\nPlease include concrete examples in your response."
+        
+        # Optimize for target model
+        optimized = self._optimize_for_model(optimized, target_model)
+        
+        return {
+            "optimized_prompt": optimized,
+            "original_prompt": original_prompt,
+            "optimization_goals": optimization_goals,
+            "target_model": target_model,
+            "improvements_applied": optimization_goals,
+        }
+    
+    async def _analyze_prompt(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze a prompt for quality and effectiveness"""
+        prompt = task.get("prompt", "")
+        
+        if not prompt:
+            return self._create_error_response("Prompt is required for analysis")
+        
+        # Basic analysis metrics
+        word_count = len(prompt.split())
+        has_role = any(w in prompt.lower() for w in ["you are", "act as", "as a", "role"])
+        has_context = any(w in prompt.lower() for w in ["context", "background", "situation"])
+        has_format = any(w in prompt.lower() for w in ["format", "structure", "output"])
+        has_examples = any(w in prompt.lower() for w in ["example", "for instance", "such as"])
+        
+        quality_score = 0.3  # base
+        if has_role: quality_score += 0.15
+        if has_context: quality_score += 0.15
+        if has_format: quality_score += 0.15
+        if has_examples: quality_score += 0.1
+        if word_count > 20: quality_score += 0.15
+        
+        return {
+            "success": True,
+            "quality_score": min(quality_score, 1.0),
+            "word_count": word_count,
+            "has_role_definition": has_role,
+            "has_context": has_context,
+            "has_format_specification": has_format,
+            "has_examples": has_examples,
+            "recommendations": self._get_prompt_recommendations(has_role, has_context, has_format, has_examples),
+        }
+    
+    def _get_prompt_recommendations(self, has_role: bool, has_context: bool, 
+                                     has_format: bool, has_examples: bool) -> List[str]:
+        """Get recommendations for prompt improvement"""
+        recs = []
+        if not has_role:
+            recs.append("Add a clear role definition (e.g., 'You are an expert in...')")
+        if not has_context:
+            recs.append("Provide relevant context and background information")
+        if not has_format:
+            recs.append("Specify the desired output format and structure")
+        if not has_examples:
+            recs.append("Include examples to illustrate expected output")
+        return recs
+    
+    async def _generate_variations(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate variations of a prompt"""
+        original_prompt = task.get("prompt", "")
+        num_variations = task.get("num_variations", 3)
+        
+        if not original_prompt:
+            return self._create_error_response("Prompt is required for variation generation")
+        
+        variations = []
+        styles = ["concise", "detailed", "step-by-step", "creative", "technical"]
+        
+        for i in range(min(num_variations, len(styles))):
+            style = styles[i]
+            variation = f"[{style.upper()} STYLE] {original_prompt}"
+            if style == "concise":
+                variation = f"Be concise and direct: {original_prompt}"
+            elif style == "detailed":
+                variation = f"Provide a detailed and comprehensive response: {original_prompt}"
+            elif style == "step-by-step":
+                variation = f"Break this down step by step: {original_prompt}"
+            elif style == "creative":
+                variation = f"Think creatively and provide innovative approaches: {original_prompt}"
+            elif style == "technical":
+                variation = f"Provide a technically precise response: {original_prompt}"
+            variations.append({"style": style, "prompt": variation})
+        
+        return {
+            "success": True,
+            "original_prompt": original_prompt,
+            "variations": variations,
+            "total_variations": len(variations),
+        }
 
 # Global instance
 prompt_generator_agent = PromptGeneratorAgent()

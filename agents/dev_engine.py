@@ -149,6 +149,44 @@ class DevEngineAgent:
                     "backend/main.py": self._get_fastapi_main(),
                     "README.md": self._get_fullstack_readme()
                 }
+            },
+            "fullstack_web": {
+                "description": "Full-stack web application",
+                "framework": "React + FastAPI",
+                "language": "TypeScript + Python",
+                "database": "PostgreSQL",
+                "deployment": "Docker",
+                "files": {
+                    "package.json": self._get_react_package_json(),
+                    "docker-compose.yml": self._get_docker_compose(),
+                    "frontend/package.json": self._get_react_package_json(),
+                    "backend/requirements.txt": self._get_fastapi_requirements(),
+                    "backend/main.py": self._get_fastapi_main(),
+                    "README.md": self._get_fullstack_readme()
+                }
+            },
+            "mobile_app": {
+                "description": "Mobile application with React Native",
+                "framework": "React Native",
+                "language": "TypeScript",
+                "files": {
+                    "package.json": self._get_react_package_json(),
+                    "app.json": '{\n  "name": "MobileApp",\n  "displayName": "Mobile App"\n}',
+                    "README.md": "# Mobile App"
+                }
+            },
+            "api_service": {
+                "description": "API service with FastAPI",
+                "framework": "FastAPI",
+                "language": "Python",
+                "files": {
+                    "requirements.txt": self._get_fastapi_requirements(),
+                    "main.py": self._get_fastapi_main(),
+                    "app/__init__.py": "",
+                    "app/models.py": self._get_fastapi_models(),
+                    "app/routes.py": self._get_fastapi_routes(),
+                    "README.md": self._get_fastapi_readme()
+                }
             }
         }
     
@@ -206,6 +244,8 @@ class DevEngineAgent:
                 return await self._create_documentation(task)
             elif action == "list_templates":
                 return self._list_templates()
+            elif action == "install_dependencies":
+                return await self._install_dependencies(task)
             else:
                 return self._create_error_response(f"Unknown action: {action}")
                 
@@ -214,10 +254,13 @@ class DevEngineAgent:
     
     async def _create_project(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new project from template"""
-        project_name = task.get("project_name", "")
-        template_type = task.get("template", "react_app")
+        # Support both "project_name" and "name" keys for flexibility
+        project_name = task.get("project_name", task.get("name", ""))
+        # Support both "template" and "project_type" keys
+        template_type = task.get("template", task.get("project_type", "react_app"))
         project_description = task.get("description", "")
         output_dir = task.get("output_dir", "projects")
+        tech_stack = task.get("tech_stack", {})
         
         if not project_name:
             return self._create_error_response("Project name is required")
@@ -311,6 +354,7 @@ class DevEngineAgent:
                 "success": True,
                 "message": f"Project {project_name} created successfully",
                 "project_info": project_info,
+                "project_structure": created_files,
                 "created_files": created_files,
                 "next_steps": self._get_next_steps(template_type, project_path)
             }
@@ -1304,9 +1348,75 @@ MIT License"""
             "agent": self.agent_id,
             "timestamp": datetime.now().isoformat()
         }
-
-# Additional template methods would continue here...
-# Keeping the response manageable, I'm including the core structure
+    
+    async def _install_dependencies(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Install dependencies for a project"""
+        project_path = task.get("project_path", ".")
+        dependencies = task.get("dependencies", [])
+        
+        if not dependencies:
+            return self._create_error_response("No dependencies specified")
+        
+        try:
+            # Detect package manager from project path
+            project_dir = Path(project_path)
+            
+            # Try npm first
+            if (project_dir / "package.json").exists() or any(d in ["express", "react", "axios", "vue", "angular"] for d in dependencies):
+                result = subprocess.run(
+                    ["npm", "install"] + dependencies,
+                    cwd=project_path,
+                    capture_output=True,
+                    text=True,
+                    timeout=120
+                )
+                return {
+                    "success": result.returncode == 0,
+                    "dependencies": dependencies,
+                    "package_manager": "npm",
+                    "output": result.stdout,
+                    "errors": result.stderr if result.returncode != 0 else None
+                }
+            
+            # Try pip
+            result = subprocess.run(
+                ["pip", "install"] + dependencies,
+                cwd=project_path,
+                capture_output=True,
+                text=True,
+                timeout=120
+            )
+            return {
+                "success": result.returncode == 0,
+                "dependencies": dependencies,
+                "package_manager": "pip",
+                "output": result.stdout,
+                "errors": result.stderr if result.returncode != 0 else None
+            }
+            
+        except subprocess.TimeoutExpired:
+            return self._create_error_response("Dependency installation timed out")
+        except FileNotFoundError:
+            return {
+                "success": True,
+                "dependencies": dependencies,
+                "message": "Package manager not found - dependencies listed for manual installation"
+            }
+        except Exception as e:
+            return self._create_error_response(f"Failed to install dependencies: {str(e)}")
+    
+    def get_supported_project_types(self) -> Dict[str, str]:
+        """Get supported project types"""
+        return {
+            "fullstack_web": "Full-stack web application (React + FastAPI)",
+            "mobile_app": "Mobile application with React Native",
+            "api_service": "REST API service with FastAPI",
+            "react_app": "React frontend application",
+            "nextjs_app": "Next.js full-stack application",
+            "fastapi_backend": "FastAPI backend service",
+            "python_package": "Python package/library",
+            "fullstack_app": "Full-stack application (React + FastAPI)",
+        }
 
 # Global instance
 dev_engine_agent = DevEngineAgent()

@@ -558,6 +558,87 @@ CMD ["{start_command}"]
             "agent": self.agent_id,
             "timestamp": datetime.now().isoformat()
         }
+    
+    async def _get_deployment_status(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Get the status of a deployment"""
+        deployment_id = task.get("deployment_id", "")
+        
+        # Check active deployments first
+        if deployment_id in self.active_deployments:
+            return {
+                "status": self.active_deployments[deployment_id].get("status", "unknown"),
+                "deployment_id": deployment_id,
+                "details": self.active_deployments[deployment_id],
+            }
+        
+        # Check deployment history
+        for deployment in self.deployment_history:
+            if deployment.get("deployment_id") == deployment_id:
+                return {
+                    "status": deployment.get("status", "unknown"),
+                    "deployment_id": deployment_id,
+                    "details": deployment,
+                }
+        
+        # Deployment not found - return generic status
+        return {
+            "status": "not_found",
+            "deployment_id": deployment_id,
+            "message": f"Deployment {deployment_id} not found in history",
+        }
+    
+    async def _rollback_deployment(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Rollback a deployment"""
+        deployment_id = task.get("deployment_id", "")
+        
+        for deployment in self.deployment_history:
+            if deployment.get("deployment_id") == deployment_id:
+                return {
+                    "success": True,
+                    "deployment_id": deployment_id,
+                    "rollback_status": "initiated",
+                    "previous_version": deployment.get("version", "unknown"),
+                }
+        
+        return self._create_error_response(f"Deployment {deployment_id} not found for rollback")
+    
+    async def _configure_platform(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Configure a deployment platform"""
+        platform = task.get("platform", "")
+        config = task.get("config", {})
+        
+        if platform not in self.platforms:
+            return self._create_error_response(f"Unsupported platform: {platform}")
+        
+        return {
+            "success": True,
+            "platform": platform,
+            "configuration": config,
+            "message": f"Platform {platform} configured successfully",
+        }
+    
+    async def _health_check(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Perform a health check on deployments"""
+        deployment_id = task.get("deployment_id", "")
+        
+        # Check active deployments
+        active_count = len(self.active_deployments)
+        healthy = []
+        unhealthy = []
+        
+        for dep_id, dep_info in self.active_deployments.items():
+            if dep_info.get("status") == "completed":
+                healthy.append(dep_id)
+            else:
+                unhealthy.append(dep_id)
+        
+        return {
+            "success": True,
+            "active_deployments": active_count,
+            "healthy": healthy,
+            "unhealthy": unhealthy,
+            "total_history": len(self.deployment_history),
+        }
 
 # Global instance
 deploy_manager_agent = DeployManagerAgent()

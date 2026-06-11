@@ -74,7 +74,7 @@ class CyberShellAgent:
             
             # System info
             "ps", "top", "htop", "free", "df", "du", "uname", "whoami",
-            "id", "groups", "uptime", "date", "hostname",
+            "id", "groups", "uptime", "date", "hostname", "echo",
             
             # Network
             "ping", "curl", "wget", "nc", "netstat", "ss", "lsof",
@@ -98,13 +98,13 @@ class CyberShellAgent:
         try:
             task_type = task.get("action", "execute")
             
-            if task_type == "execute":
+            if task_type in ("execute", "execute_command"):
                 return await self._execute_command(task)
             elif task_type == "monitor_system":
                 return await self._monitor_system(task)
             elif task_type == "manage_processes":
                 return await self._manage_processes(task)
-            elif task_type == "file_operations":
+            elif task_type in ("file_operations", "list_files", "read_file", "write_file"):
                 return await self._file_operations(task)
             elif task_type == "automation_script":
                 return await self._run_automation_script(task)
@@ -140,6 +140,7 @@ class CyberShellAgent:
             work_dir = task.get("working_dir", self.working_dir)
             
             # Execute command
+            timeout_seconds = task.get("timeout", 300)  # 5 minutes default
             process = subprocess.Popen(
                 args,
                 stdout=subprocess.PIPE,
@@ -147,7 +148,6 @@ class CyberShellAgent:
                 text=True,
                 cwd=work_dir,
                 env=env,
-                timeout=task.get("timeout", 300)  # 5 minutes default
             )
             
             # Store active process
@@ -155,7 +155,7 @@ class CyberShellAgent:
             self.active_processes[process_id] = process
             
             # Wait for completion
-            stdout, stderr = process.communicate()
+            stdout, stderr = process.communicate(timeout=timeout_seconds)
             
             execution_time = time.time() - start_time
             return_code = process.returncode
@@ -169,6 +169,7 @@ class CyberShellAgent:
                 "success": return_code == 0,
                 "command": command,
                 "return_code": return_code,
+                "output": stdout,
                 "stdout": stdout,
                 "stderr": stderr,
                 "execution_time": round(execution_time, 2),
@@ -377,7 +378,17 @@ class CyberShellAgent:
     
     async def _file_operations(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Perform file operations"""
+        # Determine operation from either explicit "operation" key or from the action itself
         operation = task.get("operation", "")
+        action = task.get("action", "")
+        if not operation:
+            action_to_op = {
+                "list_files": "list",
+                "read_file": "read",
+                "write_file": "write",
+                "file_operations": "",
+            }
+            operation = action_to_op.get(action, "")
         
         try:
             if operation == "read":
@@ -385,7 +396,8 @@ class CyberShellAgent:
             elif operation == "write":
                 return await self._write_file(task.get("file_path"), task.get("content", ""))
             elif operation == "list":
-                return await self._list_directory(task.get("directory", "."))
+                directory = task.get("directory", task.get("path", "."))
+                return await self._list_directory(directory)
             elif operation == "create_dir":
                 return await self._create_directory(task.get("directory"))
             elif operation == "delete":
@@ -525,6 +537,89 @@ class CyberShellAgent:
             del self.active_processes[process_id]
         
         return len(completed)
+    
+    async def _list_directory(self, directory: str) -> Dict[str, Any]:
+        """List files and directories in a given path"""
+        try:
+            path = Path(directory)
+            if not path.exists():
+                return self._create_error_response(f"Directory not found: {directory}")
+            if not path.is_dir():
+                return self._create_error_response(f"Path is not a directory: {directory}")
+            
+            files = []
+            for entry in sorted(path.iterdir()):
+                files.append({
+                    "name": entry.name,
+                    "type": "directory" if entry.is_dir() else "file",
+                    "size": entry.stat().st_size if entry.is_file() else 0,
+                })
+            
+            return {
+                "success": True,
+                "path": str(path.resolve()),
+                "files": files,
+                "total_files": len([f for f in files if f["type"] == "file"]),
+                "total_directories": len([f for f in files if f["type"] == "directory"]),
+            }
+        except Exception as e:
+            return self._create_error_response(f"Failed to list directory: {str(e)}")
+    
+    async def _write_file(self, file_path: str, content: str) -> Dict[str, Any]:
+        """Write content to a file"""
+        try:
+            if not file_path:
+                return self._create_error_response("No file path provided")
+            
+            path = Path(file_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            
+            return {
+                "success": True,
+                "file_path": file_path,
+                "bytes_written": len(content),
+            }
+        except Exception as e:
+            return self._create_error_response(f"Failed to write file: {str(e)}")
+    
+    async def _create_directory(self, directory: str) -> Dict[str, Any]:
+        """Create a directory"""
+        try:
+            if not directory:
+                return self._create_error_response("No directory path provided")
+            
+            path = Path(directory)
+            path.mkdir(parents=True, exist_ok=True)
+            
+            return {
+                "success": True,
+                "directory": str(path.resolve()),
+            }
+        except Exception as e:
+            return self._create_error_response(f"Failed to create directory: {str(e)}")
+    
+    async def _delete_file(self, file_path: str) -> Dict[str, Any]:
+        """Delete a file"""
+        try:
+            if not file_path:
+                return self._create_error_response("No file path provided")
+            
+            path = Path(file_path)
+            if not path.exists():
+                return self._create_error_response(f"File not found: {file_path}")
+            
+            path.unlink()
+            
+            return {
+                "success": True,
+                "file_path": file_path,
+                "message": "File deleted successfully",
+            }
+        except Exception as e:
+            return self._create_error_response(f"Failed to delete file: {str(e)}")
 
 # Global instance
 cybershell_agent = CyberShellAgent()
