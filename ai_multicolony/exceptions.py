@@ -15,13 +15,27 @@ Hierarchy::
     │   └── ColonyFullError
     ├── ToolError
     │   ├── ToolNotFoundError
-    │   └── ToolPermissionError
+    │   ├── ToolPermissionError
+    │   ├── ToolTimeoutError
+    │   ├── ToolRateLimitError
+    │   ├── ToolUnavailableError
+    │   └── ToolExecutionError
     ├── MemoryError
     │   └── MemoryCompactionError
     ├── MCPError
     │   └── MCPProtocolError
-    └── SecurityError
-        └── PermissionDeniedError
+    ├── SecurityError
+    │   ├── AuthenticationError
+    │   └── PermissionDeniedError
+    ├── EventBusError
+    ├── SandboxError
+    ├── ChannelError
+    ├── LLMError
+    │   ├── LLMRateLimitError
+    │   └── LLMTokensExceededError
+    ├── ContractLogicError
+    ├── NoSuchElementException
+    └── TimeoutException
 """
 
 from __future__ import annotations
@@ -230,3 +244,100 @@ class PermissionDeniedError(SecurityError):
         self.required_level = required_level
         self.current_level = current_level
         super().__init__(message, "PERMISSION_DENIED")
+
+
+# ── Event Bus Errors ─────────────────────────────────────────────────────────
+
+
+class EventBusError(MultiColonyError):
+    """Event bus publish / subscribe errors."""
+
+    def __init__(self, message: str = "", code: str = "EVENT_BUS_ERROR"):
+        super().__init__(message, code)
+
+
+# ── Sandbox Errors ───────────────────────────────────────────────────────────
+
+
+class SandboxError(MultiColonyError):
+    """Sandbox execution environment errors."""
+
+    def __init__(self, message: str = "", code: str = "SANDBOX_ERROR"):
+        super().__init__(message, code)
+
+
+# ── Tool Execution Errors ────────────────────────────────────────────────────
+
+
+class ToolExecutionError(ToolError):
+    """General tool execution failure."""
+
+    def __init__(self, tool: str = "", message: str = ""):
+        self.tool = tool
+        msg = message or f"Tool execution failed: {tool}"
+        super().__init__(msg, "TOOL_EXECUTION_ERROR")
+
+
+# ── Channel Errors ───────────────────────────────────────────────────────────
+
+
+class ChannelError(MultiColonyError):
+    """Communication channel errors (Telegram, WhatsApp, Discord, Slack)."""
+
+    def __init__(self, message: str = "", code: str = "CHANNEL_ERROR"):
+        super().__init__(message, code)
+
+
+# ── LLM Errors ───────────────────────────────────────────────────────────────
+
+
+class LLMError(MultiColonyError):
+    """LLM provider errors."""
+
+    def __init__(self, message: str = "", code: str = "LLM_ERROR"):
+        super().__init__(message, code)
+
+
+class LLMRateLimitError(LLMError):
+    """LLM provider rate limit exceeded."""
+
+    def __init__(self, provider: str = "", retry_after: float = 0):
+        self.provider = provider
+        self.retry_after = retry_after
+        msg = f"LLM rate limit exceeded for provider {provider}"
+        super().__init__(msg, "LLM_RATE_LIMIT")
+
+
+class LLMTokensExceededError(LLMError):
+    """LLM token limit exceeded for request."""
+
+    def __init__(self, model: str = "", requested: int = 0, limit: int = 0):
+        self.model = model
+        self.requested = requested
+        self.limit = limit
+        msg = f"Token limit exceeded for model {model}: requested {requested}, limit {limit}"
+        super().__init__(msg, "LLM_TOKENS_EXCEEDED")
+
+
+# ── Legacy Compatibility Errors ──────────────────────────────────────────────
+
+
+class ContractLogicError(MultiColonyError):
+    """Smart contract logic execution failure (legacy compatibility)."""
+
+    def __init__(self, message: str = "Contract logic error", code: str = "CONTRACT_LOGIC_ERROR"):
+        super().__init__(message, code)
+
+
+class NoSuchElementException(MultiColonyError):
+    """Requested element does not exist (legacy compatibility)."""
+
+    def __init__(self, message: str = "No such element", code: str = "NO_SUCH_ELEMENT"):
+        super().__init__(message, code)
+
+
+class TimeoutException(MultiColonyError):
+    """Operation timed out (legacy compatibility)."""
+
+    def __init__(self, message: str = "Operation timed out", code: str = "TIMEOUT"):
+        super().__init__(message, code)

@@ -6,9 +6,11 @@ All settings can be overridden via MULTICOLONY_ prefixed env vars.
 
 from __future__ import annotations
 
+import os
+import warnings
 from typing import Any, Dict, List, Optional
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -68,11 +70,11 @@ class APISettings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     workers: int = 4
-    cors_origins: List[str] = Field(default_factory=lambda: ["*"])
-    cors_methods: List[str] = Field(default_factory=lambda: ["*"])
-    cors_headers: List[str] = Field(default_factory=lambda: ["*"])
+    cors_origins: List[str] = Field(default_factory=list)
+    cors_methods: List[str] = Field(default_factory=list)
+    cors_headers: List[str] = Field(default_factory=list)
     api_key_enabled: bool = True
-    jwt_secret: str = "change-me-in-production"
+    jwt_secret: str = ""
     jwt_expiry_hours: int = 24
     rate_limit_per_minute: int = 60
     rate_limit_burst: int = 10
@@ -81,6 +83,46 @@ class APISettings(BaseSettings):
     ws_max_connections: int = 100
 
     model_config = {"env_prefix": "MULTICOLONY_API_"}
+
+    @model_validator(mode="after")
+    def _validate_security_settings(self) -> "APISettings":
+        """Validate JWT secret and CORS wildcard settings."""
+        dev_mode = os.environ.get("MULTICOLONY_DEV_MODE", "").lower() in ("1", "true", "yes")
+
+        # JWT secret validation
+        if not dev_mode:
+            if not self.jwt_secret:
+                raise ValueError(
+                    "MULTICOLONY_API_JWT_SECRET must be set in production. "
+                    "Set MULTICOLONY_DEV_MODE=true for local development."
+                )
+            if self.jwt_secret == "change-me-in-production":
+                raise ValueError(
+                    "MULTICOLONY_API_JWT_SECRET must not be the default value 'change-me-in-production' "
+                    "in production. Set MULTICOLONY_DEV_MODE=true for local development."
+                )
+
+        # CORS wildcard warning
+        if "*" in self.cors_origins:
+            warnings.warn(
+                "CORS is configured to allow ALL origins ('*'). This is insecure for production.",
+                UserWarning,
+                stacklevel=2,
+            )
+        if "*" in self.cors_methods:
+            warnings.warn(
+                "CORS is configured to allow ALL methods ('*'). This is insecure for production.",
+                UserWarning,
+                stacklevel=2,
+            )
+        if "*" in self.cors_headers:
+            warnings.warn(
+                "CORS is configured to allow ALL headers ('*'). This is insecure for production.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+        return self
 
 
 class ChannelSettings(BaseSettings):

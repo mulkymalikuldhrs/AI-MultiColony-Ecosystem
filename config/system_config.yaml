@@ -327,7 +327,7 @@ security:
       burst_limit: 20
     
     authentication:
-      enabled: false  # Disabled for development
+      enabled: true  # Enabled by default; set to false only for local development
       type: "jwt"
       token_expiry: 3600
     
