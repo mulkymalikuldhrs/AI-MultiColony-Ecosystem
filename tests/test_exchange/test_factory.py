@@ -1,4 +1,12 @@
-"""Comprehensive tests for the Exchange Factory.
+from __future__ import annotations
+import pytest
+pytest.importorskip("ccxt")
+
+import pytest
+pytest.importorskip("ccxt")
+
+
+"""
 
 Tests cover:
 - Exchange creation for all supported exchanges
@@ -11,9 +19,7 @@ Tests cover:
 - Custom options and overrides
 """
 
-from __future__ import annotations
 
-import pytest
 
 from quant_nanggroe.exchange.factory import (
     ExchangeCapabilities,

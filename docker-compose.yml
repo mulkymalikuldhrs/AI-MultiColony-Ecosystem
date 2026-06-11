@@ -1,5 +1,5 @@
 # ╔══════════════════════════════════════════════════════════════════════╗
-# ║      Quant-Nanggroe-AI  —  Full Stack Docker Compose               ║
+# ║  AI-MultiColony-Ecosystem  —  Full Stack Docker Compose             ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 version: "3.9"
@@ -10,7 +10,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: qna-api
+    container_name: amce-api
     restart: unless-stopped
     ports:
       - "8000:8000"
@@ -19,16 +19,17 @@ services:
         required: false
     environment:
       - APP_ENV=${APP_ENV:-production}
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-qna}:${POSTGRES_PASSWORD:-qna_dev_password}@postgres:5432/${POSTGRES_DB:-quant_nanggroe}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-amce}:${POSTGRES_PASSWORD:-amce_dev_password}@postgres:5432/${POSTGRES_DB:-multicolony}
       - REDIS_URL=redis://redis:6379/0
-      - QUESTDB_URL=http://questdb:9000
+      - JWT_SECRET=${JWT_SECRET:-}
+      - MULTICOLONY_API_JWT_SECRET=${JWT_SECRET:-}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - qna-network
+      - amce-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -39,29 +40,30 @@ services:
         limits:
           memory: 512m
 
-  # ── Trading Worker ──────────────────────────────────────────────────
+  # ── Background Worker ──────────────────────────────────────────────────
   worker:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: qna-worker
+    container_name: amce-worker
     restart: unless-stopped
-    command: ["python", "-m", "quant_nanggroe_ai.worker"]
+    command: ["python", "-m", "ai_multicolony.worker"]
     env_file:
       - path: .env
         required: false
     environment:
       - APP_ENV=${APP_ENV:-production}
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-qna}:${POSTGRES_PASSWORD:-qna_dev_password}@postgres:5432/${POSTGRES_DB:-quant_nanggroe}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-amce}:${POSTGRES_PASSWORD:-amce_dev_password}@postgres:5432/${POSTGRES_DB:-multicolony}
       - REDIS_URL=redis://redis:6379/0
-      - QUESTDB_URL=http://questdb:9000
+      - JWT_SECRET=${JWT_SECRET:-}
+      - MULTICOLONY_API_JWT_SECRET=${JWT_SECRET:-}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - qna-network
+      - amce-network
     deploy:
       resources:
         limits:
@@ -70,20 +72,20 @@ services:
   # ── PostgreSQL ──────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: qna-postgres
+    container_name: amce-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-quant_nanggroe}
-      POSTGRES_USER: ${POSTGRES_USER:-qna}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qna_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-multicolony}
+      POSTGRES_USER: ${POSTGRES_USER:-amce}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-amce_dev_password}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - qna-network
+      - amce-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-qna}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-amce}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -91,14 +93,14 @@ services:
   # ── Redis ───────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: qna-redis
+    container_name: amce-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
-      - qna-network
+      - amce-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -108,7 +110,7 @@ services:
   # ── QuestDB (Time-series) ───────────────────────────────────────────
   questdb:
     image: questdb/questdb:latest
-    container_name: qna-questdb
+    container_name: amce-questdb
     restart: unless-stopped
     ports:
       - "9000:9000"   # Web console
@@ -119,7 +121,7 @@ services:
     volumes:
       - questdb_data:/root/.questdb
     networks:
-      - qna-network
+      - amce-network
 
 volumes:
   postgres_data:
@@ -127,5 +129,5 @@ volumes:
   questdb_data:
 
 networks:
-  qna-network:
+  amce-network:
     driver: bridge

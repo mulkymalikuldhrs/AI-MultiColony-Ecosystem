@@ -12,7 +12,7 @@
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.2+-00D4AA?style=for-the-badge&logo=ai&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
 [![Binance](https://img.shields.io/badge/Binance-API-F0B90B?style=for-the-badge&logo=binance&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
 [![Multi-Agent](https://img.shields.io/badge/Multi-Agent-5_Layers-00D4AA?style=for-the-badge&logo=ai&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
-[![Version](https://img.shields.io/badge/Version-v15.3.0-005c2a?style=for-the-badge&logo=semanticrelease&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![Version](https://img.shields.io/badge/Version-v0.2.0-005c2a?style=for-the-badge&logo=semanticrelease&logoColor=white)](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
 
 <br/>
@@ -234,7 +234,7 @@ The final layer combines the normalized pressure vector with portfolio state and
 <!-- AUTO-PACKAGE-BADGES:START -->
 <!-- Auto-generated package badges -->
 
-![PyPI version](https://img.shields.io/pypi/v/quant-nanggroe-ai?style=flat-square&logo=pypi&color=green) ![PyPI downloads](https://img.shields.io/pypi/dm/quant-nanggroe-ai?style=flat-square&color=brightgreen) ![PyPI license](https://img.shields.io/pypi/l/quant-nanggroe-ai?style=flat-square) [![Deployed](https://img.shields.io/badge/deployed-0.2.0-blue?style=flat-square)](https://pypi.org/project/quant-nanggroe-ai)
+![PyPI version](https://img.shields.io/pypi/v/quant-nanggroe-ai?style=flat-square&logo=pypi&color=green) ![PyPI downloads](https://img.shields.io/pypi/dm/quant-nanggroe-ai?style=flat-square&color=brightgreen) ![PyPI license](https://img.shields.io/pypi/l/quant-nanggroe-ai?style=flat-square) [![Deployed](https://img.shields.io/badge/deployed-0.2.0-blue?style=flat-square)
 
 <!-- AUTO-PACKAGE-BADGES:END -->
 git clone https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI.git
@@ -455,6 +455,122 @@ This project is provided strictly for educational and research purposes. The aut
 ---
 
 
+
+---
+
+## AI-MultiColony Framework (`ai_multicolony/`)
+
+This repository contains the **ai_multicolony** framework — a colony-based autonomous agent operating system that provides the infrastructure layer for the broader AI-MultiColony-Ecosystem. It is distinct from the Quant-Nanggroe-AI trading layer and serves as the general-purpose multi-agent orchestration platform.
+
+### Architecture Overview
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                   API Layer (FastAPI + WebSocket)            │
+│         REST routes, schemas, auth, rate limiting            │
+├──────────────────────────────────────────────────────────────┤
+│                   Colony Layer                               │
+│   Colony Manager • Hands • A2A Communication • Scheduling    │
+├────────────┬────────────┬────────────┬───────────────────────┤
+│  Agents    │   Tools    │   Memory   │   MCP                 │
+│  Registry  │  Registry  │  Manager   │  Server/Client        │
+│  Lifecycle │  Shell/Code│  Paging    │  JSON-RPC             │
+│  Planner   │  Browser   │  Vector    │  Permissions          │
+│  Executor  │  Search    │  Knowledge │  Rate Limiting         │
+│  Coder     │  Docker    │  Condensers│  Transport (stdio/sse)│
+├────────────┴────────────┴────────────┴───────────────────────┤
+│                   Infrastructure                              │
+│  Config • Logging • Security • Audit • Exceptions • Worker   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Module Descriptions
+
+| Module | Path | Description |
+|--------|------|-------------|
+| **agents** | `ai_multicolony/agents/` | Agent types (Manus, Planner, Executor, Coder, Browser, Voice, Security, Researcher, Colony), registry, shared state |
+| **colony** | `ai_multicolony/colony/` | Colony management, Hands system (Security, Code, Research, Browser, Voice, Compute, Integration), A2A coordinator, task scheduler |
+| **api** | `ai_multicolony/api/` | FastAPI application with REST routes (agents, colonies, tasks, tools, memory, ecosystem, WebSocket), middleware (auth, rate limit, logging, error handling) |
+| **tools** | `ai_multicolony/tools/` | Built-in tool implementations: Shell, File, Browser, Search, Code, MCP, Docker, Voice, Memory, Channel |
+| **memory** | `ai_multicolony/memory/` | Multi-tier memory with paging, vector store, knowledge base, and 8 condenser types (summary, extraction, temporal, rollup, dedup, priority, sliding window, hierarchical) |
+| **mcp** | `ai_multicolony/mcp/` | Model Context Protocol server and client with JSON-RPC, SSE/stdio transport, permissions engine, rate limiting |
+| **types** | `ai_multicolony/types/` | All Pydantic v2 models: agent, colony, task, tool, memory, security, A2A, channel, event types |
+| **security** | `ai_multicolony/security/` | Security analyzer, audit trail, permission engine |
+| **channels** | `ai_multicolony/channels/` | Telegram, WhatsApp, Discord, Slack integrations |
+| **browser** | `ai_multicolony/browser/` | Browser automation with stealth patterns and human behavior simulation |
+| **harness** | `ai_multicolony/harness/` | Agent orchestration graph, skill registry, sandbox manager, harness memory |
+| **organism** | `ai_multicolony/organism/` | Self-evolution: sense engine, decision engine, solution factory, immune system, growth engine |
+| **finance** | `ai_multicolony/finance/` | Financial intelligence: risk guard, kill switch, market regime detector, pressure engine, autoswitcher |
+| **sources** | `ai_multicolony/sources/` | Intelligence sources: OSINT, economic, market data with source manager |
+| **integrations** | `ai_multicolony/integrations/` | External framework adapters: CrewAI, AutoGen, LangGraph |
+| **config** | `ai_multicolony/config/` | Pydantic-settings based configuration with env var support (`MULTICOLONY_*` prefix) |
+| **sandbox** | `ai_multicolony/sandbox/` | Docker and WASM sandbox implementations |
+
+### Relationship to the Ecosystem
+
+```
+┌─────────────────────────────────────────┐
+│         AI-MultiColony-Ecosystem         │
+│  ┌──────────────┐  ┌──────────────────┐ │
+│  │ ai_multicolony│  │ quant_nanggroe   │ │
+│  │ (framework)  │  │ (trading layer)  │ │
+│  │              │  │                  │ │
+│  │ Colony mgmt  │  │ 5-Layer Stack    │ │
+│  │ Agent infra  │  │ Risk Guardian    │ │
+│  │ MCP/Tools    │  │ Data Engine      │ │
+│  │ Memory       │  │ Strategy Engine  │ │
+│  └──────┬───────┘  └────────┬─────────┘ │
+│         └──────────┬────────┘            │
+│                    │                     │
+│         ┌──────────▼──────────┐          │
+│         │   Shared Infrastructure        │
+│         │   API, DB, Redis, Worker       │
+│         └─────────────────────┘          │
+└─────────────────────────────────────────┘
+```
+
+The `ai_multicolony` framework provides the general-purpose multi-agent infrastructure (colony management, tool execution, memory, MCP, security). The `quant_nanggroe` package layers trading-specific logic (5-layer execution stack, risk guardian, data engine) on top. Both share the same API server, database, and worker infrastructure.
+
+### Honest Capability Assessment
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Type definitions** | ✅ Real | Comprehensive Pydantic v2 models with validators |
+| **Agent base classes** | ✅ Real | BaseAgent with lifecycle, event bus, circuit breaker |
+| **Colony management** | ✅ Real | Colony, Hands, A2A coordinator, scheduler |
+| **MCP server/client** | ✅ Real | JSON-RPC, SSE transport, permissions |
+| **Memory system** | ⚠️ Partial | Models and managers defined; vector store needs ChromaDB backend |
+| **Tools** | ⚠️ Partial | Shell/File tools work; Browser/Search need external services |
+| **Channels** | ⚠️ Partial | Structured but need actual bot tokens and API keys |
+| **API routes** | ✅ Real | FastAPI routes with proper schemas |
+| **Security** | ⚠️ Partial | Audit trail works; permission engine is scaffolded |
+| **Organism/Self-evolution** | 🔄 Planned | Sense/Decision/Factory/Immune/Growth are architectural stubs |
+| **Finance layer** | 🔄 Planned | Models exist but need real market data connections |
+| **Dashboard** | ⚠️ Mock | Next.js UI with hardcoded mock data — see `USE_MOCK_DATA` flags |
+| **Integrations** | 🔄 Planned | Adapter stubs for CrewAI, AutoGen, LangGraph |
+| **Sandbox** | 🔄 Planned | Docker/WASM sandbox scaffolding exists |
+
+**Legend:** ✅ Real and functional | ⚠️ Partial — works but needs external dependencies | 🔄 Planned — architectural stub, not production-ready
+
+### Quick Start (ai_multicolony)
+
+```bash
+# Install the framework
+pip install -e .
+
+# Configure environment
+export MULTICOLONY_API_JWT_SECRET="your-secret-key-here"
+export MULTICOLONY_DEBUG=true  # Allows empty JWT secret for development
+
+# Start the API server
+amce serve --port 8000
+
+# Or use the CLI
+amce status
+amce run --help
+```
+
+---
 
 ## 🔗 Related Projects
 

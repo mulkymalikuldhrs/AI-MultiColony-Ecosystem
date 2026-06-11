@@ -6,7 +6,7 @@
 set -euo pipefail
 
 echo "╔══════════════════════════════════════════════════════════╗"
-echo "║   Quant-Nanggroe-AI — Container Starting               ║"
+echo "║   AI-MultiColony-Ecosystem — Container Starting        ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 
 # ── Run Alembic Migrations ──────────────────────────────────

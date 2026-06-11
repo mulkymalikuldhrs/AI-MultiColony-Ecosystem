@@ -1,3 +1,5 @@
+import pytest
+pytest.importorskip("ccxt")
 """Tests for Exchange REST Clients."""
 
 import pytest

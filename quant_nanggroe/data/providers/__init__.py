@@ -16,17 +16,29 @@ Provider priority order (lower = higher priority):
 35. SEC EDGAR (priority=35) — US public company filings and financials
 """
 
-from quant_nanggroe.data.providers.binance import BinanceProvider
-from quant_nanggroe.data.providers.coin_gecko import CoinGeckoProvider
+try:
+    from quant_nanggroe.data.providers.binance import BinanceProvider
+except ImportError:
+    BinanceProvider = None
+from quant_nanggroe.data.providers.coingecko import CoinGeckoProvider
 from quant_nanggroe.data.providers.yahoo import YahooFinanceProvider
 from quant_nanggroe.data.providers.twelvedata import TwelveDataProvider
-from quant_nanggroe.data.providers.finnhub import FinnhubProvider
+try:
+    from quant_nanggroe.data.providers.finnhub import FinnhubProvider
+except ImportError:
+    FinnhubProvider = None
 from quant_nanggroe.data.providers.alpha_vantage import AlphaVantageProvider
 from quant_nanggroe.data.providers.alpaca import AlpacaProvider
 from quant_nanggroe.data.providers.polygon import PolygonProvider
 from quant_nanggroe.data.providers.fred import FREDProvider
-from quant_nanggroe.data.providers.ecb import ECBProvider
-from quant_nanggroe.data.providers.world_bank import WorldBankProvider
+try:
+    from quant_nanggroe.data.providers.ecb import ECBProvider
+except ImportError:
+    ECBProvider = None
+try:
+    from quant_nanggroe.data.providers.world_bank import WorldBankProvider
+except ImportError:
+    WorldBankProvider = None
 from quant_nanggroe.data.providers.sec_edgar import SECEdgarProvider
 
 # Provider registry: maps name -> provider class

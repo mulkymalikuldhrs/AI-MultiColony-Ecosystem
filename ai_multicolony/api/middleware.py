@@ -6,11 +6,28 @@ Designed to work with FastAPI or any ASGI-compatible framework.
 from __future__ import annotations
 
 import logging
+import os
 import time
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Set
 
+# ── JWT support (optional dependency) ────────────────────────────────────────
+try:
+    import jwt as pyjwt  # PyJWT package
+
+    _JWT_AVAILABLE = True
+except ImportError:
+    pyjwt = None  # type: ignore[assignment]
+    _JWT_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
+
+# Warn at module load if PyJWT is missing
+if not _JWT_AVAILABLE:
+    logger.warning(
+        "PyJWT is not installed — JWT token validation will REJECT all tokens. "
+        "Install with: pip install PyJWT"
+    )
 
 
 # ── Authentication Middleware ──────────────────────────────────────────────────
@@ -31,11 +48,27 @@ class AuthMiddleware:
         Whether API key authentication is enabled.
     """
 
-    def __init__(self, jwt_secret: str = "change-me", api_key_enabled: bool = True):
+    def __init__(self, jwt_secret: str = "", api_key_enabled: bool = True):
+        # If no secret provided, try environment variable
+        if not jwt_secret:
+            jwt_secret = os.environ.get("JWT_SECRET", os.environ.get("MULTICOLONY_API_JWT_SECRET", ""))
+
         self.jwt_secret = jwt_secret
         self.api_key_enabled = api_key_enabled
         self._api_keys: Dict[str, Dict[str, str]] = {}  # key → {agent_id, role}
         self._revoked_tokens: Set[str] = set()
+
+        # Critical warnings for misconfiguration
+        if not self.jwt_secret:
+            logger.critical(
+                "JWT_SECRET is not set! All JWT token validation will REJECT tokens. "
+                "Set JWT_SECRET or MULTICOLONY_API_JWT_SECRET environment variable."
+            )
+        if not _JWT_AVAILABLE:
+            logger.critical(
+                "PyJWT library is not installed! JWT validation is disabled. "
+                "Install with: pip install PyJWT"
+            )
 
     def register_api_key(self, key: str, agent_id: str = "", role: str = "agent") -> None:
         """Register an API key.
@@ -64,20 +97,71 @@ class AuthMiddleware:
     def validate_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Validate a JWT Bearer token.
 
-        In production this would decode and verify the JWT signature.
-        Returns decoded claims or None.
+        Decodes and verifies the JWT signature using the configured secret.
+        Returns decoded claims dict on success, or None on any validation failure.
+
+        Failure reasons (logged at appropriate levels):
+        * Token is in the revocation list → None
+        * PyJWT not installed → None (CRITICAL logged at init)
+        * JWT_SECRET not configured → None (CRITICAL logged at init)
+        * Token expired → None (warning)
+        * Invalid signature → None (warning)
+        * Malformed token → None (warning)
         """
+        # Check revocation first
         if token in self._revoked_tokens:
+            logger.warning("Rejected revoked token")
             return None
 
-        # Simplified validation: token must be non-empty and reasonably long
-        if not token or len(token) < 10:
+        # Basic format check — a JWT has exactly 3 base64url segments
+        if not token or token.count(".") != 2:
+            logger.warning("Rejected malformed token (expected 3 dot-separated segments)")
             return None
 
-        # Would decode JWT here:
-        # payload = jwt.decode(token, self.jwt_secret, algorithms=["HS256"])
-        # Check expiry, issuer, etc.
-        return {"sub": "agent", "role": "agent", "valid": True}
+        # Reject all tokens if PyJWT is not available
+        if not _JWT_AVAILABLE:
+            logger.error("Cannot validate JWT: PyJWT library not installed")
+            return None
+
+        # Reject all tokens if secret is not configured
+        if not self.jwt_secret:
+            logger.error("Cannot validate JWT: JWT_SECRET not configured")
+            return None
+
+        # ── Real JWT decode & verify ──────────────────────────────────────
+        try:
+            payload: Dict[str, Any] = pyjwt.decode(
+                token,
+                self.jwt_secret,
+                algorithms=["HS256"],
+                options={
+                    "require": ["exp", "sub"],
+                    "verify_exp": True,
+                    "verify_signature": True,
+                },
+            )
+            # Ensure role claim exists (default to "agent")
+            if "role" not in payload:
+                payload["role"] = "agent"
+
+            payload["valid"] = True
+            return payload
+
+        except pyjwt.ExpiredSignatureError:
+            logger.warning("Rejected expired JWT token")
+            return None
+        except pyjwt.InvalidSignatureError:
+            logger.warning("Rejected JWT token with invalid signature")
+            return None
+        except pyjwt.DecodeError as exc:
+            logger.warning("Rejected malformed JWT token: %s", exc)
+            return None
+        except pyjwt.MissingRequiredClaimError as exc:
+            logger.warning("Rejected JWT token missing required claim: %s", exc)
+            return None
+        except Exception as exc:
+            logger.error("Unexpected JWT validation error: %s", exc)
+            return None
 
     def revoke_token(self, token: str) -> None:
         """Revoke a Bearer token."""

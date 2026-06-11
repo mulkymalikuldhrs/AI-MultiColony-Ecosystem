@@ -1,4 +1,12 @@
-"""Comprehensive tests for Extended Order Types.
+from __future__ import annotations
+import pytest
+pytest.importorskip("ccxt")
+
+import pytest
+pytest.importorskip("ccxt")
+
+
+"""
 
 Tests cover:
 - TrailingStopOrder: trailing stop behavior for buy and sell
@@ -10,9 +18,7 @@ Tests cover:
 - Edge cases and validation
 """
 
-from __future__ import annotations
 
-import pytest
 
 from quant_nanggroe.exchange.order_types import (
     ExtendedOrderStatus,

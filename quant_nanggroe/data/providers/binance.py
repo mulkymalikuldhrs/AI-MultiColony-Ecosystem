@@ -13,7 +13,10 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-import ccxt.async_support as ccxt
+try:
+    import ccxt.async_support as ccxt
+except ImportError:
+    ccxt = None
 import httpx
 
 from quant_nanggroe.data.providers.base import DataProvider

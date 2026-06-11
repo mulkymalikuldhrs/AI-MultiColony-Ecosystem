@@ -230,3 +230,68 @@ class PermissionDeniedError(SecurityError):
         self.required_level = required_level
         self.current_level = current_level
         super().__init__(message, "PERMISSION_DENIED")
+
+
+class EventBusError(MultiColonyError):
+    """Event bus related errors (publish/subscribe failures)."""
+
+    def __init__(self, message: str = "Event bus error", code: str = "EVENT_BUS_ERROR"):
+        super().__init__(message, code)
+
+
+# ── LLM Errors ─────────────────────────────────────────────────────────────────
+
+
+class LLMError(MultiColonyError):
+    """LLM provider errors."""
+
+    def __init__(self, message: str = "LLM error", code: str = "LLM_ERROR"):
+        super().__init__(message, code)
+
+
+class LLMRateLimitError(LLMError):
+    """LLM rate limit exceeded."""
+
+    def __init__(self, message: str = "LLM rate limit exceeded", retry_after: float = 0):
+        self.retry_after = retry_after
+        super().__init__(message, "LLM_RATE_LIMIT")
+
+
+class LLMTokensExceededError(LLMError):
+    """LLM token limit exceeded."""
+
+    def __init__(self, message: str = "Token limit exceeded", tokens_requested: int = 0, tokens_limit: int = 0):
+        self.tokens_requested = tokens_requested
+        self.tokens_limit = tokens_limit
+        super().__init__(message, "LLM_TOKENS_EXCEEDED")
+
+
+# ── Channel Errors ─────────────────────────────────────────────────────────────
+
+
+class ChannelError(MultiColonyError):
+    """Communication channel errors."""
+
+    def __init__(self, message: str = "Channel error", code: str = "CHANNEL_ERROR"):
+        super().__init__(message, code)
+
+
+# ── Sandbox Errors ─────────────────────────────────────────────────────────────
+
+
+class SandboxError(MultiColonyError):
+    """Sandbox execution errors."""
+
+    def __init__(self, message: str = "Sandbox error", code: str = "SANDBOX_ERROR"):
+        super().__init__(message, code)
+
+
+# ── Tool Execution Errors ──────────────────────────────────────────────────────
+
+
+class ToolExecutionError(ToolError):
+    """Tool execution failed."""
+
+    def __init__(self, tool: str = "", message: str = "Tool execution failed"):
+        self.tool = tool
+        super().__init__(message, "TOOL_EXECUTION")

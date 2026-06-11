@@ -63,16 +63,34 @@ from quant_nanggroe.exchange.base import (
     MarketDataError,
     WebSocketCallback,
 )
-from quant_nanggroe.exchange.ccxt_broker import CCXTBroker
+try:
+    from quant_nanggroe.exchange.ccxt_broker import CCXTBroker
+except ImportError:
+    CCXTBroker = None
 from quant_nanggroe.exchange.paper_broker import PaperExchangeBroker
 from quant_nanggroe.exchange.manager import ExchangeManager
-from quant_nanggroe.exchange.alpaca_broker import AlpacaBroker
+try:
+    from quant_nanggroe.exchange.alpaca_broker import AlpacaBroker
+except ImportError:
+    AlpacaBroker = None
 
 # New broker modules (optional dependencies)
-from quant_nanggroe.exchange.polymarket_broker import PolymarketBroker, PolymarketCLOBClient
-from quant_nanggroe.exchange.mt5_broker import MT5Broker
-from quant_nanggroe.exchange.ibkr_broker import IBKRBroker
-from quant_nanggroe.exchange.quantdinger_factory import QuantDingerFactory
+try:
+    from quant_nanggroe.exchange.polymarket_broker import PolymarketBroker
+except ImportError:
+    PolymarketBroker = None, PolymarketCLOBClient
+try:
+    from quant_nanggroe.exchange.mt5_broker import MT5Broker
+except ImportError:
+    MT5Broker = None
+try:
+    from quant_nanggroe.exchange.ibkr_broker import IBKRBroker
+except ImportError:
+    IBKRBroker = None
+try:
+    from quant_nanggroe.exchange.quantdinger_factory import QuantDingerFactory
+except ImportError:
+    QuantDingerFactory = None
 
 # Solana/Jupiter V6 integration
 from quant_nanggroe.exchange.solana import (

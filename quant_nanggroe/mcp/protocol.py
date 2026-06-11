@@ -536,7 +536,7 @@ class HealthCheckResult(BaseModel):
         pattern=r"^(healthy|degraded|unhealthy)$",
         description="Health status",
     )
-    version: str = Field(default="0.1.0", description="Server version")
+    version: str = Field(default="0.2.0", description="Server version")
     uptime_seconds: float = Field(
         default=0.0, ge=0, description="Uptime in seconds"
     )

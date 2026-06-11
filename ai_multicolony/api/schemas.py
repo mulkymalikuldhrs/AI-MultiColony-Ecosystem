@@ -279,7 +279,7 @@ class TaskResultResponse(BaseModel):
 class HealthResponse(BaseModel):
     """GET /health – system health."""
     status: str = "healthy"
-    version: str = "0.1.0"
+    version: str = "0.2.0"
     uptime_seconds: float = 0.0
     agents: int = 0
     colonies: int = 0

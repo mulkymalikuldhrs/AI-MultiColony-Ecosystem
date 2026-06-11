@@ -148,7 +148,7 @@ class Settings(BaseSettings):
 
     # ── Core ──
     app_name: str = "ai-multicolony"
-    version: str = "0.1.0"
+    version: str = "0.2.0"
     debug: bool = False
     log_level: str = "INFO"
 

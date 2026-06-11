@@ -1,4 +1,18 @@
-// Mock data for when the Python backend is unavailable
+// ============================================================================
+// MOCK DATA — Replace with real API calls
+//
+// WARNING: All data in this file is hardcoded and does NOT reflect real
+// market conditions, portfolio values, or system state. Every export from
+// this file must be replaced with actual API calls to the Python backend
+// before production use.
+//
+// When USE_MOCK_DATA is false (production), components should import from
+// @/lib/api-client instead of this file.
+// ============================================================================
+
+// Global flag to control mock data usage across the dashboard.
+// Set to false when the Python backend is available.
+export const USE_MOCK_DATA: boolean = true;
 
 export const mockAgents = [
   { id: "research", name: "Research Agent", status: "active", emotion: "curious", action: "Scanning SEC filings for AAPL", lastDecision: "Buy signal on AAPL", icon: "🔍" },
@@ -234,4 +248,49 @@ export const mockDataProviders = [
   { name: "SEC EDGAR", status: "degraded", type: "Filings Data", latency: "850ms" },
   { name: "CoinGecko", status: "connected", type: "Crypto Data", latency: "95ms" },
   { name: "TwelveData", status: "disconnected", type: "Market Data", latency: "N/A" },
+];
+
+// ============================================================================
+// MOCK DATA — Additional mock exports referenced by dashboard pages.
+// These are NOT real data. Replace with API calls.
+// ============================================================================
+
+export const mockColonies = [
+  { id: "colony-1", name: "Alpha Colony", status: "active", agents: 5, health: 0.92, tasks: 12 },
+  { id: "colony-2", name: "Beta Colony", status: "active", agents: 3, health: 0.85, tasks: 8 },
+  { id: "colony-3", name: "Gamma Colony", status: "idle", agents: 2, health: 0.78, tasks: 3 },
+];
+
+export const mockChannels = [
+  { id: "telegram", name: "Telegram", type: "messaging", status: "connected", messages: 42 },
+  { id: "discord", name: "Discord", type: "messaging", status: "connected", messages: 18 },
+  { id: "slack", name: "Slack", type: "messaging", status: "disconnected", messages: 0 },
+  { id: "whatsapp", name: "WhatsApp", type: "messaging", status: "disconnected", messages: 0 },
+];
+
+export const mockMemoryEntries = [
+  { id: "mem-1", agent: "Research Agent", type: "fact", content: "AAPL Q4 earnings beat estimates by 12%", timestamp: "2m ago", tier: "working" },
+  { id: "mem-2", agent: "Risk Manager", type: "observation", content: "Portfolio VaR increased 0.3% due to NVDA position", timestamp: "5m ago", tier: "short-term" },
+  { id: "mem-3", agent: "Strategy Agent", type: "decision", content: "Switched to momentum+value hybrid strategy", timestamp: "12m ago", tier: "long-term" },
+  { id: "mem-4", agent: "Crypto Specialist", type: "fact", content: "BTC accumulation phase detected via on-chain analysis", timestamp: "18m ago", tier: "short-term" },
+];
+
+export const mockSecurityEvents = [
+  { id: "sec-1", type: "authentication", severity: "info", message: "Agent research authenticated via API key", timestamp: "1m ago" },
+  { id: "sec-2", type: "permission", severity: "warning", message: "Agent browser requested elevated shell access", timestamp: "5m ago" },
+  { id: "sec-3", type: "audit", severity: "info", message: "Colony alpha-1 health check completed", timestamp: "10m ago" },
+  { id: "sec-4", type: "authentication", severity: "error", message: "Invalid JWT token rejected (expired)", timestamp: "15m ago" },
+];
+
+export const mockTools = [
+  { id: "shell", name: "Shell Tool", category: "execution", status: "available", calls: 42 },
+  { id: "file", name: "File Tool", category: "io", status: "available", calls: 28 },
+  { id: "browser", name: "Browser Tool", category: "automation", status: "available", calls: 15 },
+  { id: "search", name: "Search Tool", category: "research", status: "available", calls: 33 },
+  { id: "code", name: "Code Tool", category: "execution", status: "available", calls: 21 },
+  { id: "docker", name: "Docker Tool", category: "sandbox", status: "offline", calls: 0 },
+  { id: "mcp", name: "MCP Tool", category: "protocol", status: "available", calls: 8 },
+  { id: "memory", name: "Memory Tool", category: "storage", status: "available", calls: 56 },
+  { id: "voice", name: "Voice Tool", category: "io", status: "offline", calls: 0 },
+  { id: "channel", name: "Channel Tool", category: "communication", status: "available", calls: 12 },
 ];

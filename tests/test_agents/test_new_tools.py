@@ -1,3 +1,9 @@
+from __future__ import annotations
+import pytest
+pytest.importorskip("ccxt")
+
+import pytest
+pytest.importorskip("ccxt")
 """Comprehensive Tests for New Agent Tools.
 
 Tests for Flow, Geopolitical, Intermarket, Screener, Competition,
@@ -6,7 +12,6 @@ Forecast, Emotional, and Skill tools.
 All tests use deterministic data — no real API calls.
 """
 
-from __future__ import annotations
 
 import json
 from datetime import datetime, timezone

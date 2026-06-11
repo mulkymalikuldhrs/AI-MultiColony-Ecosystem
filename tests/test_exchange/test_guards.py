@@ -1,4 +1,12 @@
-"""Comprehensive tests for the Trading Guards Pipeline.
+from __future__ import annotations
+import pytest
+pytest.importorskip("ccxt")
+
+import pytest
+pytest.importorskip("ccxt")
+
+
+"""
 
 Tests cover:
 - WhitelistGuard: whitelist and blocklist enforcement
@@ -9,12 +17,10 @@ Tests cover:
 - Edge cases and state management
 """
 
-from __future__ import annotations
 
 import time
 from typing import Dict, Any, Optional
 
-import pytest
 
 from quant_nanggroe.exchange.guards import (
     BaseGuard,
