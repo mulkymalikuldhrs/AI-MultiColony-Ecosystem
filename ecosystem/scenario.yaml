@@ -1,0 +1,10 @@
+name: Scenario 1
+biomes:
+  - name: Desert
+    resources:
+      water: 10
+      food: 20
+  - name: Forest
+    resources:
+      water: 50
+      food: 80
