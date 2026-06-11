@@ -3,8 +3,8 @@ import "./globals.css";
 import { AppShell } from "@/components/dashboard/app-shell";
 
 export const metadata: Metadata = {
-  title: "AI MultiColony Ecosystem - Dashboard",
-  description: "Autonomous Agent Operating System with Colony-Based Architecture",
+  title: "Quant Nanggroe AI — Trading Intelligence OS",
+  description: "Agentic Quantitative Trading System with Multi-Agent AI Architecture",
 };
 
 export default function RootLayout({

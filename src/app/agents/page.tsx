@@ -1,24 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Bot,
   Play,
   Search,
-  Plus,
   Activity,
-  Cpu,
-  HardDrive,
-  ChevronDown,
-  ArrowUpRight,
   RefreshCw,
-  Filter,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Zap,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -31,65 +28,72 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { StatCard, StatusBadge, SectionHeader } from "@/components/dashboard/shared";
-import { mockAgents, AGENT_TYPES } from "@/lib/mock-data";
+import { MetricCard, StatusBadge, SectionHeader, Skeleton } from "@/components/dashboard/shared";
+import { useAppStore } from "@/lib/store";
 
-const agentTypeColors: Record<string, string> = {
-  Browser: "cyan",
-  Coder: "purple",
-  Colony: "emerald",
-  Executor: "amber",
-  Manus: "cyan",
-  Planner: "purple",
-  Researcher: "emerald",
-  Security: "rose",
-  Voice: "purple",
-  Registry: "amber",
-};
-
-const agentTypeIcons: Record<string, string> = {
-  Browser: "🌐",
-  Coder: "💻",
-  Colony: "🏛️",
-  Executor: "⚡",
-  Manus: "🤖",
-  Planner: "📋",
-  Researcher: "🔍",
-  Security: "🛡️",
-  Voice: "🎤",
-  Registry: "📦",
-};
+const AGENT_TYPES = [
+  { name: "Researcher", icon: "🔍", color: "cyan" as const, desc: "Market research and data analysis" },
+  { name: "Trader", icon: "📈", color: "emerald" as const, desc: "Trade execution and management" },
+  { name: "Strategist", icon: "📋", color: "purple" as const, desc: "Strategy development and optimization" },
+  { name: "Risk", icon: "🛡️", color: "rose" as const, desc: "Risk assessment and management" },
+  { name: "Portfolio", icon: "💼", color: "sky" as const, desc: "Portfolio optimization and allocation" },
+  { name: "Execution", icon: "⚡", color: "amber" as const, desc: "Order execution and routing" },
+  { name: "Macro", icon: "🌍", color: "cyan" as const, desc: "Macroeconomic analysis" },
+  { name: "Crypto", icon: "₿", color: "amber" as const, desc: "Cryptocurrency markets" },
+  { name: "Forex", icon: "💱", color: "emerald" as const, desc: "Foreign exchange markets" },
+];
 
 export default function AgentsPage() {
+  const { agents, loadingAgents, errorAgents, fetchAgents, runAgent } = useAppStore();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterType, setFilterType] = useState<string>("all");
   const [runDialogOpen, setRunDialogOpen] = useState(false);
-  const [selectedAgentType, setSelectedAgentType] = useState("");
-  const [taskDescription, setTaskDescription] = useState("");
+  const [selectedAgent, setSelectedAgent] = useState("");
+  const [taskSymbol, setTaskSymbol] = useState("");
+  const [taskQuery, setTaskQuery] = useState("");
+  const [taskTimeframe, setTaskTimeframe] = useState("1d");
   const [isRunning, setIsRunning] = useState(false);
+  const [runResult, setRunResult] = useState<{
+    status: string;
+    decision_action: string;
+    risk_verdict: string;
+    strategy_signal: string;
+    agent_trace: Array<{ agent: string; content: string; confidence: number; success: boolean }>;
+  } | null>(null);
 
-  const filteredAgents = mockAgents.filter((agent) => {
+  useEffect(() => {
+    fetchAgents();
+  }, [fetchAgents]);
+
+  const filteredAgents = agents.filter((agent) => {
     const matchesSearch =
       agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      agent.type.toLowerCase().includes(searchQuery.toLowerCase());
+      agent.role.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === "all" || agent.status === filterStatus;
-    const matchesType = filterType === "all" || agent.type === filterType;
-    return matchesSearch && matchesStatus && matchesType;
+    return matchesSearch && matchesStatus;
   });
 
-  const activeCount = mockAgents.filter((a) => a.status === "active").length;
-  const idleCount = mockAgents.filter((a) => a.status === "idle").length;
-  const errorCount = mockAgents.filter((a) => a.status === "error").length;
+  const activeCount = agents.filter((a) => a.status === "active").length;
+  const idleCount = agents.filter((a) => a.status === "idle").length;
+  const errorCount = agents.filter((a) => a.status === "error").length;
 
   const handleRunAgent = async () => {
+    if (!taskSymbol) return;
     setIsRunning(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsRunning(false);
-    setRunDialogOpen(false);
-    setSelectedAgentType("");
-    setTaskDescription("");
+    setRunResult(null);
+    try {
+      const result = await runAgent({
+        symbol: taskSymbol,
+        query: taskQuery,
+        timeframe: taskTimeframe,
+      });
+      if (result) {
+        setRunResult(result as typeof runResult);
+      }
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -102,46 +106,63 @@ export default function AgentsPage() {
             Agent Management
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Deploy, monitor, and manage autonomous agents
+            Deploy, monitor, and manage AI trading agents
           </p>
         </div>
-        <Button variant="cyan" onClick={() => setRunDialogOpen(true)} className="gap-2">
-          <Play className="w-4 h-4" />
-          Run Agent
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => fetchAgents()} className="cursor-pointer">
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+          <Button variant="cyan" onClick={() => setRunDialogOpen(true)} className="gap-2 cursor-pointer">
+            <Play className="w-4 h-4" />
+            Run Agent
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
+        <MetricCard
           title="Total Agents"
-          value={mockAgents.length}
-          subtitle="Deployed across colonies"
+          value={agents.length}
+          subtitle="Registered in system"
           icon={<Bot className="w-4 h-4" />}
           color="purple"
+          loading={loadingAgents}
         />
-        <StatCard
+        <MetricCard
           title="Active"
           value={activeCount}
-          subtitle="Currently processing tasks"
+          subtitle="Currently processing"
           icon={<Activity className="w-4 h-4" />}
           color="emerald"
+          loading={loadingAgents}
         />
-        <StatCard
+        <MetricCard
           title="Idle"
           value={idleCount}
-          subtitle="Awaiting task assignment"
-          icon={<Cpu className="w-4 h-4" />}
+          subtitle="Awaiting tasks"
+          icon={<Clock className="w-4 h-4" />}
           color="amber"
+          loading={loadingAgents}
         />
-        <StatCard
+        <MetricCard
           title="Errors"
           value={errorCount}
           subtitle="Require attention"
-          icon={<HardDrive className="w-4 h-4" />}
+          icon={<AlertTriangle className="w-4 h-4" />}
           color="rose"
+          loading={loadingAgents}
         />
       </div>
+
+      {/* Error State */}
+      {errorAgents && (
+        <div className="p-3 rounded-lg border border-rose/30 bg-rose/5 text-sm text-rose flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4" />
+          {errorAgents}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
@@ -156,7 +177,6 @@ export default function AgentsPage() {
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-[140px]">
-            <Filter className="w-4 h-4 mr-2" />
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -167,22 +187,6 @@ export default function AgentsPage() {
             <SelectItem value="offline">Offline</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            {AGENT_TYPES.map((type) => (
-              <SelectItem key={type} value={type}>
-                {type}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button variant="ghost" size="icon">
-          <RefreshCw className="w-4 h-4" />
-        </Button>
       </div>
 
       {/* Agent Cards */}
@@ -193,61 +197,48 @@ export default function AgentsPage() {
         </TabsList>
 
         <TabsContent value="grid">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
-            {filteredAgents.map((agent) => {
-              const colorName = agentTypeColors[agent.type] || "cyan";
-              const borderColor = {
-                cyan: "border-cyan/20 hover:border-cyan/40",
-                purple: "border-purple/20 hover:border-purple/40",
-                emerald: "border-emerald/20 hover:border-emerald/40",
-                amber: "border-amber/20 hover:border-amber/40",
-                rose: "border-rose/20 hover:border-rose/40",
-              }[colorName] || "border-cyan/20 hover:border-cyan/40";
-
-              return (
-                <div key={agent.id} className={`glass-card p-4 ${borderColor} transition-all`}>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{agentTypeIcons[agent.type] || "🤖"}</span>
-                      <div>
-                        <h3 className="text-sm font-semibold text-foreground">{agent.name}</h3>
-                        <p className="text-xs text-muted-foreground">{agent.type}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+            {loadingAgents
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="glass-card p-4 space-y-3">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-32" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                ))
+              : filteredAgents.map((agent) => {
+                  const typeInfo = AGENT_TYPES.find((t) =>
+                    agent.name.toLowerCase().includes(t.name.toLowerCase())
+                  ) || AGENT_TYPES[0];
+                  return (
+                    <div
+                      key={agent.name}
+                      className="glass-card p-4 hover:border-primary/30 transition-all"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{typeInfo.icon}</span>
+                          <div>
+                            <h3 className="text-sm font-semibold text-foreground">
+                              {agent.name}
+                            </h3>
+                            <p className="text-xs text-muted-foreground">{agent.role}</p>
+                          </div>
+                        </div>
+                        <StatusBadge status={agent.status} />
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-3">{typeInfo.desc}</p>
+                      <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                        <Badge
+                          variant={typeInfo.color as "cyan" | "purple" | "emerald" | "amber" | "rose"}
+                          className="text-[10px]"
+                        >
+                          {agent.registered ? "Registered" : "Unregistered"}
+                        </Badge>
                       </div>
                     </div>
-                    <StatusBadge status={agent.status} />
-                  </div>
-
-                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{agent.description}</p>
-
-                  <div className="space-y-2">
-                    <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">CPU</span>
-                        <span className="text-foreground">{agent.cpu}%</span>
-                      </div>
-                      <Progress value={agent.cpu} indicatorClassName={agent.cpu > 70 ? "bg-amber" : "bg-cyan"} />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">Memory</span>
-                        <span className="text-foreground">{agent.memory}%</span>
-                      </div>
-                      <Progress value={agent.memory} indicatorClassName={agent.memory > 70 ? "bg-amber" : "bg-purple"} />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span>{agent.tasksCompleted} done</span>
-                      <span>{agent.tasksRunning} running</span>
-                    </div>
-                    <Badge variant={colorName as "cyan" | "purple" | "emerald" | "amber" | "rose"} className="text-[10px]">
-                      {agent.colony}
-                    </Badge>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
           </div>
         </TabsContent>
 
@@ -255,113 +246,160 @@ export default function AgentsPage() {
           <div className="mt-4 space-y-2">
             {filteredAgents.map((agent) => (
               <div
-                key={agent.id}
+                key={agent.name}
                 className="glass-card p-3 flex items-center gap-4 hover:border-primary/30 transition-all"
               >
-                <span className="text-lg">{agentTypeIcons[agent.type] || "🤖"}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-foreground">{agent.name}</span>
-                    <Badge variant="outline" className="text-[10px]">{agent.type}</Badge>
+                    <Badge variant="outline" className="text-[10px]">
+                      {agent.role}
+                    </Badge>
                     <StatusBadge status={agent.status} />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{agent.description}</p>
                 </div>
-                <div className="hidden sm:flex items-center gap-6 text-xs text-muted-foreground">
-                  <div className="text-center">
-                    <div className="text-foreground font-medium">{agent.cpu}%</div>
-                    <div>CPU</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-foreground font-medium">{agent.memory}%</div>
-                    <div>MEM</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-foreground font-medium">{agent.tasksRunning}</div>
-                    <div>Active</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-foreground font-medium">{agent.tasksCompleted}</div>
-                    <div>Done</div>
-                  </div>
-                </div>
-                <Badge variant="outline" className="text-[10px] hidden md:inline-flex">{agent.colony}</Badge>
               </div>
             ))}
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* Agent Type Overview */}
+      {/* Agent Types Overview */}
       <div>
-        <SectionHeader title="Agent Types" description="Available agent types in the ecosystem" />
+        <SectionHeader
+          title="Agent Types"
+          description="9 specialized trading agents"
+        />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-4">
-          {AGENT_TYPES.map((type) => {
-            const count = mockAgents.filter((a) => a.type === type).length;
-            const colorName = agentTypeColors[type] || "cyan";
-            return (
-              <div
-                key={type}
-                className="glass-card p-3 text-center hover:border-primary/30 transition-all cursor-pointer"
-              >
-                <span className="text-2xl">{agentTypeIcons[type]}</span>
-                <p className="text-sm font-medium text-foreground mt-1">{type}</p>
-                <p className="text-xs text-muted-foreground">{count} deployed</p>
-                <Badge
-                  variant={colorName as "cyan" | "purple" | "emerald" | "amber" | "rose"}
-                  className="mt-2 text-[10px]"
-                >
-                  {count > 0 ? "Active" : "Available"}
-                </Badge>
-              </div>
-            );
-          })}
+          {AGENT_TYPES.map((type) => (
+            <div
+              key={type.name}
+              className="glass-card p-3 text-center hover:border-primary/30 transition-all cursor-pointer"
+            >
+              <span className="text-2xl">{type.icon}</span>
+              <p className="text-sm font-medium text-foreground mt-1">{type.name}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{type.desc}</p>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Run Agent Dialog */}
       <Dialog open={runDialogOpen} onOpenChange={setRunDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Run Agent Task</DialogTitle>
+            <DialogTitle>Run Agent Pipeline</DialogTitle>
             <DialogDescription>
-              Select an agent type and describe the task you want it to execute.
+              Execute the full AI agent pipeline for a symbol. The system will
+              run research, strategy, risk, and execution agents.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-foreground mb-1.5 block">Agent Type</label>
-              <Select value={selectedAgentType} onValueChange={setSelectedAgentType}>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">
+                Symbol *
+              </label>
+              <Input
+                placeholder="e.g., AAPL, BTC-USD, EURUSD"
+                value={taskSymbol}
+                onChange={(e) => setTaskSymbol(e.target.value.toUpperCase())}
+                className="font-mono"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">
+                Query (Optional)
+              </label>
+              <Textarea
+                placeholder="Describe what you want the agents to analyze..."
+                value={taskQuery}
+                onChange={(e) => setTaskQuery(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">
+                Timeframe
+              </label>
+              <Select value={taskTimeframe} onValueChange={setTaskTimeframe}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select agent type" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {AGENT_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {agentTypeIcons[type]} {type}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="1m">1 Minute</SelectItem>
+                  <SelectItem value="5m">5 Minutes</SelectItem>
+                  <SelectItem value="15m">15 Minutes</SelectItem>
+                  <SelectItem value="1h">1 Hour</SelectItem>
+                  <SelectItem value="4h">4 Hours</SelectItem>
+                  <SelectItem value="1d">1 Day</SelectItem>
+                  <SelectItem value="1w">1 Week</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <label className="text-sm font-medium text-foreground mb-1.5 block">Task Description</label>
-              <Textarea
-                placeholder="Describe the task for the agent to execute..."
-                value={taskDescription}
-                onChange={(e) => setTaskDescription(e.target.value)}
-                rows={4}
-              />
-            </div>
+
+            {/* Run Result Display */}
+            {runResult && (
+              <div className="p-3 rounded-lg bg-secondary/20 border border-border/30 space-y-2">
+                <div className="flex items-center gap-2">
+                  {runResult.status === "completed" ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-amber" />
+                  )}
+                  <span className="text-sm font-medium text-foreground">
+                    Pipeline {runResult.status}
+                  </span>
+                </div>
+                {runResult.decision_action && (
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Decision: </span>
+                    <span className="text-foreground font-medium">
+                      {runResult.decision_action}
+                    </span>
+                  </div>
+                )}
+                {runResult.risk_verdict && (
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Risk: </span>
+                    <span className="text-foreground">{runResult.risk_verdict}</span>
+                  </div>
+                )}
+                {runResult.agent_trace && runResult.agent_trace.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs text-muted-foreground font-medium">Agent Trace:</p>
+                    {runResult.agent_trace.map((trace, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 text-xs p-1.5 rounded bg-secondary/20"
+                      >
+                        <Zap className="w-3 h-3 text-cyan" />
+                        <span className="text-foreground font-medium">{trace.agent}</span>
+                        <span className="text-muted-foreground truncate flex-1">
+                          {trace.content.slice(0, 60)}
+                        </span>
+                        <span
+                          className={
+                            trace.confidence > 0.7 ? "text-emerald" : "text-amber"
+                          }
+                        >
+                          {(trace.confidence * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setRunDialogOpen(false)}>
-              Cancel
+            <Button variant="ghost" onClick={() => setRunDialogOpen(false)} className="cursor-pointer">
+              Close
             </Button>
             <Button
               variant="cyan"
               onClick={handleRunAgent}
-              disabled={!selectedAgentType || !taskDescription || isRunning}
+              disabled={!taskSymbol || isRunning}
+              className="cursor-pointer"
             >
               {isRunning ? (
                 <>
@@ -371,7 +409,7 @@ export default function AgentsPage() {
               ) : (
                 <>
                   <Play className="w-4 h-4" />
-                  Run Agent
+                  Run Pipeline
                 </>
               )}
             </Button>

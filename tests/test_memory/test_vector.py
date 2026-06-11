@@ -41,8 +41,26 @@ from quant_nanggroe.memory.vector import (
 
 @pytest.fixture
 def vector_store():
-    """Create a fresh VectorStore with in-memory fallback."""
-    return VectorStore()
+    """Create a fresh VectorStore with in-memory fallback.
+
+    Resets ChromaDB shared state to ensure test isolation.
+    ChromaDB's EphemeralClient is a singleton, so data persists
+    across VectorStore instances within the same process.
+    """
+    # Reset ChromaDB shared state to prevent data leaking between tests
+    try:
+        import chromadb
+        client = chromadb.Client()
+        for c in client.list_collections():
+            client.delete_collection(c.name)
+    except ImportError:
+        pass
+
+    vs = VectorStore()
+    # Also clear fallback store explicitly
+    for col in CollectionName:
+        vs._fallback_store[col.value] = []
+    return vs
 
 
 @pytest.fixture
@@ -52,11 +70,24 @@ def vector_store_with_dir(tmp_path):
 
 
 @pytest.fixture
-def initialized_store(vector_store):
-    """Return an already-initialized VectorStore."""
+def initialized_store():
+    """Return a fresh already-initialized VectorStore."""
     import asyncio
-    asyncio.get_event_loop().run_until_complete(vector_store.initialize())
-    return vector_store
+
+    # Reset ChromaDB shared state
+    try:
+        import chromadb
+        client = chromadb.Client()
+        for c in client.list_collections():
+            client.delete_collection(c.name)
+    except ImportError:
+        pass
+
+    vs = VectorStore()
+    for col in CollectionName:
+        vs._fallback_store[col.value] = []
+    asyncio.get_event_loop().run_until_complete(vs.initialize())
+    return vs
 
 
 # ======================================================================
@@ -944,11 +975,18 @@ class TestVectorStoreConvenience:
 # ======================================================================
 
 class TestVectorStoreFallbackSearch:
-    """Tests for keyword-based fallback search."""
+    """Tests for keyword-based fallback search.
+
+    These tests explicitly disable ChromaDB to test the fallback
+    keyword search mechanism, which only operates on _fallback_store.
+    We force fallback AFTER initialize() since initialize() resets
+    _chromadb_available to True when ChromaDB is installed.
+    """
 
     @pytest.mark.asyncio
     async def test_fallback_search_word_overlap(self, vector_store):
         await vector_store.initialize()
+        vector_store._chromadb_available = False  # Force fallback after init
         await vector_store.add("strategies", "moving average crossover trend following")
         await vector_store.add("strategies", "RSI mean reversion oversold")
 
@@ -958,6 +996,7 @@ class TestVectorStoreFallbackSearch:
     @pytest.mark.asyncio
     async def test_fallback_search_empty_query(self, vector_store):
         await vector_store.initialize()
+        vector_store._chromadb_available = False  # Force fallback after init
         await vector_store.add("strategies", "Some strategy")
         results = vector_store._fallback_search("strategies", "", 10)
         assert len(results) == 1  # Empty query matches all
@@ -965,6 +1004,7 @@ class TestVectorStoreFallbackSearch:
     @pytest.mark.asyncio
     async def test_fallback_search_no_match(self, vector_store):
         await vector_store.initialize()
+        vector_store._chromadb_available = False  # Force fallback after init
         await vector_store.add("strategies", "Simple strategy")
         results = vector_store._fallback_search("strategies", "quantum computing", 10)
         assert len(results) == 0
@@ -973,6 +1013,7 @@ class TestVectorStoreFallbackSearch:
     async def test_fallback_search_sorted_by_relevance(self, vector_store):
         """Results should be sorted by relevance_score descending."""
         await vector_store.initialize()
+        vector_store._chromadb_available = False  # Force fallback after init
         await vector_store.add("research", "Bitcoin Bitcoin Bitcoin analysis")
         await vector_store.add("research", "Bitcoin mentioned once")
 
@@ -983,6 +1024,7 @@ class TestVectorStoreFallbackSearch:
     @pytest.mark.asyncio
     async def test_fallback_search_respects_limit(self, vector_store):
         await vector_store.initialize()
+        vector_store._chromadb_available = False  # Force fallback after init
         for i in range(10):
             await vector_store.add("strategies", f"Strategy about Bitcoin {i}")
 
@@ -992,6 +1034,7 @@ class TestVectorStoreFallbackSearch:
     @pytest.mark.asyncio
     async def test_fallback_search_case_insensitive(self, vector_store):
         await vector_store.initialize()
+        vector_store._chromadb_available = False  # Force fallback after init
         await vector_store.add("strategies", "Moving Average Crossover")
         results = vector_store._fallback_search("strategies", "moving average", 10)
         assert len(results) > 0
@@ -1005,6 +1048,7 @@ class TestVectorStoreFallbackSearch:
     async def test_fallback_search_distance_relevance_inverse(self, vector_store):
         """Distance should be 1 - relevance_score."""
         await vector_store.initialize()
+        vector_store._chromadb_available = False  # Force fallback after init
         await vector_store.add("strategies", "trend following strategy")
         results = vector_store._fallback_search("strategies", "trend following", 10)
         for r in results:
@@ -1014,6 +1058,7 @@ class TestVectorStoreFallbackSearch:
     async def test_fallback_search_partial_word_match(self, vector_store):
         """Word overlap scoring - partial word matches don't count."""
         await vector_store.initialize()
+        vector_store._chromadb_available = False  # Force fallback after init
         await vector_store.add("strategies", "momentum trading breakout")
         # "momentum" is a word, but "moment" is not in the doc
         results = vector_store._fallback_search("strategies", "momentum", 10)
@@ -1042,12 +1087,22 @@ class TestGetVectorStore:
 # ======================================================================
 
 class TestVectorStoreChromaDBUnavailable:
-    """Tests for graceful fallback when ChromaDB is not installed."""
+    """Tests for graceful fallback when ChromaDB is not installed.
+
+    These tests explicitly disable ChromaDB to test fallback behavior,
+    since ChromaDB is installed in the test environment.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _force_fallback(self, vector_store):
+        """Force VectorStore to use fallback mode for these tests."""
+        vector_store._chromadb_available = False
 
     @pytest.mark.asyncio
     async def test_operations_without_chromadb(self, vector_store):
         """All operations should work via fallback."""
         await vector_store.initialize()
+        vector_store._chromadb_available = False  # Force fallback after init
 
         # Add
         doc = await vector_store.add("strategies", "Test strategy")
@@ -1065,6 +1120,7 @@ class TestVectorStoreChromaDBUnavailable:
     async def test_chromadb_error_falls_back(self, vector_store):
         """If ChromaDB operations fail, should fall back gracefully."""
         await vector_store.initialize()
+        vector_store._chromadb_available = False  # Force fallback after init
 
         # Mock ChromaDB as available but failing
         vector_store._chromadb_available = True
@@ -1079,6 +1135,7 @@ class TestVectorStoreChromaDBUnavailable:
     async def test_full_workflow_without_chromadb(self, vector_store):
         """Complete add -> search -> delete -> stats workflow in fallback mode."""
         await vector_store.initialize()
+        vector_store._chromadb_available = False  # Force fallback after init
         assert vector_store._chromadb_available is False or vector_store._chromadb_available is True
 
         # Add
@@ -1101,6 +1158,7 @@ class TestVectorStoreChromaDBUnavailable:
     async def test_chromadb_search_error_falls_back(self, vector_store):
         """If ChromaDB search fails, should use fallback keyword search."""
         await vector_store.initialize()
+        vector_store._chromadb_available = False  # Force fallback after init
         await vector_store.add("research", "Bitcoin halving analysis")
 
         mock_col = MagicMock()

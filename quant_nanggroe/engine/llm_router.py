@@ -6,7 +6,7 @@ cost tracking, and model selection (deep thinking vs quick).
 
 Features
 --------
-* Multi-provider failover (OpenAI → Anthropic → Google → local)
+* Multi-provider failover (OpenAI → Anthropic → Google → NVIDIA → local)
 * Provider health monitoring with circuit breaker
 * Cooldown on failure (exponential backoff)
 * Cost tracking per provider and model
@@ -43,6 +43,7 @@ class LLMProvider(str, Enum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
+    NVIDIA = "nvidia"
     LOCAL = "local"
 
 
@@ -140,6 +141,11 @@ _DEFAULT_MODELS: Dict[LLMProvider, Dict[ModelTier, str]] = {
         ModelTier.STANDARD: "gemini-2.0-flash",
         ModelTier.QUICK: "gemini-2.0-flash-lite",
     },
+    LLMProvider.NVIDIA: {
+        ModelTier.DEEP_THINKING: "meta/llama-3.1-405b-instruct",
+        ModelTier.STANDARD: "meta/llama-3.1-70b-instruct",
+        ModelTier.QUICK: "meta/llama-3.1-8b-instruct",
+    },
     LLMProvider.LOCAL: {
         ModelTier.DEEP_THINKING: "llama3:70b",
         ModelTier.STANDARD: "llama3:8b",
@@ -158,6 +164,7 @@ _COST_PER_1K: Dict[str, Dict[str, float]] = {
     "openai": {"input": 0.005, "output": 0.015},
     "anthropic": {"input": 0.003, "output": 0.015},
     "google": {"input": 0.001, "output": 0.002},
+    "nvidia": {"input": 0.002, "output": 0.006},
     "local": {"input": 0.0, "output": 0.0},
 }
 
@@ -418,6 +425,8 @@ class LLMRouter:
             return await self._call_anthropic(config, messages, model, max_tokens, temperature)
         elif provider == LLMProvider.GOOGLE:
             return await self._call_google(config, messages, model, max_tokens, temperature)
+        elif provider == LLMProvider.NVIDIA:
+            return await self._call_nvidia(config, messages, model, max_tokens, temperature)
         elif provider == LLMProvider.LOCAL:
             return await self._call_local(config, messages, model, max_tokens, temperature)
         else:
@@ -526,6 +535,47 @@ class LLMRouter:
             return content, 0, 0  # Google doesn't always provide token counts
         except ImportError:
             raise ImportError("langchain-google-genai is required for Google provider")
+
+    @staticmethod
+    async def _call_nvidia(
+        config: ProviderConfig,
+        messages: List[Dict[str, str]],
+        model: str,
+        max_tokens: Optional[int],
+        temperature: float,
+    ) -> tuple[str, int, int]:
+        """Call NVIDIA NIM API (OpenAI-compatible).
+
+        NVIDIA NIM provides OpenAI-compatible endpoints, so we reuse
+        ChatOpenAI with a custom base_url pointing to the NIM API.
+        """
+        try:
+            from langchain_openai import ChatOpenAI
+
+            base_url = config.base_url or "https://integrate.api.nvidia.com/v1"
+            llm = ChatOpenAI(
+                model=model,
+                api_key=config.api_key or "",
+                base_url=base_url,
+                max_tokens=max_tokens or 4096,
+                temperature=temperature,
+            )
+            from langchain_core.messages import HumanMessage, SystemMessage
+
+            lc_messages = []
+            for m in messages:
+                if m["role"] == "system":
+                    lc_messages.append(SystemMessage(content=m["content"]))
+                else:
+                    lc_messages.append(HumanMessage(content=m["content"]))
+
+            result = await llm.ainvoke(lc_messages)
+            content = result.content if hasattr(result, "content") else str(result)
+            in_tokens = result.response_metadata.get("token_usage", {}).get("prompt_tokens", 0) if hasattr(result, "response_metadata") else 0
+            out_tokens = result.response_metadata.get("token_usage", {}).get("completion_tokens", 0) if hasattr(result, "response_metadata") else 0
+            return content, in_tokens, out_tokens
+        except ImportError:
+            raise ImportError("langchain-openai is required for NVIDIA NIM provider")
 
     @staticmethod
     async def _call_local(

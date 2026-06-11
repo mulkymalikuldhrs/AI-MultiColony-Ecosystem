@@ -7,16 +7,12 @@ insider transactions, and company facts.
 SEC EDGAR API is free and requires no API key, but is rate limited
 to 10 requests per second. A User-Agent header with contact email
 is required.
-
-Symbol convention: Standard ticker symbols (e.g., 'AAPL', 'MSFT').
-The provider resolves tickers to CIK (Central Index Key) internally.
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
-import re
 import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -29,11 +25,9 @@ from quant_nanggroe.types.market import OHLCV, OrderBook, Ticker, TimeFrame
 logger = logging.getLogger(__name__)
 
 # SEC EDGAR API endpoints
-EDGAR_BASE_URL = "https://efts.sec.gov/LATEST/search-index?q="
-EDGAR_FILINGS_URL = "https://efts.sec.gov/LATEST/search-index"
 EDGAR_FACTS_URL = "https://data.sec.gov/api/xbrl/companyfacts"
 EDGAR_SUBMISSIONS_URL = "https://data.sec.gov/submissions"
-EDGAR_COMPANY_SEARCH_URL = "https://efts.sec.gov/LATEST/search-index"
+EDGAR_FULL_SUBMISSIONS_URL = "https://efts.sec.gov/LATEST/archives/edgar/data"
 
 # Rate limiter: max 10 requests per second for SEC EDGAR
 _RATE_LIMIT_INTERVAL = 0.1  # 100ms between requests = 10 req/s
@@ -48,17 +42,14 @@ class SECEdgarProvider(DataProvider):
 
     Provides access to:
     - Company financial facts (XBRL taxonomy)
-    - 10-K, 10-Q, 8-K filings
+    - 10-K, 10-Q, 8-K filings with full text access
     - Insider transactions (Form 3, 4, 5)
     - Company submissions and metadata
+    - Financial statements (income, balance sheet, cash flow)
+    - Company concept data
 
     No API key required. Rate limited to 10 req/s.
     User-Agent header with contact email is required by SEC.
-
-    Example:
-        >>> provider = SECEdgarProvider(user_email="dev@example.com")
-        >>> fundamentals = await provider.get_fundamentals("AAPL")
-        >>> filings = await provider.get_filings("AAPL", filing_type="10-K")
     """
 
     def __init__(
@@ -68,21 +59,11 @@ class SECEdgarProvider(DataProvider):
         priority: int = 35,
         **kwargs,
     ):
-        """Initialize SEC EDGAR provider.
-
-        Args:
-            user_email: Contact email for SEC User-Agent header.
-                        Falls back to QNAI_SEC_USER_EMAIL env var.
-                        Required by SEC API usage policy.
-            user_name: Organization or user name for User-Agent.
-            priority: Failover priority (lower = higher priority). Default 35
-                      (fundamental data, lower priority than real-time data).
-        """
         super().__init__(name="sec_edgar", priority=priority, **kwargs)
         self._user_email = user_email
         self._user_name = user_name
         self._client: Optional[httpx.AsyncClient] = None
-        self._cik_cache: Dict[str, str] = {}  # ticker -> CIK
+        self._cik_cache: Dict[str, str] = {}
         self._last_request_time: float = 0.0
 
     def _get_user_email(self) -> str:
@@ -112,26 +93,15 @@ class SECEdgarProvider(DataProvider):
         """Make a rate-limited request to SEC EDGAR.
 
         Enforces 10 req/s rate limit.
-
-        Args:
-            url: Full URL to request.
-            params: Optional query parameters.
-
-        Returns:
-            Parsed JSON response.
-
-        Raises:
-            SECEdgarError: On API errors.
         """
-        # Rate limiting
         elapsed = time.monotonic() - self._last_request_time
         if elapsed < _RATE_LIMIT_INTERVAL:
             await asyncio.sleep(_RATE_LIMIT_INTERVAL - elapsed)
 
         client = self._get_client()
+        self._last_request_time = time.monotonic()
 
         try:
-            self._last_request_time = time.monotonic()
             response = await client.get(url, params=params)
             response.raise_for_status()
             return response.json()
@@ -148,12 +118,6 @@ class SECEdgarProvider(DataProvider):
         """Resolve a ticker symbol to a CIK number.
 
         Uses the SEC company ticker map for resolution.
-
-        Args:
-            ticker: Stock ticker symbol (e.g., 'AAPL').
-
-        Returns:
-            CIK number as a zero-padded 10-digit string, or None.
         """
         if ticker.upper() in self._cik_cache:
             return self._cik_cache[ticker.upper()]
@@ -162,7 +126,6 @@ class SECEdgarProvider(DataProvider):
             url = "https://www.sec.gov/files/company_tickers.json"
             data = await self._rate_limited_request(url)
 
-            # Build cache from the full ticker map
             for _key, entry in data.items():
                 t = entry.get("ticker", "").upper()
                 cik = str(entry.get("cik_str", "")).zfill(10)
@@ -180,13 +143,6 @@ class SECEdgarProvider(DataProvider):
 
         Provides standardized financial data from 10-K and 10-Q filings
         organized by XBRL taxonomy (GAAP and IFRS).
-
-        Args:
-            symbol: Stock ticker symbol (e.g., 'AAPL').
-
-        Returns:
-            Dict with company facts organized by taxonomy and concept.
-            Structure: {'us-gaap': {concept: {units: {unit: [facts]}}}}
         """
         try:
             cik = await self._resolve_cik(symbol)
@@ -219,16 +175,11 @@ class SECEdgarProvider(DataProvider):
         """Fetch SEC filings for a company.
 
         Args:
-            symbol: Stock ticker symbol (e.g., 'AAPL').
-            filing_type: Filing type filter (e.g., '10-K', '10-Q', '8-K',
-                         '3', '4', '5' for insider transactions).
+            symbol: Stock ticker symbol.
+            filing_type: Filter by type ('10-K', '10-Q', '8-K', '3', '4', '5').
             start: Start date filter.
             end: End date filter.
-            limit: Maximum number of filings to return.
-
-        Returns:
-            List of filing dicts with keys: accession_number, filing_date,
-            form, file_number, primary_document, etc.
+            limit: Maximum filings to return.
         """
         try:
             cik = await self._resolve_cik(symbol)
@@ -246,17 +197,16 @@ class SECEdgarProvider(DataProvider):
             accession_numbers = recent.get("accessionNumber", [])
             primary_docs = recent.get("primaryDocument", [])
             descriptions = recent.get("primaryDocDescription", [])
+            file_numbers = recent.get("fileNumber", [])
 
             result = []
             for i in range(len(forms)):
                 form = forms[i] if i < len(forms) else ""
                 date_str = dates[i] if i < len(dates) else ""
 
-                # Filter by filing type
                 if filing_type and form != filing_type:
                     continue
 
-                # Filter by date range
                 if start or end:
                     try:
                         filing_date = datetime.strptime(date_str, "%Y-%m-%d")
@@ -273,7 +223,13 @@ class SECEdgarProvider(DataProvider):
                     "form": form,
                     "primary_document": primary_docs[i] if i < len(primary_docs) else "",
                     "description": descriptions[i] if i < len(descriptions) else "",
+                    "file_number": file_numbers[i] if i < len(file_numbers) else "",
                     "cik": cik,
+                    "url": (
+                        f"https://www.sec.gov/Archives/edgar/data/"
+                        f"{int(cik)}/{accession_numbers[i].replace('-', '') if i < len(accession_numbers) else ''}/"
+                        f"{primary_docs[i] if i < len(primary_docs) else ''}"
+                    ),
                 })
 
                 if len(result) >= limit:
@@ -294,17 +250,8 @@ class SECEdgarProvider(DataProvider):
         symbol: str,
         limit: int = 20,
     ) -> List[Dict[str, Any]]:
-        """Fetch insider transactions (Forms 3, 4, 5).
-
-        Args:
-            symbol: Stock ticker symbol.
-            limit: Maximum number of transactions to return.
-
-        Returns:
-            List of insider transaction dicts.
-        """
+        """Fetch insider transactions (Forms 3, 4, 5)."""
         try:
-            # Fetch Forms 3, 4, 5 filings
             all_transactions = []
 
             for form_type in ["3", "4", "5"]:
@@ -331,12 +278,8 @@ class SECEdgarProvider(DataProvider):
 
         Args:
             symbol: Stock ticker symbol.
-            statement_type: One of 'income_statement', 'balance_sheet',
-                            'cash_flow', 'equity_statement'.
+            statement_type: 'income_statement', 'balance_sheet', 'cash_flow'.
             period: 'annual' or 'quarterly'.
-
-        Returns:
-            Dict with financial statement data.
         """
         try:
             facts = await self.get_fundamentals(symbol)
@@ -345,23 +288,32 @@ class SECEdgarProvider(DataProvider):
 
             gaap = facts.get("us-gaap", {})
 
-            # Map statement types to XBRL concepts
             concept_map = {
                 "income_statement": [
                     "Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax",
                     "CostOfRevenue", "GrossProfit", "OperatingExpenses",
                     "OperatingIncomeLoss", "NetIncomeLoss", "EarningsPerShareBasic",
+                    "EarningsPerShareDiluted", "InterestExpense",
+                    "IncomeTaxExpenseBenefit", "SellingGeneralAndAdministrativeExpenses",
+                    "ResearchAndDevelopmentExpense",
                 ],
                 "balance_sheet": [
                     "Assets", "CurrentAssets", "CashAndCashEquivalentsAtCarryingValue",
                     "Liabilities", "CurrentLiabilities", "StockholdersEquity",
-                    "LongTermDebt", "InventoryNet",
+                    "LongTermDebt", "InventoryNet", "ShortTermInvestments",
+                    "AccountsReceivableNetCurrent", "PropertyPlantAndEquipmentNet",
+                    "Goodwill", "IntangibleAssetsNetExcludingGoodwill",
+                    "AccountsPayableCurrent", "RetainedEarningsAccumulatedDeficit",
                 ],
                 "cash_flow": [
                     "NetCashProvidedByUsedInOperatingActivities",
                     "NetCashProvidedByUsedInInvestingActivities",
                     "NetCashProvidedByUsedInFinancingActivities",
                     "CashAndCashEquivalentsPeriodIncreaseDecrease",
+                    "DepreciationDepletionAndAmortization",
+                    "ShareBasedCompensation",
+                    "PaymentsForRepurchaseOfCommonStock",
+                    "PaymentsOfDividends",
                 ],
             }
 
@@ -372,16 +324,14 @@ class SECEdgarProvider(DataProvider):
                 if concept in gaap:
                     units_data = gaap[concept].get("units", {})
                     for unit_type, entries in units_data.items():
-                        # Filter by period
                         if period == "annual":
                             entries = [e for e in entries if e.get("form") == "10-K"]
                         elif period == "quarterly":
                             entries = [e for e in entries if e.get("form") == "10-Q"]
 
                         if entries:
-                            # Sort by filing date, most recent first
                             entries.sort(key=lambda x: x.get("filed", ""), reverse=True)
-                            result[concept] = entries[:4]  # Last 4 periods
+                            result[concept] = entries[:4]
 
             self.mark_success()
             return result
@@ -389,6 +339,62 @@ class SECEdgarProvider(DataProvider):
         except Exception as e:
             self.mark_error(str(e))
             logger.warning(f"SEC EDGAR financial statements error for {symbol}: {e}")
+            return {}
+
+    async def get_company_concept(
+        self,
+        symbol: str,
+        taxonomy: str = "us-gaap",
+        concept: str = "NetIncomeLoss",
+    ) -> Dict[str, Any]:
+        """Fetch a specific XBRL concept for a company.
+
+        Args:
+            symbol: Stock ticker symbol.
+            taxonomy: XBRL taxonomy ('us-gaap' or 'ifrs-full').
+            concept: XBRL concept name (e.g., 'NetIncomeLoss').
+        """
+        try:
+            cik = await self._resolve_cik(symbol)
+            if not cik:
+                self.mark_error(f"Could not resolve CIK for {symbol}")
+                return {}
+
+            url = f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik}/{taxonomy}/{concept}.json"
+            data = await self._rate_limited_request(url)
+
+            self.mark_success()
+            return data.get("data", {})
+
+        except SECEdgarError:
+            return {}
+        except Exception as e:
+            self.mark_error(str(e))
+            logger.warning(f"SEC EDGAR concept error for {symbol}/{concept}: {e}")
+            return {}
+
+    async def get_company_submissions(self, symbol: str) -> Dict[str, Any]:
+        """Fetch all company submissions metadata.
+
+        Returns company info (name, SIC, CIK, addresses) and filing history.
+        """
+        try:
+            cik = await self._resolve_cik(symbol)
+            if not cik:
+                self.mark_error(f"Could not resolve CIK for {symbol}")
+                return {}
+
+            url = f"{EDGAR_SUBMISSIONS_URL}/CIK{cik}.json"
+            data = await self._rate_limited_request(url)
+
+            self.mark_success()
+            return data
+
+        except SECEdgarError:
+            return {}
+        except Exception as e:
+            self.mark_error(str(e))
+            logger.warning(f"SEC EDGAR submissions error for {symbol}: {e}")
             return {}
 
     # ─── DataProvider interface methods ───────────────────────────────────
@@ -401,19 +407,12 @@ class SECEdgarProvider(DataProvider):
         end: Optional[datetime] = None,
         limit: int = 500,
     ) -> List[OHLCV]:
-        """SEC EDGAR does not provide OHLCV market data.
-
-        This method returns an empty list. Use YahooFinanceProvider or
-        AlpacaProvider for market price data.
-        """
+        """SEC EDGAR does not provide OHLCV market data."""
         logger.debug("SEC EDGAR does not provide OHLCV data")
         return []
 
     async def get_ticker(self, symbol: str) -> Optional[Ticker]:
-        """SEC EDGAR does not provide ticker/quote data.
-
-        Returns None. Use market data providers for real-time quotes.
-        """
+        """SEC EDGAR does not provide ticker/quote data."""
         logger.debug("SEC EDGAR does not provide ticker data")
         return None
 
@@ -423,11 +422,7 @@ class SECEdgarProvider(DataProvider):
         return None
 
     async def health_check(self) -> bool:
-        """Check if the SEC EDGAR API is accessible.
-
-        Returns:
-            True if the API responds successfully.
-        """
+        """Check if the SEC EDGAR API is accessible."""
         try:
             url = "https://www.sec.gov/files/company_tickers.json"
             await self._rate_limited_request(url)

@@ -10,14 +10,17 @@ Features:
 - Global equity data (US, EU, Asia markets)
 - Forex pairs with real-time rates
 - Crypto data from major exchanges
-- Technical indicators built-in
+- Technical indicators built-in (SMA, EMA, RSI, MACD, etc.)
 - WebSocket real-time streaming
+- Real price data from exchanges
 """
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
+import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -41,6 +44,26 @@ _TIMEFRAME_MAP: Dict[TimeFrame, str] = {
     TimeFrame.MO1: "1month",
 }
 
+# Technical indicator map
+_INDICATOR_MAP = {
+    "sma": "sma",
+    "ema": "ema",
+    "rsi": "rsi",
+    "macd": "macd",
+    "bbands": "bbands",
+    "stoch": "stoch",
+    "adx": "adx",
+    "atr": "atr",
+    "cci": "cci",
+    "williams": "williams",
+    "obv": "obv",
+    "mfi": "mfi",
+    "roc": "roc",
+    "trix": "trix",
+    "dmi": "dmi",
+    "aroon": "aroon",
+}
+
 
 class TwelveDataError(Exception):
     """TwelveData API error."""
@@ -57,13 +80,8 @@ class TwelveDataProvider(DataProvider):
     - Forex pairs with real-time rates
     - Crypto data from major exchanges
     - Free tier: 800 API credits/day, 8 credits/minute
-    - OHLCV, ticker, and forex rate endpoints
-
-    Example:
-        >>> provider = TwelveDataProvider(api_key="your-key")
-        >>> candles = await provider.get_ohlcv("AAPL", TimeFrame.D1)
-        >>> ticker = await provider.get_ticker("EUR/USD")
-        >>> rate = await provider.get_forex_rate("EUR/USD")
+    - OHLCV, ticker, forex rate, and technical indicator endpoints
+    - Real market data from exchanges (no mock data)
     """
 
     BASE_URL = "https://api.twelvedata.com"
@@ -74,16 +92,11 @@ class TwelveDataProvider(DataProvider):
         priority: int = 15,
         **kwargs,
     ):
-        """Initialize TwelveData provider.
-
-        Args:
-            api_key: TwelveData API key. Falls back to QNAI_TWELVEDATA_API_KEY env var.
-            priority: Failover priority (lower = higher priority). Default 15
-                      (between Alpaca=10 and Polygon=20 for equity data).
-        """
         super().__init__(name="twelvedata", priority=priority, **kwargs)
         self._api_key = api_key
         self._client: Optional[httpx.AsyncClient] = None
+        self._last_request_time: float = 0.0
+        self._rate_limit_interval: float = 7.5  # 8 credits/min = 1 req per 7.5s
 
     def _get_api_key(self) -> str:
         """Get TwelveData API key from config or environment."""
@@ -104,29 +117,26 @@ class TwelveDataProvider(DataProvider):
         return self._client
 
     async def _request(self, endpoint: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Make a request to the TwelveData API.
+        """Make a rate-limited request to the TwelveData API.
 
-        Args:
-            endpoint: API endpoint (e.g., 'time_series').
-            params: Query parameters (apikey will be added automatically).
-
-        Returns:
-            Parsed JSON response.
-
-        Raises:
-            TwelveDataError: On API errors.
+        Enforces free tier rate limits.
         """
+        # Rate limiting for free tier
+        elapsed = time.monotonic() - self._last_request_time
+        if elapsed < self._rate_limit_interval:
+            await asyncio.sleep(self._rate_limit_interval - elapsed)
+
         params["apikey"] = self._get_api_key()
 
         client = self._get_client()
         url = f"{self.BASE_URL}/{endpoint}"
+        self._last_request_time = time.monotonic()
 
         try:
             response = await client.get(url, params=params)
             response.raise_for_status()
             data = response.json()
 
-            # TwelveData returns errors with a 'status' field
             if data.get("status") == "error":
                 error_msg = data.get("message", "Unknown error")
                 self.mark_error(f"TwelveData API error: {error_msg}")
@@ -151,18 +161,7 @@ class TwelveDataProvider(DataProvider):
         end: Optional[datetime] = None,
         limit: int = 500,
     ) -> List[OHLCV]:
-        """Fetch OHLCV candlestick data from TwelveData.
-
-        Args:
-            symbol: Symbol (e.g., 'AAPL', 'EUR/USD', 'BTC/USD').
-            timeframe: Candle timeframe.
-            start: Start datetime.
-            end: End datetime.
-            limit: Maximum number of candles.
-
-        Returns:
-            List of OHLCV candles sorted by timestamp ascending.
-        """
+        """Fetch OHLCV candlestick data from TwelveData."""
         try:
             interval = _TIMEFRAME_MAP.get(timeframe, "1day")
 
@@ -187,7 +186,6 @@ class TwelveDataProvider(DataProvider):
             result = []
             for val in values:
                 try:
-                    # TwelveData returns string values
                     open_price = float(val.get("open", 0))
                     high_price = float(val.get("high", 0))
                     low_price = float(val.get("low", 0))
@@ -197,10 +195,8 @@ class TwelveDataProvider(DataProvider):
                     if open_price <= 0 or close_price <= 0:
                         continue
 
-                    # Parse timestamp
                     datetime_str = val.get("datetime", "")
                     try:
-                        # Try ISO format first
                         ts = datetime.fromisoformat(datetime_str)
                     except (ValueError, TypeError):
                         try:
@@ -223,7 +219,6 @@ class TwelveDataProvider(DataProvider):
                     continue
 
             self.mark_success()
-            # Data comes in reverse order from TwelveData, reverse to ascending
             result.reverse()
             return result[-limit:]
 
@@ -235,14 +230,7 @@ class TwelveDataProvider(DataProvider):
             return []
 
     async def get_ticker(self, symbol: str) -> Optional[Ticker]:
-        """Fetch current ticker/quote data from TwelveData.
-
-        Args:
-            symbol: Symbol (e.g., 'AAPL', 'EUR/USD', 'BTC/USD').
-
-        Returns:
-            Current ticker data or None if unavailable.
-        """
+        """Fetch current ticker/quote data from TwelveData."""
         try:
             params: Dict[str, Any] = {
                 "symbol": symbol,
@@ -285,14 +273,7 @@ class TwelveDataProvider(DataProvider):
         self,
         pair: str,
     ) -> Optional[Dict[str, Any]]:
-        """Fetch real-time forex exchange rate.
-
-        Args:
-            pair: Forex pair (e.g., 'EUR/USD', 'GBP/JPY').
-
-        Returns:
-            Dict with rate info: {'pair', 'rate', 'timestamp'} or None.
-        """
+        """Fetch real-time forex exchange rate."""
         try:
             params: Dict[str, Any] = {
                 "symbol": pair,
@@ -333,21 +314,109 @@ class TwelveDataProvider(DataProvider):
             logger.warning(f"TwelveData forex rate error for {pair}: {e}")
             return None
 
-    async def get_orderbook(self, symbol: str, limit: int = 20) -> Optional[OrderBook]:
-        """TwelveData does not provide Level 2 order book data.
+    async def get_technical_indicator(
+        self,
+        symbol: str,
+        indicator: str = "sma",
+        interval: str = "1day",
+        time_period: int = 14,
+        series_type: str = "close",
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Fetch technical indicator data from TwelveData.
+
+        Built-in indicators avoid the need to compute locally.
+
+        Args:
+            symbol: Symbol (e.g., 'AAPL', 'BTC/USD').
+            indicator: Indicator name (sma, ema, rsi, macd, bbands, stoch,
+                       adx, atr, cci, williams, obv, mfi, roc, trix, dmi, aroon).
+            interval: Time interval (1min, 5min, 15min, 30min, 1h, 4h, 1day, 1week, 1month).
+            time_period: Number of periods.
+            series_type: Price type (close, open, high, low, typical).
+            **kwargs: Additional indicator-specific parameters.
 
         Returns:
-            None — Level 2 data not available through TwelveData.
+            Dict with indicator values.
         """
+        try:
+            api_indicator = _INDICATOR_MAP.get(indicator.lower(), indicator.lower())
+
+            params: Dict[str, Any] = {
+                "symbol": symbol,
+                "interval": interval,
+                "time_period": time_period,
+                "series_type": series_type,
+                "outputsize": kwargs.get("outputsize", 30),
+            }
+
+            # Add indicator-specific params
+            if indicator.lower() == "macd":
+                params.update({
+                    "fast_period": kwargs.get("fast_period", 12),
+                    "slow_period": kwargs.get("slow_period", 26),
+                    "signal_period": kwargs.get("signal_period", 9),
+                })
+            elif indicator.lower() == "bbands":
+                params.update({
+                    "nbdevup": kwargs.get("nbdevup", 2),
+                    "nbdevdn": kwargs.get("nbdevdn", 2),
+                })
+            elif indicator.lower() == "stoch":
+                params.update({
+                    "fast_k_period": kwargs.get("fast_k_period", 5),
+                    "slow_k_period": kwargs.get("slow_k_period", 3),
+                    "slow_d_period": kwargs.get("slow_d_period", 3),
+                })
+
+            data = await self._request(api_indicator, params)
+
+            self.mark_success()
+            return data
+
+        except TwelveDataError:
+            return {}
+        except Exception as e:
+            self.mark_error(str(e))
+            logger.warning(f"TwelveData indicator error for {symbol}/{indicator}: {e}")
+            return {}
+
+    async def get_price(self, symbol: str) -> Optional[float]:
+        """Fetch the real-time price for a symbol.
+
+        Args:
+            symbol: Symbol (e.g., 'AAPL', 'EUR/USD').
+
+        Returns:
+            Latest price or None.
+        """
+        try:
+            params: Dict[str, Any] = {
+                "symbol": symbol,
+            }
+            data = await self._request("price", params)
+
+            price = data.get("price")
+            if price is not None:
+                self.mark_success()
+                return float(price)
+
+            self.mark_error(f"No price for {symbol}")
+            return None
+
+        except TwelveDataError:
+            return None
+        except Exception as e:
+            self.mark_error(str(e))
+            return None
+
+    async def get_orderbook(self, symbol: str, limit: int = 20) -> Optional[OrderBook]:
+        """TwelveData does not provide Level 2 order book data."""
         logger.debug("TwelveData does not provide order book data")
         return None
 
     async def health_check(self) -> bool:
-        """Check if the TwelveData API is accessible.
-
-        Returns:
-            True if the API responds successfully.
-        """
+        """Check if the TwelveData API is accessible."""
         try:
             params: Dict[str, Any] = {
                 "symbol": "AAPL",

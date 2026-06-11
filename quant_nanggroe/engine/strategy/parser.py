@@ -149,6 +149,9 @@ def validate_strategy(config: StrategyConfig) -> List[str]:
             if i >= j:
                 continue
             if rule.indicator == other.indicator and rule.operator == other.operator:
+                # Skip if params differ (e.g., different factor_type, period, etc.)
+                if rule.params and other.params and rule.params != other.params:
+                    continue
                 if rule.operator.value in ("gt", "gte") and other.operator.value in ("gt", "gte"):
                     if rule.value > other.value:
                         errors.append(

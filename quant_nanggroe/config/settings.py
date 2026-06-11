@@ -35,10 +35,14 @@ class Settings(BaseSettings):
         alpaca_api_secret: Alpaca trading API secret
         binance_api_key: Binance API key
         binance_api_secret: Binance API secret
-        alpha_vantage_api_key: Alpha Vantage API key
+        alpha_vantage_api_key: Alpha Vantage API key (free tier: 25 req/day)
         polygon_api_key: Polygon.io API key
-        fred_api_key: FRED API key
-        coingecko_api_key: CoinGecko API key
+        fred_api_key: FRED API key (free, 120 req/min)
+        coingecko_api_key: CoinGecko Pro API key (free tier works without key)
+        finnhub_api_key: Finnhub API key (free tier: 60 calls/min)
+        twelvedata_api_key: Twelve Data API key (free tier: 800 credits/day)
+        sec_edgar_user_email: SEC EDGAR User-Agent email (required, no key needed)
+        ecb_api_key: ECB API key (not needed, API is free)
         default_llm_provider: Default LLM provider
         default_llm_model: Default LLM model name
         log_level: Logging level
@@ -69,6 +73,8 @@ class Settings(BaseSettings):
     openai_api_key: Optional[str] = None
     anthropic_api_key: Optional[str] = None
     google_api_key: Optional[str] = None
+    nvidia_api_key: Optional[str] = None
+    nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
 
     # Trading API Keys
     alpaca_api_key: Optional[str] = None
@@ -76,10 +82,16 @@ class Settings(BaseSettings):
     alpaca_paper: bool = True
     binance_api_key: Optional[str] = None
     binance_api_secret: Optional[str] = None
+
+    # Data Provider API Keys (free tiers available)
     alpha_vantage_api_key: Optional[str] = None
     polygon_api_key: Optional[str] = None
     fred_api_key: Optional[str] = None
-    coingecko_api_key: Optional[str] = None
+    coingecko_api_key: Optional[str] = None      # Pro tier (free works without key)
+    finnhub_api_key: Optional[str] = None         # Free tier: 60 calls/min
+    twelvedata_api_key: Optional[str] = None       # Free tier: 800 credits/day
+    sec_edgar_user_email: Optional[str] = None     # Required User-Agent email (no key needed)
+    ecb_api_key: Optional[str] = None              # Not needed (ECB is free, no key)
 
     # LLM Defaults
     default_llm_provider: str = "openai"

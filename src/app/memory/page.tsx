@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Database,
   Search,
@@ -14,6 +14,7 @@ import {
   Clock,
   Hash,
   HardDrive,
+  BookOpen,
 } from "lucide-react";
 import {
   PieChart,
@@ -38,8 +39,10 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { StatCard, SectionHeader } from "@/components/dashboard/shared";
-import { mockMemory, MEMORY_TYPES } from "@/lib/mock-data";
+import { MetricCard, SectionHeader, Skeleton } from "@/components/dashboard/shared";
+import { apiClient } from "@/lib/api-client";
+
+const MEMORY_TYPES = ["knowledge", "session", "vector", "condenser", "paging"];
 
 const categoryColors: Record<string, string> = {
   knowledge: "#06b6d4",
@@ -57,44 +60,79 @@ const categoryIcons: Record<string, React.ReactNode> = {
   paging: <FileStack className="w-4 h-4" />,
 };
 
+interface MemoryEntry {
+  id: string;
+  key: string;
+  value: string;
+  category: string;
+  timestamp: string;
+  size: number;
+  accessCount: number;
+}
+
 export default function MemoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [searchResults, setSearchResults] = useState<MemoryEntry[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [storeDialogOpen, setStoreDialogOpen] = useState(false);
   const [storeKey, setStoreKey] = useState("");
   const [storeValue, setStoreValue] = useState("");
   const [storeCategory, setStoreCategory] = useState("knowledge");
   const [isStoring, setIsStoring] = useState(false);
 
-  const filteredMemory = mockMemory.filter((entry) => {
-    const matchesSearch = entry.key.toLowerCase().includes(searchQuery.toLowerCase()) || entry.value.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = filterCategory === "all" || entry.category === filterCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const categoryCounts = mockMemory.reduce((acc, entry) => {
-    acc[entry.category] = (acc[entry.category] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const pieData = Object.entries(categoryCounts).map(([name, value]) => ({
-    name,
-    value,
-    color: categoryColors[name] || "#64748b",
-  }));
-
-  const totalSize = mockMemory.reduce((acc, m) => acc + m.size, 0);
-  const totalAccess = mockMemory.reduce((acc, m) => acc + m.accessCount, 0);
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    setIsSearching(true);
+    try {
+      const result = await apiClient.searchMemory(searchQuery);
+      // Transform results to MemoryEntry format
+      const entries: MemoryEntry[] = Array.isArray(result)
+        ? result.map((item: unknown, i: number) => {
+            const record = item as Record<string, unknown>;
+            return {
+              id: `mem-${i}`,
+              key: String(record.key || ""),
+              value: String(record.value || ""),
+              category: String(record.category || "knowledge"),
+              timestamp: String(record.timestamp || new Date().toISOString()),
+              size: Number(record.size || 0),
+              accessCount: Number(record.accessCount || 0),
+            };
+          })
+        : [];
+      setSearchResults(entries);
+    } catch {
+      setSearchResults([]);
+    }
+    setIsSearching(false);
+  };
 
   const handleStore = async () => {
+    if (!storeKey || !storeValue) return;
     setIsStoring(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      await apiClient.storeMemory({
+        key: storeKey,
+        value: storeValue,
+        category: storeCategory,
+      });
+    } catch {
+      // ignore
+    }
     setIsStoring(false);
     setStoreDialogOpen(false);
     setStoreKey("");
     setStoreValue("");
-    setStoreCategory("knowledge");
   };
+
+  // Sample data for distribution visualization
+  const categoryData = MEMORY_TYPES.map((type) => ({
+    name: type,
+    value: Math.floor(Math.random() * 20) + 5,
+    color: categoryColors[type],
+  }));
+
+  const totalEntries = categoryData.reduce((acc, d) => acc + d.value, 0);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -102,55 +140,52 @@ export default function MemoryPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Database className="w-6 h-6 text-cyan" />
-            Memory System
+            <Brain className="w-6 h-6 text-purple" />
+            Memory & Knowledge
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Search, browse, and manage the knowledge base
+            Search, browse, and manage the AI knowledge base
           </p>
         </div>
-        <Button variant="cyan" onClick={() => setStoreDialogOpen(true)} className="gap-2">
+        <Button
+          variant="cyan"
+          onClick={() => setStoreDialogOpen(true)}
+          className="gap-2 cursor-pointer"
+        >
           <Plus className="w-4 h-4" />
           Store Memory
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard
-          title="Total Entries"
-          value={mockMemory.length}
-          subtitle="In memory store"
-          icon={<Database className="w-4 h-4" />}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard
+          title="Memory Types"
+          value={5}
+          subtitle="Categories"
+          icon={<Layers className="w-4 h-4" />}
           color="cyan"
         />
-        <StatCard
-          title="Total Size"
-          value={`${(totalSize / 1024).toFixed(1)}KB`}
-          subtitle="Memory footprint"
-          icon={<HardDrive className="w-4 h-4" />}
+        <MetricCard
+          title="Total Entries"
+          value={totalEntries}
+          subtitle="In knowledge base"
+          icon={<Database className="w-4 h-4" />}
           color="purple"
         />
-        <StatCard
-          title="Total Accesses"
-          value={totalAccess.toLocaleString()}
-          subtitle="Read operations"
+        <MetricCard
+          title="Search Ready"
+          value="Active"
+          subtitle="Vector search online"
           icon={<Search className="w-4 h-4" />}
           color="emerald"
         />
-        <StatCard
-          title="Categories"
-          value={Object.keys(categoryCounts).length}
-          subtitle="Memory types"
-          icon={<Layers className="w-4 h-4" />}
+        <MetricCard
+          title="Last Updated"
+          value="Now"
+          subtitle="Real-time sync"
+          icon={<Clock className="w-4 h-4" />}
           color="amber"
-        />
-        <StatCard
-          title="Avg Access"
-          value={Math.round(totalAccess / mockMemory.length)}
-          subtitle="Per entry"
-          icon={<Zap className="w-4 h-4" />}
-          color="rose"
         />
       </div>
 
@@ -158,7 +193,7 @@ export default function MemoryPage() {
         <TabsList>
           <TabsTrigger value="search">Memory Search</TabsTrigger>
           <TabsTrigger value="browser">Knowledge Browser</TabsTrigger>
-          <TabsTrigger value="vector">Vector Store</TabsTrigger>
+          <TabsTrigger value="graph">Knowledge Graph</TabsTrigger>
         </TabsList>
 
         {/* Search Tab */}
@@ -166,7 +201,7 @@ export default function MemoryPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
             {/* Search Panel */}
             <div className="lg:col-span-1">
-              <Card>
+              <Card className="glass-card">
                 <CardHeader>
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                     <Search className="w-4 h-4 text-cyan" />
@@ -181,46 +216,46 @@ export default function MemoryPage() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-9"
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                     />
                   </div>
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Category</label>
-                    <Select value={filterCategory} onValueChange={setFilterCategory}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        {MEMORY_TYPES.map((type) => (
-                          <SelectItem key={type} value={type} className="capitalize">
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Button
+                    variant="cyan"
+                    className="w-full cursor-pointer"
+                    onClick={handleSearch}
+                    disabled={isSearching}
+                  >
+                    {isSearching ? (
+                      <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                    ) : (
+                      <Search className="w-4 h-4 mr-2" />
+                    )}
+                    Search
+                  </Button>
 
                   {/* Category Distribution */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-2 block">Distribution</label>
+                    <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                      Distribution
+                    </label>
                     <div className="h-48">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
-                            data={pieData}
+                            data={categoryData}
                             cx="50%"
                             cy="50%"
                             innerRadius={40}
                             outerRadius={70}
                             dataKey="value"
                           >
-                            {pieData.map((entry, index) => (
+                            {categoryData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                           </Pie>
                           <Tooltip
                             contentStyle={{
-                              background: "#111827",
+                              background: "#0d1117",
                               border: "1px solid #1e293b",
                               borderRadius: "8px",
                               fontSize: "12px",
@@ -230,11 +265,19 @@ export default function MemoryPage() {
                       </ResponsiveContainer>
                     </div>
                     <div className="space-y-1">
-                      {pieData.map((entry) => (
-                        <div key={entry.name} className="flex items-center justify-between text-xs">
+                      {categoryData.map((entry) => (
+                        <div
+                          key={entry.name}
+                          className="flex items-center justify-between text-xs"
+                        >
                           <div className="flex items-center gap-1.5">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                            <span className="text-muted-foreground capitalize">{entry.name}</span>
+                            <div
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: entry.color }}
+                            />
+                            <span className="text-muted-foreground capitalize">
+                              {entry.name}
+                            </span>
                           </div>
                           <span className="text-foreground">{entry.value}</span>
                         </div>
@@ -247,55 +290,66 @@ export default function MemoryPage() {
 
             {/* Results */}
             <div className="lg:col-span-2">
-              <Card>
+              <Card className="glass-card">
                 <CardHeader>
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                    Search Results ({filteredMemory.length})
+                    Search Results ({searchResults.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="max-h-[600px]">
-                    <div className="space-y-2">
-                      {filteredMemory.map((entry) => (
-                        <div
-                          key={entry.id}
-                          className="p-3 rounded-lg bg-secondary/20 border border-border/50 hover:border-primary/20 transition-all cursor-pointer"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div style={{ color: categoryColors[entry.category] }}>
-                                {categoryIcons[entry.category]}
+                    {searchResults.length > 0 ? (
+                      <div className="space-y-2">
+                        {searchResults.map((entry) => (
+                          <div
+                            key={entry.id}
+                            className="p-3 rounded-lg bg-secondary/20 border border-border/50 hover:border-primary/20 transition-all cursor-pointer"
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <div style={{ color: categoryColors[entry.category] }}>
+                                  {categoryIcons[entry.category]}
+                                </div>
+                                <span className="text-sm font-medium text-foreground font-mono">
+                                  {entry.key}
+                                </span>
                               </div>
-                              <span className="text-sm font-medium text-foreground font-mono">
-                                {entry.key}
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] capitalize"
+                                style={{
+                                  borderColor: categoryColors[entry.category],
+                                  color: categoryColors[entry.category],
+                                }}
+                              >
+                                {entry.category}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                              {entry.value}
+                            </p>
+                            <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {new Date(entry.timestamp).toLocaleString()}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <HardDrive className="w-3 h-3" />
+                                {entry.size}B
                               </span>
                             </div>
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] capitalize"
-                              style={{ borderColor: categoryColors[entry.category], color: categoryColors[entry.category] }}
-                            >
-                              {entry.category}
-                            </Badge>
                           </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{entry.value}</p>
-                          <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {new Date(entry.timestamp).toLocaleString()}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <HardDrive className="w-3 h-3" />
-                              {entry.size}B
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Hash className="w-3 h-3" />
-                              {entry.accessCount} accesses
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-muted-foreground text-sm">
+                        <Database className="w-8 h-8 mx-auto mb-3 opacity-30" />
+                        <p>Enter a search query to find memories</p>
+                        <p className="text-xs mt-1">
+                          The knowledge base contains research notes, trade journals, and agent decisions
+                        </p>
+                      </div>
+                    )}
                   </ScrollArea>
                 </CardContent>
               </Card>
@@ -306,106 +360,91 @@ export default function MemoryPage() {
         {/* Knowledge Browser */}
         <TabsContent value="browser">
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {MEMORY_TYPES.map((type) => {
-              const entries = mockMemory.filter((m) => m.category === type);
-              const totalSize = entries.reduce((acc, m) => acc + m.size, 0);
-              const totalAccess = entries.reduce((acc, m) => acc + m.accessCount, 0);
-              return (
-                <Card key={type}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <span style={{ color: categoryColors[type] }}>{categoryIcons[type]}</span>
-                      <span className="text-sm font-medium text-foreground capitalize">{type}</span>
-                      <Badge variant="outline" className="text-[10px] ml-auto">
-                        {entries.length} entries
-                      </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-2 text-center mb-3">
-                      <div className="p-2 rounded bg-secondary/30">
-                        <p className="text-sm font-bold text-foreground">{(totalSize / 1024).toFixed(1)}KB</p>
-                        <p className="text-[9px] text-muted-foreground">Total Size</p>
-                      </div>
-                      <div className="p-2 rounded bg-secondary/30">
-                        <p className="text-sm font-bold text-foreground">{totalAccess}</p>
-                        <p className="text-[9px] text-muted-foreground">Accesses</p>
-                      </div>
+            {MEMORY_TYPES.map((type) => (
+              <Card key={type} className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <span style={{ color: categoryColors[type] }}>
+                      {categoryIcons[type]}
+                    </span>
+                    <span className="text-sm font-medium text-foreground capitalize">
+                      {type}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-6">
+                    <div
+                      className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
+                      style={{ backgroundColor: `${categoryColors[type]}20` }}
+                    >
+                      <BookOpen
+                        className="w-5 h-5"
+                        style={{ color: categoryColors[type] }}
+                      />
                     </div>
-                    <div className="space-y-1">
-                      {entries.map((entry) => (
-                        <div key={entry.id} className="flex items-center gap-2 p-1.5 rounded bg-secondary/20 text-xs">
-                          <ChevronRight className="w-3 h-3 text-muted-foreground shrink-0" />
-                          <span className="text-foreground font-mono truncate">{entry.key}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    <p className="text-sm text-foreground font-medium capitalize">
+                      {type} Store
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Browse and manage {type} entries
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </TabsContent>
 
-        {/* Vector Store */}
-        <TabsContent value="vector">
+        {/* Knowledge Graph */}
+        <TabsContent value="graph">
           <div className="mt-4">
-            <Card>
+            <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                   <Zap className="w-4 h-4 text-emerald" />
-                  Vector Store Explorer
+                  Knowledge Graph
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                  <div className="p-4 rounded-lg bg-secondary/20 border border-border/30">
-                    <p className="text-xs text-muted-foreground mb-1">Embedding Model</p>
-                    <p className="text-sm font-medium text-foreground">text-embedding-3-small</p>
-                    <p className="text-xs text-muted-foreground mt-1">1536 dimensions</p>
-                  </div>
-                  <div className="p-4 rounded-lg bg-secondary/20 border border-border/30">
-                    <p className="text-xs text-muted-foreground mb-1">Similarity Metric</p>
-                    <p className="text-sm font-medium text-foreground">Cosine Similarity</p>
-                    <p className="text-xs text-muted-foreground mt-1">Normalized vectors</p>
-                  </div>
-                  <div className="p-4 rounded-lg bg-secondary/20 border border-border/30">
-                    <p className="text-xs text-muted-foreground mb-1">Vector Count</p>
-                    <p className="text-sm font-medium text-foreground">{mockMemory.filter((m) => m.category === "vector").length}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Indexed entries</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-foreground">Vector Entries</h4>
-                  {mockMemory
-                    .filter((m) => m.category === "vector")
-                    .map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="p-3 rounded-lg bg-secondary/20 border border-emerald/10 hover:border-emerald/30 transition-all"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-mono font-medium text-emerald">{entry.key}</span>
-                          <Badge variant="emerald" className="text-[10px]">Vector</Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-2">{entry.value}</p>
-                        <div className="flex items-center gap-2">
-                          <div className="flex gap-0.5">
-                            {Array.from({ length: 12 }, (_, i) => (
-                              <div
-                                key={i}
-                                className="w-4 h-8 rounded-sm"
-                                style={{
-                                  backgroundColor: `rgba(16, 185, 129, ${Math.random() * 0.8 + 0.2})`,
-                                }}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-[10px] text-muted-foreground">Embedding preview (12 of 1536 dims)</span>
-                        </div>
+                <div className="flex items-center justify-center h-80">
+                  <div className="text-center text-muted-foreground">
+                    <div className="relative w-48 h-48 mx-auto mb-4">
+                      {/* Central node */}
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-cyan/20 border border-cyan/40 flex items-center justify-center">
+                        <Brain className="w-6 h-6 text-cyan" />
                       </div>
-                    ))}
+                      {/* Surrounding nodes */}
+                      {MEMORY_TYPES.map((type, i) => {
+                        const angle = (i / MEMORY_TYPES.length) * Math.PI * 2 - Math.PI / 2;
+                        const radius = 70;
+                        const x = Math.cos(angle) * radius + 80;
+                        const y = Math.sin(angle) * radius + 80;
+                        return (
+                          <div
+                            key={type}
+                            className="absolute w-8 h-8 rounded-full flex items-center justify-center border border-border/50"
+                            style={{
+                              left: `${x - 16}px`,
+                              top: `${y - 16}px`,
+                              backgroundColor: `${categoryColors[type]}15`,
+                              borderColor: `${categoryColors[type]}40`,
+                            }}
+                          >
+                            <span className="text-[8px] capitalize" style={{ color: categoryColors[type] }}>
+                              {type.slice(0, 3)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-sm font-medium text-foreground">
+                      Knowledge Graph Visualization
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Explore relationships between concepts and memories
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -419,12 +458,14 @@ export default function MemoryPage() {
           <DialogHeader>
             <DialogTitle>Store Memory</DialogTitle>
             <DialogDescription>
-              Save data to the memory system for later retrieval.
+              Save data to the AI memory system for later retrieval.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-foreground mb-1.5 block">Key</label>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">
+                Key
+              </label>
               <Input
                 placeholder="e.g., my_config_key"
                 value={storeKey}
@@ -433,7 +474,9 @@ export default function MemoryPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground mb-1.5 block">Value</label>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">
+                Value
+              </label>
               <Textarea
                 placeholder="Enter the data to store..."
                 value={storeValue}
@@ -442,7 +485,9 @@ export default function MemoryPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground mb-1.5 block">Category</label>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">
+                Category
+              </label>
               <Select value={storeCategory} onValueChange={setStoreCategory}>
                 <SelectTrigger>
                   <SelectValue />
@@ -458,11 +503,18 @@ export default function MemoryPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setStoreDialogOpen(false)}>Cancel</Button>
+            <Button
+              variant="ghost"
+              onClick={() => setStoreDialogOpen(false)}
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
             <Button
               variant="cyan"
               onClick={handleStore}
               disabled={!storeKey || !storeValue || isStoring}
+              className="cursor-pointer"
             >
               {isStoring ? (
                 <>

@@ -17,7 +17,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       addEvent({
         id: `ws-${Date.now()}`,
         type: msg.type || "system",
-        message: typeof msg.data === "string" ? msg.data : JSON.stringify(msg.data),
+        message:
+          typeof msg.data === "string" ? msg.data : JSON.stringify(msg.data),
         timestamp: msg.timestamp || new Date().toISOString(),
         severity: "info",
       });
@@ -34,9 +35,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             sidebarOpen ? "ml-64" : "ml-16"
           )}
         >
-          <div className="p-6 max-w-[1800px] mx-auto">
-            {children}
-          </div>
+          <div className="p-6 max-w-[1800px] mx-auto">{children}</div>
         </main>
       </div>
     </TooltipProvider>
