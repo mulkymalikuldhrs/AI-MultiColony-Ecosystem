@@ -68,7 +68,11 @@ class VectorStore:
     * Metadata filtering (exact match and range)
     * Batch add / delete / query
     * Health check
+    * Keyword-based fallback search when fake embeddings are in use
     """
+
+    # Class-level flag: True when using fake embeddings (no real embedding model)
+    USING_FAKE_EMBEDDINGS: bool = True
 
     def __init__(
         self,
@@ -81,6 +85,9 @@ class VectorStore:
         # Collections: name -> {documents, embeddings, metadata}
         self._collections: Dict[str, Dict[str, Any]] = {}
         self._active_collection: str = collection_name
+
+        # Track whether the fake-embedding query warning has been emitted
+        self._fake_query_warned: bool = False
 
         # Initialize default collection
         self._collections[collection_name] = {
@@ -205,11 +212,30 @@ class VectorStore:
         Provide either ``query_embeddings`` or ``query_texts``.
         Metadata filtering with ``where`` supports exact match and
         ``$gte``, ``$lte``, ``$gt``, ``$lt`` operators.
+
+        When USING_FAKE_EMBEDDINGS is True and query_texts are provided,
+        falls back to keyword-based substring matching for more meaningful
+        results than random-hash vectors.
         """
         col = self._get_collection(collection)
 
         if not col["documents"]:
             return QueryResult()
+
+        # Warn on first query when using fake embeddings
+        if VectorStore.USING_FAKE_EMBEDDINGS and not self._fake_query_warned:
+            logging.warning(
+                "VectorStore.query() called with FAKE embeddings active - "
+                "falling back to keyword-based search. "
+                "Install sentence-transformers or openai for real semantic search."
+            )
+            self._fake_query_warned = True
+
+        # If fake embeddings and we have query text, use keyword fallback
+        if VectorStore.USING_FAKE_EMBEDDINGS and query_texts and not query_embeddings:
+            return self._keyword_search(
+                query_texts[0], col, n_results=n_results, where=where,
+            )
 
         # Get query embedding
         if query_embeddings:
@@ -351,6 +377,12 @@ class VectorStore:
         Used when real embeddings are not provided.  NOT suitable
         for real semantic search.
         """
+        logging.warning(
+            "Vector store using FAKE embeddings - semantic search is non-functional. "
+            "Install sentence-transformers or openai for real embeddings."
+        )
+        VectorStore.USING_FAKE_EMBEDDINGS = True
+
         # Create a seed from text hash
         h = hashlib.sha256(text.encode()).digest()
         seed = int.from_bytes(h[:4], "little")
@@ -362,6 +394,61 @@ class VectorStore:
         if norm > 0:
             vec = [x / norm for x in vec]
         return vec
+
+    # ── Keyword-based fallback search ────────────────────────────
+
+    def _keyword_search(
+        self,
+        query: str,
+        col: Dict[str, Any],
+        n_results: int = 10,
+        where: Optional[Dict] = None,
+    ) -> QueryResult:
+        """Simple keyword-based search fallback when fake embeddings are in use.
+
+        Uses a basic TF scoring approach: tokenizes query and documents
+        into lowercase words, scores by count of matching terms, and
+        falls back to substring matching for longer query fragments.
+        This is NOT semantic search, but it produces meaningful results
+        compared to random-hash vectors.
+        """
+        query_terms = set(query.lower().split())
+        scored: List[Tuple[str, float]] = []
+
+        for doc_id, doc in col["documents"].items():
+            doc_text = doc.document.lower()
+            doc_terms = set(doc_text.split())
+
+            # Count matching terms (TF-style scoring)
+            match_count = sum(
+                doc_text.count(term) for term in query_terms if term in doc_text
+            )
+
+            # Also check for substring match (for multi-word phrases)
+            if query.lower() in doc_text:
+                match_count += len(query.split())  # Boost for phrase match
+
+            if match_count > 0:
+                # Use inverse of match count as "distance" (lower = better)
+                distance = 1.0 / (1.0 + match_count)
+                scored.append((doc_id, distance))
+
+        # Sort by distance (lower = more relevant)
+        scored.sort(key=lambda x: x[1])
+
+        # Apply metadata filter
+        if where:
+            scored = [(did, dist) for did, dist in scored if self._matches_filter(col["metadata"].get(did, {}), where)]
+
+        # Take top n
+        top = scored[:n_results]
+
+        return QueryResult(
+            ids=[did for did, _ in top],
+            documents=[col["documents"][did].document for did, _ in top],
+            distances=[round(dist, 6) for _, dist in top],
+            metadatas=[col["metadata"].get(did, {}) for did, _ in top],
+        )
 
     # ── Metadata filter ──────────────────────────────────────────
 

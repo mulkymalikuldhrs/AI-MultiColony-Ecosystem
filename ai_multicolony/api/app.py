@@ -148,6 +148,69 @@ class FastAPIApp:
             "tools": self.mcp_server.tool_count if self.mcp_server and hasattr(self.mcp_server, "tool_count") else 0,
         }
 
+    def get_service_availability(self) -> Dict[str, Any]:
+        """Return detailed service availability status.
+
+        Reports which backend services are actually injected vs
+        running in stub/fallback mode.
+        """
+        services = {
+            "agent_registry": {
+                "available": self.agent_registry is not None,
+                "status": "available" if self.agent_registry else "stub",
+            },
+            "colony_manager": {
+                "available": self.colony_manager is not None,
+                "status": "available" if self.colony_manager else "stub",
+            },
+            "mcp_server": {
+                "available": self.mcp_server is not None,
+                "status": "available" if self.mcp_server else "stub",
+            },
+            "memory_manager": {
+                "available": self.memory_manager is not None,
+                "status": "available" if self.memory_manager else "stub",
+            },
+            "task_scheduler": {
+                "available": self.task_scheduler is not None,
+                "status": "available" if self.task_scheduler else "stub",
+            },
+            "audit_trail": {
+                "available": self.audit_trail is not None,
+                "status": "available" if self.audit_trail else "stub",
+            },
+        }
+
+        # Check LLM provider status
+        try:
+            from ..core.llm_provider import MOCK_MODE_ACTIVE
+            services["llm_provider"] = {
+                "available": not MOCK_MODE_ACTIVE,
+                "status": "mock" if MOCK_MODE_ACTIVE else "available",
+                "note": "Install litellm for production use" if MOCK_MODE_ACTIVE else None,
+            }
+        except ImportError:
+            services["llm_provider"] = {"available": False, "status": "unavailable"}
+
+        # Check vector store embedding status
+        try:
+            from ..memory.vector import VectorStore
+            services["vector_embeddings"] = {
+                "available": not VectorStore.USING_FAKE_EMBEDDINGS,
+                "status": "fake_embeddings" if VectorStore.USING_FAKE_EMBEDDINGS else "available",
+                "note": "Install sentence-transformers or openai for real embeddings" if VectorStore.USING_FAKE_EMBEDDINGS else None,
+            }
+        except ImportError:
+            services["vector_embeddings"] = {"available": False, "status": "unavailable"}
+
+        any_stub = any(s["status"] != "available" for s in services.values())
+        overall = "degraded" if any_stub else "healthy"
+
+        return {
+            "overall": overall,
+            "services": services,
+        }
+
     # ── Route dispatch (generic) ──────────────────────────────────────────
 
     async def dispatch(self, method: str, path: str, **kwargs: Any) -> Any:
@@ -272,6 +335,10 @@ class FastAPIApp:
         # ── Health ─────────────────────────────────────────────────────
         elif path == "/health":
             return self.get_health()
+
+        # ── Service availability ────────────────────────────────────────
+        elif path == "/health/services":
+            return self.get_service_availability()
 
         else:
             return {"error": "Not found", "code": "NOT_FOUND", "status_code": 404}

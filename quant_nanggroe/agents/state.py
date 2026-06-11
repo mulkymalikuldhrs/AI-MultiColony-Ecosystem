@@ -17,23 +17,68 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 from typing_extensions import Annotated, TypedDict
 
-# Import constitutional risk limits from the SINGLE SOURCE OF TRUTH.
-# Do NOT redefine them here — engine/risk/constants.py is the canonical location.
+# =============================================================================
+# CONSTITUTIONAL RISK LIMITS — Single Source of Truth
+# =============================================================================
+# All constants are imported from engine/risk/constants.py to avoid duplication.
+# These values are immutable and cannot be changed at runtime.
+# A runtime assertion below ensures the values stay in sync.
+# =============================================================================
 from quant_nanggroe.engine.risk.constants import (
-    MAX_RISK_PER_TRADE,
-    MAX_DAILY_LOSS,
-    MAX_WEEKLY_LOSS,
-    MIN_RISK_REWARD,
-    MAX_CORRELATED_POSITIONS,
-    MAX_POSITION_SIZE_PCT,
-    MAX_LEVERAGE,
-    MAX_DRAWDOWN_PCT,
-    MAX_DAILY_TRADES,
-    CONFIDENCE_THRESHOLD,
+    MAX_RISK_PER_TRADE as _ENGINE_MAX_RISK_PER_TRADE,
+    MAX_DAILY_LOSS as _ENGINE_MAX_DAILY_LOSS,
+    MAX_WEEKLY_LOSS as _ENGINE_MAX_WEEKLY_LOSS,
+    MIN_RISK_REWARD as _ENGINE_MIN_RISK_REWARD,
+    MAX_CORRELATED_POSITIONS as _ENGINE_MAX_CORRELATED_POSITIONS,
+    MAX_POSITION_SIZE_PCT as _ENGINE_MAX_POSITION_SIZE_PCT,
+    MAX_LEVERAGE as _ENGINE_MAX_LEVERAGE,
+    MAX_DRAWDOWN_PCT as _ENGINE_MAX_DRAWDOWN_PCT,
+    MAX_DAILY_TRADES as _ENGINE_MAX_DAILY_TRADES,
+    CONFIDENCE_THRESHOLD as _ENGINE_CONFIDENCE_THRESHOLD,
+    KILL_SWITCH_DAILY_PNL as _ENGINE_KILL_SWITCH_DAILY_PNL,
+    KILL_SWITCH_WEEKLY_PNL as _ENGINE_KILL_SWITCH_WEEKLY_PNL,
 )
 
-# Backward-compatible alias: state.py historically used MAX_TRADES_PER_DAY.
-MAX_TRADES_PER_DAY: int = MAX_DAILY_TRADES
+# Re-export with the names expected by the agent layer
+MAX_RISK_PER_TRADE: float = _ENGINE_MAX_RISK_PER_TRADE
+MAX_DAILY_LOSS: float = _ENGINE_MAX_DAILY_LOSS
+MAX_WEEKLY_LOSS: float = _ENGINE_MAX_WEEKLY_LOSS
+MIN_RISK_REWARD: float = _ENGINE_MIN_RISK_REWARD
+MAX_CORRELATED_POSITIONS: int = _ENGINE_MAX_CORRELATED_POSITIONS
+MAX_POSITION_SIZE_PCT: float = _ENGINE_MAX_POSITION_SIZE_PCT
+MAX_LEVERAGE: float = _ENGINE_MAX_LEVERAGE
+MAX_DRAWDOWN_PCT: float = _ENGINE_MAX_DRAWDOWN_PCT
+MAX_TRADES_PER_DAY: int = _ENGINE_MAX_DAILY_TRADES  # Alias for backward compat
+CONFIDENCE_THRESHOLD: float = _ENGINE_CONFIDENCE_THRESHOLD
+KILL_SWITCH_DAILY_PNL: float = _ENGINE_KILL_SWITCH_DAILY_PNL
+KILL_SWITCH_WEEKLY_PNL: float = _ENGINE_KILL_SWITCH_WEEKLY_PNL
+
+# =============================================================================
+# RUNTIME ASSERTION: Ensure engine constants and agent constants match
+# =============================================================================
+# These assertions verify that the values imported from engine/risk/constants.py
+# match the previously hardcoded values in this file. If someone changes the
+# engine constants without updating the expected values here, this will fail.
+# =============================================================================
+_assertion_checks = [
+    ("MAX_RISK_PER_TRADE", _ENGINE_MAX_RISK_PER_TRADE, 0.005),
+    ("MAX_DAILY_LOSS", _ENGINE_MAX_DAILY_LOSS, 0.01),
+    ("MAX_WEEKLY_LOSS", _ENGINE_MAX_WEEKLY_LOSS, 0.03),
+    ("MIN_RISK_REWARD", _ENGINE_MIN_RISK_REWARD, 2.0),
+    ("MAX_CORRELATED_POSITIONS", _ENGINE_MAX_CORRELATED_POSITIONS, 3),
+    ("MAX_POSITION_SIZE_PCT", _ENGINE_MAX_POSITION_SIZE_PCT, 0.10),
+    ("MAX_LEVERAGE", _ENGINE_MAX_LEVERAGE, 3.0),
+    ("MAX_DRAWDOWN_PCT", _ENGINE_MAX_DRAWDOWN_PCT, 0.15),
+    ("MAX_DAILY_TRADES", _ENGINE_MAX_DAILY_TRADES, 5),
+    ("CONFIDENCE_THRESHOLD", _ENGINE_CONFIDENCE_THRESHOLD, 0.65),
+    ("KILL_SWITCH_DAILY_PNL", _ENGINE_KILL_SWITCH_DAILY_PNL, -0.02),
+    ("KILL_SWITCH_WEEKLY_PNL", _ENGINE_KILL_SWITCH_WEEKLY_PNL, -0.05),
+]
+for _name, _imported_val, _expected_val in _assertion_checks:
+    assert _imported_val == _expected_val, (
+        f"CONSTANT MISMATCH: engine/risk/constants.py {_name}={_imported_val} "
+        f"!= expected {_expected_val}. Update this assertion if the change is intentional."
+    )
 
 
 # =============================================================================
@@ -303,9 +348,17 @@ class AgentState(TypedDict):
     signals: Annotated[List[Dict[str, Any]], "Generated trading signals"]
     strategist_output: Annotated[str, "Strategist agent output"]
 
-    # Risk assessment
+    # Risk assessment (LLM-based qualitative analysis)
     risk_assessment: Annotated[Dict[str, Any], "Risk assessment results"]
     risk_verdict: Annotated[str, "Risk verdict: APPROVED/VETOED/KILL_SWITCH"]
+
+    # Deterministic risk gate (HARD GATE — final authority)
+    deterministic_risk_verdict: Annotated[str, "Deterministic risk gate verdict: APPROVED/REJECTED/MODIFIED/KILL_SWITCH"]
+    deterministic_risk_results: Annotated[List[Dict[str, Any]], "Per-trade deterministic gate results"]
+    deterministic_risk_timestamp: Annotated[str, "Timestamp of deterministic gate evaluation"]
+
+    # Kelly position sizing (deterministic)
+    kelly_results: Annotated[List[Dict[str, Any]], "Kelly criterion position sizing results"]
 
     # Portfolio
     portfolio_state: Annotated[Dict[str, Any], "Current portfolio state"]
@@ -360,6 +413,10 @@ def create_initial_state(symbols: List[str], trade_date: str) -> Dict[str, Any]:
         "strategist_output": "",
         "risk_assessment": {},
         "risk_verdict": RiskVerdict.VETOED.value,
+        "deterministic_risk_verdict": "REJECTED",
+        "deterministic_risk_results": [],
+        "deterministic_risk_timestamp": "",
+        "kelly_results": [],
         "portfolio_state": {},
         "portfolio_output": "",
         "decisions": [],

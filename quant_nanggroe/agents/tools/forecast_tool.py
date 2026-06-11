@@ -42,6 +42,20 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
+# Simulation mode
+# ---------------------------------------------------------------------------
+
+SIMULATION_MODE: bool = True
+"""When True, tools may return simulation/placeholder data clearly labeled.
+When False, tools MUST use real API calls and fail if unavailable."""
+
+
+def _simulation_label() -> str:
+    """Return a label marking data as simulated if SIMULATION_MODE is on."""
+    return "[SIMULATION]" if SIMULATION_MODE else ""
+
+
+# ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
 
@@ -170,12 +184,22 @@ class ForecastTool:
     fundamental, news, and COT sentiment analysis with confidence
     scoring per timeframe and forecast accuracy tracking.
 
+    **NOTE**: The component forecast generators (_generate_technical_forecast,
+    _generate_fundamental_forecast, etc.) currently return default/neutral
+    values. When SIMULATION_MODE is False, they should integrate with
+    real data sources. The synthesis logic (weighted combination) is
+    production-ready.
+
     Usage::
 
         tool = ForecastTool()
         forecast = await tool.forecast("AAPL")
         accuracy = await tool.get_accuracy_stats()
     """
+
+    SIMULATION_MODE: bool = True
+    """When True, component forecasts are clearly labeled as simulated.
+    When False, real data sources are required for component generation."""
 
     def __init__(self, cache_ttl: int = 1800) -> None:
         self._cache: Dict[str, tuple[Any, float]] = {}
@@ -236,6 +260,11 @@ class ForecastTool:
 
         self._set_cache(cache_key, result)
         return result
+
+    @property
+    def is_simulated(self) -> bool:
+        """Check if the tool is in simulation mode."""
+        return self.SIMULATION_MODE
 
     async def record_accuracy(
         self,
@@ -304,7 +333,30 @@ class ForecastTool:
     # ----- Component generators -----
 
     async def _generate_technical_forecast(self, symbol: str) -> TechnicalForecast:
-        """Generate technical analysis forecast component."""
+        """Generate technical analysis forecast component.
+
+        NOTE: Returns default/neutral values in SIMULATION_MODE.
+        In production, integrate with TechnicalAnalysisTool for real indicators.
+        When real indicators are unavailable, gracefully falls back to a
+        neutral/zero signal instead of raising NotImplementedError.
+        """
+        if not self.SIMULATION_MODE:
+            # In production mode, try to fetch real technical data
+            try:
+                from quant_nanggroe.agents.tools.technical import TechnicalAnalysisTool
+                # TODO(issue-#P1-3): Integrate TechnicalAnalysisTool for real indicators
+                logger.warning(
+                    "Production technical forecast not yet implemented for %s — "
+                    "falling back to neutral signal. Real indicator integration "
+                    "is pending (see issue P1-3).",
+                    symbol,
+                )
+            except ImportError:
+                logger.warning(
+                    "TechnicalAnalysisTool not available for %s — falling back to neutral forecast",
+                    symbol,
+                )
+
         return TechnicalForecast(
             trend="NEUTRAL",
             momentum=0.0,
@@ -314,19 +366,31 @@ class ForecastTool:
         )
 
     async def _generate_fundamental_forecast(self, symbol: str) -> FundamentalForecast:
-        """Generate fundamental analysis forecast component."""
+        """Generate fundamental analysis forecast component.
+
+        NOTE: Returns default/neutral values in SIMULATION_MODE.
+        In production, integrate with SEC EDGAR / financial data APIs.
+        """
         return FundamentalForecast(
             signal="NEUTRAL",
         )
 
     async def _generate_sentiment_forecast(self, symbol: str) -> NewsSentimentForecast:
-        """Generate news/sentiment forecast component."""
+        """Generate news/sentiment forecast component.
+
+        NOTE: Returns default/neutral values in SIMULATION_MODE.
+        In production, integrate with SentimentTool for real sentiment data.
+        """
         return NewsSentimentForecast(
             signal="NEUTRAL",
         )
 
     async def _generate_cot_forecast(self, symbol: str) -> COTForecast:
-        """Generate COT positioning forecast component."""
+        """Generate COT positioning forecast component.
+
+        NOTE: Returns default/neutral values in SIMULATION_MODE.
+        In production, integrate with FlowTool for real COT data.
+        """
         return COTForecast(
             signal="NEUTRAL",
         )

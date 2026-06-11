@@ -761,6 +761,133 @@ class TestRiskCheckGate9Correlation:
         assert result["checkpoints"]["9_correlation_check"]["passed"] is True
 
 
+class TestRiskCheckGate10PortfolioVaR:
+    """Checkpoint 10: Portfolio VaR limit (≤2%)."""
+
+    def test_fail_var_exceeded(self, risk_gate: RiskCheckGate):
+        """Portfolio VaR exceeding 2% should fail."""
+        result = risk_gate.evaluate(
+            symbol="EURUSD",
+            direction="BUY",
+            lot_size=0.01,
+            entry=1.0500,
+            stop_loss=1.0450,
+            account_balance=100_000.0,
+            take_profit=1.0600,
+            portfolio_var_pct=0.025,  # 2.5% > 2% limit
+        )
+        assert result["checkpoints"]["10_portfolio_var"]["passed"] is False
+        assert result["verdict"] == "VETOED"
+
+    def test_pass_var_within_limit(self, risk_gate: RiskCheckGate):
+        """Portfolio VaR within 2% should pass."""
+        result = risk_gate.evaluate(
+            symbol="EURUSD",
+            direction="BUY",
+            lot_size=0.01,
+            entry=1.0500,
+            stop_loss=1.0450,
+            account_balance=100_000.0,
+            take_profit=1.0600,
+            portfolio_var_pct=0.015,  # 1.5% < 2% limit
+        )
+        assert result["checkpoints"]["10_portfolio_var"]["passed"] is True
+
+    def test_pass_zero_var(self, risk_gate: RiskCheckGate):
+        """Zero VaR (no existing positions) should pass."""
+        result = risk_gate.evaluate(
+            symbol="EURUSD",
+            direction="BUY",
+            lot_size=0.01,
+            entry=1.0500,
+            stop_loss=1.0450,
+            account_balance=100_000.0,
+            take_profit=1.0600,
+            portfolio_var_pct=0.0,
+        )
+        assert result["checkpoints"]["10_portfolio_var"]["passed"] is True
+
+
+class TestRiskCheckGate11SectorExposure:
+    """Checkpoint 11: Sector exposure limit (≤30%)."""
+
+    def test_fail_sector_exceeded(self, risk_gate: RiskCheckGate):
+        """Sector exposure exceeding 30% should fail."""
+        result = risk_gate.evaluate(
+            symbol="AAPL",
+            direction="BUY",
+            lot_size=0.01,
+            entry=150.0,
+            stop_loss=148.0,
+            account_balance=100_000.0,
+            take_profit=155.0,
+            sector_exposure_pct=0.35,  # 35% > 30% limit
+        )
+        assert result["checkpoints"]["11_sector_exposure"]["passed"] is False
+        assert result["verdict"] == "VETOED"
+
+    def test_pass_sector_within_limit(self, risk_gate: RiskCheckGate):
+        """Sector exposure within 30% should pass."""
+        result = risk_gate.evaluate(
+            symbol="AAPL",
+            direction="BUY",
+            lot_size=0.01,
+            entry=150.0,
+            stop_loss=148.0,
+            account_balance=100_000.0,
+            take_profit=155.0,
+            sector_exposure_pct=0.25,  # 25% < 30% limit
+        )
+        assert result["checkpoints"]["11_sector_exposure"]["passed"] is True
+
+
+class TestRiskCheckGate12NakedShort:
+    """Checkpoint 12: No naked short selling."""
+
+    def test_fail_naked_short(self, risk_gate: RiskCheckGate):
+        """Short selling without underlying position should fail."""
+        result = risk_gate.evaluate(
+            symbol="EURUSD",
+            direction="SELL",
+            lot_size=0.01,
+            entry=1.0500,
+            stop_loss=1.0550,
+            account_balance=100_000.0,
+            take_profit=1.0400,
+            has_underlying_position=False,  # NAKED SHORT
+        )
+        assert result["checkpoints"]["12_no_naked_short"]["passed"] is False
+        assert result["verdict"] == "VETOED"
+
+    def test_pass_covered_short(self, risk_gate: RiskCheckGate):
+        """Short selling with underlying position should pass checkpoint 12."""
+        result = risk_gate.evaluate(
+            symbol="EURUSD",
+            direction="SELL",
+            lot_size=0.01,
+            entry=1.0500,
+            stop_loss=1.0550,
+            account_balance=100_000.0,
+            take_profit=1.0400,
+            has_underlying_position=True,  # COVERED
+        )
+        assert result["checkpoints"]["12_no_naked_short"]["passed"] is True
+
+    def test_pass_buy_always_allowed(self, risk_gate: RiskCheckGate):
+        """BUY direction should always pass naked short check."""
+        result = risk_gate.evaluate(
+            symbol="EURUSD",
+            direction="BUY",
+            lot_size=0.01,
+            entry=1.0500,
+            stop_loss=1.0450,
+            account_balance=100_000.0,
+            take_profit=1.0600,
+            has_underlying_position=False,  # Doesn't matter for BUY
+        )
+        assert result["checkpoints"]["12_no_naked_short"]["passed"] is True
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # 4. Drawdown Monitor Tests
 # ═══════════════════════════════════════════════════════════════════════

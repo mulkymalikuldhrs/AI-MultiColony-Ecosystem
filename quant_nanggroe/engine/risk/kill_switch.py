@@ -8,6 +8,7 @@ Activation triggers:
 - AUTO_DAILY_LIMIT: Daily loss limit breached
 - AUTO_WEEKLY_LIMIT: Weekly loss limit breached
 - AUTO_MAX_DRAWDOWN: Maximum drawdown breached
+- AUTO_VAR_BREACH: Portfolio VaR limit breached
 - MANUAL: Manual activation by human operator
 
 Reset requires explicit confirmation: "CONFIRM_RESET_AFTER_REVIEW"
@@ -143,6 +144,7 @@ class KillSwitch:
         daily_loss_pct: float,
         weekly_loss_pct: float,
         drawdown_pct: float = 0.0,
+        portfolio_var_pct: float = 0.0,
     ) -> Optional[Dict[str, any]]:
         """Auto-check if kill switch should trigger based on risk limits.
 
@@ -150,6 +152,7 @@ class KillSwitch:
             daily_loss_pct: Current daily loss as fraction.
             weekly_loss_pct: Current weekly loss as fraction.
             drawdown_pct: Current drawdown as fraction.
+            portfolio_var_pct: Current portfolio VaR as fraction.
 
         Returns:
             Activation dict if triggered, None otherwise.
@@ -158,6 +161,7 @@ class KillSwitch:
             MAX_DAILY_LOSS,
             MAX_WEEKLY_LOSS,
             MAX_DRAWDOWN_PCT,
+            MAX_PORTFOLIO_VAR_PCT,
         )
         MAX_DRAWDOWN = MAX_DRAWDOWN_PCT
 
@@ -169,5 +173,8 @@ class KillSwitch:
 
         if drawdown_pct >= MAX_DRAWDOWN:
             return self.activate("AUTO_MAX_DRAWDOWN")
+
+        if portfolio_var_pct >= MAX_PORTFOLIO_VAR_PCT:
+            return self.activate("AUTO_VAR_BREACH")
 
         return None

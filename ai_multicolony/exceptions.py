@@ -45,8 +45,7 @@ class MultiColonyError(Exception):
 class AgentError(MultiColonyError):
     """Agent-related errors."""
 
-    def __init__(self, message: str = "", code: str = "AGENT_ERROR", agent_id: str = ""):
-        self.agent_id = agent_id
+    def __init__(self, message: str = "", code: str = "AGENT_ERROR"):
         super().__init__(message, code)
 
 
@@ -61,19 +60,15 @@ class AgentNotFoundError(AgentError):
 class AgentTimeoutError(AgentError):
     """Agent execution exceeded its time limit."""
 
-    def __init__(self, message: str = "Agent execution timed out", timeout_ms: int = 0, agent_id: str = "", timeout: float = 0.0):
+    def __init__(self, message: str = "Agent execution timed out", timeout_ms: int = 0):
         self.timeout_ms = timeout_ms
-        self.agent_id = agent_id
-        self.timeout = timeout
         super().__init__(message, "AGENT_TIMEOUT")
 
 
 class AgentStateError(AgentError):
     """Invalid agent state transition."""
 
-    def __init__(self, message: str = "Invalid agent state transition", agent_id: str = "", current_state: str = ""):
-        self.agent_id = agent_id
-        self.current_state = current_state
+    def __init__(self, message: str = "Invalid agent state transition"):
         super().__init__(message, "AGENT_STATE")
 
 
@@ -237,51 +232,50 @@ class PermissionDeniedError(SecurityError):
         super().__init__(message, "PERMISSION_DENIED")
 
 
+# ── Event Bus Errors ─────────────────────────────────────────────────────────
+
+
+class EventBusError(MultiColonyError):
+    """Event bus related errors."""
+
+    def __init__(self, message: str = "", code: str = "EVENT_BUS_ERROR"):
+        super().__init__(message, code)
+
+
 # ── LLM Errors ────────────────────────────────────────────────────────────────
 
 
 class LLMError(MultiColonyError):
     """LLM provider errors."""
 
-    def __init__(self, message: str = "", code: str = "LLM_ERROR", model: str = ""):
-        self.model = model
+    def __init__(self, message: str = "", code: str = "LLM_ERROR"):
         super().__init__(message, code)
 
 
 class LLMRateLimitError(LLMError):
     """LLM rate limit exceeded."""
 
-    def __init__(self, message: str = "Rate limit exceeded", model: str = ""):
-        super().__init__(message, "LLM_RATE_LIMIT", model=model)
+    def __init__(self, message: str = "LLM rate limit exceeded", retry_after: float = 0):
+        self.retry_after = retry_after
+        super().__init__(message, "LLM_RATE_LIMIT")
 
 
 class LLMTokensExceededError(LLMError):
-    """LLM token or cost limit exceeded."""
+    """LLM token limit exceeded."""
 
-    def __init__(self, message: str = "Token limit exceeded", tokens_used: int = 0, token_limit: int = 0, model: str = ""):
-        self.tokens_used = tokens_used
-        self.token_limit = token_limit
-        super().__init__(message, "LLM_TOKENS_EXCEEDED", model=model)
-
-
-# ── EventBus Errors ───────────────────────────────────────────────────────────
-
-
-class EventBusError(MultiColonyError):
-    """Event bus communication errors."""
-
-    def __init__(self, message: str = "", code: str = "EVENT_BUS_ERROR"):
-        super().__init__(message, code)
+    def __init__(self, message: str = "Token limit exceeded", tokens_requested: int = 0, tokens_limit: int = 0):
+        self.tokens_requested = tokens_requested
+        self.tokens_limit = tokens_limit
+        super().__init__(message, "LLM_TOKENS_EXCEEDED")
 
 
 # ── Channel Errors ────────────────────────────────────────────────────────────
 
 
 class ChannelError(MultiColonyError):
-    """Communication channel errors."""
+    """Channel/messaging errors."""
 
-    def __init__(self, message: str = "", code: str = "CHANNEL_ERROR", channel: str = ""):
-        self.channel = channel
+    def __init__(self, message: str = "", code: str = "CHANNEL_ERROR"):
         super().__init__(message, code)
 
 
@@ -299,8 +293,8 @@ class SandboxError(MultiColonyError):
 
 
 class ToolExecutionError(ToolError):
-    """Tool execution failure."""
+    """Generic tool execution failure."""
 
-    def __init__(self, tool: str = "", message: str = "Tool execution failed"):
+    def __init__(self, message: str = "Tool execution failed", tool: str = ""):
         self.tool = tool
-        super().__init__(f"Tool {tool}: {message}", "TOOL_EXECUTION")
+        super().__init__(message, "TOOL_EXECUTION")

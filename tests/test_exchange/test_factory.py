@@ -25,6 +25,7 @@ from quant_nanggroe.exchange.factory import (
     _CAPABILITY_REGISTRY,
 )
 from quant_nanggroe.exchange.base import ExchangeInterface
+ccxt = pytest.importorskip("ccxt", reason="ccxt package not installed")
 from quant_nanggroe.exchange.ccxt_broker import CCXTBroker
 from quant_nanggroe.exchange.paper_broker import PaperExchangeBroker
 

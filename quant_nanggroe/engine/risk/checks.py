@@ -1,6 +1,6 @@
-"""9-Checkpoint Risk Gate — from HermesQuantOS.
+"""12-Checkpoint Risk Gate — from HermesQuantOS.
 
-Implements the full 9-checkpoint risk validation system that every
+Implements the full 12-checkpoint risk validation system that every
 trade must pass before execution. If ANY checkpoint fails, the trade
 is VETOED and cannot be overridden by any agent.
 
@@ -14,6 +14,9 @@ Checkpoints:
 7. Valid direction
 8. Not overtrading (max 5 trades/day)
 9. Correlated position check
+10. Portfolio VaR limit (≤2%)
+11. Sector exposure limit (≤30%)
+12. No naked short selling
 
 Extracted from HermesQuantOS's RiskOfficerTool.
 """
@@ -31,6 +34,9 @@ from quant_nanggroe.engine.risk.constants import (
     MIN_RISK_REWARD,
     MAX_CORRELATED_POSITIONS,
     MAX_DAILY_TRADES,
+    MAX_PORTFOLIO_VAR_PCT,
+    MAX_SECTOR_EXPOSURE_PCT,
+    NO_NAKED_SHORT,
 )
 
 logger = logging.getLogger(__name__)
@@ -59,8 +65,11 @@ class RiskCheckGate:
         weekly_pnl: float = 0.0,
         trade_count_today: int = 0,
         active_positions: Optional[List[str]] = None,
+        portfolio_var_pct: float = 0.0,
+        sector_exposure_pct: float = 0.0,
+        has_underlying_position: bool = True,
     ) -> Dict[str, Any]:
-        """Evaluate a trade proposal through all 9 checkpoints.
+        """Evaluate a trade proposal through all 12 checkpoints.
 
         Args:
             symbol: Trading symbol.
@@ -74,6 +83,9 @@ class RiskCheckGate:
             weekly_pnl: This week's accumulated P&L.
             trade_count_today: Number of trades today.
             active_positions: List of currently held symbols.
+            portfolio_var_pct: Current portfolio VaR as percentage.
+            sector_exposure_pct: Current sector exposure as percentage for the symbol's sector.
+            has_underlying_position: Whether the trader holds the underlying (for short validation).
 
         Returns:
             Dict with verdict (APPROVED/VETOED) and checkpoint details.
@@ -171,6 +183,35 @@ class RiskCheckGate:
             "passed": correlated < MAX_CORRELATED_POSITIONS,
         }
         if not checkpoints["9_correlation_check"]["passed"]:
+            all_passed = False
+
+        # ── Checkpoint 10: Portfolio VaR limit ──
+        checkpoints["10_portfolio_var"] = {
+            "value": f"{portfolio_var_pct:.4f}",
+            "limit": f"{MAX_PORTFOLIO_VAR_PCT:.4f}",
+            "passed": portfolio_var_pct <= MAX_PORTFOLIO_VAR_PCT,
+        }
+        if not checkpoints["10_portfolio_var"]["passed"]:
+            all_passed = False
+
+        # ── Checkpoint 11: Sector exposure limit ──
+        checkpoints["11_sector_exposure"] = {
+            "value": f"{sector_exposure_pct:.4f}",
+            "limit": f"{MAX_SECTOR_EXPOSURE_PCT:.4f}",
+            "passed": sector_exposure_pct <= MAX_SECTOR_EXPOSURE_PCT,
+        }
+        if not checkpoints["11_sector_exposure"]["passed"]:
+            all_passed = False
+
+        # ── Checkpoint 12: No naked short selling ──
+        is_short = direction.upper() in ("SELL", "SHORT")
+        is_naked_short = NO_NAKED_SHORT and is_short and not has_underlying_position
+        checkpoints["12_no_naked_short"] = {
+            "value": str(not is_naked_short),
+            "limit": "True (NO_NAKED_SHORT enforced)",
+            "passed": not is_naked_short,
+        }
+        if not checkpoints["12_no_naked_short"]["passed"]:
             all_passed = False
 
         verdict = "APPROVED" if all_passed else "VETOED"

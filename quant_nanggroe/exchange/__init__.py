@@ -63,68 +63,139 @@ from quant_nanggroe.exchange.base import (
     MarketDataError,
     WebSocketCallback,
 )
-from quant_nanggroe.exchange.ccxt_broker import CCXTBroker
+
+# CCXTBroker requires the ``ccxt`` package (optional)
+try:
+    from quant_nanggroe.exchange.ccxt_broker import CCXTBroker
+except ImportError:
+    CCXTBroker = None  # type: ignore[assignment,misc]
+
 from quant_nanggroe.exchange.paper_broker import PaperExchangeBroker
 from quant_nanggroe.exchange.manager import ExchangeManager
-from quant_nanggroe.exchange.alpaca_broker import AlpacaBroker
+
+# AlpacaBroker requires the ``alpaca-py`` package (optional)
+try:
+    from quant_nanggroe.exchange.alpaca_broker import AlpacaBroker
+except ImportError:
+    AlpacaBroker = None  # type: ignore[assignment,misc]
 
 # New broker modules (optional dependencies)
-from quant_nanggroe.exchange.polymarket_broker import PolymarketBroker, PolymarketCLOBClient
-from quant_nanggroe.exchange.mt5_broker import MT5Broker
-from quant_nanggroe.exchange.ibkr_broker import IBKRBroker
-from quant_nanggroe.exchange.quantdinger_factory import QuantDingerFactory
+try:
+    from quant_nanggroe.exchange.polymarket_broker import PolymarketBroker, PolymarketCLOBClient
+except ImportError:
+    PolymarketBroker = None  # type: ignore[assignment,misc]
+    PolymarketCLOBClient = None  # type: ignore[assignment,misc]
 
-# Solana/Jupiter V6 integration
-from quant_nanggroe.exchange.solana import (
-    SolanaWallet,
-    TokenAccountInfo,
-    JupiterV6Client,
-    JupiterQuote,
-    JupiterSwapResult,
-    SolanaMempoolMonitor,
-    MempoolEvent,
-    MempoolEventType,
-    RugChecker,
-    TokenSafetyReport,
-    SafetyVerdict,
-    SolanaBroker,
-)
+try:
+    from quant_nanggroe.exchange.mt5_broker import MT5Broker
+except ImportError:
+    MT5Broker = None  # type: ignore[assignment,misc]
+
+try:
+    from quant_nanggroe.exchange.ibkr_broker import IBKRBroker
+except ImportError:
+    IBKRBroker = None  # type: ignore[assignment,misc]
+
+try:
+    from quant_nanggroe.exchange.quantdinger_factory import QuantDingerFactory
+except ImportError:
+    QuantDingerFactory = None  # type: ignore[assignment,misc]
+
+# Solana/Jupiter V6 integration (optional – requires solders/solana)
+try:
+    from quant_nanggroe.exchange.solana import (
+        SolanaWallet,
+        TokenAccountInfo,
+        JupiterV6Client,
+        JupiterQuote,
+        JupiterSwapResult,
+        SolanaMempoolMonitor,
+        MempoolEvent,
+        MempoolEventType,
+        RugChecker,
+        TokenSafetyReport,
+        SafetyVerdict,
+        SolanaBroker,
+    )
+except ImportError:
+    SolanaWallet = None  # type: ignore[assignment,misc]
+    TokenAccountInfo = None  # type: ignore[assignment,misc]
+    JupiterV6Client = None  # type: ignore[assignment,misc]
+    JupiterQuote = None  # type: ignore[assignment,misc]
+    JupiterSwapResult = None  # type: ignore[assignment,misc]
+    SolanaMempoolMonitor = None  # type: ignore[assignment,misc]
+    MempoolEvent = None  # type: ignore[assignment,misc]
+    MempoolEventType = None  # type: ignore[assignment,misc]
+    RugChecker = None  # type: ignore[assignment,misc]
+    TokenSafetyReport = None  # type: ignore[assignment,misc]
+    SafetyVerdict = None  # type: ignore[assignment,misc]
+    SolanaBroker = None  # type: ignore[assignment,misc]
 
 # Exchange factory
-from quant_nanggroe.exchange.factory import (
-    ExchangeFactory,
-    ExchangeFactoryConfig,
-    ExchangeFactoryError,
-    ExchangeCapabilities,
-    MarketType,
-    SUPPORTED_EXCHANGES,
-)
+try:
+    from quant_nanggroe.exchange.factory import (
+        ExchangeFactory,
+        ExchangeFactoryConfig,
+        ExchangeFactoryError,
+        ExchangeCapabilities,
+        MarketType,
+        SUPPORTED_EXCHANGES,
+    )
+except ImportError:
+    ExchangeFactory = None  # type: ignore[assignment,misc]
+    ExchangeFactoryConfig = None  # type: ignore[assignment,misc]
+    ExchangeFactoryError = None  # type: ignore[assignment,misc]
+    ExchangeCapabilities = None  # type: ignore[assignment,misc]
+    MarketType = None  # type: ignore[assignment,misc]
+    SUPPORTED_EXCHANGES = None  # type: ignore[assignment,misc]
 
 # Trading guards pipeline
-from quant_nanggroe.exchange.guards import (
-    BaseGuard,
-    WhitelistGuard,
-    CooldownGuard,
-    MaxPositionGuard,
-    GuardPipeline,
-    GuardVerdict,
-    GuardResult,
-    PipelineResult,
-)
+try:
+    from quant_nanggroe.exchange.guards import (
+        BaseGuard,
+        WhitelistGuard,
+        CooldownGuard,
+        MaxPositionGuard,
+        GuardPipeline,
+        GuardVerdict,
+        GuardResult,
+        PipelineResult,
+    )
+except ImportError:
+    BaseGuard = None  # type: ignore[assignment,misc]
+    WhitelistGuard = None  # type: ignore[assignment,misc]
+    CooldownGuard = None  # type: ignore[assignment,misc]
+    MaxPositionGuard = None  # type: ignore[assignment,misc]
+    GuardPipeline = None  # type: ignore[assignment,misc]
+    GuardVerdict = None  # type: ignore[assignment,misc]
+    GuardResult = None  # type: ignore[assignment,misc]
+    PipelineResult = None  # type: ignore[assignment,misc]
 
 # Extended order types
-from quant_nanggroe.exchange.order_types import (
-    ExtendedOrderStatus,
-    TrailingStopOrder,
-    BracketOrder,
-    BracketLegStatus,
-    OCOOrder,
-    IcebergOrder,
-    StateTransitionError,
-    TransitionRecord,
-    transition_status,
-    TERMINAL_STATES,
-)
+try:
+    from quant_nanggroe.exchange.order_types import (
+        ExtendedOrderStatus,
+        TrailingStopOrder,
+        BracketOrder,
+        BracketLegStatus,
+        OCOOrder,
+        IcebergOrder,
+        StateTransitionError,
+        TransitionRecord,
+        transition_status,
+        TERMINAL_STATES,
+    )
+except ImportError:
+    ExtendedOrderStatus = None  # type: ignore[assignment,misc]
+    TrailingStopOrder = None  # type: ignore[assignment,misc]
+    BracketOrder = None  # type: ignore[assignment,misc]
+    BracketLegStatus = None  # type: ignore[assignment,misc]
+    OCOOrder = None  # type: ignore[assignment,misc]
+    IcebergOrder = None  # type: ignore[assignment,misc]
+    StateTransitionError = None  # type: ignore[assignment,misc]
+    TransitionRecord = None  # type: ignore[assignment,misc]
+    transition_status = None  # type: ignore[assignment,misc]
+    TERMINAL_STATES = None  # type: ignore[assignment,misc]
 
 __all__ = [
     # Abstract interface

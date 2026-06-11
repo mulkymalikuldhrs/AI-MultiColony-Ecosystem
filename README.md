@@ -4,541 +4,1280 @@
 
 <div align="center">
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=00D4AA&center=true&vCenter=true&width=720&lines=Multi-Agent+Decision+Intelligence+OS;5-Layer+Deterministic+Execution+Stack;Darwinian+Strategy+Lifecycle;Risk+Guardian+Constitution;Decision-Support+%E2%80%94+Not+Guaranteed+Profit)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=00D4AA&center=true&vCenter=true&width=720&lines=Multi-Agent+Decision+Intelligence+OS;5-Layer+Deterministic+Execution+Stack;Pressure-Vector+Synthesis;Risk+Guardian+Constitution;Decision-Support+%E2%80%94+Not+Guaranteed+Profit)](https://git.io/typing-svg)
 
 <br/>
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
-[![Binance](https://img.shields.io/badge/Binance-API-F0B90B?style=for-the-badge&logo=binance&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
-[![Multi-Agent](https://img.shields.io/badge/Multi-Agent-5_Layers-00D4AA?style=for-the-badge&logo=ai&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
-[![Version](https://img.shields.io/badge/Version-v15.3.0-005c2a?style=for-the-badge&logo=semanticrelease&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Tests](https://img.shields.io/badge/Tests-3143_Passing-00D4AA?style=for-the-badge&logo=pytest&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![NVIDIA NIM](https://img.shields.io/badge/NVIDIA-NIM_Powered-76B900?style=for-the-badge&logo=nvidia&logoColor=white)](https://build.nvidia.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
 
 <br/>
 
 [![GitHub Stars](https://img.shields.io/github/stars/mulkymalikuldhrs/Quant-Nanggroe-AI?style=for-the-badge&logo=github&color=gold)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/mulkymalikuldhrs/Quant-Nanggroe-AI?style=for-the-badge&logo=github&color=blue)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI/fork)
+[![GitHub Forks](https://img.shields.io/github.com/forks/mulkymalikuldhrs/Quant-Nanggroe-AI?style=for-the-badge&logo=github&color=blue)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI/fork)
 [![GitHub Issues](https://img.shields.io/github/issues/mulkymalikuldhrs/Quant-Nanggroe-AI?style=for-the-badge&logo=github&color=red)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI/issues)
 
 <br/>
 
-**Language / Bahasa / 语言**
+**Bahasa / Language / 语言**
 
+[![ID](https://img.shields.io/badge/ID-Bahasa%20Indonesia-red?style=flat-square)](README.md)
 [![EN](https://img.shields.io/badge/EN-English-blue?style=flat-square)](README.md)
-[![ID](https://img.shields.io/badge/ID-Bahasa%20Indonesia-red?style=flat-square)](README_id.md)
 [![CN](https://img.shields.io/badge/CN-中文-green?style=flat-square)](README_zh.md)
 
 </div>
 
 ---
 
-<a href="https://www.producthunt.com/products/quant-nanggroe-ai?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-quant-nanggroe-ai" target="_blank" rel="noopener noreferrer"><img alt="Quant Nanggroe AI - trading, quantitative, stocks, ai, ai agent, swarm | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1169196&amp;theme=dark&amp;t=1781170069213"></a>
+```
+ ██████╗ ██╗   ██╗ █████╗ ███╗   ██╗████████╗ ██████╗ ██╗   ██╗███╗   ██╗ ██████╗
+██╔═══██╗██║   ██║██╔══██╗████╗  ██║╚══██╔══╝██╔═══██╗██║   ██║████╗  ██║██╔════╝
+██║   ██║██║   ██║███████║██╔██╗ ██║   ██║   ██║   ██║██║   ██║██╔██╗ ██║██║  ███╗
+██║▄▄ ██║██║   ██║██╔══██║██║╚██╗██║   ██║   ██║   ██║██║   ██║██║╚██╗██║██║   ██║
+╚██████╔╝╚██████╔╝██║  ██║██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝██║ ╚████║╚██████╔╝
+ ╚══▄▄▀   ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝
+   ██╗   ██╗ █████╗  ██████╗  ██████╗ ███╗   ██╗███████╗██╗  ██╗   ██╗████████╗██╗
+   ╚██╗ ██╔╝██╔══██╗██╔════╝ ██╔═══██╗████╗  ██║██╔════╝██║  ╚██╗ ██╔╝╚══██╔══╝██║
+    ╚████╔╝ ███████║██║  ███╗██║   ██║██╔██╗ ██║█████╗  ██║   ╚████╔╝    ██║   ██║
+     ╚██╔╝  ██╔══██║██║   ██║██║   ██║██║╚██╗██║██╔══╝  ██║    ╚██╔╝     ██║   ██║
+      ██║   ██║  ██║╚██████╔╝╚██████╔╝██║ ╚████║██║     ███████╗ ██║     ██║   ███████╗
+      ╚═╝   ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚══════╝ ╚═╝     ╚═╝   ╚══════╝
+```
 
-## Overview
+<div align="center">
 
-Quant Nanggroe AI is a **Multi-Agent Decision Intelligence Operating System** for quantitative research and systematic trading in financial markets. It is part of the [HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) unified project ecosystem.
+### 🇮🇩 Dibuat dengan ❤️ di Indonesia oleh [Mulky Malikul Dhaher](https://github.com/mulkymalikuldhrs)
 
-Built on the principle of **Deterministic Decision Intelligence**, the platform treats LLMs as Logical Reasoning Engines operating under strict contracts that forbid subjective opinions, mandate data grounding, and require pressure-based numerical outputs rather than direct trade signals.
+**Quant Nanggroe AI** adalah Sistem Operasi Kecerdasan Keputusan Multi-Agent (*Multi-Agent Decision Intelligence OS*) untuk penelitian kuantitatif dan perdagangan sistematis di pasar keuangan.
 
-The system implements a **5-Layer Execution Stack** that processes market data from raw L1/L2 feeds through regime detection, multi-agent sensor analysis, pressure normalization, and decision synthesis with risk enforcement. It features a **Darwinian Strategy Lifecycle** that automatically retires underperforming strategies and a **Risk Guardian Constitution** as an independent layer of hard-coded safety rules.
-
-> **Honest Note**: This is a **decision-support and research tool**, not an autonomous trading system that guarantees profits. "Deterministic Decision Intelligence" means the data flow pipeline is deterministic — **not** that its outputs are guaranteed correct. All trading involves risk of loss. The Risk Guardian reduces but cannot eliminate risk.
+</div>
 
 ---
 
-## 5-Layer Execution Stack
+## ⚠️ Disclaimer Penting
 
-The core of Quant Nanggroe AI is its layered execution architecture. Each layer has a single responsibility and strict data contracts with the layers above and below it. This is what makes the pipeline **deterministic** — the same inputs always follow the same processing path, producing auditable, traceable decision artifacts.
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    LAYER 4 — DECISION                   │
-│              Decision Synthesis & Risk Enforcement       │
-│         Final pressure vector → action recommendation    │
-├─────────────────────────────────────────────────────────┤
-│                  LAYER 3 — NORMALIZATION                 │
-│            Pressure Normalization & Conflict Resolution   │
-│       Multi-agent outputs → unified pressure vector      │
-├─────────────────────────────────────────────────────────┤
-│                   LAYER 2 — SENSORS                      │
-│          Multi-Agent Sensor Analysis & Interpretation    │
-│       Regime context → specialized agent analysis        │
-├─────────────────────────────────────────────────────────┤
-│                    LAYER 1 — REGIME                      │
-│            Market Regime Detection & Classification      │
-│       Raw market data → regime labels & transitions      │
-├─────────────────────────────────────────────────────────┤
-│                     LAYER 0 — DATA                       │
-│          Data Foundation & Market Feeds (L1/L2)          │
-│       External feeds → normalized internal data model    │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Layer 0 — Data Foundation
-
-The bedrock layer ingests raw market data from multiple providers and normalizes it into a unified internal data model.
-
-- **L1/L2 Feed Ingestion** — Real-time order book snapshots, trade prints, and ticker updates from Binance and fallback providers
-- **AutoSwitch Data Engine** — Automatic failover between data providers (Binance → CoinCap → AlphaVantage → Polygon → Finnhub) with latency tracking
-- **Normalization Pipeline** — All incoming data is mapped to a canonical schema regardless of source, ensuring upstream layers never need provider-specific logic
-- **Historical Replay** — Cached tick data enables deterministic replay for backtesting and audit trails
-
-### Layer 1 — Regime Detection
-
-Processes normalized data to identify the current market regime, which governs how all downstream agents interpret signals.
-
-- **Regime Classification** — Labels market state (trending, mean-reverting, volatile, quiet, transitional) using statistical and structural indicators
-- **Transition Detection** — Identifies regime shifts in real-time, triggering agent reconfiguration
-- **Context Propagation** — Broadcasts regime labels to all Layer 2 sensors, ensuring every agent operates within the correct market context
-- **Confidence Scoring** — Each regime label carries a confidence score; low-confidence regimes trigger conservative agent behavior
-
-### Layer 2 — Multi-Agent Sensors
-
-Specialized agents analyze the market within the context provided by Layer 1. Each agent is a narrow expert, not a generalist.
-
-- **Technical Sensor** — Pattern recognition, momentum, mean-reversion, and volatility analysis
-- **Sentiment Sensor** — NLP-based sentiment extraction from news, social, and on-chain data
-- **Macro Sensor** — Interest rates, funding rates, correlation shifts, and cross-asset analysis
-- **Liquidity Sensor** — Order book depth analysis, slippage estimation, and flow detection
-- **Volatility Sensor** — Realized vs. implied volatility, regime-adjusted volatility forecasting
-- **On-Chain Sensor** — Whale movements, exchange flows, and smart money tracking (crypto markets)
-
-Each sensor produces a **pressure vector** (directional bias + magnitude) rather than a binary signal, enabling nuanced downstream synthesis.
-
-### Layer 3 — Pressure Normalization
-
-Receives pressure vectors from all active sensors and resolves conflicts into a unified assessment.
-
-- **Weighted Aggregation** — Sensor pressures are weighted by historical accuracy in the current regime
-- **Conflict Resolution** — When sensors disagree, the system reduces overall confidence rather than picking a winner
-- **Temporal Smoothing** — Prevents whipsaw by requiring sustained pressure before adjusting the aggregate
-- **Darwinian Weighting** — Sensors with consistently poor performance in a given regime have their weights automatically reduced (linked to the Strategy Lifecycle)
-
-### Layer 4 — Decision Synthesis & Risk Enforcement
-
-The final layer combines the normalized pressure vector with portfolio state and risk constraints to produce an action recommendation.
-
-- **Position Sizing** — Kelly-derived sizing modulated by current portfolio heat and regime confidence
-- **Risk Guardian Gate** — Every recommendation passes through the Risk Guardian Constitution before reaching the execution layer. The Guardian can **block, reduce, or modify** any action
-- **Audit Trail** — Every decision is logged with full provenance: which sensors contributed, their weights, regime context, and Guardian rulings
-- **Action Output** — The system outputs a structured decision artifact (not a direct trade order), which a human operator or downstream execution system can act upon
+> **INI BUKAN SISTEM TRADING OTONOM YANG MENJAMIN KEUNTUNGAN.**
+>
+> Quant Nanggroe AI adalah **alat pendukung keputusan dan riset** (*decision-support and research tool*). "Deterministic Decision Intelligence" berarti pipeline aliran data bersifat deterministik — **BUKAN** berarti output-nya dijamin benar. Semua perdagangan melibatkan risiko kerugian. Risk Guardian mengurangi tetapi **tidak dapat menghilangkan** risiko.
+>
+> - Jangan pernah mempertaruhkan uang yang Anda tidak mampu kehilangan
+> - Performa backtest tidak menjamin hasil di masa depan
+> - Sistem ini terus dalam pengembangan aktif — beberapa fitur masih berstatus WIP
+> - Selalu lakukan due diligence mandiri sebelum mengambil keputusan trading
 
 ---
 
-## Features
+## 📊 Statistik Repository
 
-- **5-Layer Execution Stack** — Deterministic data flow from raw feeds to decision artifacts, with strict layer contracts and full audit trails
-- **Deterministic Pipeline** — Every decision is traceable, auditable, and defensible. The same inputs follow the same processing path every time
-- **Darwinian Strategy Lifecycle** — Strategies and sensors are continuously evaluated; underperformers are automatically retired and replaced with evolved variants
-- **Risk Guardian Constitution** — Independent hard-coded safety rules immune to AI reasoning that can block, reduce, or modify any action regardless of agent confidence
-- **Desktop-OS UI** — React 19 interface with draggable windows, macOS-style dock, OmniBar command palette, and real-time visualization of agent states and pressure vectors
-- **AutoSwitch Data Engine** — Automatic failover between data providers (Binance, CoinCap, AlphaVantage, Polygon, Finnhub) with latency-aware routing
-- **Pressure-Based Outputs** — Agents produce continuous pressure vectors (direction + magnitude), not binary signals, enabling nuanced decision-making
-- **Regime-Aware Analysis** — All agents operate within detected market regime context, reducing false signals from regime-inappropriate strategies
-- **Full Provenance Audit** — Every decision artifact includes which sensors contributed, their weights, regime context, and Guardian rulings
+| Metrik | Nilai |
+|--------|-------|
+| 🐍 File Python | 1.325 |
+| 📝 Baris Kode Python | 419.000+ |
+| 🔷 File TypeScript/TSX | 501 (Next.js Dashboard) |
+| ✅ Tests Passing | 3.143 |
+| 🚫 Collection Errors | 0 |
+| 📡 Data Providers | 9 (dengan API call nyata) |
+| 🤖 Tipe Agent | 9 |
+| 🎯 Sensor Categories | 7 (Pressure Synthesis) |
+| 🎮 Model NVIDIA NIM | Gratis (deepseek-r1, llama-3.1-nemotron-70b, mixtral-8x22b) |
 
 ---
 
-## Architecture
+## 🏗️ Arsitektur Sistem
+
+Quant Nanggroe AI adalah **monorepo** yang menggabungkan dua subsistem utama:
 
 ```
-                          ┌──────────────────────┐
-                          │   Desktop-OS UI      │
-                          │   (React 19)         │
-                          │   ┌──────────────┐   │
-                          │   │  OmniBar     │   │
-                          │   │  Dock        │   │
-                          │   │  Windows     │   │
-                          │   └──────┬───────┘   │
-                          └─────────┼────────────┘
-                                    │
-                          ┌─────────▼────────────┐
-                          │   Layer 4: Decision   │
-                          │  ┌─────────────────┐  │
-                          │  │ Risk Guardian ◄────── Constitution
-                          │  │ Position Sizer  │  │  (Hard Rules)
-                          │  │ Audit Logger    │  │
-                          │  └────────┬────────┘  │
-                          └───────────┼───────────┘
-                                      │
-                          ┌───────────▼───────────┐
-                          │  Layer 3: Normalizer  │
-                          │  ┌─────────────────┐  │
-                          │  │ Weighted Agg    │  │
-                          │  │ Conflict Res    │  │
-                          │  │ Darwinian Wt    │◄──── Strategy
-                          │  └────────┬────────┘  │  Lifecycle
-                          └───────────┼───────────┘
-                                      │
-                   ┌──────────┬───────▼───────┬──────────┐
-                   │          │               │          │
-             ┌─────▼───┐ ┌───▼─────┐ ┌───────▼──┐ ┌────▼────┐
-             │Technical│ │Sentiment│ │Liquidity │ │On-Chain │
-             │ Sensor  │ │ Sensor  │ │  Sensor  │ │ Sensor  │
-             └─────┬───┘ └───┬─────┘ └───────┬──┘ └────┬────┘
-                   │         │               │         │
-             ┌─────▼─────────▼───────────────▼─────────▼────┐
-             │        Layer 1: Regime Detection             │
-             │   ┌──────────────────────────────────────┐   │
-             │   │ Classifier │ Transitions │ Confidence │   │
-             │   └──────────────────────────────────────┘   │
-             └──────────────────────┬───────────────────────┘
-                                    │
-             ┌──────────────────────▼───────────────────────┐
-             │         Layer 0: Data Foundation             │
-             │  ┌───────┐ ┌─────────┐ ┌───────┐ ┌───────┐ │
-             │  │Binance│ │CoinCap  │ │Polygn │ │Finnhb │ │
-             │  └───────┘ └─────────┘ └───────┘ └───────┘ │
-             │        AutoSwitch Data Engine                │
-             └─────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                  Quant-Nanggroe-AI Monorepo                      │
+│                                                                  │
+│  ┌─────────────────────────┐    ┌─────────────────────────────┐  │
+│  │   CLUSTER 1             │    │   CLUSTER 2                 │  │
+│  │   quant_nanggroe        │    │   ai_multicolony            │  │
+│  │   (Trading Engine)      │◄──►│   (Multi-Agent Ecosystem)   │  │
+│  │                         │    │                             │  │
+│  │  • 5-Layer Stack        │    │  • Colony Orchestration     │  │
+│  │  • Pressure Synthesis   │    │  • 9 Agent Types            │  │
+│  │  • Risk Guardian        │    │  • A2A Protocol             │  │
+│  │  • Backtest Engine      │    │  • 5-Tier Memory            │  │
+│  │  • Alpha Factors        │    │  • Security Layer           │  │
+│  │  • 6 Investor Personas  │    │  • Data Sources             │  │
+│  │  • NVIDIA NIM Router    │    │  • Integrations             │  │
+│  └─────────────────────────┘    └─────────────────────────────┘  │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────────┐ │
+│  │   DASHBOARD (Next.js 16 + React 19 + Tailwind CSS 4)       │ │
+│  │   Portfolio • Trading • Risk • Backtest • Colony • Agents   │ │
+│  └──────────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Honest Notes
+## 📐 Diagram Arsitektur
 
-> We believe in radical transparency. Here are the limitations and clarifications you should know before using this project.
+### 1. 5-Layer Execution Stack
 
-| Claim | Reality |
-|-------|---------|
-| "Deterministic Decision Intelligence" | The **data flow pipeline** is deterministic — same inputs follow the same path. This does **not** mean outputs are guaranteed correct. |
-| "Decision Intelligence OS" | This is a **decision-support tool**. It produces structured decision artifacts for human review, not autonomous trade execution. |
-| "Risk Guardian" | Reduces risk through hard-coded safety rules, but **cannot eliminate risk**. Market conditions can exceed any risk model. |
-| "Darwinian Strategy Lifecycle" | Automatically retires poor strategies based on metrics, but **past performance does not guarantee future results**. |
-| "Multi-Agent Analysis" | Multiple agents provide diverse perspectives, but **diverse analysis does not equal correct analysis**. |
-| Part of HermesQuantOS | This project is one component of the larger [HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) ecosystem. |
+```mermaid
+graph TD
+    subgraph "LAYER 1: Ingestion"
+        A1[Market Data Feeds] --> A2[yfinance]
+        A3[Crypto Feeds] --> A4[CoinGecko / Binance]
+        A5[Economic Data] --> A6[World Bank / FRED]
+        A7[OSINT Feeds] --> A8[GDELT / Reuters RSS]
+        A2 --> I[Ingestion Hub]
+        A4 --> I
+        A6 --> I
+        A8 --> I
+    end
 
-**Critical reminders:**
-- All trading involves **significant risk of loss**
-- This software is for **education and research** purposes
-- Always test with **paper trading** before committing real capital
-- Never risk more than you can afford to lose
-- Past backtest results do not predict future performance
+    subgraph "LAYER 2: Normalization"
+        I --> N1[Data Cleaning]
+        N1 --> N2[Temporal Alignment]
+        N2 --> N3[Feature Extraction]
+        N3 --> N4[Alpha101 / GTJA191 / Qlib158 / Technical / Fundamental]
+    end
+
+    subgraph "LAYER 3: Regime Detection"
+        N4 --> R1[Volatility Regime]
+        R1 --> R2[Trend Regime]
+        R2 --> R3[Market State Machine]
+        R3 --> R4[Regime Classification]
+    end
+
+    subgraph "LAYER 4: Multi-Agent Analysis"
+        R4 --> M1[QuantScanner 25%]
+        R4 --> M2[SMCAgent 30%]
+        R4 --> M3[NewsSentinel 20%]
+        R4 --> M4[FlowAgent 25%]
+        M1 --> PS[Pressure Synthesis]
+        M2 --> PS
+        M3 --> PS
+        M4 --> PS
+    end
+
+    subgraph "LAYER 5: Risk Guard & Execution"
+        PS --> RG[9-Checkpoint Risk Gate]
+        RG -->|APPROVED| EX[Execution Manager]
+        RG -->|VETOED| VL[Trade Vetoed]
+        EX --> BR[Paper / Alpaca / CCXT / IBKR / MT5]
+    end
+
+    style I fill:#001a0a,stroke:#00D4AA,stroke-width:2px,color:#00D4AA
+    style PS fill:#001a0a,stroke:#fbbf24,stroke-width:2px,color:#fbbf24
+    style RG fill:#001a0a,stroke:#ef4444,stroke-width:2px,color:#ef4444
+    style EX fill:#001a0a,stroke:#22c55e,stroke-width:2px,color:#22c55e
+```
+
+### 2. Pressure Synthesis Flow
+
+```mermaid
+graph LR
+    subgraph "7 Sensor Categories"
+        S1[QuantScanner<br/>Trend/ADX]
+        S2[SMCAgent<br/>Smart Money]
+        S3[NewsSentinel<br/>Sentiment]
+        S4[FlowAgent<br/>Whale/Flow]
+        S5[Geopolitical<br/>World Order]
+        S6[Intermarket<br/>Correlation]
+        S7[Macro/Monetary<br/>Fundamental]
+    end
+
+    S1 -->|25%| W[Weighted<br/>Fusion<br/>Engine]
+    S2 -->|30%| W
+    S3 -->|20%| W
+    S4 -->|25%| W
+    S5 -->|Overlay| W
+    S6 -->|Overlay| W
+    S7 -->|Overlay| W
+
+    W --> N[Normalization<br/>0.0 — 1.0]
+    N --> BP[BUY_PRESSURE]
+    N --> SP[SELL_PRESSURE]
+
+    BP --> C[Confidence<br/>Metrics]
+    SP --> C
+
+    C --> D[Decision<br/>Synthesis]
+
+    style W fill:#001a0a,stroke:#fbbf24,stroke-width:2px,color:#fbbf24
+    style N fill:#001a0a,stroke:#00D4AA,stroke-width:2px,color:#00D4AA
+    style D fill:#001a0a,stroke:#22c55e,stroke-width:2px,color:#22c55e
+```
+
+### 3. Risk Guardian Checkpoints
+
+```mermaid
+graph TD
+    T[Trade Proposal] --> C1{1. Risk/Trade ≤ 0.5%?}
+    C1 -->|Fail| V[VETO]
+    C1 -->|Pass| C2{2. Daily Loss ≤ 1%?}
+    C2 -->|Fail| V
+    C2 -->|Pass| C3{3. Weekly Loss ≤ 3%?}
+    C3 -->|Fail| V
+    C3 -->|Pass| C4{4. R:R ≥ 1:2?}
+    C4 -->|Fail| V
+    C4 -->|Pass| C5{5. Stop Loss Exists?}
+    C5 -->|Fail| V
+    C5 -->|Pass| C6{6. Valid Entry Price?}
+    C6 -->|Fail| V
+    C6 -->|Pass| C7{7. Valid Direction?}
+    C7 -->|Fail| V
+    C7 -->|Pass| C8{8. Max 5 Trades/Day?}
+    C8 -->|Fail| V
+    C8 -->|Pass| C9{9. Correlation Check?}
+    C9 -->|Fail| V
+    C9 -->|Pass| A[✅ APPROVED]
+
+    A --> EL{Emotional Lockout?}
+    EL -->|Active| B[❌ BLOCKED<br/>Only Close Orders]
+    EL -->|Clear| KS{Kill Switch?}
+    KS -->|Active| H[🛑 HALT ALL TRADING]
+    KS -->|Clear| EX[Execute Trade]
+
+    style V fill:#1a0000,stroke:#ef4444,stroke-width:2px,color:#ef4444
+    style A fill:#001a0a,stroke:#22c55e,stroke-width:2px,color:#22c55e
+    style H fill:#1a0000,stroke:#ef4444,stroke-width:3px,color:#ef4444
+    style B fill:#1a0a00,stroke:#fbbf24,stroke-width:2px,color:#fbbf24
+```
+
+### 4. Colony Orchestration
+
+```mermaid
+graph TD
+    USER[User / System] --> MGR[Colony Manager]
+
+    MGR --> SCH[Task Scheduler<br/>Priority Queue]
+    MGR --> COORD[Coordinator]
+    MGR --> A2A[A2A Protocol<br/>Agent-to-Agent]
+
+    SCH -->|3 Routing Strategies| R1[Least-Loaded]
+    SCH -->|3 Routing Strategies| R2[Round-Robin]
+    SCH -->|3 Routing Strategies| R3[Capability-Match]
+
+    COORD --> H1[🛡️ SecurityHand<br/>1-5 replicas]
+    COORD --> H2[💻 CodeHand<br/>2-10 replicas]
+    COORD --> H3[🔬 ResearchHand<br/>1-5 replicas]
+    COORD --> H4[🌐 BrowserHand<br/>2-10 replicas]
+    COORD --> H5[🎙️ VoiceHand<br/>0-3 replicas]
+    COORD --> H6[⚙️ ComputeHand<br/>3-20 replicas]
+    COORD --> H7[🔗 IntegrationHand<br/>1-5 replicas]
+
+    H1 --> AG1[Security Agent]
+    H2 --> AG2[Coder Agent]
+    H3 --> AG3[Researcher Agent]
+    H4 --> AG4[Browser Agent]
+    H5 --> AG5[Voice Agent]
+
+    A2A -->|Handshake| AG1
+    A2A -->|Capability Ad| AG3
+    A2A -->|Result Tracking| AG2
+
+    MGR --> S[Colony Scales<br/>MICRO / SMALL / MEDIUM / LARGE]
+
+    style MGR fill:#001a0a,stroke:#00D4AA,stroke-width:2px,color:#00D4AA
+    style SCH fill:#001a0a,stroke:#fbbf24,stroke-width:2px,color:#fbbf24
+    style A2A fill:#001a0a,stroke:#8b5cf6,stroke-width:2px,color:#8b5cf6
+```
+
+### 5. Multi-Agent Debate Protocol
+
+```mermaid
+sequenceDiagram
+    participant S as Strategist Agent
+    participant BR as Bull Researcher
+    participant BE as Bear Researcher
+    participant RD as Risk Debaters
+    participant V as Council Voting
+    participant RG as Risk Guardian
+
+    S->>BR: Request Bull Case
+    S->>BE: Request Bear Case
+
+    BR->>BE: Bull Argument + Counter
+    BE->>BR: Bear Argument + Counter
+
+    Note over BR,BE: Structured Debate<br/>(Multiple Rounds)
+
+    BR->>RD: Bull Summary
+    BE->>RD: Bear Summary
+
+    RD->>RD: Conservative Debate
+    RD->>RD: Neutral Debate
+    RD->>RD: Aggressive Debate
+
+    RD->>V: All Arguments Collected
+
+    V->>V: Weighted Voting
+    V->>V: Confidence Score
+
+    alt Confidence ≥ 0.65
+        V->>RG: Trade Proposal (High Confidence)
+    else Confidence < 0.65
+        V->>V: Trigger Council Debate
+        Note over V: Additional Analysis Required
+        V->>RG: Trade Proposal (After Debate)
+    end
+
+    RG->>RG: 9-Checkpoint Gate
+    alt All Checkpoints Pass
+        RG-->>S: ✅ APPROVED
+    else Any Checkpoint Fails
+        RG-->>S: ❌ VETOED
+    end
+```
 
 ---
 
-## Quick Start
+## 🏛️ Cluster 1: `quant_nanggroe` — Mesin Trading Kuantitatif
 
-### Prerequisites
+### 5-Layer Execution Stack
 
-- **Node.js** >= 18.x
-- **npm** >= 9.x (or pnpm/yarn)
-- Binance API key (use **testnet** first)
+| Layer | Nama | Fungsi |
+|-------|------|--------|
+| **L1** | **Ingestion** | Pengumpulan data real-time dari 9 provider |
+| **L2** | **Normalization** | Pembersihan, alignment temporal, ekstraksi fitur |
+| **L3** | **Regime Detection** | Klasifikasi regime pasar (volatilitas, tren, state) |
+| **L4** | **Multi-Agent Analysis** | Analisis sensor multi-agent dengan Pressure Synthesis |
+| **L5** | **Risk Guard & Execution** | 9-checkpoint gate + eksekusi via broker |
 
-### Installation
+### Pressure-Vector Synthesis
+
+Sistem **Pressure-Vector Synthesis** mengkonversi semua output sensor/agent menjadi dua skalar:
+- **BUY_PRESSURE** (0.0 – 1.0)
+- **SELL_PRESSURE** (0.0 – 1.0)
+
+Dengan bobot sensor:
+
+| Sensor | Bobot | Deskripsi |
+|--------|-------|-----------|
+| QuantScanner | 25% | Sinyal Trend/ADX |
+| SMCAgent | 30% | Smart Money Concepts (BOS, CHOCH, Displacement) |
+| NewsSentinel | 20% | Dampak berita & sentimen |
+| FlowAgent | 25% | Sinyal whale/flow imbalance |
+| Geopolitical | Overlay | Analisis geopolitik multi-order |
+| Intermarket | Overlay | Korelasi antar-pasar |
+| Macro/Monetary | Overlay | Analisis fundamental makro |
+
+Setiap sensor juga menghasilkan **confidence metric** yang menentukan apakah council debate diperlukan (threshold: 0.65).
+
+### Risk Management
+
+Risk Guardian adalah **lapisan independen** yang TIDAK DAPAT di-override oleh agent manapun:
+
+#### Batasan Konstitusional (HARDCODED — TIDAK BISA DI-OVERRIDE)
+
+| Parameter | Nilai | Keterangan |
+|-----------|-------|------------|
+| Max Risk per Trade | 0.5% | Batas risiko per posisi |
+| Max Daily Loss | 1% | Batas kerugian harian |
+| Max Weekly Loss | 3% | Batas kerugian mingguan |
+| Min Risk:Reward | 1:2 | Rasio minimal |
+| Max Drawdown | 15% | Sebelum kill switch aktif |
+| Max Daily Trades | 5 | Cegah overtrading |
+| Max Correlated Positions | 3 | Diversifikasi wajib |
+| Max Leverage | 3x | Batas leverage |
+| Kill Switch Daily | -2% PnL | Auto halt harian |
+| Kill Switch Weekly | -5% PnL | Auto halt mingguan |
+
+#### 9-Checkpoint Risk Gate
+
+Setiap trade HARUS melewati semua checkpoint. Jika SATU checkpoint gagal → **VETO**:
+
+1. ✅ Risk per trade ≤ 0.5%
+2. ✅ Daily loss ≤ 1%
+3. ✅ Weekly loss ≤ 3%
+4. ✅ Risk:Reward ratio ≥ 1:2
+5. ✅ Stop loss exists
+6. ✅ Valid entry price
+7. ✅ Valid direction
+8. ✅ Not overtrading (max 5/day)
+9. ✅ Correlated position check
+
+#### Kelly Criterion (5 Varian)
+
+| Varian | Formula | Kegunaan |
+|--------|---------|----------|
+| Full Kelly | f* = (bp - q) / b | Posisi optimal (agresif) |
+| Half Kelly | f* / 2 | Konservatif |
+| Quarter Kelly | f* / 4 | Sangat konservatif |
+| Fractional Kelly | f* / k (adjustable) | Fleksibel |
+| Adaptive Kelly | Berbasis performa terkini | Menyesuaikan kondisi |
+
+#### Value at Risk (3 Metode + CVaR)
+
+| Metode | Pendekatan |
+|--------|------------|
+| **Parametric VaR** | Variance-Covariance (asumsi distribusi normal) |
+| **Historical VaR** | Distribusi empiris |
+| **Monte Carlo VaR** | Simulasi skenario |
+
+> **CVaR (Expected Shortfall)** digunakan sebagai metrik PRIMER karena menangkap magnitude kerugian di tail, bukan hanya threshold.
+
+#### Kill Switch (3-Level)
+
+| Level | Trigger | Aksi |
+|-------|---------|------|
+| **Level 1** | Daily loss -2% PnL | Halt trading, notifikasi |
+| **Level 2** | Weekly loss -5% PnL | Halt trading, memerlukan review manual |
+| **Level 3** | Max drawdown 15% | HALT TOTAL, reset hanya dengan `"CONFIRM_RESET_AFTER_REVIEW"` |
+
+#### Emotional Lockout
+
+Mencegah revenge trading dan keputusan emosional:
+
+| Trigger | Durasi Lockout |
+|---------|---------------|
+| 3 consecutive losing trades | 1 jam |
+| 3 override attempts dalam sehari | 24 jam |
+| Daily loss > 5% | Hingga hari berikutnya |
+| Manual lockout | Durasi custom |
+
+Saat lockout aktif: hanya order penutupan posisi yang diizinkan.
+
+### Alpha Factor Library
+
+| Library | Jumlah Faktor | Sumber |
+|---------|---------------|--------|
+| **Alpha101** | 101 faktor | WorldQuant 101 Formulaic Alphas |
+| **GTJA191** | 191 faktor | Guotai Junan Securities |
+| **Qlib158** | 158 faktor | Microsoft Qlib |
+| **Technical** | 50+ | Indikator teknikal klasik |
+| **Fundamental** | 30+ | Laporan keuangan & rasio |
+| **Academic** | 20+ | Faktor dari paper akademik |
+
+### Backtesting Engine
+
+```python
+from quant_nanggroe.engine.backtest import BacktestEngine
+
+engine = BacktestEngine(
+    strategy="momentum_rsi",
+    symbols=["AAPL", "MSFT"],
+    start="2020-01-01",
+    end="2024-01-01",
+    initial_capital=100_000,
+)
+
+result = engine.run()
+print(result.sharpe_ratio, result.max_drawdown, result.total_return)
+```
+
+Fitur backtest:
+
+| Fitur | Status | Keterangan |
+|-------|--------|------------|
+| Event-driven engine | ✅ Stabil | Tick-by-tick simulation |
+| Walk-Forward Analysis | ✅ Stabil | Out-of-sample validation |
+| Monte Carlo Simulation | ✅ Stabil | Robustness testing |
+| CPCV (Combinatorial Purged CV) | 🔧 WIP | Sedang dikembangkan |
+| Multi-asset engines | ✅ Stabil | Equity, Crypto, Forex, Futures |
+| Portfolio optimizers | ✅ Stabil | Mean-Variance, Risk Parity, Equal Vol |
+| Fama-French benchmarks | ✅ Stabil | 3-factor & 5-factor |
+| Nautilus adapter | 🔧 WIP | Integrasi NautilusTrader |
+
+### Strategi Trading
+
+| Strategi | Status | Keterangan |
+|----------|--------|------------|
+| ICT (Inner Circle Trader) | ✅ Stabil | Institutional order flow |
+| SMC (Smart Money Concepts) | ✅ Stabil | BOS, CHOCH, Order Blocks |
+| Wyckoff | ✅ Stabil | Accumulation/Distribution |
+| Fibonacci | ✅ Stabil | Retracement & Extension |
+| Market Profile | ✅ Stabil | Volume Profile, POC, VA |
+| Volume Delta | ✅ Stabil | Order flow imbalance |
+| Mean Reversion | ✅ Stabil | Statistically-based |
+| Pairs Trading | ✅ Stabil | Cointegration-based |
+| Momentum | ✅ Stabil | Trend following |
+| Volatility Arbitrage | ✅ Stabil | Dispersion trading |
+| Statistical Arbitrage | ✅ Stabil | Multi-factor |
+| Market Making | 🔧 WIP | Spread capture |
+| Regime-Based | ✅ Stabil | Adaptive switching |
+| Crypto-Specific | ✅ Stabil | DEX, mempool, rugcheck |
+
+### Screener (8 Komponen)
+
+| Komponen | Fungsi |
+|----------|--------|
+| **Market Structure** | Struktur pasar & regime |
+| **Liquidity/OrderFlow** | Kedalaman order book & flow |
+| **Intermarket** | Korelasi antar-pasar |
+| **Macro Analysis** | Indikator makroekonomi |
+| **Monetary Fundamental** | Kebijakan moneter |
+| **DEX Intelligence** | On-chain DEX analytics |
+| **Positioning/Crowd** | Sentimen & positioning crowd |
+| **Quant Scoring** | Multi-factor scoring |
+
+### NVIDIA NIM Integration
+
+Router cerdas yang mengarahkan tugas ke model NIM optimal — **GRATIS** (free tier):
+
+| Tipe Tugas | Model Primer | Fallback Chain |
+|-------------|--------------|----------------|
+| **Analysis** | meta/llama-3.1-70b-instruct | mixtral-8x22b → gemma-2-27b → phi-3-medium |
+| **Strategy** | meta/llama-3.1-405b-instruct | llama-3.1-70b → mixtral-8x22b |
+| **Risk** | mistralai/mixtral-8x22b-instruct | llama-3.1-70b → gemma-2-27b |
+| **Sentiment** | google/gemma-2-27b-it | phi-3-medium → llama-3.1-70b |
+| **Code** | microsoft/phi-3-medium-128k-instruct | llama-3.1-70b → mixtral-8x22b |
+| **Reward** | nvidia/nemotron-4-340b-reward | — |
+
+Fitur router:
+- ✅ Fallback chain otomatis
+- ✅ Per-model performance metrics
+- ✅ Cost optimization
+- ✅ Rate limiting (60 req/min free tier)
+- ✅ Exponential backoff retry
+- ✅ Embedding (nv-embedqa-e5-v5) & Reranking (nv-rerankqa-mistral-4b-v3)
+
+### Investor Personas
+
+6 persona investor legendaris yang menganalisis dari perspektif berbeda:
+
+| Persona | Filosofi | Fokus |
+|---------|----------|-------|
+| 🎩 **Warren Buffett** | Value Investing | Intrinsic value, margin of safety |
+| 🌊 **Ray Dalio** | Macro/All Weather | Economic machine, risk parity |
+| 🚀 **Cathie Wood** | Disruptive Innovation | Tech disruption, exponential growth |
+| 🔍 **Michael Burry** | Deep Value/Contrarian | Mispriced assets, catalyst-driven |
+| 🏇 **Peter Lynch** | Growth at Reasonable Price | Earnings growth, PEG ratio |
+| 💰 **Stanley Druckenmiller** | Macro/Asymmetric | Risk-reward, top-down analysis |
+
+### Geopolitical Analysis
+
+Analisis geopolitik dari 5 perspektif world order:
+
+| Perspektif | Fokus |
+|------------|-------|
+| 🇺🇸 **American Order** | USD hegemony, Fed policy, NATO |
+| 🇨🇳 **Chinese Order** | BRI, digital yuan, SCO |
+| 🇪🇺 **European Order** | ECB, EU integration, ESG |
+| 🕌 **Islamic Finance** | Sharia-compliant, sukuk, halal screening |
+| 🌍 **Multipolar** | BRICS+, de-dollarization, geopolitik baru |
+
+---
+
+## 🐜 Cluster 2: `ai_multicolony` — Ekosistem Multi-Agent
+
+### Colony Orchestration
+
+Sistem koloni mengorganisir agent ke dalam unit yang berbagi konteks, memori, dan akses tools:
+
+| Komponen | Fungsi |
+|----------|--------|
+| **Colony Manager** | Lifecycle, koordinasi, health monitoring |
+| **Coordinator** | Distribusi tugas antar hand |
+| **Task Scheduler** | Priority queue (critical/high/medium/low) |
+| **A2A Protocol** | Agent-to-Agent communication |
+
+### 9 Tipe Agent
+
+| Agent | Fungsi | Tools Khusus |
+|-------|--------|--------------|
+| 🤖 **Manus** | General-purpose autonomous agent | Multi-tool |
+| 📋 **Planner** | Perencanaan & dekomposisi tugas | Task decomposition |
+| ⚡ **Executor** | Eksekusi tugas terencana | Shell, file, docker |
+| 💻 **Coder** | Generasi & review kode | Code execution, review |
+| 🌐 **Browser** | Automasi browser & scraping | Stealth browser, human-like |
+| 🎙️ **Voice** | Input/output suara | TTS, STT, transcription |
+| 🛡️ **Security** | Analisis keamanan & vulnerability | Vulnerability scanner |
+| 🔬 **Researcher** | Riset web & codebase | Search, web reader |
+| 🐜 **Colony** | Spawning & manajemen sub-koloni | Colony lifecycle |
+
+### 7 Hand Types
+
+Setiap hand mengelola grup agent spesialis:
+
+| Hand | Spesialisasi | Replika |
+|------|-------------|---------|
+| 🛡️ **SecurityHand** | Analisis keamanan & vulnerability scanning | 1-5 |
+| 💻 **CodeHand** | Generasi kode, review & testing | 2-10 |
+| 🔬 **ResearchHand** | Riset web & codebase | 1-5 |
+| 🌐 **BrowserHand** | Automasi browser & web scraping | 2-10 |
+| 🎙️ **VoiceHand** | Voice I/O & transcription | 0-3 |
+| ⚙️ **ComputeHand** | Eksekusi kode sandboxed | 3-20 |
+| 🔗 **IntegrationHand** | VCS, CI/CD & integrasi eksternal | 1-5 |
+
+### Task Scheduler
+
+```python
+from ai_multicolony.colony import TaskScheduler
+
+scheduler = TaskScheduler(
+    max_concurrent=20,
+    routing_strategy="least_loaded",  # or "round_robin" / "capability_match"
+    default_timeout_ms=300_000,
+)
+
+await scheduler.submit(task)
+```
+
+| Routing Strategy | Deskripsi |
+|-----------------|-----------|
+| **Least-Loaded** | Tugas ke agent dengan beban tersedikit |
+| **Round-Robin** | Distribusi merata secara berputar |
+| **Capability-Match** | Tugas ke agent dengan kemampuan terbaik |
+
+### Security Layer
+
+| Fitur | Implementasi |
+|-------|-------------|
+| **RBAC/ABAC Permissions** | Role-Based + Attribute-Based Access Control |
+| **SHA-256 Audit Trail** | Setiap aksi dicatat dengan hash verifikasi |
+| **Vulnerability Scanner** | Deteksi pola regex + Shannon entropy analysis untuk secret leak |
+| **Security Scoring** | Skor keamanan per-file dan per-dependency |
+
+### Finance Module (di ai_multicolony)
+
+Modul keuangan terintegrasi dengan batasan konstitusional:
+
+| Komponen | Fungsi |
+|----------|--------|
+| **Risk Guard** | 0.5%/trade, 1%/day, 3%/week |
+| **Kill Switch** | 3-level (daily, weekly, max drawdown) |
+| **Market State** | Deteksi regime pasar |
+| **Auto-Switch** | Pergantian mode otomatis |
+| **Pressure Engine** | Pressure synthesis untuk koloni |
+
+### 5-Tier Memory Architecture
+
+```
+┌─────────────────────────────────────┐
+│  T0 — Active Context Window (Hot)   │  ← Sedang digunakan
+├─────────────────────────────────────┤
+│  T1 — Letta-Style Paged Memory      │  ← Paged, searchable
+├─────────────────────────────────────┤
+│  T2 — Vector / Embedding Store      │  ← Semantic search
+├─────────────────────────────────────┤
+│  T3 — Temporal Knowledge Graph      │  ← Fakta dengan waktu valid
+├─────────────────────────────────────┤
+│  T4 — Hierarchical Tree Store       │  ← Abstraksi tingkat tinggi
+└─────────────────────────────────────┘
+```
+
+#### 8 Memory Condensers
+
+| Condenser | Fungsi |
+|-----------|--------|
+| SummaryCondenser | Ringkasan riwayat percakapan |
+| KeyFactCondenser | Ekstraksi fakta kunci |
+| TemporalCondenser | Filter & pengelompokan berdasarkan waktu |
+| RelevanceCondenser | Skor relevansi & thresholding |
+| RedundancyCondenser | Deduplikasi entri serupa |
+| ProceduralCondenser | Ekstraksi aksi & prosedur |
+| RelationalCondenser | Ekstraksi relasi entitas |
+| HybridCondenser | Kombinasi multiple condensers |
+
+### Data Sources
+
+#### 🆓 Gratis (Tanpa API Key)
+
+| Sumber | Tipe Data | Keterangan |
+|--------|-----------|------------|
+| **CoinGecko** | Crypto | Harga, market cap, volume |
+| **Binance Public API** | Crypto | Order book, trades, klines |
+| **Yahoo Finance** (yfinance) | Equities, Forex | OHLCV, fundamentals |
+| **GDELT** | Global Events | Event database real-time |
+| **World Bank API** | Economic Data | GDP, inflation, trade |
+| **FRED** | US Economic Data | Fed rates, unemployment, CPI |
+
+#### 🔑 Memerlukan API Key
+
+| Sumber | Tipe Data | Keterangan |
+|--------|-----------|------------|
+| **AlphaVantage** | Equities, Forex | Free tier tersedia |
+| **Alpaca** | Equities, Crypto | Trading + data |
+| **Finnhub** | Equities, News | Real-time & historical |
+| **SEC EDGAR** | Filings | Laporan keuangan perusahaan |
+
+### Integrations
+
+| Integrasi | Fungsi | Status |
+|-----------|--------|--------|
+| **Crucix OSINT** | Intelligence platform bridge | ✅ Aktif |
+| **HermesQuant Bridge** | Cross-platform trading bridge | ✅ Aktif |
+| **CrewAI Adapter** | CrewAI compatibility layer | ✅ Aktif |
+| **AutoGen Adapter** | Microsoft AutoGen bridge | ✅ Aktif |
+| **LangGraph Adapter** | Native LangGraph orchestration | ✅ Aktif |
+
+---
+
+## 🖥️ Dashboard (Next.js 16)
+
+Dashboard real-time untuk monitoring dan kontrol:
+
+| Page | Fungsi |
+|------|--------|
+| 📊 **Portfolio** | Posisi, PnL, alokasi aset |
+| 📈 **Trading** | Eksekusi trading & order management |
+| 🛡️ **Risk** | Risk gauge, drawdown, kill switch status |
+| 🔄 **Backtest** | Hasil backtest & walk-forward |
+| 🐜 **Colony** | Status koloni & agent health |
+| 🤖 **Agents** | Agent registry & activity |
+| 🧬 **Factors** | Alpha factor explorer |
+| 📋 **Strategies** | Strategi aktif & performa |
+| 🛠️ **Tools** | Tool registry & eksekusi |
+| 🔒 **Security** | Audit trail & findings |
+| 💾 **Memory** | Memory browser & search |
+| 📡 **Channels** | Discord/Slack/Telegram/WhatsApp |
+| ⚙️ **Settings** | Konfigurasi sistem |
+
+Tech Stack:
+- **Next.js 16** + **React 19**
+- **Tailwind CSS 4** + **shadcn/ui**
+- **Recharts** + **Lightweight Charts**
+- **Zustand** (state management)
+- **Socket.IO** (real-time WebSocket)
+- **Framer Motion** (animasi)
+
+---
+
+## 🚀 Quick Start
+
+### Prasyarat
+
+- Python 3.11+
+- Node.js 20+ (untuk dashboard)
+- Docker & Docker Compose (opsional, untuk deployment)
+- Git
+
+### Instalasi Cepat
 
 ```bash
-# Clone the repository
+# 1. Clone repository
 
 <!-- AUTO-PACKAGE-BADGES:START -->
 <!-- Auto-generated package badges -->
 
+![npm version](https://img.shields.io/npm/v/crucix?style=flat-square&logo=npm&color=blue) ![npm downloads](https://img.shields.io/npm/dw/crucix?style=flat-square&color=brightgreen) ![npm license](https://img.shields.io/npm/l/crucix?style=flat-square) [![Deployed](https://img.shields.io/badge/deployed-2.1.0-blue?style=flat-square)](https://www.npmjs.com/package/crucix)
 ![PyPI version](https://img.shields.io/pypi/v/quant-nanggroe-ai?style=flat-square&logo=pypi&color=green) ![PyPI downloads](https://img.shields.io/pypi/dm/quant-nanggroe-ai?style=flat-square&color=brightgreen) ![PyPI license](https://img.shields.io/pypi/l/quant-nanggroe-ai?style=flat-square) [![Deployed](https://img.shields.io/badge/deployed-0.2.0-blue?style=flat-square)](https://pypi.org/project/quant-nanggroe-ai)
 
 <!-- AUTO-PACKAGE-BADGES:END -->
 git clone https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI.git
 cd Quant-Nanggroe-AI
 
+# 2. Buat virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# venv\Scripts\activate   # Windows
+
+# 3. Install dependencies
+pip install -e ".[dev]"
+
+# 4. Install data providers (opsional)
+pip install -e ".[data]"
+
+# 5. Install ML dependencies (opsional)
+pip install -e ".[ml]"
+
+# 6. Install memory/vector store (opsional)
+pip install -e ".[memory]"
+
+# 7. Install semua sekaligus
+pip install -e ".[all]"
+```
+
+### Menjalankan API Server
+
+```bash
+# Development mode
+uvicorn quant_nanggroe.api.app:create_app --factory --reload --port 8000
+
+# Atau menggunakan CLI
+qnai serve --port 8000 --reload
+```
+
+### Menjalankan Dashboard
+
+```bash
+cd dashboard
+
 # Install dependencies
 npm install
 
-# Configure environment
-cp .env.example .env
-# Edit .env with your API keys (use testnet keys for initial testing)
-
-# Start development server
+# Development
 npm run dev
+
+# Production build
+npm run build
+npm run start
 ```
+
+### Menjalankan Tests
+
+```bash
+# Semua tests
+pytest
+
+# Dengan coverage
+pytest --cov=quant_nanggroe --cov=ai_multicolony --cov-report=html
+
+# Hanya unit tests (tanpa integration)
+pytest -m "not integration"
+
+# Hanya specific module
+pytest tests/test_engine/test_risk.py -v
+```
+
+---
+
+## ⚙️ Konfigurasi
 
 ### Environment Variables
 
+Buat file `.env` di root directory:
+
 ```env
-# Required — Data Provider
-BINANCE_API_KEY=your_testnet_key
-BINANCE_API_SECRET=your_testnet_secret
+# ═══════════════════════════════════════════════════════
+# CORE
+# ═══════════════════════════════════════════════════════
+APP_ENV=development
+SECRET_KEY=your-secret-key-here
 
-# Optional — Fallback Data Providers
-COINCAP_API_KEY=
-ALPHAVANTAGE_API_KEY=
-POLYGON_API_KEY=
-FINNHUB_API_KEY=
+# ═══════════════════════════════════════════════════════
+# DATABASE
+# ═══════════════════════════════════════════════════════
+DATABASE_URL=postgresql+asyncpg://qna:qna_dev_password@localhost:5432/quant_nanggroe
+REDIS_URL=redis://localhost:6379/0
+QUESTDB_URL=http://localhost:9000
 
-# Optional — LLM Reasoning Engine
-OPENAI_API_KEY=
+# ═══════════════════════════════════════════════════════
+# NVIDIA NIM (GRATIS — dari build.nvidia.com)
+# ═══════════════════════════════════════════════════════
+QNAI_NVIDIA_NIM_API_KEY=nvapi-xxxxx
+QNAI_NVIDIA_NIM_BASE_URL=https://integrate.api.nvidia.com/v1
+QNAI_NVIDIA_NIM_DEFAULT_MODEL=meta/llama-3.1-70b-instruct
 
-# Risk Guardian Configuration
-MAX_POSITION_SIZE_PCT=5
-MAX_PORTFOLIO_HEAT_PCT=20
-MAX_DAILY_DRAWDOWN_PCT=3
+# ═══════════════════════════════════════════════════════
+# LLM PROVIDERS (Opsional — punya fallback gratis)
+# ═══════════════════════════════════════════════════════
+OPENAI_API_KEY=sk-xxxxx
+ANTHROPIC_API_KEY=sk-ant-xxxxx
+GOOGLE_API_KEY=xxxxx
+
+# ═══════════════════════════════════════════════════════
+# DATA PROVIDERS (Opsional)
+# ═══════════════════════════════════════════════════════
+ALPACA_API_KEY=xxxxx
+ALPACA_SECRET_KEY=xxxxx
+ALPHAVANTAGE_API_KEY=xxxxx
+FINNHUB_API_KEY=xxxxx
+FRED_API_KEY=xxxxx          # Gratis dari FRED
+
+# ═══════════════════════════════════════════════════════
+# BROKER (Opsional — untuk live trading)
+# ═══════════════════════════════════════════════════════
+ALPACA_API_KEY=xxxxx
+ALPACA_SECRET_KEY=xxxxx
+INTERACTIVE_BROKERS_HOST=127.0.0.1
+INTERACTIVE_BROKERS_PORT=7497
 ```
 
-> **Important**: Always start with Binance Testnet. Never connect to mainnet with untested configurations.
+> **Note**: Sistem berjalan tanpa API key berbayar. NVIDIA NIM menyediakan model gratis, dan Yahoo Finance/CoinGecko/Binance/GDELT/World Bank tidak memerlukan key.
 
----
+### Konfigurasi YAML
 
-## API Reference
+File `config/system_config.yaml` mengatur seluruh sistem:
 
-### Core Modules
+```yaml
+# Timezone
+regional:
+  timezone: "Asia/Jakarta"
+  locale: "id_ID"
+  currency: "IDR"
 
-#### Layer 0 — Data Engine
-
-```typescript
-import { DataEngine } from '@quant-nanggroe/data-engine';
-
-const engine = new DataEngine({
-  primary: 'binance',
-  fallbacks: ['coincap', 'alphavantage'],
-  autoSwitch: true,
-});
-
-// Subscribe to real-time L2 order book
-engine.onOrderBook('BTC/USDT', (snapshot) => {
-  console.log(snapshot.bids, snapshot.asks);
-});
-
-// Get historical ticks with deterministic replay
-const ticks = await engine.getHistoricalTicks('BTC/USDT', {
-  start: '2025-01-01',
-  end: '2025-01-31',
-  source: 'cache', // ensures deterministic replay
-});
-```
-
-#### Layer 1 — Regime Detector
-
-```typescript
-import { RegimeDetector } from '@quant-nanggroe/regime';
-
-const detector = new RegimeDetector({
-  lookback: 100,
-  transitionSensitivity: 0.7,
-});
-
-detector.onRegimeChange((current, previous, confidence) => {
-  console.log(`Regime: ${previous} → ${current} (confidence: ${confidence})`);
-  // Regime labels: 'trending' | 'mean-reverting' | 'volatile' | 'quiet' | 'transitional'
-});
-```
-
-#### Layer 2 — Sensor Agents
-
-```typescript
-import { SensorOrchestrator } from '@quant-nanggroe/sensors';
-
-const sensors = new SensorOrchestrator({
-  enabled: ['technical', 'sentiment', 'liquidity', 'onchain'],
-  regimeAware: true, // sensors auto-configure based on regime
-});
-
-// Each sensor outputs a pressure vector
-sensors.onPressure('BTC/USDT', (readings) => {
-  // readings.technical → { direction: 0.72, magnitude: 0.65, confidence: 0.81 }
-  // readings.sentiment → { direction: 0.45, magnitude: 0.30, confidence: 0.52 }
-  // ...
-});
-```
-
-#### Layer 3 — Pressure Normalizer
-
-```typescript
-import { PressureNormalizer } from '@quant-nanggroe/normalizer';
-
-const normalizer = new PressureNormalizer({
-  darwinianWeighting: true,
-  conflictThreshold: 0.4,
-  smoothingWindow: 5,
-});
-
-const unified = normalizer.aggregate(pressureReadings, regimeContext);
-// → { direction: 0.61, magnitude: 0.55, confidence: 0.68, contributingSensors: 4 }
-```
-
-#### Layer 4 — Decision Synthesizer
-
-```typescript
-import { DecisionSynthesizer } from '@quant-nanggroe/decision';
-
-const synthesizer = new DecisionSynthesizer({
-  riskGuardianEnabled: true,
-  auditLogging: true,
-});
-
-const decision = synthesizer.evaluate(unifiedPressure, portfolioState);
-// decision → {
-//   action: 'reduce_long',
-//   size: 0.03,
-//   confidence: 0.68,
-//   guardianRulings: ['portfolio_heat_within_limits'],
-//   provenance: { sensors: [...], regime: 'volatile', weights: {...} }
-// }
-```
-
-### Risk Guardian Constitution
-
-```typescript
-import { RiskGuardian } from '@quant-nanggroe/guardian';
-
-const guardian = new RiskGuardian({
-  maxPositionSizePct: 5,     // max 5% per position
-  maxPortfolioHeatPct: 20,    // max 20% total portfolio heat
-  maxDailyDrawdownPct: 3,    // max 3% daily drawdown
-  maxCorrelatedExposure: 15,  // max 15% in correlated assets
-  killSwitchEnabled: true,    // emergency halt capability
-});
-
-// The Guardian acts as a gate — it can BLOCK, REDUCE, or MODIFY actions
-const ruling = guardian.evaluate(proposedAction, portfolioState);
-// ruling → { verdict: 'REDUCE', originalSize: 0.05, adjustedSize: 0.03, reason: 'portfolio_heat_15.2pct' }
+# LLM Provider
+llm:
+  primary_provider: "llm7"
+  failover:
+    enabled: true
+    providers_order:
+      - "llm7"
+      - "openrouter"
+      - "nvidia_nim"
 ```
 
 ---
 
-## Contributing
+## 🐳 Docker Deployment
 
-Contributions are welcome! We especially value contributions that improve transparency, risk management, and honest documentation.
-
-### How to Contribute
-
-1. **Fork** the repository
-2. Create a **feature branch** (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. Open a **Pull Request**
-
-### Contribution Guidelines
-
-- **Do not** add features that overclaim about trading performance or guaranteed returns
-- **Do** improve risk management, error handling, and audit trail capabilities
-- **Do** add tests for any new logic in the execution stack
-- **Do** update documentation to reflect any behavioral changes
-- Code style follows the existing TypeScript strict configuration
-
-### Development Setup
+### Docker Compose (Rekomendasi)
 
 ```bash
-# Install dependencies
-npm install
+# Build & jalankan semua services
+docker compose up -d
 
-# Run in development mode with hot reload
-npm run dev
+# Lihat logs
+docker compose logs -f api
 
-# Run type checking
-npm run typecheck
+# Stop semua
+docker compose down
 
-# Run linting
-npm run lint
+# Reset database
+docker compose down -v
+```
 
-# Run tests
-npm run test
+### Services yang Berjalan
 
-# Build for production
-npm run build
+| Service | Port | Fungsi |
+|---------|------|--------|
+| **api** | 8000 | FastAPI server |
+| **worker** | — | Background trading worker |
+| **postgres** | 5432 | PostgreSQL database |
+| **redis** | 6379 | Cache & message broker |
+| **questdb** | 9000, 8812, 9009 | Time-series database |
+
+### Docker Compose Dev
+
+```bash
+# Development mode dengan hot-reload
+docker compose -f docker-compose.dev.yml up -d
+```
+
+### Build Manual
+
+```bash
+# Build image
+docker build -t quant-nanggroe-ai:latest .
+
+# Run container
+docker run -d \
+  --name qna-api \
+  -p 8000:8000 \
+  --env-file .env \
+  quant-nanggroe-ai:latest
+```
+
+### Kubernetes
+
+```bash
+# Deploy ke Kubernetes
+kubectl apply -f k8s-deployment.yaml
 ```
 
 ---
 
-## Disclaimer
+## 📁 Struktur Directory
 
-**FOR EDUCATION AND RESEARCH PURPOSE ONLY**
-
-This project is provided strictly for educational and research purposes. The authors and contributors assume **no responsibility or liability** for any financial damages, losses, or risks arising from the use of this software.
-
-**Key risks:**
-
-- **All trading involves significant risk of loss.** You can lose your entire investment and more.
-- **Past performance does not guarantee future results.** Backtested strategies may fail in live markets.
-- **The Risk Guardian reduces but cannot eliminate risk.** Market conditions can exceed any risk model's assumptions.
-- **Decision-support outputs are not financial advice.** The system produces structured decision artifacts — you are solely responsible for any trading decisions you make.
-- **We do not bear any responsibility or risk** for how this software is used.
-- **Always use testnet/paper trading** before connecting to live markets with real capital.
+```
+Quant-Nanggroe-AI/
+├── quant_nanggroe/              # 🏛️ Cluster 1: Trading Engine
+│   ├── agents/                  # Multi-agent system
+│   │   ├── council/             # Debate & voting
+│   │   ├── debate/              # Bull/Bear/Research debate
+│   │   ├── personas/            # 6 investor personas
+│   │   ├── geopolitics/         # 5 world order perspectives
+│   │   ├── crypto/              # Crypto specialist
+│   │   ├── forex/               # Forex specialist
+│   │   ├── researcher/          # Market researcher
+│   │   ├── strategist/          # Strategy agent
+│   │   ├── trader/              # Execution agent
+│   │   ├── risk/                # Risk assessment agent
+│   │   ├── portfolio/           # Portfolio management
+│   │   ├── macro/               # Macro analysis
+│   │   ├── execution/           # Execution agent
+│   │   ├── smc/                 # Smart Money Concepts
+│   │   └── tools/               # Specialist tools
+│   ├── engine/                  # Core engine
+│   │   ├── backtest/            # Backtesting framework
+│   │   ├── factors/             # Alpha factor library
+│   │   ├── risk/                # Risk management
+│   │   ├── strategies/          # Trading strategies
+│   │   ├── execution/           # Order execution
+│   │   ├── screener/            # 8-component screener
+│   │   ├── nvidia_nim/          # NVIDIA NIM integration
+│   │   ├── ml/                  # ML models
+│   │   ├── models/              # Signal & feature models
+│   │   ├── options/             # Options analysis
+│   │   ├── simulation/          # Simulation engine
+│   │   └── shadow/              # Shadow trading
+│   ├── exchange/                # Broker integrations
+│   │   ├── clients/             # 10 exchange clients
+│   │   └── solana/              # Solana DEX integration
+│   ├── api/                     # REST API routes
+│   ├── memory/                  # Trading memory
+│   ├── security/                # Auth & audit
+│   ├── mcp/                     # Model Context Protocol
+│   ├── types/                   # Type definitions
+│   ├── utils/                   # Utilities
+│   └── config/                  # Configuration
+│
+├── ai_multicolony/              # 🐜 Cluster 2: Multi-Agent Ecosystem
+│   ├── agents/                  # 9 agent types
+│   │   ├── manus/               # General-purpose agent
+│   │   ├── planner/             # Planning agent
+│   │   ├── executor/            # Execution agent
+│   │   ├── coder/               # Code agent
+│   │   ├── browser/             # Browser agent
+│   │   ├── voice/               # Voice agent
+│   │   ├── security/            # Security agent
+│   │   ├── researcher/          # Research agent
+│   │   └── colony/              # Colony management agent
+│   ├── colony/                  # Colony orchestration
+│   │   ├── manager.py           # Colony lifecycle
+│   │   ├── hands.py             # 7 hand types
+│   │   ├── scheduler.py         # Task scheduler
+│   │   ├── coordinator.py       # Task coordination
+│   │   └── a2a.py               # Agent-to-Agent protocol
+│   ├── core/                    # Core framework
+│   ├── memory/                  # 5-tier memory
+│   │   ├── manager.py           # Memory tier router
+│   │   ├── condensers.py        # 8 condenser types
+│   │   ├── knowledge_graph.py   # Temporal knowledge graph
+│   │   ├── vector.py            # Vector store
+│   │   └── paging.py            # Letta-style paging
+│   ├── security/                # RBAC, audit, analyzer
+│   ├── finance/                 # Constitutional risk
+│   ├── sources/                 # Data sources
+│   ├── integrations/            # External adapters
+│   ├── channels/                # Discord/Slack/Telegram/WhatsApp
+│   ├── tools/                   # Agent tools
+│   ├── browser/                 # Stealth browser
+│   ├── harness/                 # Sandbox execution
+│   ├── sandbox/                 # Docker/WASM sandbox
+│   ├── organism/                # Autonomous organism
+│   ├── api/                     # REST API
+│   └── mcp/                     # MCP server
+│
+├── dashboard/                   # 🖥️ Next.js Dashboard
+│   └── src/
+│       ├── app/                 # 13 pages
+│       └── components/          # UI components
+│
+├── tests/                       # ✅ 3143 tests
+├── config/                      # ⚙️ YAML configs
+├── docker/                      # 🐳 Docker configs
+├── docs/                        # 📚 Documentation
+├── scripts/                     # 🔧 Utility scripts
+├── packages/                    # 📦 Sub-packages
+│   ├── crucix/                  # OSINT platform
+│   ├── hermes-quant/            # HermesQuant bridge
+│   ├── deer-flow/               # Deer Flow
+│   └── autonomous-organism/     # Autonomous organism
+│
+├── docker-compose.yml           # Production compose
+├── docker-compose.dev.yml       # Development compose
+├── Dockerfile                   # Multi-stage build
+├── pyproject.toml               # Python project config
+├── requirements.txt             # Full dependencies
+├── Makefile                     # Build automation
+└── k8s-deployment.yaml          # Kubernetes config
+```
 
 ---
 
+## 🧪 Testing
 
+| Kategori | Jumlah | Keterangan |
+|----------|--------|------------|
+| Engine Tests | ~400 | Risk, backtest, strategies, factors |
+| Agent Tests | ~200 | Personas, debate, geopolitics, tools |
+| Exchange Tests | ~150 | 10+ broker clients |
+| Security Tests | ~100 | Auth, audit, keyvault |
+| Memory Tests | ~80 | Vector, paging, knowledge |
+| NVIDIA NIM Tests | ~50 | Client, router, models |
+| Strategy Tests | ~100 | 9 strategy types |
+| API Tests | ~50 | Routes, schemas |
+| Data Provider Tests | ~50 | FRED, SEC, TwelveData |
+| MCP Tests | ~30 | Protocol, client, server |
+| Core Tests | ~2000+ | Colony, scheduler, hands, A2A |
 
-## 🔗 Related Projects
+```bash
+# Run semua tests
+pytest --tb=short -q
 
-We're building a family of open source tools! Check out our other projects:
+# Run dengan verbose
+pytest -v --tb=long
 
-| Project | Description | Stars |
-|---------|-------------|-------|
-| [📈 Quant-Nanggroe-AI](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI) | AI-powered quantitative analysis for Nanggroe market | ⭐ |
-| [🧠 AI-MultiColony-Ecosystem](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem) | Multi-agent AI colony simulation | ⭐ 3 |
-| [📋 Kalen](https://github.com/mulkymalikuldhrs/kalen) | Smart scheduling & AI task management | ⭐ |
-| [🤖 ProxyGateLLM](https://github.com/mulkymalikuldhrs/ProxyGateLLM) | Multi-LLM gateway with priority fallback | ⭐ 36 |
-| [🧩 Mnemosyne](https://github.com/mulkymalikuldhrs/mnemosyne) | Knowledge management & note-taking | ⭐ |
+# Run hanya unit tests (skip integration)
+pytest -m "not integration"
 
-🚀 **[Visit our Contributor Hub](https://mulkymalikuldhrs.github.io/contribute-to-our-projects/)** — 28 open source projects seeking contributors!
+# Run dengan coverage report
+pytest --cov --cov-report=term-missing
 
-## License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
-```
-MIT License
-
-Copyright (c) 2024-2026 Mulky Malikul Dhaher
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+# Run specific module
+pytest tests/test_engine/test_risk.py -v
 ```
 
 ---
 
-## Author
+## 📡 API Endpoints
 
-**Mulky Malikul Dhaher**
+### Trading Engine (`quant_nanggroe`)
 
-[![GitHub](https://img.shields.io/badge/GitHub-mulkymalikuldhrs-181717?style=for-the-badge&logo=github)](https://github.com/mulkymalikuldhrs)
-[![Email](https://img.shields.io/badge/Email-mulkymalikudhr%40mail.com-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:mulkymalikudhr@mail.com)
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| `GET` | `/health` | Health check |
+| `POST` | `/api/trading/analyze` | Analisis pasar |
+| `POST` | `/api/trading/execute` | Eksekusi trade |
+| `GET` | `/api/portfolio` | Status portofolio |
+| `POST` | `/api/backtest/run` | Jalankan backtest |
+| `GET` | `/api/market/quote/{symbol}` | Harga terkini |
+| `GET` | `/api/agents` | Daftar agent aktif |
+| `WS` | `/ws/trading` | WebSocket trading real-time |
+
+### Multi-Agent Ecosystem (`ai_multicolony`)
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| `GET` | `/api/colonies` | Daftar koloni |
+| `POST` | `/api/colonies` | Buat koloni baru |
+| `GET` | `/api/agents` | Daftar agent |
+| `POST` | `/api/tasks` | Submit tugas |
+| `GET` | `/api/memory` | Query memory |
+| `GET` | `/api/tools` | Tool registry |
+| `GET` | `/api/ecosystem/status` | Status ekosistem |
+| `WS` | `/ws/colony` | WebSocket koloni real-time |
+
+---
+
+## 🔧 Development
+
+### Setup Development Environment
+
+```bash
+# Install dengan dev dependencies
+pip install -e ".[dev]"
+
+# Install pre-commit hooks
+pre-commit install
+
+# Format kode
+ruff format .
+
+# Lint
+ruff check .
+
+# Type checking
+mypy quant_nanggroe ai_multicolony
+```
+
+### Code Conventions
+
+- **Python**: Ruff linter, line length 100, target Python 3.11
+- **TypeScript**: ESLint + Next.js config
+- **Commit**: Conventional Commits
+- **Testing**: pytest dengan asyncio auto mode
+- **Types**: Pydantic v2 untuk semua model
+
+---
+
+## 🤝 Contributing
+
+Kami menyambut kontribusi dari siapa saja! Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk panduan lengkap.
+
+### Cara Berkontribusi
+
+1. **Fork** repository ini
+2. Buat **branch** baru (`git checkout -b fitur/fitur-baru`)
+3. **Commit** perubahan (`git commit -m 'feat: tambah fitur baru'`)
+4. **Push** ke branch (`git push origin fitur/fitur-baru`)
+5. Buat **Pull Request**
+
+### Guidelines
+
+- Tulis test untuk setiap fitur baru
+- Pastikan semua test pass sebelum PR
+- Ikuti code conventions yang ada
+- Tambahkan dokumentasi jika diperlukan
+- Satu fitur per PR — jangan gabungkan
+
+---
+
+## 🗺️ Roadmap
+
+### ✅ Stabil
+
+- [x] 5-Layer Execution Stack
+- [x] Pressure-Vector Synthesis
+- [x] 9-Checkpoint Risk Gate
+- [x] Kill Switch (3-Level)
+- [x] Emotional Lockout
+- [x] Kelly Criterion (5 varian)
+- [x] VaR (3 metode + CVaR)
+- [x] Alpha Factor Library (Alpha101, GTJA191, Qlib158)
+- [x] Backtesting Engine (Event-driven, Walk-Forward, Monte Carlo)
+- [x] NVIDIA NIM Integration
+- [x] 6 Investor Personas
+- [x] 5 Geopolitical Perspectives
+- [x] 9 Agent Types
+- [x] Colony Orchestration
+- [x] A2A Protocol
+- [x] 5-Tier Memory
+- [x] 8 Memory Condensers
+- [x] Security Layer (RBAC/ABAC + Audit)
+- [x] Next.js Dashboard
+
+### 🔧 Dalam Pengembangan (WIP)
+
+- [ ] CPCV (Combinatorial Purged Cross-Validation)
+- [ ] NautilusTrader Adapter
+- [ ] Market Making Strategy
+- [ ] Mobile App
+- [ ] Desktop App
+- [ ] Visual Workflow Builder
+- [ ] Advanced Analytics Dashboard
+
+### 📋 Direncanakan
+
+- [ ] Reinforcement Learning Strategy
+- [ ] Multi-Exchange Arbitrage
+- [ ] Options Strategy Engine
+- [ ] DeFi Yield Strategy
+- [ ] Social Trading / Copy Trading
+- [ ] Indonesian Market Integration (IDX/JKT)
+
+---
+
+## 📜 Lisensi
+
+Proyek ini dilisensikan di bawah **MIT License** — lihat file [LICENSE](LICENSE) untuk detail.
+
+---
+
+## 🙏 Acknowledgments
+
+Proyek ini menggabungkan konsep dan arsitektur dari berbagai sumber:
+
+| Proyek | Kontribusi |
+|--------|-----------|
+| **HermesQuantOS** | Risk Officer, Kill Switch, Pressure Synthesis |
+| **ai-hedge-fund** | Kelly Criterion, VaR, Risk Management patterns |
+| **TradingAgents** | Multi-debate framework (Bull/Bear researchers) |
+| **WorldQuant** | Alpha101 formulaic alphas |
+| **Microsoft Qlib** | Qlib158 factor library |
+| **NVIDIA NIM** | Free inference API for LLM models |
+| **LangGraph** | Agent orchestration framework |
+| **NautilusTrader** | High-performance backtesting patterns |
+
+---
+
+## 📞 Kontak & Komunitas
+
+- **GitHub**: [mulkymalikuldhrs/Quant-Nanggroe-AI](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+- **Issues**: [Bug Reports & Feature Requests](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI/issues)
+- **Author**: [Mulky Malikul Dhaher](https://github.com/mulkymalikuldhrs)
 
 ---
 
 <div align="center">
 
-**Part of the [HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) Unified Project**
+### 🇮🇩 Dibangun dengan bangga di Indonesia
+
+```
+    ╔═══════════════════════════════════════════════════════════╗
+    ║                                                           ║
+    ║   "Keputusan terbaik datang dari data, bukan emosi"       ║
+    ║   "The best decisions come from data, not emotions"       ║
+    ║                                                           ║
+    ║   ⚠️  TRADING INVOLVES RISK. USE AT YOUR OWN RISK.  ⚠️   ║
+    ║                                                           ║
+    ╚═══════════════════════════════════════════════════════════╝
+```
+
+**⭐ Jika proyek ini bermanfaat, berikan star! ⭐**
 
 </div>
-
-<a href="https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI">
-  <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=100:005c2a,50:003d1a,0:001a0a&height=100&section=footer" />
-</a>
-
-
-<!-- Schema.org Structured Data for Search Engines -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareSourceCode",
-  "name": "Quant-Nanggroe-AI",
-  "author": {
-    "@type": "Person",
-    "name": "Mulky Malikul Adhr",
-    "url": "https://github.com/mulkymalikuldhrs"
-  },
-  "programmingLanguage": "TypeScript",
-  "license": "https://spdx.org/licenses/MIT",
-  "codeRepository": "https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI",
-  "contributor": {
-    "@type": "Organization",
-    "name": "Open Source Contributors",
-    "url": "https://mulkymalikuldhrs.github.io/contribute-to-our-projects/"
-  }
-}
-</script>

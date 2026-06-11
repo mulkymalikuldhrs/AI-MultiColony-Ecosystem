@@ -267,6 +267,9 @@ class ScreenerTool:
     ) -> ComponentScore:
         """Analyze a single screening component.
 
+        PRODUCTION: Attempts to use real ScreenerOrchestrator engine
+        components. Falls back to heuristic scores with a warning.
+
         Args:
             symbol: Trading symbol.
             component: Component to analyze.
@@ -274,7 +277,22 @@ class ScreenerTool:
         Returns:
             ComponentScore for this component.
         """
-        # Default scores - in production, each component would have real logic
+        # PRODUCTION: Wired to real engine — try ScreenerOrchestrator
+        score = None
+        details: Dict[str, Any] = {}
+
+        try:
+            real_result = await self._analyze_component_real(symbol, component)
+            if real_result is not None:
+                return real_result
+        except Exception as exc:
+            logger.debug("Real component analysis failed for %s/%s: %s", symbol, component.value, exc)
+
+        # Fallback: heuristic scores with warning
+        logger.warning(
+            "ScreenerTool: Using heuristic score for %s/%s — real engine unavailable",
+            symbol, component.value,
+        )
         component_scores: Dict[ComponentName, Dict[str, Any]] = {
             ComponentName.TECHNICAL: {
                 "default_score": 50.0,
@@ -323,6 +341,7 @@ class ScreenerTool:
         }
 
         comp_data = component_scores.get(component, {"default_score": 50.0, "details": {}})
+        details = comp_data["details"]
 
         score = comp_data["default_score"]
         verdict = "NEUTRAL"
@@ -420,6 +439,73 @@ class ScreenerTool:
                 continue
             filtered.append(result)
         return filtered
+
+    # ----- Real engine component analysis -----
+
+    async def _analyze_component_real(
+        self,
+        symbol: str,
+        component: ComponentName,
+    ) -> Optional[ComponentScore]:
+        """Analyze a screening component using the real ScreenerOrchestrator.
+
+        PRODUCTION: Wired to real engine via ScreenerOrchestrator.
+
+        Args:
+            symbol: Trading symbol.
+            component: Component to analyze.
+
+        Returns:
+            ComponentScore from real engine, or None if unavailable.
+        """
+        try:
+            from quant_nanggroe.engine.screener.orchestrator import ScreenerOrchestrator
+            # Map component names to orchestrator engine names
+            engine_map = {
+                ComponentName.TECHNICAL: "market_structure",
+                ComponentName.FUNDAMENTAL: "monetary_fundamental",
+                ComponentName.SENTIMENT: "positioning_crowd",
+                ComponentName.MACRO: "macro_analysis",
+                ComponentName.DEX: "dex_intelligence",
+                ComponentName.LIQUIDITY: "liquidity_orderflow",
+                ComponentName.ORDER_BOOK: "liquidity_orderflow",
+                ComponentName.POSITIONING: "positioning_crowd",
+                ComponentName.QUANT_SCORING: "quant_scoring",
+                ComponentName.MARKET_STRUCTURE: "market_structure",
+                ComponentName.EXECUTION_PLAN: "intermarket",
+            }
+
+            engine_name = engine_map.get(component)
+            if engine_name:
+                orchestrator = ScreenerOrchestrator(enabled_engines=[engine_name])
+                data = {"symbol": symbol}
+                result = orchestrator.screen(data)
+                if result:
+                    engine_result = result.get(engine_name, {})
+                    score = engine_result.get("score", 50.0)
+                    direction = engine_result.get("direction", "NEUTRAL")
+                    details = engine_result.get("details", {})
+                    verdict = "NEUTRAL"
+                    if score >= 75:
+                        verdict = "BULLISH"
+                    elif score >= 60:
+                        verdict = "SLIGHTLY_BULLISH"
+                    elif score <= 25:
+                        verdict = "BEARISH"
+                    elif score <= 40:
+                        verdict = "SLIGHTLY_BEARISH"
+
+                    return ComponentScore(  # PRODUCTION: Wired to real engine
+                        component=component,
+                        score=score,
+                        verdict=verdict,
+                        details=details,
+                        timestamp=datetime.now(tz=timezone.utc).isoformat(),
+                    )
+        except Exception as exc:
+            logger.debug("ScreenerOrchestrator unavailable for %s: %s", component.value, exc)
+
+        return None
 
     # ----- Cache helpers -----
 
