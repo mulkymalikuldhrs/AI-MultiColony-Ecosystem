@@ -23,7 +23,7 @@ gevent-websocket>=0.10
 # ASYNC AND HTTP
 # =============================================================================
 aiohttp>=3.9
-aiofiles>=23.2
+aiofiles>=25.1.0
 websockets>=12.0
 httpx>=0.27
 requests>=2.31
