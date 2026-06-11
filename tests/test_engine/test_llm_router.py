@@ -100,9 +100,10 @@ class TestLLMProvider:
         assert LLMProvider.ANTHROPIC == "anthropic"
         assert LLMProvider.GOOGLE == "google"
         assert LLMProvider.LOCAL == "local"
+        assert LLMProvider.NVIDIA_NIM == "nvidia_nim"
 
     def test_provider_count(self):
-        assert len(LLMProvider) == 4
+        assert len(LLMProvider) == 5
 
     def test_is_string_enum(self):
         assert isinstance(LLMProvider.OPENAI, str)

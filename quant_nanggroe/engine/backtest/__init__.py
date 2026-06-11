@@ -20,8 +20,39 @@ from quant_nanggroe.engine.backtest.portfolio import Portfolio
 from quant_nanggroe.engine.backtest.metrics import PerformanceMetrics
 from quant_nanggroe.engine.backtest.execution import ExecutionSimulator
 from quant_nanggroe.engine.backtest.walk_forward import WalkForwardAnalyzer
-from quant_nanggroe.engine.backtest.monte_carlo import MonteCarloSimulator
+from quant_nanggroe.engine.backtest.monte_carlo import MonteCarloSimulator, MonteCarloResult
 from quant_nanggroe.engine.backtest.report import BacktestReport
+
+# ── New production modules ──
+
+from quant_nanggroe.engine.backtest.nautilus_adapter import (
+    TradingAdapter,
+    PurePythonSimulationAdapter,
+    create_trading_adapter,
+)
+from quant_nanggroe.engine.backtest.fama_french import (
+    FF5FactorModel,
+    FamaFrenchModel,
+    KennethFrenchDataDownloader,
+    FactorExposure,
+    FactorRegressionResult,
+    FactorAttribution,
+    AlphaSignificance,
+)
+from quant_nanggroe.engine.backtest.risk_models import (
+    RiskModels,
+    ValueAtRisk,
+    ConditionalVaR,
+    ComponentVaR,
+    StressTestFramework,
+    LiquidityAdjustedVaR,
+    VaRMethod,
+    VaRResult,
+    ComponentVaRResult,
+    StressTestResult,
+    CorrelationBreakdownResult,
+    LiquidityAdjustedVaRResult,
+)
 
 # ── Multi-market engines ──
 
@@ -65,6 +96,7 @@ __all__ = [
     "ExecutionSimulator",
     "WalkForwardAnalyzer",
     "MonteCarloSimulator",
+    "MonteCarloResult",
     "BacktestReport",
     # Multi-market engines
     "BaseEngine",
@@ -88,4 +120,29 @@ __all__ = [
     "RiskParityOptimizer",
     "MeanVarianceOptimizer",
     "EqualVolatilityOptimizer",
+    # New production modules
+    "TradingAdapter",
+    "PurePythonSimulationAdapter",
+    "create_trading_adapter",
+    # Fama-French
+    "FF5FactorModel",
+    "FamaFrenchModel",
+    "KennethFrenchDataDownloader",
+    "FactorExposure",
+    "FactorRegressionResult",
+    "FactorAttribution",
+    "AlphaSignificance",
+    # Risk Models
+    "RiskModels",
+    "ValueAtRisk",
+    "ConditionalVaR",
+    "ComponentVaR",
+    "StressTestFramework",
+    "LiquidityAdjustedVaR",
+    "VaRMethod",
+    "VaRResult",
+    "ComponentVaRResult",
+    "StressTestResult",
+    "CorrelationBreakdownResult",
+    "LiquidityAdjustedVaRResult",
 ]

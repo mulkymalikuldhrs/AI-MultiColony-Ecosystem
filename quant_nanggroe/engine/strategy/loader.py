@@ -48,11 +48,23 @@ import time
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Set
 
-from quant_nanggroe.engine.strategy.schema import StrategyConfig
+from quant_nanggroe.engine.strategy.schema import StrategyConfig, StrategyType
 from quant_nanggroe.engine.strategy.parser import (
     parse_strategy,
     validate_strategy,
 )
+
+# Lazy import for strategy implementations to avoid circular imports
+_strategy_module = None
+
+
+def _get_strategy_module():
+    """Lazy import of the strategies module."""
+    global _strategy_module
+    if _strategy_module is None:
+        from quant_nanggroe.engine.strategy.strategies import create_strategy as _create
+        _strategy_module = _create
+    return _strategy_module
 
 logger = logging.getLogger(__name__)
 
@@ -505,6 +517,49 @@ class StrategyRegistry:
         self._strategies.clear()
         self._load_errors.clear()
         self._registered_at.clear()
+
+    def create_strategy_instance(self, name: str):
+        """Create a strategy instance from a registered config's strategy_type.
+
+        If the config has a strategy_type, creates the corresponding
+        BaseStrategy subclass using the strategy_params from the config.
+
+        Args:
+            name: Strategy name in the registry.
+
+        Returns:
+            A BaseStrategy subclass instance.
+
+        Raises:
+            KeyError: If the strategy is not registered.
+            ValueError: If the strategy has no strategy_type.
+        """
+        if name not in self._strategies:
+            raise KeyError(f"Strategy '{name}' not found in registry")
+
+        config = self._strategies[name]
+        if config.strategy_type is None:
+            raise ValueError(
+                f"Strategy '{name}' has no strategy_type. "
+                f"Set strategy_type to create a strategy instance."
+            )
+
+        create_fn = _get_strategy_module()
+        strategy_name = config.strategy_type.value  # Convert enum to string
+        # Map from StrategyType enum value to registry name
+        type_to_name = {
+            "mean_reversion": "MeanReversion",
+            "momentum": "Momentum",
+            "pairs_trading": "PairsTrading",
+            "volatility_arbitrage": "VolatilityArbitrage",
+            "statistical_arbitrage": "StatisticalArbitrage",
+            "market_making": "MarketMaking",
+            "regime_based": "RegimeBased",
+            "crypto_specific": "CryptoSpecific",
+        }
+
+        registry_name = type_to_name.get(strategy_name, strategy_name)
+        return create_fn(registry_name, params=config.strategy_params)
 
 
 class StrategyWatcher:

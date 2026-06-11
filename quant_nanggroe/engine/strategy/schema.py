@@ -42,6 +42,20 @@ from typing import List, Optional, Tuple
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
+class StrategyType(str, Enum):
+    """Supported production strategy types for the strategy engine."""
+
+    MEAN_REVERSION = "mean_reversion"
+    MOMENTUM = "momentum"
+    PAIRS_TRADING = "pairs_trading"
+    VOLATILITY_ARBITRAGE = "volatility_arbitrage"
+    STATISTICAL_ARBITRAGE = "statistical_arbitrage"
+    MARKET_MAKING = "market_making"
+    REGIME_BASED = "regime_based"
+    CRYPTO_SPECIFIC = "crypto_specific"
+    CUSTOM = "custom"
+
+
 class IndicatorType(str, Enum):
     """Supported technical indicators for strategy rules."""
 
@@ -354,13 +368,11 @@ class StrategyConfig(BaseModel):
     )
     entry_rules: List[EntryRule] = Field(
         default_factory=list,
-        description="Entry conditions (AND logic)",
-        min_length=1,
+        description="Entry conditions (AND logic). Not required if strategy_type is set.",
     )
     exit_rules: List[ExitRule] = Field(
         default_factory=list,
-        description="Exit conditions (OR logic — any triggers exit)",
-        min_length=1,
+        description="Exit conditions (OR logic). Not required if strategy_type is set.",
     )
     risk_rules: RiskRules = Field(
         default_factory=RiskRules,
@@ -369,6 +381,14 @@ class StrategyConfig(BaseModel):
     base_strategy: Optional[str] = Field(
         None,
         description="Name of base strategy to inherit from (for strategy inheritance)",
+    )
+    strategy_type: Optional[StrategyType] = Field(
+        None,
+        description="Production strategy type (e.g., mean_reversion, momentum)",
+    )
+    strategy_params: dict = Field(
+        default_factory=dict,
+        description="Parameters for the production strategy implementation",
     )
     tags: List[str] = Field(
         default_factory=list,
@@ -403,5 +423,16 @@ class StrategyConfig(BaseModel):
     def tags_must_be_lowercase(cls, v: List[str]) -> List[str]:
         """Normalize tags to lowercase."""
         return [t.strip().lower() for t in v if t.strip()]
+
+    @model_validator(mode="after")
+    def must_have_strategy_or_rules(self) -> "StrategyConfig":
+        """Validate that either strategy_type or entry/exit rules are provided."""
+        has_type = self.strategy_type is not None
+        has_rules = len(self.entry_rules) > 0 or len(self.exit_rules) > 0
+        if not has_type and not has_rules:
+            raise ValueError(
+                "Strategy must have either a strategy_type or entry/exit rules"
+            )
+        return self
 
     model_config = {"extra": "forbid"}

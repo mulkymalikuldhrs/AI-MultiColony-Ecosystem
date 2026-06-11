@@ -81,6 +81,25 @@ class DataProviderManager:
     @staticmethod
     def _infer_market(symbol: str) -> str:
         """Infer market type from symbol format."""
+        # Prefix-based detection for new providers
+        upper = symbol.upper()
+        if upper.startswith(("BYBIT:", "GN:", "GLASSNODE:")):
+            return "crypto"
+        if upper.startswith(("OANDA:", "ECB:")):
+            return "forex"
+        if upper.startswith("FINH:"):
+            # Finnhub supports all — infer from sub-prefix
+            inner = symbol[5:] if symbol.startswith("FINH:") else symbol
+            if inner.startswith("OANDA:"):
+                return "forex"
+            if inner.startswith("BINANCE:"):
+                return "crypto"
+            return "stocks"
+        if upper.startswith("NEWS:"):
+            return "sentiment"
+        if upper.startswith("FRED:"):
+            return "macro"
+        # Heuristic-based detection
         if "/" in symbol and any(
             symbol.endswith(f"/{fiat}") for fiat in ["USDT", "BUSD", "USD", "BTC", "ETH"]
         ):
