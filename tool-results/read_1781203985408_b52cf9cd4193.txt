@@ -1,0 +1,748 @@
+     1→"""Comprehensive tests for EventBus.
+     2→
+     3→Tests cover:
+     4→- Start / stop lifecycle
+     5→- Subscribe / unsubscribe (events)
+     6→- Publish events, actions, observations
+     7→- Wildcard subscriber
+     8→- Action/Observation pairing with wait_for_observation
+     9→- Channel-based messaging
+    10→- Direct messaging
+    11→- Broadcast messaging
+    12→- Message type handlers
+    13→- History and filtering
+    14→- Statistics
+    15→- Error handling in handlers
+    16→- Singleton pattern
+    17→- Not-running behavior
+    18→"""
+    19→
+    20→from __future__ import annotations
+    21→
+    22→import asyncio
+    23→
+    24→import pytest
+    25→
+    26→from ai_multicolony.core.event_bus import EventBus
+    27→from ai_multicolony.exceptions import EventBusError
+    28→from ai_multicolony.types.events import Action, ActionType, Event, EventType, Observation, ObservationType
+    29→from ai_multicolony.types.messages import BusMessage, BusMessagePriority, MessageType
+    30→
+    31→
+    32→# ══════════════════════════════════════════════════════════════════════
+    33→# 1. Start / Stop Lifecycle
+    34→# ══════════════════════════════════════════════════════════════════════
+    35→
+    36→
+    37→class TestEventBusLifecycle:
+    38→    """Test EventBus start, stop, and running state."""
+    39→
+    40→    @pytest.mark.asyncio
+    41→    async def test_start_sets_running(self, event_bus):
+    42→        await event_bus.start()
+    43→        assert event_bus.is_running
+    44→
+    45→    @pytest.mark.asyncio
+    46→    async def test_stop_clears_running(self, event_bus):
+    47→        await event_bus.start()
+    48→        await event_bus.stop()
+    49→        assert not event_bus.is_running
+    50→
+    51→    @pytest.mark.asyncio
+    52→    async def test_initial_not_running(self, event_bus):
+    53→        assert not event_bus.is_running
+    54→
+    55→    @pytest.mark.asyncio
+    56→    async def test_stop_cancels_pending_observations(self, event_bus):
+    57→        await event_bus.start()
+    58→        # Create a pending observation future manually
+    59→        loop = asyncio.get_event_loop()
+    60→        future = loop.create_future()
+    61→        event_bus._pending_observations["act-1"] = future
+    62→        await event_bus.stop()
+    63→        assert future.cancelled() or future.done()
+    64→        assert len(event_bus._pending_observations) == 0
+    65→
+    66→    @pytest.mark.asyncio
+    67→    async def test_stop_logs_counts(self, event_bus):
+    68→        await event_bus.start()
+    69→        # Publish some events first
+    70→        action = Action(action_type=ActionType.THINK, agent_id="test")
+    71→        await event_bus.publish_action(action)
+    72→        await event_bus.stop()
+    73→        assert event_bus._event_count == 1
+    74→
+    75→
+    76→# ══════════════════════════════════════════════════════════════════════
+    77→# 2. Event Subscribe / Unsubscribe
+    78→# ══════════════════════════════════════════════════════════════════════
+    79→
+    80→
+    81→class TestEventSubscribe:
+    82→    """Test subscribing and unsubscribing to event types."""
+    83→
+    84→    async def test_subscribe_adds_handler(self, event_bus):
+    85→        handler = lambda e: None
+    86→        await event_bus.subscribe("action", handler)
+    87→        assert handler in event_bus._subscribers["action"]
+    88→
+    89→    async def test_subscribe_multiple_handlers(self, event_bus):
+    90→        h1 = lambda e: None
+    91→        h2 = lambda e: None
+    92→        await event_bus.subscribe("action", h1)
+    93→        await event_bus.subscribe("action", h2)
+    94→        assert len(event_bus._subscribers["action"]) == 2
+    95→
+    96→    async def test_subscribe_wildcard(self, event_bus):
+    97→        handler = lambda e: None
+    98→        await event_bus.subscribe("*", handler)
+    99→        assert handler in event_bus._subscribers["*"]
+   100→
+   101→    async def test_unsubscribe_removes_handler(self, event_bus):
+   102→        handler = lambda e: None
+   103→        await event_bus.subscribe("action", handler)
+   104→        await event_bus.unsubscribe("action", handler)
+   105→        assert handler not in event_bus._subscribers["action"]
+   106→
+   107→    async def test_unsubscribe_nonexistent_type_noop(self, event_bus):
+   108→        handler = lambda e: None
+   109→        await event_bus.unsubscribe("nonexistent", handler)  # Should not raise
+   110→
+   111→    async def test_unsubscribe_different_handler_keeps_others(self, event_bus):
+   112→        h1 = lambda e: None
+   113→        h2 = lambda e: None
+   114→        await event_bus.subscribe("action", h1)
+   115→        await event_bus.subscribe("action", h2)
+   116→        await event_bus.unsubscribe("action", h1)
+   117→        assert h2 in event_bus._subscribers["action"]
+   118→
+   119→
+   120→# ══════════════════════════════════════════════════════════════════════
+   121→# 3. Publish Events
+   122→# ══════════════════════════════════════════════════════════════════════
+   123→
+   124→
+   125→class TestEventPublish:
+   126→    """Test publishing events."""
+   127→
+   128→    @pytest.mark.asyncio
+   129→    async def test_publish_action(self, event_bus):
+   130→        await event_bus.start()
+   131→        received = []
+   132→        await event_bus.subscribe("action", lambda e: received.append(e))
+   133→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   134→        await event_bus.publish_action(action)
+   135→        assert len(received) == 1
+   136→
+   137→    @pytest.mark.asyncio
+   138→    async def test_publish_observation(self, event_bus):
+   139→        await event_bus.start()
+   140→        received = []
+   141→        await event_bus.subscribe("observation", lambda e: received.append(e))
+   142→        obs = Observation(
+   143→            observation_type=ObservationType.SUCCESS,
+   144→            agent_id="test",
+   145→            action_id="act-1",
+   146→            content="Done",
+   147→        )
+   148→        await event_bus.publish_observation(obs)
+   149→        assert len(received) == 1
+   150→
+   151→    @pytest.mark.asyncio
+   152→    async def test_publish_generic_event(self, event_bus):
+   153→        await event_bus.start()
+   154→        received = []
+   155→        await event_bus.subscribe("custom", lambda e: received.append(e))
+   156→        event = Event(event_type=EventType.CUSTOM, source="test", data={"key": "val"})
+   157→        await event_bus.publish_event(event)
+   158→        assert len(received) == 1
+   159→
+   160→    @pytest.mark.asyncio
+   161→    async def test_publish_increments_event_count(self, event_bus):
+   162→        await event_bus.start()
+   163→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   164→        await event_bus.publish_action(action)
+   165→        assert event_bus.event_count == 1
+   166→
+   167→    @pytest.mark.asyncio
+   168→    async def test_publish_multiple_increments_count(self, event_bus):
+   169→        await event_bus.start()
+   170→        for i in range(5):
+   171→            action = Action(action_type=ActionType.THINK, agent_id=f"agent-{i}")
+   172→            await event_bus.publish_action(action)
+   173→        assert event_bus.event_count == 5
+   174→
+   175→    @pytest.mark.asyncio
+   176→    async def test_not_running_does_not_deliver_events(self, event_bus):
+   177→        received = []
+   178→        await event_bus.subscribe("action", lambda e: received.append(e))
+   179→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   180→        await event_bus.publish_action(action)
+   181→        assert len(received) == 0
+   182→
+   183→    @pytest.mark.asyncio
+   184→    async def test_not_running_still_increments_count(self, event_bus):
+   185→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   186→        await event_bus.publish_action(action)
+   187→        assert event_bus.event_count == 1  # Counter still increments
+   188→
+   189→
+   190→# ══════════════════════════════════════════════════════════════════════
+   191→# 4. Wildcard Subscriber
+   192→# ══════════════════════════════════════════════════════════════════════
+   193→
+   194→
+   195→class TestWildcardSubscriber:
+   196→    """Test wildcard (*) subscriber receiving all events."""
+   197→
+   198→    @pytest.mark.asyncio
+   199→    async def test_wildcard_receives_actions(self, event_bus):
+   200→        await event_bus.start()
+   201→        received = []
+   202→        await event_bus.subscribe("*", lambda e: received.append(e))
+   203→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   204→        await event_bus.publish_action(action)
+   205→        assert len(received) == 1
+   206→
+   207→    @pytest.mark.asyncio
+   208→    async def test_wildcard_receives_observations(self, event_bus):
+   209→        await event_bus.start()
+   210→        received = []
+   211→        await event_bus.subscribe("*", lambda e: received.append(e))
+   212→        obs = Observation(
+   213→            observation_type=ObservationType.SUCCESS,
+   214→            agent_id="test",
+   215→            action_id="a1",
+   216→            content="ok",
+   217→        )
+   218→        await event_bus.publish_observation(obs)
+   219→        assert len(received) == 1
+   220→
+   221→    @pytest.mark.asyncio
+   222→    async def test_wildcard_receives_custom_events(self, event_bus):
+   223→        await event_bus.start()
+   224→        received = []
+   225→        await event_bus.subscribe("*", lambda e: received.append(e))
+   226→        event = Event(event_type=EventType.SYSTEM, source="sys")
+   227→        await event_bus.publish_event(event)
+   228→        assert len(received) == 1
+   229→
+   230→    @pytest.mark.asyncio
+   231→    async def test_wildcard_and_specific_both_receive(self, event_bus):
+   232→        await event_bus.start()
+   233→        all_received = []
+   234→        action_received = []
+   235→        await event_bus.subscribe("*", lambda e: all_received.append(e))
+   236→        await event_bus.subscribe("action", lambda e: action_received.append(e))
+   237→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   238→        await event_bus.publish_action(action)
+   239→        assert len(all_received) == 1
+   240→        assert len(action_received) == 1
+   241→
+   242→
+   243→# ══════════════════════════════════════════════════════════════════════
+   244→# 5. Action/Observation Pairing
+   245→# ══════════════════════════════════════════════════════════════════════
+   246→
+   247→
+   248→class TestActionObservationPairing:
+   249→    """Test wait_for_observation and action/observation pairing."""
+   250→
+   251→    @pytest.mark.asyncio
+   252→    async def test_wait_and_resolve(self, event_bus):
+   253→        await event_bus.start()
+   254→
+   255→        async def publish_later():
+   256→            await asyncio.sleep(0.05)
+   257→            obs = Observation(
+   258→                observation_type=ObservationType.SUCCESS,
+   259→                agent_id="test",
+   260→                action_id="act-1",
+   261→                content="Resolved!",
+   262→            )
+   263→            await event_bus.publish_observation(obs)
+   264→
+   265→        asyncio.create_task(publish_later())
+   266→        result = await event_bus.wait_for_observation("act-1", timeout=2.0)
+   267→        assert result.content == "Resolved!"
+   268→
+   269→    @pytest.mark.asyncio
+   270→    async def test_wait_timeout_raises(self, event_bus):
+   271→        await event_bus.start()
+   272→        with pytest.raises(EventBusError, match="Timeout"):
+   273→            await event_bus.wait_for_observation("nonexistent", timeout=0.1)
+   274→
+   275→    @pytest.mark.asyncio
+   276→    async def test_double_wait_raises(self, event_bus):
+   277→        await event_bus.start()
+   278→        asyncio.create_task(event_bus.wait_for_observation("act-1", timeout=2.0))
+   279→        await asyncio.sleep(0.01)
+   280→        with pytest.raises(EventBusError, match="Already waiting"):
+   281→            await event_bus.wait_for_observation("act-1")
+   282→
+   283→    @pytest.mark.asyncio
+   284→    async def test_resolve_clears_pending(self, event_bus):
+   285→        await event_bus.start()
+   286→
+   287→        async def publish_later():
+   288→            await asyncio.sleep(0.05)
+   289→            obs = Observation(
+   290→                observation_type=ObservationType.SUCCESS,
+   291→                agent_id="test",
+   292→                action_id="act-1",
+   293→                content="Done",
+   294→            )
+   295→            await event_bus.publish_observation(obs)
+   296→
+   297→        asyncio.create_task(publish_later())
+   298→        await event_bus.wait_for_observation("act-1", timeout=2.0)
+   299→        assert "act-1" not in event_bus._pending_observations
+   300→
+   301→    @pytest.mark.asyncio
+   302→    async def test_unresolved_removed_after_timeout(self, event_bus):
+   303→        await event_bus.start()
+   304→        try:
+   305→            await event_bus.wait_for_observation("act-x", timeout=0.1)
+   306→        except EventBusError:
+   307→            pass
+   308→        assert "act-x" not in event_bus._pending_observations
+   309→
+   310→
+   311→# ══════════════════════════════════════════════════════════════════════
+   312→# 6. Channel Messaging
+   313→# ══════════════════════════════════════════════════════════════════════
+   314→
+   315→
+   316→class TestChannelMessaging:
+   317→    """Test channel-based message routing."""
+   318→
+   319→    @pytest.mark.asyncio
+   320→    async def test_subscribe_channel(self, event_bus):
+   321→        handler = lambda m: None
+   322→        event_bus.subscribe_channel("test", handler)
+   323→        assert handler in event_bus._channel_subscribers["test"]
+   324→
+   325→    @pytest.mark.asyncio
+   326→    async def test_unsubscribe_channel(self, event_bus):
+   327→        handler = lambda m: None
+   328→        event_bus.subscribe_channel("test", handler)
+   329→        event_bus.unsubscribe_channel("test", handler)
+   330→        assert handler not in event_bus._channel_subscribers.get("test", [])
+   331→
+   332→    @pytest.mark.asyncio
+   333→    async def test_send_message_to_channel(self, event_bus):
+   334→        await event_bus.start()
+   335→        received = []
+   336→        event_bus.subscribe_channel("test", lambda m: received.append(m))
+   337→        msg = BusMessage(sender="agent-1", channel="test", content={"text": "hello"})
+   338→        await event_bus.send_message(msg)
+   339→        assert len(received) == 1
+   340→
+   341→    @pytest.mark.asyncio
+   342→    async def test_channel_wildcard_receives_all(self, event_bus):
+   343→        await event_bus.start()
+   344→        received = []
+   345→        event_bus.subscribe_channel("*", lambda m: received.append(m))
+   346→        msg = BusMessage(sender="agent-1", channel="any", content={"text": "hello"})
+   347→        await event_bus.send_message(msg)
+   348→        assert len(received) == 1
+   349→
+   350→    @pytest.mark.asyncio
+   351→    async def test_channel_message_not_delivered_to_other_channel(self, event_bus):
+   352→        await event_bus.start()
+   353→        received_a = []
+   354→        received_b = []
+   355→        event_bus.subscribe_channel("channel-a", lambda m: received_a.append(m))
+   356→        event_bus.subscribe_channel("channel-b", lambda m: received_b.append(m))
+   357→        msg = BusMessage(sender="agent-1", channel="channel-a", content={"text": "hello"})
+   358→        await event_bus.send_message(msg)
+   359→        assert len(received_a) == 1
+   360→        assert len(received_b) == 0
+   361→
+   362→    @pytest.mark.asyncio
+   363→    async def test_send_message_increments_message_count(self, event_bus):
+   364→        await event_bus.start()
+   365→        msg = BusMessage(sender="agent-1", channel="test", content={})
+   366→        await event_bus.send_message(msg)
+   367→        assert event_bus.message_count == 1
+   368→
+   369→    @pytest.mark.asyncio
+   370→    async def test_not_running_does_not_deliver_messages(self, event_bus):
+   371→        received = []
+   372→        event_bus.subscribe_channel("test", lambda m: received.append(m))
+   373→        msg = BusMessage(sender="agent-1", channel="test", content={})
+   374→        await event_bus.send_message(msg)
+   375→        assert len(received) == 0
+   376→
+   377→
+   378→# ══════════════════════════════════════════════════════════════════════
+   379→# 7. Direct and Broadcast Messaging
+   380→# ══════════════════════════════════════════════════════════════════════
+   381→
+   382→
+   383→class TestDirectBroadcastMessaging:
+   384→    """Test direct and broadcast message methods."""
+   385→
+   386→    @pytest.mark.asyncio
+   387→    async def test_broadcast_message(self, event_bus):
+   388→        await event_bus.start()
+   389→        received = []
+   390→        event_bus.subscribe_channel("general", lambda m: received.append(m))
+   391→        msg = await event_bus.broadcast(
+   392→            sender="agent-1",
+   393→            channel="general",
+   394→            content={"msg": "hi"},
+   395→        )
+   396→        assert msg.recipient is None
+   397→        assert msg.message_type == MessageType.BROADCAST
+   398→        assert len(received) == 1
+   399→
+   400→    @pytest.mark.asyncio
+   401→    async def test_direct_message(self, event_bus):
+   402→        await event_bus.start()
+   403→        received = []
+   404→        event_bus.subscribe_channel("dm", lambda m: received.append(m))
+   405→        msg = await event_bus.send_direct(
+   406→            sender="agent-1",
+   407→            recipient="agent-2",
+   408→            channel="dm",
+   409→            content={"text": "direct"},
+   410→        )
+   411→        assert msg.recipient == "agent-2"
+   412→        assert msg.message_type == MessageType.REQUEST
+   413→        assert len(received) == 1
+   414→
+   415→    @pytest.mark.asyncio
+   416→    async def test_direct_with_correlation_id(self, event_bus):
+   417→        await event_bus.start()
+   418→        msg = await event_bus.send_direct(
+   419→            sender="agent-1",
+   420→            recipient="agent-2",
+   421→            channel="dm",
+   422→            content={},
+   423→            correlation_id="corr-123",
+   424→        )
+   425→        assert msg.correlation_id == "corr-123"
+   426→
+   427→    @pytest.mark.asyncio
+   428→    async def test_broadcast_has_normal_priority(self, event_bus):
+   429→        await event_bus.start()
+   430→        msg = await event_bus.broadcast(
+   431→            sender="agent-1",
+   432→            channel="general",
+   433→            content={},
+   434→        )
+   435→        assert msg.priority == BusMessagePriority.NORMAL
+   436→
+   437→
+   438→# ══════════════════════════════════════════════════════════════════════
+   439→# 8. Message Type Handlers
+   440→# ══════════════════════════════════════════════════════════════════════
+   441→
+   442→
+   443→class TestMessageTypeHandlers:
+   444→    """Test message type-based handlers."""
+   445→
+   446→    @pytest.mark.asyncio
+   447→    async def test_subscribe_messages(self, event_bus):
+   448→        handler = lambda m: None
+   449→        event_bus.subscribe_messages("request", handler)
+   450→        assert handler in event_bus._message_handlers["request"]
+   451→
+   452→    @pytest.mark.asyncio
+   453→    async def test_message_type_handler_receives(self, event_bus):
+   454→        await event_bus.start()
+   455→        received = []
+   456→        event_bus.subscribe_messages("request", lambda m: received.append(m))
+   457→        msg = BusMessage(
+   458→            sender="agent-1",
+   459→            channel="test",
+   460→            message_type=MessageType.REQUEST,
+   461→            content={},
+   462→        )
+   463→        await event_bus.send_message(msg)
+   464→        assert len(received) == 1
+   465→
+   466→    @pytest.mark.asyncio
+   467→    async def test_message_type_handler_not_called_for_other_type(self, event_bus):
+   468→        await event_bus.start()
+   469→        received = []
+   470→        event_bus.subscribe_messages("request", lambda m: received.append(m))
+   471→        msg = BusMessage(
+   472→            sender="agent-1",
+   473→            channel="test",
+   474→            message_type=MessageType.NOTIFICATION,
+   475→            content={},
+   476→        )
+   477→        await event_bus.send_message(msg)
+   478→        assert len(received) == 0
+   479→
+   480→
+   481→# ══════════════════════════════════════════════════════════════════════
+   482→# 9. History
+   483→# ══════════════════════════════════════════════════════════════════════
+   484→
+   485→
+   486→class TestEventBusHistory:
+   487→    """Test event and message history."""
+   488→
+   489→    @pytest.mark.asyncio
+   490→    async def test_event_history_basic(self, event_bus):
+   491→        await event_bus.start()
+   492→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   493→        await event_bus.publish_action(action)
+   494→        history = event_bus.get_event_history()
+   495→        assert len(history) == 1
+   496→
+   497→    @pytest.mark.asyncio
+   498→    async def test_event_history_filter_by_type(self, event_bus):
+   499→        await event_bus.start()
+   500→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   501→        await event_bus.publish_action(action)
+   502→        obs = Observation(
+   503→            observation_type=ObservationType.SUCCESS,
+   504→            agent_id="test",
+   505→            action_id="a1",
+   506→            content="ok",
+   507→        )
+   508→        await event_bus.publish_observation(obs)
+   509→        action_history = event_bus.get_event_history(event_type="action")
+   510→        assert len(action_history) == 1
+   511→        obs_history = event_bus.get_event_history(event_type="observation")
+   512→        assert len(obs_history) == 1
+   513→
+   514→    @pytest.mark.asyncio
+   515→    async def test_event_history_filter_by_source(self, event_bus):
+   516→        await event_bus.start()
+   517→        action1 = Action(action_type=ActionType.THINK, agent_id="agent-1")
+   518→        action2 = Action(action_type=ActionType.THINK, agent_id="agent-2")
+   519→        await event_bus.publish_action(action1)
+   520→        await event_bus.publish_action(action2)
+   521→        history = event_bus.get_event_history(source="agent-1")
+   522→        assert len(history) == 1
+   523→
+   524→    @pytest.mark.asyncio
+   525→    async def test_event_history_limit(self, event_bus):
+   526→        await event_bus.start()
+   527→        for i in range(10):
+   528→            action = Action(action_type=ActionType.THINK, agent_id=f"agent-{i}")
+   529→            await event_bus.publish_action(action)
+   530→        history = event_bus.get_event_history(limit=5)
+   531→        assert len(history) == 5
+   532→
+   533→    @pytest.mark.asyncio
+   534→    async def test_message_history_basic(self, event_bus):
+   535→        await event_bus.start()
+   536→        await event_bus.broadcast(sender="test", channel="test", content={})
+   537→        history = event_bus.get_message_history()
+   538→        assert len(history) == 1
+   539→
+   540→    @pytest.mark.asyncio
+   541→    async def test_message_history_filter_by_channel(self, event_bus):
+   542→        await event_bus.start()
+   543→        await event_bus.broadcast(sender="test", channel="chan-a", content={})
+   544→        await event_bus.broadcast(sender="test", channel="chan-b", content={})
+   545→        history = event_bus.get_message_history(channel="chan-a")
+   546→        assert len(history) == 1
+   547→
+   548→    @pytest.mark.asyncio
+   549→    async def test_message_history_filter_by_sender(self, event_bus):
+   550→        await event_bus.start()
+   551→        await event_bus.broadcast(sender="agent-1", channel="test", content={})
+   552→        await event_bus.broadcast(sender="agent-2", channel="test", content={})
+   553→        history = event_bus.get_message_history(sender="agent-1")
+   554→        assert len(history) == 1
+   555→
+   556→    @pytest.mark.asyncio
+   557→    async def test_message_history_limit(self, event_bus):
+   558→        await event_bus.start()
+   559→        for i in range(10):
+   560→            await event_bus.broadcast(sender=f"agent-{i}", channel="test", content={})
+   561→        history = event_bus.get_message_history(limit=5)
+   562→        assert len(history) == 5
+   563→
+   564→    @pytest.mark.asyncio
+   565→    async def test_clear_history(self, event_bus):
+   566→        await event_bus.start()
+   567→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   568→        await event_bus.publish_action(action)
+   569→        await event_bus.broadcast(sender="test", channel="test", content={})
+   570→        event_bus.clear_history()
+   571→        assert len(event_bus.get_event_history()) == 0
+   572→        assert len(event_bus.get_message_history()) == 0
+   573→
+   574→    @pytest.mark.asyncio
+   575→    async def test_history_respects_max_history(self):
+   576→        bus = EventBus(max_history=5)
+   577→        await bus.start()
+   578→        for i in range(10):
+   579→            event = Event(event_type=EventType.CUSTOM, source=f"src-{i}")
+   580→            await bus.publish_event(event)
+   581→        assert len(bus._history) <= 5
+   582→
+   583→
+   584→# ══════════════════════════════════════════════════════════════════════
+   585→# 10. Error Handling
+   586→# ══════════════════════════════════════════════════════════════════════
+   587→
+   588→
+   589→class TestEventBusErrorHandling:
+   590→    """Test error handling in event/message handlers."""
+   591→
+   592→    @pytest.mark.asyncio
+   593→    async def test_handler_error_doesnt_crash_event_publish(self, event_bus):
+   594→        await event_bus.start()
+   595→
+   596→        async def bad_handler(e):
+   597→            raise ValueError("Handler error")
+   598→
+   599→        event_bus.subscribe("action", bad_handler)
+   600→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   601→        await event_bus.publish_action(action)  # Should not raise
+   602→
+   603→    @pytest.mark.asyncio
+   604→    async def test_handler_error_doesnt_crash_message(self, event_bus):
+   605→        await event_bus.start()
+   606→
+   607→        async def bad_handler(m):
+   608→            raise ValueError("Handler error")
+   609→
+   610→        event_bus.subscribe_channel("test", bad_handler)
+   611→        msg = BusMessage(sender="agent-1", channel="test", content={})
+   612→        await event_bus.send_message(msg)  # Should not raise
+   613→
+   614→    @pytest.mark.asyncio
+   615→    async def test_bad_handler_doesnt_prevent_good_handler(self, event_bus):
+   616→        await event_bus.start()
+   617→        received = []
+   618→
+   619→        async def bad_handler(e):
+   620→            raise ValueError("fail")
+   621→
+   622→        event_bus.subscribe("action", bad_handler)
+   623→        event_bus.subscribe("action", lambda e: received.append(e))
+   624→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   625→        await event_bus.publish_action(action)
+   626→        assert len(received) == 1
+   627→
+   628→    @pytest.mark.asyncio
+   629→    async def test_message_type_handler_error_doesnt_crash(self, event_bus):
+   630→        await event_bus.start()
+   631→
+   632→        async def bad_handler(m):
+   633→            raise ValueError("fail")
+   634→
+   635→        event_bus.subscribe_messages("request", bad_handler)
+   636→        msg = BusMessage(
+   637→            sender="agent-1",
+   638→            channel="test",
+   639→            message_type=MessageType.REQUEST,
+   640→            content={},
+   641→        )
+   642→        await event_bus.send_message(msg)  # Should not raise
+   643→
+   644→
+   645→# ══════════════════════════════════════════════════════════════════════
+   646→# 11. Statistics
+   647→# ══════════════════════════════════════════════════════════════════════
+   648→
+   649→
+   650→class TestEventBusStats:
+   651→    """Test get_stats method."""
+   652→
+   653→    @pytest.mark.asyncio
+   654→    async def test_initial_stats(self, event_bus):
+   655→        stats = event_bus.get_stats()
+   656→        assert stats["running"] is False
+   657→        assert stats["total_events"] == 0
+   658→        assert stats["total_messages"] == 0
+   659→        assert stats["history_size"] == 0
+   660→
+   661→    @pytest.mark.asyncio
+   662→    async def test_stats_after_events(self, event_bus):
+   663→        await event_bus.start()
+   664→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   665→        await event_bus.publish_action(action)
+   666→        stats = event_bus.get_stats()
+   667→        assert stats["total_events"] == 1
+   668→        assert stats["history_size"] == 1
+   669→
+   670→    @pytest.mark.asyncio
+   671→    async def test_stats_after_messages(self, event_bus):
+   672→        await event_bus.start()
+   673→        await event_bus.broadcast(sender="test", channel="test", content={})
+   674→        stats = event_bus.get_stats()
+   675→        assert stats["total_messages"] == 1
+   676→
+   677→    @pytest.mark.asyncio
+   678→    async def test_stats_subscriber_count(self, event_bus):
+   679→        event_bus.subscribe("action", lambda e: None)
+   680→        event_bus.subscribe("observation", lambda e: None)
+   681→        stats = event_bus.get_stats()
+   682→        assert stats["subscriber_count"] == 2
+   683→
+   684→    @pytest.mark.asyncio
+   685→    async def test_stats_pending_observations(self, event_bus):
+   686→        await event_bus.start()
+   687→        stats = event_bus.get_stats()
+   688→        assert stats["pending_observations"] == 0
+   689→
+   690→
+   691→# ══════════════════════════════════════════════════════════════════════
+   692→# 12. Singleton Pattern
+   693→# ══════════════════════════════════════════════════════════════════════
+   694→
+   695→
+   696→class TestEventBusSingleton:
+   697→    """Test EventBus singleton pattern."""
+   698→
+   699→    def test_get_instance_returns_bus(self):
+   700→        EventBus.reset()
+   701→        instance = EventBus.get_instance()
+   702→        assert isinstance(instance, EventBus)
+   703→
+   704→    def test_get_instance_returns_same(self):
+   705→        EventBus.reset()
+   706→        i1 = EventBus.get_instance()
+   707→        i2 = EventBus.get_instance()
+   708→        assert i1 is i2
+   709→
+   710→    def test_reset_clears_singleton(self):
+   711→        i1 = EventBus.get_instance()
+   712→        EventBus.reset()
+   713→        i2 = EventBus.get_instance()
+   714→        assert i1 is not i2
+   715→
+   716→
+   717→# ══════════════════════════════════════════════════════════════════════
+   718→# 13. Multiple Subscribers
+   719→# ══════════════════════════════════════════════════════════════════════
+   720→
+   721→
+   722→class TestMultipleSubscribers:
+   723→    """Test multiple subscribers on the same event type."""
+   724→
+   725→    @pytest.mark.asyncio
+   726→    async def test_all_subscribers_receive_event(self, event_bus):
+   727→        await event_bus.start()
+   728→        received_1 = []
+   729→        received_2 = []
+   730→        event_bus.subscribe("action", lambda e: received_1.append(e))
+   731→        event_bus.subscribe("action", lambda e: received_2.append(e))
+   732→        action = Action(action_type=ActionType.THINK, agent_id="test")
+   733→        await event_bus.publish_action(action)
+   734→        assert len(received_1) == 1
+   735→        assert len(received_2) == 1
+   736→
+   737→    @pytest.mark.asyncio
+   738→    async def test_all_channel_subscribers_receive(self, event_bus):
+   739→        await event_bus.start()
+   740→        received_1 = []
+   741→        received_2 = []
+   742→        event_bus.subscribe_channel("test", lambda m: received_1.append(m))
+   743→        event_bus.subscribe_channel("test", lambda m: received_2.append(m))
+   744→        msg = BusMessage(sender="agent-1", channel="test", content={})
+   745→        await event_bus.send_message(msg)
+   746→        assert len(received_1) == 1
+   747→        assert len(received_2) == 1
+   748→

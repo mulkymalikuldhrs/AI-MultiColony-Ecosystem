@@ -1,0 +1,2002 @@
+     1→"""Qlib 158 Alpha Factors.
+     2→
+     3→Implements 154 Qlib alpha factors from Microsoft Qlib.
+     4→
+     5→Adapted from microsoft/qlib:qlib/contrib/data/handler.py (Apache-2.0).
+     6→Copyright (c) Microsoft Corporation.
+     7→
+     8→Each factor uses the __alpha_meta__ + compute(panel) pattern.
+     9→"""
+    10→
+    11→from __future__ import annotations
+    12→
+    13→import numpy as np
+    14→import pandas as pd
+    15→
+    16→from quant_nanggroe.engine.factors.base import (
+    17→    decay_linear,
+    18→    delta,
+    19→    rank,
+    20→    safe_div,
+    21→    scale,
+    22→    signed_power,
+    23→    ts_argmax,
+    24→    ts_argmin,
+    25→    ts_corr,
+    26→    ts_cov,
+    27→    ts_max,
+    28→    ts_mean,
+    29→    ts_min,
+    30→    ts_rank,
+    31→    ts_std,
+    32→    vwap,
+    33→)
+    34→
+    35→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+    36→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+    37→"""qlib158 BETA10: formula = (\\mathrm{close}_t - \\mathrm{close}_{{t-10}}) / (10\\,\\mathrm{close})."""
+    38→
+    39→
+    40→__alpha_meta_beta10 = {
+    41→    'id': 'qlib158_beta10',
+    42→    'theme': ['momentum'],
+    43→    'formula_latex': '(\\\\mathrm{close}_t - \\\\mathrm{close}_{{t-10}}) / (10\\\\,\\\\mathrm{close})',
+    44→    'columns_required': ['close'],
+    45→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+    46→    'frequency': ['1d'],
+    47→    'decay_horizon': 10,
+    48→    'min_warmup_bars': 10,
+    49→}
+    50→
+    51→
+    52→def compute_beta10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    53→    """Return qlib158 BETA10 on the supplied OHLCV panel."""
+    54→    c = panel['close']
+    55→    return safe_div(delta(c, 10), c) / float(10)
+    56→
+    57→
+    58→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+    59→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+    60→"""qlib158 BETA20: formula = (\\mathrm{close}_t - \\mathrm{close}_{{t-20}}) / (20\\,\\mathrm{close})."""
+    61→
+    62→
+    63→__alpha_meta_beta20 = {
+    64→    'id': 'qlib158_beta20',
+    65→    'theme': ['momentum'],
+    66→    'formula_latex': '(\\\\mathrm{close}_t - \\\\mathrm{close}_{{t-20}}) / (20\\\\,\\\\mathrm{close})',
+    67→    'columns_required': ['close'],
+    68→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+    69→    'frequency': ['1d'],
+    70→    'decay_horizon': 20,
+    71→    'min_warmup_bars': 20,
+    72→}
+    73→
+    74→
+    75→def compute_beta20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    76→    """Return qlib158 BETA20 on the supplied OHLCV panel."""
+    77→    c = panel['close']
+    78→    return safe_div(delta(c, 20), c) / float(20)
+    79→
+    80→
+    81→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+    82→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+    83→"""qlib158 BETA30: formula = (\\mathrm{close}_t - \\mathrm{close}_{{t-30}}) / (30\\,\\mathrm{close})."""
+    84→
+    85→
+    86→__alpha_meta_beta30 = {
+    87→    'id': 'qlib158_beta30',
+    88→    'theme': ['momentum'],
+    89→    'formula_latex': '(\\\\mathrm{close}_t - \\\\mathrm{close}_{{t-30}}) / (30\\\\,\\\\mathrm{close})',
+    90→    'columns_required': ['close'],
+    91→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+    92→    'frequency': ['1d'],
+    93→    'decay_horizon': 30,
+    94→    'min_warmup_bars': 30,
+    95→}
+    96→
+    97→
+    98→def compute_beta30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    99→    """Return qlib158 BETA30 on the supplied OHLCV panel."""
+   100→    c = panel['close']
+   101→    return safe_div(delta(c, 30), c) / float(30)
+   102→
+   103→
+   104→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   105→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   106→"""qlib158 BETA5: formula = (\\mathrm{close}_t - \\mathrm{close}_{{t-5}}) / (5\\,\\mathrm{close})."""
+   107→
+   108→
+   109→__alpha_meta_beta5 = {
+   110→    'id': 'qlib158_beta5',
+   111→    'theme': ['momentum'],
+   112→    'formula_latex': '(\\\\mathrm{close}_t - \\\\mathrm{close}_{{t-5}}) / (5\\\\,\\\\mathrm{close})',
+   113→    'columns_required': ['close'],
+   114→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   115→    'frequency': ['1d'],
+   116→    'decay_horizon': 5,
+   117→    'min_warmup_bars': 5,
+   118→}
+   119→
+   120→
+   121→def compute_beta5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   122→    """Return qlib158 BETA5 on the supplied OHLCV panel."""
+   123→    c = panel['close']
+   124→    return safe_div(delta(c, 5), c) / float(5)
+   125→
+   126→
+   127→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   128→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   129→"""qlib158 BETA60: formula = (\\mathrm{close}_t - \\mathrm{close}_{{t-60}}) / (60\\,\\mathrm{close})."""
+   130→
+   131→
+   132→__alpha_meta_beta60 = {
+   133→    'id': 'qlib158_beta60',
+   134→    'theme': ['momentum'],
+   135→    'formula_latex': '(\\\\mathrm{close}_t - \\\\mathrm{close}_{{t-60}}) / (60\\\\,\\\\mathrm{close})',
+   136→    'columns_required': ['close'],
+   137→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   138→    'frequency': ['1d'],
+   139→    'decay_horizon': 60,
+   140→    'min_warmup_bars': 60,
+   141→}
+   142→
+   143→
+   144→def compute_beta60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   145→    """Return qlib158 BETA60 on the supplied OHLCV panel."""
+   146→    c = panel['close']
+   147→    return safe_div(delta(c, 60), c) / float(60)
+   148→
+   149→
+   150→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   151→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   152→"""qlib158 CNTD10: formula = \\mathrm{CNTP}_10 - \\mathrm{CNTN}_10."""
+   153→
+   154→
+   155→__alpha_meta_cntd10 = {
+   156→    'id': 'qlib158_cntd10',
+   157→    'theme': ['reversal'],
+   158→    'formula_latex': '\\\\mathrm{CNTP}_10 - \\\\mathrm{CNTN}_10',
+   159→    'columns_required': ['close'],
+   160→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   161→    'frequency': ['1d'],
+   162→    'decay_horizon': 10,
+   163→    'min_warmup_bars': 10,
+   164→}
+   165→
+   166→
+   167→def compute_cntd10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   168→    """Return qlib158 CNTD10 on the supplied OHLCV panel."""
+   169→    c = panel['close']
+   170→    up = (c > c.shift(1)).astype('float64')
+   171→    dn = (c < c.shift(1)).astype('float64')
+   172→    up_w = up.rolling(window=10, min_periods=10).mean()
+   173→    dn_w = dn.rolling(window=10, min_periods=10).mean()
+   174→    return up_w - dn_w
+   175→
+   176→
+   177→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   178→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   179→"""qlib158 CNTD20: formula = \\mathrm{CNTP}_20 - \\mathrm{CNTN}_20."""
+   180→
+   181→
+   182→__alpha_meta_cntd20 = {
+   183→    'id': 'qlib158_cntd20',
+   184→    'theme': ['reversal'],
+   185→    'formula_latex': '\\\\mathrm{CNTP}_20 - \\\\mathrm{CNTN}_20',
+   186→    'columns_required': ['close'],
+   187→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   188→    'frequency': ['1d'],
+   189→    'decay_horizon': 20,
+   190→    'min_warmup_bars': 20,
+   191→}
+   192→
+   193→
+   194→def compute_cntd20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   195→    """Return qlib158 CNTD20 on the supplied OHLCV panel."""
+   196→    c = panel['close']
+   197→    up = (c > c.shift(1)).astype('float64')
+   198→    dn = (c < c.shift(1)).astype('float64')
+   199→    up_w = up.rolling(window=20, min_periods=20).mean()
+   200→    dn_w = dn.rolling(window=20, min_periods=20).mean()
+   201→    return up_w - dn_w
+   202→
+   203→
+   204→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   205→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   206→"""qlib158 CNTD30: formula = \\mathrm{CNTP}_30 - \\mathrm{CNTN}_30."""
+   207→
+   208→
+   209→__alpha_meta_cntd30 = {
+   210→    'id': 'qlib158_cntd30',
+   211→    'theme': ['reversal'],
+   212→    'formula_latex': '\\\\mathrm{CNTP}_30 - \\\\mathrm{CNTN}_30',
+   213→    'columns_required': ['close'],
+   214→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   215→    'frequency': ['1d'],
+   216→    'decay_horizon': 30,
+   217→    'min_warmup_bars': 30,
+   218→}
+   219→
+   220→
+   221→def compute_cntd30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   222→    """Return qlib158 CNTD30 on the supplied OHLCV panel."""
+   223→    c = panel['close']
+   224→    up = (c > c.shift(1)).astype('float64')
+   225→    dn = (c < c.shift(1)).astype('float64')
+   226→    up_w = up.rolling(window=30, min_periods=30).mean()
+   227→    dn_w = dn.rolling(window=30, min_periods=30).mean()
+   228→    return up_w - dn_w
+   229→
+   230→
+   231→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   232→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   233→"""qlib158 CNTD5: formula = \\mathrm{CNTP}_5 - \\mathrm{CNTN}_5."""
+   234→
+   235→
+   236→__alpha_meta_cntd5 = {
+   237→    'id': 'qlib158_cntd5',
+   238→    'theme': ['reversal'],
+   239→    'formula_latex': '\\\\mathrm{CNTP}_5 - \\\\mathrm{CNTN}_5',
+   240→    'columns_required': ['close'],
+   241→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   242→    'frequency': ['1d'],
+   243→    'decay_horizon': 5,
+   244→    'min_warmup_bars': 5,
+   245→}
+   246→
+   247→
+   248→def compute_cntd5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   249→    """Return qlib158 CNTD5 on the supplied OHLCV panel."""
+   250→    c = panel['close']
+   251→    up = (c > c.shift(1)).astype('float64')
+   252→    dn = (c < c.shift(1)).astype('float64')
+   253→    up_w = up.rolling(window=5, min_periods=5).mean()
+   254→    dn_w = dn.rolling(window=5, min_periods=5).mean()
+   255→    return up_w - dn_w
+   256→
+   257→
+   258→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   259→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   260→"""qlib158 CNTD60: formula = \\mathrm{CNTP}_60 - \\mathrm{CNTN}_60."""
+   261→
+   262→
+   263→__alpha_meta_cntd60 = {
+   264→    'id': 'qlib158_cntd60',
+   265→    'theme': ['reversal'],
+   266→    'formula_latex': '\\\\mathrm{CNTP}_60 - \\\\mathrm{CNTN}_60',
+   267→    'columns_required': ['close'],
+   268→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   269→    'frequency': ['1d'],
+   270→    'decay_horizon': 60,
+   271→    'min_warmup_bars': 60,
+   272→}
+   273→
+   274→
+   275→def compute_cntd60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   276→    """Return qlib158 CNTD60 on the supplied OHLCV panel."""
+   277→    c = panel['close']
+   278→    up = (c > c.shift(1)).astype('float64')
+   279→    dn = (c < c.shift(1)).astype('float64')
+   280→    up_w = up.rolling(window=60, min_periods=60).mean()
+   281→    dn_w = dn.rolling(window=60, min_periods=60).mean()
+   282→    return up_w - dn_w
+   283→
+   284→
+   285→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   286→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   287→"""qlib158 CNTN10: formula = \\mathrm{rolling\\_mean}(\\mathrm{1}[\\mathrm{close}<\\mathrm{close}_{{-1}}], 10)."""
+   288→
+   289→
+   290→__alpha_meta_cntn10 = {
+   291→    'id': 'qlib158_cntn10',
+   292→    'theme': ['reversal'],
+   293→    'formula_latex': '\\\\mathrm{rolling\\\\_mean}(\\\\mathrm{1}[\\\\mathrm{close}<\\\\mathrm{close}_{{-1}}], 10)',
+   294→    'columns_required': ['close'],
+   295→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   296→    'frequency': ['1d'],
+   297→    'decay_horizon': 10,
+   298→    'min_warmup_bars': 10,
+   299→}
+   300→
+   301→
+   302→def compute_cntn10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   303→    """Return qlib158 CNTN10 on the supplied OHLCV panel."""
+   304→    c = panel['close']
+   305→    dn = (c < c.shift(1)).astype('float64')
+   306→    return dn.rolling(window=10, min_periods=10).mean()
+   307→
+   308→
+   309→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   310→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   311→"""qlib158 CNTN20: formula = \\mathrm{rolling\\_mean}(\\mathrm{1}[\\mathrm{close}<\\mathrm{close}_{{-1}}], 20)."""
+   312→
+   313→
+   314→__alpha_meta_cntn20 = {
+   315→    'id': 'qlib158_cntn20',
+   316→    'theme': ['reversal'],
+   317→    'formula_latex': '\\\\mathrm{rolling\\\\_mean}(\\\\mathrm{1}[\\\\mathrm{close}<\\\\mathrm{close}_{{-1}}], 20)',
+   318→    'columns_required': ['close'],
+   319→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   320→    'frequency': ['1d'],
+   321→    'decay_horizon': 20,
+   322→    'min_warmup_bars': 20,
+   323→}
+   324→
+   325→
+   326→def compute_cntn20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   327→    """Return qlib158 CNTN20 on the supplied OHLCV panel."""
+   328→    c = panel['close']
+   329→    dn = (c < c.shift(1)).astype('float64')
+   330→    return dn.rolling(window=20, min_periods=20).mean()
+   331→
+   332→
+   333→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   334→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   335→"""qlib158 CNTN30: formula = \\mathrm{rolling\\_mean}(\\mathrm{1}[\\mathrm{close}<\\mathrm{close}_{{-1}}], 30)."""
+   336→
+   337→
+   338→__alpha_meta_cntn30 = {
+   339→    'id': 'qlib158_cntn30',
+   340→    'theme': ['reversal'],
+   341→    'formula_latex': '\\\\mathrm{rolling\\\\_mean}(\\\\mathrm{1}[\\\\mathrm{close}<\\\\mathrm{close}_{{-1}}], 30)',
+   342→    'columns_required': ['close'],
+   343→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   344→    'frequency': ['1d'],
+   345→    'decay_horizon': 30,
+   346→    'min_warmup_bars': 30,
+   347→}
+   348→
+   349→
+   350→def compute_cntn30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   351→    """Return qlib158 CNTN30 on the supplied OHLCV panel."""
+   352→    c = panel['close']
+   353→    dn = (c < c.shift(1)).astype('float64')
+   354→    return dn.rolling(window=30, min_periods=30).mean()
+   355→
+   356→
+   357→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   358→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   359→"""qlib158 CNTN5: formula = \\mathrm{rolling\\_mean}(\\mathrm{1}[\\mathrm{close}<\\mathrm{close}_{{-1}}], 5)."""
+   360→
+   361→
+   362→__alpha_meta_cntn5 = {
+   363→    'id': 'qlib158_cntn5',
+   364→    'theme': ['reversal'],
+   365→    'formula_latex': '\\\\mathrm{rolling\\\\_mean}(\\\\mathrm{1}[\\\\mathrm{close}<\\\\mathrm{close}_{{-1}}], 5)',
+   366→    'columns_required': ['close'],
+   367→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   368→    'frequency': ['1d'],
+   369→    'decay_horizon': 5,
+   370→    'min_warmup_bars': 5,
+   371→}
+   372→
+   373→
+   374→def compute_cntn5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   375→    """Return qlib158 CNTN5 on the supplied OHLCV panel."""
+   376→    c = panel['close']
+   377→    dn = (c < c.shift(1)).astype('float64')
+   378→    return dn.rolling(window=5, min_periods=5).mean()
+   379→
+   380→
+   381→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   382→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   383→"""qlib158 CNTN60: formula = \\mathrm{rolling\\_mean}(\\mathrm{1}[\\mathrm{close}<\\mathrm{close}_{{-1}}], 60)."""
+   384→
+   385→
+   386→__alpha_meta_cntn60 = {
+   387→    'id': 'qlib158_cntn60',
+   388→    'theme': ['reversal'],
+   389→    'formula_latex': '\\\\mathrm{rolling\\\\_mean}(\\\\mathrm{1}[\\\\mathrm{close}<\\\\mathrm{close}_{{-1}}], 60)',
+   390→    'columns_required': ['close'],
+   391→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   392→    'frequency': ['1d'],
+   393→    'decay_horizon': 60,
+   394→    'min_warmup_bars': 60,
+   395→}
+   396→
+   397→
+   398→def compute_cntn60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   399→    """Return qlib158 CNTN60 on the supplied OHLCV panel."""
+   400→    c = panel['close']
+   401→    dn = (c < c.shift(1)).astype('float64')
+   402→    return dn.rolling(window=60, min_periods=60).mean()
+   403→
+   404→
+   405→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   406→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   407→"""qlib158 CNTP10: formula = \\mathrm{rolling\\_mean}(\\mathrm{1}[\\mathrm{close}>\\mathrm{close}_{{-1}}], 10)."""
+   408→
+   409→
+   410→__alpha_meta_cntp10 = {
+   411→    'id': 'qlib158_cntp10',
+   412→    'theme': ['reversal'],
+   413→    'formula_latex': '\\\\mathrm{rolling\\\\_mean}(\\\\mathrm{1}[\\\\mathrm{close}>\\\\mathrm{close}_{{-1}}], 10)',
+   414→    'columns_required': ['close'],
+   415→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   416→    'frequency': ['1d'],
+   417→    'decay_horizon': 10,
+   418→    'min_warmup_bars': 10,
+   419→}
+   420→
+   421→
+   422→def compute_cntp10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   423→    """Return qlib158 CNTP10 on the supplied OHLCV panel."""
+   424→    c = panel['close']
+   425→    up = (c > c.shift(1)).astype('float64')
+   426→    return up.rolling(window=10, min_periods=10).mean()
+   427→
+   428→
+   429→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   430→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   431→"""qlib158 CNTP20: formula = \\mathrm{rolling\\_mean}(\\mathrm{1}[\\mathrm{close}>\\mathrm{close}_{{-1}}], 20)."""
+   432→
+   433→
+   434→__alpha_meta_cntp20 = {
+   435→    'id': 'qlib158_cntp20',
+   436→    'theme': ['reversal'],
+   437→    'formula_latex': '\\\\mathrm{rolling\\\\_mean}(\\\\mathrm{1}[\\\\mathrm{close}>\\\\mathrm{close}_{{-1}}], 20)',
+   438→    'columns_required': ['close'],
+   439→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   440→    'frequency': ['1d'],
+   441→    'decay_horizon': 20,
+   442→    'min_warmup_bars': 20,
+   443→}
+   444→
+   445→
+   446→def compute_cntp20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   447→    """Return qlib158 CNTP20 on the supplied OHLCV panel."""
+   448→    c = panel['close']
+   449→    up = (c > c.shift(1)).astype('float64')
+   450→    return up.rolling(window=20, min_periods=20).mean()
+   451→
+   452→
+   453→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   454→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   455→"""qlib158 CNTP30: formula = \\mathrm{rolling\\_mean}(\\mathrm{1}[\\mathrm{close}>\\mathrm{close}_{{-1}}], 30)."""
+   456→
+   457→
+   458→__alpha_meta_cntp30 = {
+   459→    'id': 'qlib158_cntp30',
+   460→    'theme': ['reversal'],
+   461→    'formula_latex': '\\\\mathrm{rolling\\\\_mean}(\\\\mathrm{1}[\\\\mathrm{close}>\\\\mathrm{close}_{{-1}}], 30)',
+   462→    'columns_required': ['close'],
+   463→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   464→    'frequency': ['1d'],
+   465→    'decay_horizon': 30,
+   466→    'min_warmup_bars': 30,
+   467→}
+   468→
+   469→
+   470→def compute_cntp30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   471→    """Return qlib158 CNTP30 on the supplied OHLCV panel."""
+   472→    c = panel['close']
+   473→    up = (c > c.shift(1)).astype('float64')
+   474→    return up.rolling(window=30, min_periods=30).mean()
+   475→
+   476→
+   477→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   478→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   479→"""qlib158 CNTP5: formula = \\mathrm{rolling\\_mean}(\\mathrm{1}[\\mathrm{close}>\\mathrm{close}_{{-1}}], 5)."""
+   480→
+   481→
+   482→__alpha_meta_cntp5 = {
+   483→    'id': 'qlib158_cntp5',
+   484→    'theme': ['reversal'],
+   485→    'formula_latex': '\\\\mathrm{rolling\\\\_mean}(\\\\mathrm{1}[\\\\mathrm{close}>\\\\mathrm{close}_{{-1}}], 5)',
+   486→    'columns_required': ['close'],
+   487→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   488→    'frequency': ['1d'],
+   489→    'decay_horizon': 5,
+   490→    'min_warmup_bars': 5,
+   491→}
+   492→
+   493→
+   494→def compute_cntp5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   495→    """Return qlib158 CNTP5 on the supplied OHLCV panel."""
+   496→    c = panel['close']
+   497→    up = (c > c.shift(1)).astype('float64')
+   498→    return up.rolling(window=5, min_periods=5).mean()
+   499→
+   500→
+   501→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   502→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   503→"""qlib158 CNTP60: formula = \\mathrm{rolling\\_mean}(\\mathrm{1}[\\mathrm{close}>\\mathrm{close}_{{-1}}], 60)."""
+   504→
+   505→
+   506→__alpha_meta_cntp60 = {
+   507→    'id': 'qlib158_cntp60',
+   508→    'theme': ['reversal'],
+   509→    'formula_latex': '\\\\mathrm{rolling\\\\_mean}(\\\\mathrm{1}[\\\\mathrm{close}>\\\\mathrm{close}_{{-1}}], 60)',
+   510→    'columns_required': ['close'],
+   511→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   512→    'frequency': ['1d'],
+   513→    'decay_horizon': 60,
+   514→    'min_warmup_bars': 60,
+   515→}
+   516→
+   517→
+   518→def compute_cntp60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   519→    """Return qlib158 CNTP60 on the supplied OHLCV panel."""
+   520→    c = panel['close']
+   521→    up = (c > c.shift(1)).astype('float64')
+   522→    return up.rolling(window=60, min_periods=60).mean()
+   523→
+   524→
+   525→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   526→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   527→"""qlib158 CORD10: formula = \\mathrm{ts\\_corr}(\\mathrm{close}/\\mathrm{close}_{{-1}}, \\log((\\mathrm{volume}+1)/(\\mathrm{volume}_{{-1}}+1)), 10)."""
+   528→
+   529→
+   530→__alpha_meta_cord10 = {
+   531→    'id': 'qlib158_cord10',
+   532→    'theme': ['volume', 'microstructure'],
+   533→    'formula_latex': '\\\\mathrm{ts\\\\_corr}(\\\\mathrm{close}/\\\\mathrm{close}_{{-1}}, \\\\log((\\\\mathrm{volume}+1)/(\\\\mathrm{volume}_{{-1}}+1)), 10)',
+   534→    'columns_required': ['close', 'volume'],
+   535→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   536→    'frequency': ['1d'],
+   537→    'decay_horizon': 10,
+   538→    'min_warmup_bars': 10,
+   539→}
+   540→
+   541→
+   542→def compute_cord10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   543→    """Return qlib158 CORD10 on the supplied OHLCV panel."""
+   544→    c = panel['close']
+   545→    v = panel['volume']
+   546→    c_ret = safe_div(c, c.shift(1))
+   547→    v_ret = safe_div(v + 1.0, v.shift(1) + 1.0)
+   548→    logvr = np.log(v_ret)
+   549→    return ts_corr(c_ret, logvr, 10)
+   550→
+   551→
+   552→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   553→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   554→"""qlib158 CORD20: formula = \\mathrm{ts\\_corr}(\\mathrm{close}/\\mathrm{close}_{{-1}}, \\log((\\mathrm{volume}+1)/(\\mathrm{volume}_{{-1}}+1)), 20)."""
+   555→
+   556→
+   557→__alpha_meta_cord20 = {
+   558→    'id': 'qlib158_cord20',
+   559→    'theme': ['volume', 'microstructure'],
+   560→    'formula_latex': '\\\\mathrm{ts\\\\_corr}(\\\\mathrm{close}/\\\\mathrm{close}_{{-1}}, \\\\log((\\\\mathrm{volume}+1)/(\\\\mathrm{volume}_{{-1}}+1)), 20)',
+   561→    'columns_required': ['close', 'volume'],
+   562→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   563→    'frequency': ['1d'],
+   564→    'decay_horizon': 20,
+   565→    'min_warmup_bars': 20,
+   566→}
+   567→
+   568→
+   569→def compute_cord20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   570→    """Return qlib158 CORD20 on the supplied OHLCV panel."""
+   571→    c = panel['close']
+   572→    v = panel['volume']
+   573→    c_ret = safe_div(c, c.shift(1))
+   574→    v_ret = safe_div(v + 1.0, v.shift(1) + 1.0)
+   575→    logvr = np.log(v_ret)
+   576→    return ts_corr(c_ret, logvr, 20)
+   577→
+   578→
+   579→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   580→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   581→"""qlib158 CORD30: formula = \\mathrm{ts\\_corr}(\\mathrm{close}/\\mathrm{close}_{{-1}}, \\log((\\mathrm{volume}+1)/(\\mathrm{volume}_{{-1}}+1)), 30)."""
+   582→
+   583→
+   584→__alpha_meta_cord30 = {
+   585→    'id': 'qlib158_cord30',
+   586→    'theme': ['volume', 'microstructure'],
+   587→    'formula_latex': '\\\\mathrm{ts\\\\_corr}(\\\\mathrm{close}/\\\\mathrm{close}_{{-1}}, \\\\log((\\\\mathrm{volume}+1)/(\\\\mathrm{volume}_{{-1}}+1)), 30)',
+   588→    'columns_required': ['close', 'volume'],
+   589→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   590→    'frequency': ['1d'],
+   591→    'decay_horizon': 30,
+   592→    'min_warmup_bars': 30,
+   593→}
+   594→
+   595→
+   596→def compute_cord30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   597→    """Return qlib158 CORD30 on the supplied OHLCV panel."""
+   598→    c = panel['close']
+   599→    v = panel['volume']
+   600→    c_ret = safe_div(c, c.shift(1))
+   601→    v_ret = safe_div(v + 1.0, v.shift(1) + 1.0)
+   602→    logvr = np.log(v_ret)
+   603→    return ts_corr(c_ret, logvr, 30)
+   604→
+   605→
+   606→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   607→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   608→"""qlib158 CORD5: formula = \\mathrm{ts\\_corr}(\\mathrm{close}/\\mathrm{close}_{{-1}}, \\log((\\mathrm{volume}+1)/(\\mathrm{volume}_{{-1}}+1)), 5)."""
+   609→
+   610→
+   611→__alpha_meta_cord5 = {
+   612→    'id': 'qlib158_cord5',
+   613→    'theme': ['volume', 'microstructure'],
+   614→    'formula_latex': '\\\\mathrm{ts\\\\_corr}(\\\\mathrm{close}/\\\\mathrm{close}_{{-1}}, \\\\log((\\\\mathrm{volume}+1)/(\\\\mathrm{volume}_{{-1}}+1)), 5)',
+   615→    'columns_required': ['close', 'volume'],
+   616→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   617→    'frequency': ['1d'],
+   618→    'decay_horizon': 5,
+   619→    'min_warmup_bars': 5,
+   620→}
+   621→
+   622→
+   623→def compute_cord5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   624→    """Return qlib158 CORD5 on the supplied OHLCV panel."""
+   625→    c = panel['close']
+   626→    v = panel['volume']
+   627→    c_ret = safe_div(c, c.shift(1))
+   628→    v_ret = safe_div(v + 1.0, v.shift(1) + 1.0)
+   629→    logvr = np.log(v_ret)
+   630→    return ts_corr(c_ret, logvr, 5)
+   631→
+   632→
+   633→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   634→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   635→"""qlib158 CORD60: formula = \\mathrm{ts\\_corr}(\\mathrm{close}/\\mathrm{close}_{{-1}}, \\log((\\mathrm{volume}+1)/(\\mathrm{volume}_{{-1}}+1)), 60)."""
+   636→
+   637→
+   638→__alpha_meta_cord60 = {
+   639→    'id': 'qlib158_cord60',
+   640→    'theme': ['volume', 'microstructure'],
+   641→    'formula_latex': '\\\\mathrm{ts\\\\_corr}(\\\\mathrm{close}/\\\\mathrm{close}_{{-1}}, \\\\log((\\\\mathrm{volume}+1)/(\\\\mathrm{volume}_{{-1}}+1)), 60)',
+   642→    'columns_required': ['close', 'volume'],
+   643→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   644→    'frequency': ['1d'],
+   645→    'decay_horizon': 60,
+   646→    'min_warmup_bars': 60,
+   647→}
+   648→
+   649→
+   650→def compute_cord60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   651→    """Return qlib158 CORD60 on the supplied OHLCV panel."""
+   652→    c = panel['close']
+   653→    v = panel['volume']
+   654→    c_ret = safe_div(c, c.shift(1))
+   655→    v_ret = safe_div(v + 1.0, v.shift(1) + 1.0)
+   656→    logvr = np.log(v_ret)
+   657→    return ts_corr(c_ret, logvr, 60)
+   658→
+   659→
+   660→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   661→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   662→"""qlib158 CORR10: formula = \\mathrm{ts\\_corr}(\\mathrm{close}, \\log(\\mathrm{volume}+1), 10)."""
+   663→
+   664→
+   665→__alpha_meta_corr10 = {
+   666→    'id': 'qlib158_corr10',
+   667→    'theme': ['volume', 'microstructure'],
+   668→    'formula_latex': '\\\\mathrm{ts\\\\_corr}(\\\\mathrm{close}, \\\\log(\\\\mathrm{volume}+1), 10)',
+   669→    'columns_required': ['close', 'volume'],
+   670→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   671→    'frequency': ['1d'],
+   672→    'decay_horizon': 10,
+   673→    'min_warmup_bars': 10,
+   674→}
+   675→
+   676→
+   677→def compute_corr10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   678→    """Return qlib158 CORR10 on the supplied OHLCV panel."""
+   679→    c = panel['close']
+   680→    v = panel['volume']
+   681→    logv = np.log1p(v)
+   682→    return ts_corr(c, logv, 10)
+   683→
+   684→
+   685→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   686→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   687→"""qlib158 CORR20: formula = \\mathrm{ts\\_corr}(\\mathrm{close}, \\log(\\mathrm{volume}+1), 20)."""
+   688→
+   689→
+   690→__alpha_meta_corr20 = {
+   691→    'id': 'qlib158_corr20',
+   692→    'theme': ['volume', 'microstructure'],
+   693→    'formula_latex': '\\\\mathrm{ts\\\\_corr}(\\\\mathrm{close}, \\\\log(\\\\mathrm{volume}+1), 20)',
+   694→    'columns_required': ['close', 'volume'],
+   695→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   696→    'frequency': ['1d'],
+   697→    'decay_horizon': 20,
+   698→    'min_warmup_bars': 20,
+   699→}
+   700→
+   701→
+   702→def compute_corr20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   703→    """Return qlib158 CORR20 on the supplied OHLCV panel."""
+   704→    c = panel['close']
+   705→    v = panel['volume']
+   706→    logv = np.log1p(v)
+   707→    return ts_corr(c, logv, 20)
+   708→
+   709→
+   710→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   711→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   712→"""qlib158 CORR30: formula = \\mathrm{ts\\_corr}(\\mathrm{close}, \\log(\\mathrm{volume}+1), 30)."""
+   713→
+   714→
+   715→__alpha_meta_corr30 = {
+   716→    'id': 'qlib158_corr30',
+   717→    'theme': ['volume', 'microstructure'],
+   718→    'formula_latex': '\\\\mathrm{ts\\\\_corr}(\\\\mathrm{close}, \\\\log(\\\\mathrm{volume}+1), 30)',
+   719→    'columns_required': ['close', 'volume'],
+   720→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   721→    'frequency': ['1d'],
+   722→    'decay_horizon': 30,
+   723→    'min_warmup_bars': 30,
+   724→}
+   725→
+   726→
+   727→def compute_corr30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   728→    """Return qlib158 CORR30 on the supplied OHLCV panel."""
+   729→    c = panel['close']
+   730→    v = panel['volume']
+   731→    logv = np.log1p(v)
+   732→    return ts_corr(c, logv, 30)
+   733→
+   734→
+   735→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   736→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   737→"""qlib158 CORR5: formula = \\mathrm{ts\\_corr}(\\mathrm{close}, \\log(\\mathrm{volume}+1), 5)."""
+   738→
+   739→
+   740→__alpha_meta_corr5 = {
+   741→    'id': 'qlib158_corr5',
+   742→    'theme': ['volume', 'microstructure'],
+   743→    'formula_latex': '\\\\mathrm{ts\\\\_corr}(\\\\mathrm{close}, \\\\log(\\\\mathrm{volume}+1), 5)',
+   744→    'columns_required': ['close', 'volume'],
+   745→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   746→    'frequency': ['1d'],
+   747→    'decay_horizon': 5,
+   748→    'min_warmup_bars': 5,
+   749→}
+   750→
+   751→
+   752→def compute_corr5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   753→    """Return qlib158 CORR5 on the supplied OHLCV panel."""
+   754→    c = panel['close']
+   755→    v = panel['volume']
+   756→    logv = np.log1p(v)
+   757→    return ts_corr(c, logv, 5)
+   758→
+   759→
+   760→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   761→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   762→"""qlib158 CORR60: formula = \\mathrm{ts\\_corr}(\\mathrm{close}, \\log(\\mathrm{volume}+1), 60)."""
+   763→
+   764→
+   765→__alpha_meta_corr60 = {
+   766→    'id': 'qlib158_corr60',
+   767→    'theme': ['volume', 'microstructure'],
+   768→    'formula_latex': '\\\\mathrm{ts\\\\_corr}(\\\\mathrm{close}, \\\\log(\\\\mathrm{volume}+1), 60)',
+   769→    'columns_required': ['close', 'volume'],
+   770→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   771→    'frequency': ['1d'],
+   772→    'decay_horizon': 60,
+   773→    'min_warmup_bars': 60,
+   774→}
+   775→
+   776→
+   777→def compute_corr60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   778→    """Return qlib158 CORR60 on the supplied OHLCV panel."""
+   779→    c = panel['close']
+   780→    v = panel['volume']
+   781→    logv = np.log1p(v)
+   782→    return ts_corr(c, logv, 60)
+   783→
+   784→
+   785→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   786→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   787→"""qlib158 IMAX10: formula = \\mathrm{ts\\_argmax}(\\mathrm{high}, 10) / 10."""
+   788→
+   789→
+   790→__alpha_meta_imax10 = {
+   791→    'id': 'qlib158_imax10',
+   792→    'theme': ['momentum'],
+   793→    'formula_latex': '\\\\mathrm{ts\\\\_argmax}(\\\\mathrm{high}, 10) / 10',
+   794→    'columns_required': ['high'],
+   795→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   796→    'frequency': ['1d'],
+   797→    'decay_horizon': 10,
+   798→    'min_warmup_bars': 10,
+   799→}
+   800→
+   801→
+   802→def compute_imax10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   803→    """Return qlib158 IMAX10 on the supplied OHLCV panel."""
+   804→    h = panel['high']
+   805→    return ts_argmax(h, 10) / float(10)
+   806→
+   807→
+   808→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   809→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   810→"""qlib158 IMAX20: formula = \\mathrm{ts\\_argmax}(\\mathrm{high}, 20) / 20."""
+   811→
+   812→
+   813→__alpha_meta_imax20 = {
+   814→    'id': 'qlib158_imax20',
+   815→    'theme': ['momentum'],
+   816→    'formula_latex': '\\\\mathrm{ts\\\\_argmax}(\\\\mathrm{high}, 20) / 20',
+   817→    'columns_required': ['high'],
+   818→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   819→    'frequency': ['1d'],
+   820→    'decay_horizon': 20,
+   821→    'min_warmup_bars': 20,
+   822→}
+   823→
+   824→
+   825→def compute_imax20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   826→    """Return qlib158 IMAX20 on the supplied OHLCV panel."""
+   827→    h = panel['high']
+   828→    return ts_argmax(h, 20) / float(20)
+   829→
+   830→
+   831→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   832→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   833→"""qlib158 IMAX30: formula = \\mathrm{ts\\_argmax}(\\mathrm{high}, 30) / 30."""
+   834→
+   835→
+   836→__alpha_meta_imax30 = {
+   837→    'id': 'qlib158_imax30',
+   838→    'theme': ['momentum'],
+   839→    'formula_latex': '\\\\mathrm{ts\\\\_argmax}(\\\\mathrm{high}, 30) / 30',
+   840→    'columns_required': ['high'],
+   841→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   842→    'frequency': ['1d'],
+   843→    'decay_horizon': 30,
+   844→    'min_warmup_bars': 30,
+   845→}
+   846→
+   847→
+   848→def compute_imax30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   849→    """Return qlib158 IMAX30 on the supplied OHLCV panel."""
+   850→    h = panel['high']
+   851→    return ts_argmax(h, 30) / float(30)
+   852→
+   853→
+   854→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   855→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   856→"""qlib158 IMAX5: formula = \\mathrm{ts\\_argmax}(\\mathrm{high}, 5) / 5."""
+   857→
+   858→
+   859→__alpha_meta_imax5 = {
+   860→    'id': 'qlib158_imax5',
+   861→    'theme': ['momentum'],
+   862→    'formula_latex': '\\\\mathrm{ts\\\\_argmax}(\\\\mathrm{high}, 5) / 5',
+   863→    'columns_required': ['high'],
+   864→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   865→    'frequency': ['1d'],
+   866→    'decay_horizon': 5,
+   867→    'min_warmup_bars': 5,
+   868→}
+   869→
+   870→
+   871→def compute_imax5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   872→    """Return qlib158 IMAX5 on the supplied OHLCV panel."""
+   873→    h = panel['high']
+   874→    return ts_argmax(h, 5) / float(5)
+   875→
+   876→
+   877→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   878→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   879→"""qlib158 IMAX60: formula = \\mathrm{ts\\_argmax}(\\mathrm{high}, 60) / 60."""
+   880→
+   881→
+   882→__alpha_meta_imax60 = {
+   883→    'id': 'qlib158_imax60',
+   884→    'theme': ['momentum'],
+   885→    'formula_latex': '\\\\mathrm{ts\\\\_argmax}(\\\\mathrm{high}, 60) / 60',
+   886→    'columns_required': ['high'],
+   887→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   888→    'frequency': ['1d'],
+   889→    'decay_horizon': 60,
+   890→    'min_warmup_bars': 60,
+   891→}
+   892→
+   893→
+   894→def compute_imax60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   895→    """Return qlib158 IMAX60 on the supplied OHLCV panel."""
+   896→    h = panel['high']
+   897→    return ts_argmax(h, 60) / float(60)
+   898→
+   899→
+   900→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   901→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   902→"""qlib158 IMIN10: formula = \\mathrm{ts\\_argmin}(\\mathrm{low}, 10) / 10."""
+   903→
+   904→
+   905→__alpha_meta_imin10 = {
+   906→    'id': 'qlib158_imin10',
+   907→    'theme': ['momentum'],
+   908→    'formula_latex': '\\\\mathrm{ts\\\\_argmin}(\\\\mathrm{low}, 10) / 10',
+   909→    'columns_required': ['low'],
+   910→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   911→    'frequency': ['1d'],
+   912→    'decay_horizon': 10,
+   913→    'min_warmup_bars': 10,
+   914→}
+   915→
+   916→
+   917→def compute_imin10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   918→    """Return qlib158 IMIN10 on the supplied OHLCV panel."""
+   919→    lo = panel['low']
+   920→    return ts_argmin(lo, 10) / float(10)
+   921→
+   922→
+   923→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   924→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   925→"""qlib158 IMIN20: formula = \\mathrm{ts\\_argmin}(\\mathrm{low}, 20) / 20."""
+   926→
+   927→
+   928→__alpha_meta_imin20 = {
+   929→    'id': 'qlib158_imin20',
+   930→    'theme': ['momentum'],
+   931→    'formula_latex': '\\\\mathrm{ts\\\\_argmin}(\\\\mathrm{low}, 20) / 20',
+   932→    'columns_required': ['low'],
+   933→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   934→    'frequency': ['1d'],
+   935→    'decay_horizon': 20,
+   936→    'min_warmup_bars': 20,
+   937→}
+   938→
+   939→
+   940→def compute_imin20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   941→    """Return qlib158 IMIN20 on the supplied OHLCV panel."""
+   942→    lo = panel['low']
+   943→    return ts_argmin(lo, 20) / float(20)
+   944→
+   945→
+   946→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   947→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   948→"""qlib158 IMIN30: formula = \\mathrm{ts\\_argmin}(\\mathrm{low}, 30) / 30."""
+   949→
+   950→
+   951→__alpha_meta_imin30 = {
+   952→    'id': 'qlib158_imin30',
+   953→    'theme': ['momentum'],
+   954→    'formula_latex': '\\\\mathrm{ts\\\\_argmin}(\\\\mathrm{low}, 30) / 30',
+   955→    'columns_required': ['low'],
+   956→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   957→    'frequency': ['1d'],
+   958→    'decay_horizon': 30,
+   959→    'min_warmup_bars': 30,
+   960→}
+   961→
+   962→
+   963→def compute_imin30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   964→    """Return qlib158 IMIN30 on the supplied OHLCV panel."""
+   965→    lo = panel['low']
+   966→    return ts_argmin(lo, 30) / float(30)
+   967→
+   968→
+   969→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   970→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   971→"""qlib158 IMIN5: formula = \\mathrm{ts\\_argmin}(\\mathrm{low}, 5) / 5."""
+   972→
+   973→
+   974→__alpha_meta_imin5 = {
+   975→    'id': 'qlib158_imin5',
+   976→    'theme': ['momentum'],
+   977→    'formula_latex': '\\\\mathrm{ts\\\\_argmin}(\\\\mathrm{low}, 5) / 5',
+   978→    'columns_required': ['low'],
+   979→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+   980→    'frequency': ['1d'],
+   981→    'decay_horizon': 5,
+   982→    'min_warmup_bars': 5,
+   983→}
+   984→
+   985→
+   986→def compute_imin5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+   987→    """Return qlib158 IMIN5 on the supplied OHLCV panel."""
+   988→    lo = panel['low']
+   989→    return ts_argmin(lo, 5) / float(5)
+   990→
+   991→
+   992→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+   993→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+   994→"""qlib158 IMIN60: formula = \\mathrm{ts\\_argmin}(\\mathrm{low}, 60) / 60."""
+   995→
+   996→
+   997→__alpha_meta_imin60 = {
+   998→    'id': 'qlib158_imin60',
+   999→    'theme': ['momentum'],
+  1000→    'formula_latex': '\\\\mathrm{ts\\\\_argmin}(\\\\mathrm{low}, 60) / 60',
+  1001→    'columns_required': ['low'],
+  1002→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1003→    'frequency': ['1d'],
+  1004→    'decay_horizon': 60,
+  1005→    'min_warmup_bars': 60,
+  1006→}
+  1007→
+  1008→
+  1009→def compute_imin60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1010→    """Return qlib158 IMIN60 on the supplied OHLCV panel."""
+  1011→    lo = panel['low']
+  1012→    return ts_argmin(lo, 60) / float(60)
+  1013→
+  1014→
+  1015→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1016→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1017→"""qlib158 IMXD10: formula = (\\mathrm{ts\\_argmax}(\\mathrm{high}, 10) - \\mathrm{ts\\_argmin}(\\mathrm{low}, 10)) / 10."""
+  1018→
+  1019→
+  1020→__alpha_meta_imxd10 = {
+  1021→    'id': 'qlib158_imxd10',
+  1022→    'theme': ['momentum'],
+  1023→    'formula_latex': '(\\\\mathrm{ts\\\\_argmax}(\\\\mathrm{high}, 10) - \\\\mathrm{ts\\\\_argmin}(\\\\mathrm{low}, 10)) / 10',
+  1024→    'columns_required': ['high', 'low'],
+  1025→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1026→    'frequency': ['1d'],
+  1027→    'decay_horizon': 10,
+  1028→    'min_warmup_bars': 10,
+  1029→}
+  1030→
+  1031→
+  1032→def compute_imxd10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1033→    """Return qlib158 IMXD10 on the supplied OHLCV panel."""
+  1034→    h = panel['high']
+  1035→    lo = panel['low']
+  1036→    return (ts_argmax(h, 10) - ts_argmin(lo, 10)) / float(10)
+  1037→
+  1038→
+  1039→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1040→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1041→"""qlib158 IMXD20: formula = (\\mathrm{ts\\_argmax}(\\mathrm{high}, 20) - \\mathrm{ts\\_argmin}(\\mathrm{low}, 20)) / 20."""
+  1042→
+  1043→
+  1044→__alpha_meta_imxd20 = {
+  1045→    'id': 'qlib158_imxd20',
+  1046→    'theme': ['momentum'],
+  1047→    'formula_latex': '(\\\\mathrm{ts\\\\_argmax}(\\\\mathrm{high}, 20) - \\\\mathrm{ts\\\\_argmin}(\\\\mathrm{low}, 20)) / 20',
+  1048→    'columns_required': ['high', 'low'],
+  1049→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1050→    'frequency': ['1d'],
+  1051→    'decay_horizon': 20,
+  1052→    'min_warmup_bars': 20,
+  1053→}
+  1054→
+  1055→
+  1056→def compute_imxd20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1057→    """Return qlib158 IMXD20 on the supplied OHLCV panel."""
+  1058→    h = panel['high']
+  1059→    lo = panel['low']
+  1060→    return (ts_argmax(h, 20) - ts_argmin(lo, 20)) / float(20)
+  1061→
+  1062→
+  1063→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1064→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1065→"""qlib158 IMXD30: formula = (\\mathrm{ts\\_argmax}(\\mathrm{high}, 30) - \\mathrm{ts\\_argmin}(\\mathrm{low}, 30)) / 30."""
+  1066→
+  1067→
+  1068→__alpha_meta_imxd30 = {
+  1069→    'id': 'qlib158_imxd30',
+  1070→    'theme': ['momentum'],
+  1071→    'formula_latex': '(\\\\mathrm{ts\\\\_argmax}(\\\\mathrm{high}, 30) - \\\\mathrm{ts\\\\_argmin}(\\\\mathrm{low}, 30)) / 30',
+  1072→    'columns_required': ['high', 'low'],
+  1073→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1074→    'frequency': ['1d'],
+  1075→    'decay_horizon': 30,
+  1076→    'min_warmup_bars': 30,
+  1077→}
+  1078→
+  1079→
+  1080→def compute_imxd30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1081→    """Return qlib158 IMXD30 on the supplied OHLCV panel."""
+  1082→    h = panel['high']
+  1083→    lo = panel['low']
+  1084→    return (ts_argmax(h, 30) - ts_argmin(lo, 30)) / float(30)
+  1085→
+  1086→
+  1087→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1088→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1089→"""qlib158 IMXD5: formula = (\\mathrm{ts\\_argmax}(\\mathrm{high}, 5) - \\mathrm{ts\\_argmin}(\\mathrm{low}, 5)) / 5."""
+  1090→
+  1091→
+  1092→__alpha_meta_imxd5 = {
+  1093→    'id': 'qlib158_imxd5',
+  1094→    'theme': ['momentum'],
+  1095→    'formula_latex': '(\\\\mathrm{ts\\\\_argmax}(\\\\mathrm{high}, 5) - \\\\mathrm{ts\\\\_argmin}(\\\\mathrm{low}, 5)) / 5',
+  1096→    'columns_required': ['high', 'low'],
+  1097→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1098→    'frequency': ['1d'],
+  1099→    'decay_horizon': 5,
+  1100→    'min_warmup_bars': 5,
+  1101→}
+  1102→
+  1103→
+  1104→def compute_imxd5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1105→    """Return qlib158 IMXD5 on the supplied OHLCV panel."""
+  1106→    h = panel['high']
+  1107→    lo = panel['low']
+  1108→    return (ts_argmax(h, 5) - ts_argmin(lo, 5)) / float(5)
+  1109→
+  1110→
+  1111→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1112→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1113→"""qlib158 IMXD60: formula = (\\mathrm{ts\\_argmax}(\\mathrm{high}, 60) - \\mathrm{ts\\_argmin}(\\mathrm{low}, 60)) / 60."""
+  1114→
+  1115→
+  1116→__alpha_meta_imxd60 = {
+  1117→    'id': 'qlib158_imxd60',
+  1118→    'theme': ['momentum'],
+  1119→    'formula_latex': '(\\\\mathrm{ts\\\\_argmax}(\\\\mathrm{high}, 60) - \\\\mathrm{ts\\\\_argmin}(\\\\mathrm{low}, 60)) / 60',
+  1120→    'columns_required': ['high', 'low'],
+  1121→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1122→    'frequency': ['1d'],
+  1123→    'decay_horizon': 60,
+  1124→    'min_warmup_bars': 60,
+  1125→}
+  1126→
+  1127→
+  1128→def compute_imxd60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1129→    """Return qlib158 IMXD60 on the supplied OHLCV panel."""
+  1130→    h = panel['high']
+  1131→    lo = panel['low']
+  1132→    return (ts_argmax(h, 60) - ts_argmin(lo, 60)) / float(60)
+  1133→
+  1134→
+  1135→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1136→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1137→"""qlib158 KLEN: formula = (\\mathrm{high} - \\mathrm{low}) / \\mathrm{open}."""
+  1138→
+  1139→
+  1140→__alpha_meta_klen = {
+  1141→    'id': 'qlib158_klen',
+  1142→    'theme': ['microstructure'],
+  1143→    'formula_latex': '(\\\\mathrm{high} - \\\\mathrm{low}) / \\\\mathrm{open}',
+  1144→    'columns_required': ['open', 'high', 'low'],
+  1145→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1146→    'frequency': ['1d'],
+  1147→    'decay_horizon': 1,
+  1148→    'min_warmup_bars': 1,
+  1149→}
+  1150→
+  1151→
+  1152→def compute_klen(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1153→    """Return qlib158 KLEN on the supplied OHLCV panel."""
+  1154→    o = panel['open']
+  1155→    h = panel['high']
+  1156→    lo = panel['low']
+  1157→    return safe_div(h - lo, o)
+  1158→
+  1159→
+  1160→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1161→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1162→"""qlib158 KLOW: formula = (\\min(\\mathrm{open}, \\mathrm{close}) - \\mathrm{low}) / \\mathrm{open}."""
+  1163→
+  1164→
+  1165→__alpha_meta_klow = {
+  1166→    'id': 'qlib158_klow',
+  1167→    'theme': ['microstructure'],
+  1168→    'formula_latex': '(\\\\min(\\\\mathrm{open}, \\\\mathrm{close}) - \\\\mathrm{low}) / \\\\mathrm{open}',
+  1169→    'columns_required': ['open', 'low', 'close'],
+  1170→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1171→    'frequency': ['1d'],
+  1172→    'decay_horizon': 1,
+  1173→    'min_warmup_bars': 1,
+  1174→}
+  1175→
+  1176→
+  1177→def compute_klow(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1178→    """Return qlib158 KLOW on the supplied OHLCV panel."""
+  1179→    o = panel['open']
+  1180→    c = panel['close']
+  1181→    lo = panel['low']
+  1182→    lower = o.where(o <= c, c)
+  1183→    return safe_div(lower - lo, o)
+  1184→
+  1185→
+  1186→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1187→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1188→"""qlib158 KLOW2: formula = (\\min(\\mathrm{open}, \\mathrm{close}) - \\mathrm{low}) / (\\mathrm{high} - \\mathrm{low})."""
+  1189→
+  1190→
+  1191→__alpha_meta_klow2 = {
+  1192→    'id': 'qlib158_klow2',
+  1193→    'theme': ['microstructure'],
+  1194→    'formula_latex': '(\\\\min(\\\\mathrm{open}, \\\\mathrm{close}) - \\\\mathrm{low}) / (\\\\mathrm{high} - \\\\mathrm{low})',
+  1195→    'columns_required': ['open', 'high', 'low', 'close'],
+  1196→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1197→    'frequency': ['1d'],
+  1198→    'decay_horizon': 1,
+  1199→    'min_warmup_bars': 1,
+  1200→}
+  1201→
+  1202→
+  1203→def compute_klow2(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1204→    """Return qlib158 KLOW2 on the supplied OHLCV panel."""
+  1205→    o = panel['open']
+  1206→    c = panel['close']
+  1207→    h = panel['high']
+  1208→    lo = panel['low']
+  1209→    lower = o.where(o <= c, c)
+  1210→    return safe_div(lower - lo, h - lo)
+  1211→
+  1212→
+  1213→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1214→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1215→"""qlib158 KMID: formula = (\\mathrm{close} - \\mathrm{open}) / \\mathrm{open}."""
+  1216→
+  1217→
+  1218→__alpha_meta_kmid = {
+  1219→    'id': 'qlib158_kmid',
+  1220→    'theme': ['microstructure'],
+  1221→    'formula_latex': '(\\\\mathrm{close} - \\\\mathrm{open}) / \\\\mathrm{open}',
+  1222→    'columns_required': ['open', 'close'],
+  1223→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1224→    'frequency': ['1d'],
+  1225→    'decay_horizon': 1,
+  1226→    'min_warmup_bars': 1,
+  1227→}
+  1228→
+  1229→
+  1230→def compute_kmid(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1231→    """Return qlib158 KMID on the supplied OHLCV panel."""
+  1232→    o = panel['open']
+  1233→    c = panel['close']
+  1234→    return safe_div(c - o, o)
+  1235→
+  1236→
+  1237→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1238→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1239→"""qlib158 KMID2: formula = (\\mathrm{close} - \\mathrm{open}) / (\\mathrm{high} - \\mathrm{low})."""
+  1240→
+  1241→
+  1242→__alpha_meta_kmid2 = {
+  1243→    'id': 'qlib158_kmid2',
+  1244→    'theme': ['microstructure'],
+  1245→    'formula_latex': '(\\\\mathrm{close} - \\\\mathrm{open}) / (\\\\mathrm{high} - \\\\mathrm{low})',
+  1246→    'columns_required': ['open', 'high', 'low', 'close'],
+  1247→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1248→    'frequency': ['1d'],
+  1249→    'decay_horizon': 1,
+  1250→    'min_warmup_bars': 1,
+  1251→}
+  1252→
+  1253→
+  1254→def compute_kmid2(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1255→    """Return qlib158 KMID2 on the supplied OHLCV panel."""
+  1256→    o = panel['open']
+  1257→    c = panel['close']
+  1258→    h = panel['high']
+  1259→    lo = panel['low']
+  1260→    return safe_div(c - o, h - lo)
+  1261→
+  1262→
+  1263→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1264→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1265→"""qlib158 KSFT: formula = (2\\,\\mathrm{close} - \\mathrm{high} - \\mathrm{low}) / \\mathrm{open}."""
+  1266→
+  1267→
+  1268→__alpha_meta_ksft = {
+  1269→    'id': 'qlib158_ksft',
+  1270→    'theme': ['microstructure'],
+  1271→    'formula_latex': '(2\\\\,\\\\mathrm{close} - \\\\mathrm{high} - \\\\mathrm{low}) / \\\\mathrm{open}',
+  1272→    'columns_required': ['open', 'high', 'low', 'close'],
+  1273→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1274→    'frequency': ['1d'],
+  1275→    'decay_horizon': 1,
+  1276→    'min_warmup_bars': 1,
+  1277→}
+  1278→
+  1279→
+  1280→def compute_ksft(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1281→    """Return qlib158 KSFT on the supplied OHLCV panel."""
+  1282→    o = panel['open']
+  1283→    c = panel['close']
+  1284→    h = panel['high']
+  1285→    lo = panel['low']
+  1286→    return safe_div(2.0 * c - h - lo, o)
+  1287→
+  1288→
+  1289→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1290→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1291→"""qlib158 KSFT2: formula = (2\\,\\mathrm{close} - \\mathrm{high} - \\mathrm{low}) / (\\mathrm{high} - \\mathrm{low})."""
+  1292→
+  1293→
+  1294→__alpha_meta_ksft2 = {
+  1295→    'id': 'qlib158_ksft2',
+  1296→    'theme': ['microstructure'],
+  1297→    'formula_latex': '(2\\\\,\\\\mathrm{close} - \\\\mathrm{high} - \\\\mathrm{low}) / (\\\\mathrm{high} - \\\\mathrm{low})',
+  1298→    'columns_required': ['open', 'high', 'low', 'close'],
+  1299→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1300→    'frequency': ['1d'],
+  1301→    'decay_horizon': 1,
+  1302→    'min_warmup_bars': 1,
+  1303→}
+  1304→
+  1305→
+  1306→def compute_ksft2(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1307→    """Return qlib158 KSFT2 on the supplied OHLCV panel."""
+  1308→    o = panel['open']
+  1309→    c = panel['close']
+  1310→    h = panel['high']
+  1311→    lo = panel['low']
+  1312→    return safe_div(2.0 * c - h - lo, h - lo)
+  1313→
+  1314→
+  1315→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1316→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1317→"""qlib158 KUP: formula = (\\mathrm{high} - \\max(\\mathrm{open}, \\mathrm{close})) / \\mathrm{open}."""
+  1318→
+  1319→
+  1320→__alpha_meta_kup = {
+  1321→    'id': 'qlib158_kup',
+  1322→    'theme': ['microstructure'],
+  1323→    'formula_latex': '(\\\\mathrm{high} - \\\\max(\\\\mathrm{open}, \\\\mathrm{close})) / \\\\mathrm{open}',
+  1324→    'columns_required': ['open', 'high', 'close'],
+  1325→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1326→    'frequency': ['1d'],
+  1327→    'decay_horizon': 1,
+  1328→    'min_warmup_bars': 1,
+  1329→}
+  1330→
+  1331→
+  1332→def compute_kup(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1333→    """Return qlib158 KUP on the supplied OHLCV panel."""
+  1334→    o = panel['open']
+  1335→    c = panel['close']
+  1336→    h = panel['high']
+  1337→    upper = o.where(o >= c, c)
+  1338→    return safe_div(h - upper, o)
+  1339→
+  1340→
+  1341→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1342→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1343→"""qlib158 KUP2: formula = (\\mathrm{high} - \\max(\\mathrm{open}, \\mathrm{close})) / (\\mathrm{high} - \\mathrm{low})."""
+  1344→
+  1345→
+  1346→__alpha_meta_kup2 = {
+  1347→    'id': 'qlib158_kup2',
+  1348→    'theme': ['microstructure'],
+  1349→    'formula_latex': '(\\\\mathrm{high} - \\\\max(\\\\mathrm{open}, \\\\mathrm{close})) / (\\\\mathrm{high} - \\\\mathrm{low})',
+  1350→    'columns_required': ['open', 'high', 'low', 'close'],
+  1351→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1352→    'frequency': ['1d'],
+  1353→    'decay_horizon': 1,
+  1354→    'min_warmup_bars': 1,
+  1355→}
+  1356→
+  1357→
+  1358→def compute_kup2(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1359→    """Return qlib158 KUP2 on the supplied OHLCV panel."""
+  1360→    o = panel['open']
+  1361→    c = panel['close']
+  1362→    h = panel['high']
+  1363→    lo = panel['low']
+  1364→    upper = o.where(o >= c, c)
+  1365→    return safe_div(h - upper, h - lo)
+  1366→
+  1367→
+  1368→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1369→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1370→"""qlib158 MA10: formula = \\mathrm{ts\\_mean}(\\mathrm{close}, 10) / \\mathrm{close}."""
+  1371→
+  1372→
+  1373→__alpha_meta_ma10 = {
+  1374→    'id': 'qlib158_ma10',
+  1375→    'theme': ['momentum'],
+  1376→    'formula_latex': '\\\\mathrm{ts\\\\_mean}(\\\\mathrm{close}, 10) / \\\\mathrm{close}',
+  1377→    'columns_required': ['close'],
+  1378→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1379→    'frequency': ['1d'],
+  1380→    'decay_horizon': 10,
+  1381→    'min_warmup_bars': 10,
+  1382→}
+  1383→
+  1384→
+  1385→def compute_ma10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1386→    """Return qlib158 MA10 on the supplied OHLCV panel."""
+  1387→    c = panel['close']
+  1388→    return safe_div(ts_mean(c, 10), c)
+  1389→
+  1390→
+  1391→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1392→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1393→"""qlib158 MA20: formula = \\mathrm{ts\\_mean}(\\mathrm{close}, 20) / \\mathrm{close}."""
+  1394→
+  1395→
+  1396→__alpha_meta_ma20 = {
+  1397→    'id': 'qlib158_ma20',
+  1398→    'theme': ['momentum'],
+  1399→    'formula_latex': '\\\\mathrm{ts\\\\_mean}(\\\\mathrm{close}, 20) / \\\\mathrm{close}',
+  1400→    'columns_required': ['close'],
+  1401→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1402→    'frequency': ['1d'],
+  1403→    'decay_horizon': 20,
+  1404→    'min_warmup_bars': 20,
+  1405→}
+  1406→
+  1407→
+  1408→def compute_ma20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1409→    """Return qlib158 MA20 on the supplied OHLCV panel."""
+  1410→    c = panel['close']
+  1411→    return safe_div(ts_mean(c, 20), c)
+  1412→
+  1413→
+  1414→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1415→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1416→"""qlib158 MA30: formula = \\mathrm{ts\\_mean}(\\mathrm{close}, 30) / \\mathrm{close}."""
+  1417→
+  1418→
+  1419→__alpha_meta_ma30 = {
+  1420→    'id': 'qlib158_ma30',
+  1421→    'theme': ['momentum'],
+  1422→    'formula_latex': '\\\\mathrm{ts\\\\_mean}(\\\\mathrm{close}, 30) / \\\\mathrm{close}',
+  1423→    'columns_required': ['close'],
+  1424→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1425→    'frequency': ['1d'],
+  1426→    'decay_horizon': 30,
+  1427→    'min_warmup_bars': 30,
+  1428→}
+  1429→
+  1430→
+  1431→def compute_ma30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1432→    """Return qlib158 MA30 on the supplied OHLCV panel."""
+  1433→    c = panel['close']
+  1434→    return safe_div(ts_mean(c, 30), c)
+  1435→
+  1436→
+  1437→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1438→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1439→"""qlib158 MA5: formula = \\mathrm{ts\\_mean}(\\mathrm{close}, 5) / \\mathrm{close}."""
+  1440→
+  1441→
+  1442→__alpha_meta_ma5 = {
+  1443→    'id': 'qlib158_ma5',
+  1444→    'theme': ['momentum'],
+  1445→    'formula_latex': '\\\\mathrm{ts\\\\_mean}(\\\\mathrm{close}, 5) / \\\\mathrm{close}',
+  1446→    'columns_required': ['close'],
+  1447→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1448→    'frequency': ['1d'],
+  1449→    'decay_horizon': 5,
+  1450→    'min_warmup_bars': 5,
+  1451→}
+  1452→
+  1453→
+  1454→def compute_ma5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1455→    """Return qlib158 MA5 on the supplied OHLCV panel."""
+  1456→    c = panel['close']
+  1457→    return safe_div(ts_mean(c, 5), c)
+  1458→
+  1459→
+  1460→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1461→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1462→"""qlib158 MA60: formula = \\mathrm{ts\\_mean}(\\mathrm{close}, 60) / \\mathrm{close}."""
+  1463→
+  1464→
+  1465→__alpha_meta_ma60 = {
+  1466→    'id': 'qlib158_ma60',
+  1467→    'theme': ['momentum'],
+  1468→    'formula_latex': '\\\\mathrm{ts\\\\_mean}(\\\\mathrm{close}, 60) / \\\\mathrm{close}',
+  1469→    'columns_required': ['close'],
+  1470→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1471→    'frequency': ['1d'],
+  1472→    'decay_horizon': 60,
+  1473→    'min_warmup_bars': 60,
+  1474→}
+  1475→
+  1476→
+  1477→def compute_ma60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1478→    """Return qlib158 MA60 on the supplied OHLCV panel."""
+  1479→    c = panel['close']
+  1480→    return safe_div(ts_mean(c, 60), c)
+  1481→
+  1482→
+  1483→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1484→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1485→"""qlib158 MAX10: formula = \\mathrm{ts\\_max}(\\mathrm{high}, 10) / \\mathrm{close}."""
+  1486→
+  1487→
+  1488→__alpha_meta_max10 = {
+  1489→    'id': 'qlib158_max10',
+  1490→    'theme': ['momentum'],
+  1491→    'formula_latex': '\\\\mathrm{ts\\\\_max}(\\\\mathrm{high}, 10) / \\\\mathrm{close}',
+  1492→    'columns_required': ['high', 'close'],
+  1493→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1494→    'frequency': ['1d'],
+  1495→    'decay_horizon': 10,
+  1496→    'min_warmup_bars': 10,
+  1497→}
+  1498→
+  1499→
+  1500→def compute_max10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1501→    """Return qlib158 MAX10 on the supplied OHLCV panel."""
+  1502→    h = panel['high']
+  1503→    c = panel['close']
+  1504→    return safe_div(ts_max(h, 10), c)
+  1505→
+  1506→
+  1507→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1508→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1509→"""qlib158 MAX20: formula = \\mathrm{ts\\_max}(\\mathrm{high}, 20) / \\mathrm{close}."""
+  1510→
+  1511→
+  1512→__alpha_meta_max20 = {
+  1513→    'id': 'qlib158_max20',
+  1514→    'theme': ['momentum'],
+  1515→    'formula_latex': '\\\\mathrm{ts\\\\_max}(\\\\mathrm{high}, 20) / \\\\mathrm{close}',
+  1516→    'columns_required': ['high', 'close'],
+  1517→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1518→    'frequency': ['1d'],
+  1519→    'decay_horizon': 20,
+  1520→    'min_warmup_bars': 20,
+  1521→}
+  1522→
+  1523→
+  1524→def compute_max20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1525→    """Return qlib158 MAX20 on the supplied OHLCV panel."""
+  1526→    h = panel['high']
+  1527→    c = panel['close']
+  1528→    return safe_div(ts_max(h, 20), c)
+  1529→
+  1530→
+  1531→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1532→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1533→"""qlib158 MAX30: formula = \\mathrm{ts\\_max}(\\mathrm{high}, 30) / \\mathrm{close}."""
+  1534→
+  1535→
+  1536→__alpha_meta_max30 = {
+  1537→    'id': 'qlib158_max30',
+  1538→    'theme': ['momentum'],
+  1539→    'formula_latex': '\\\\mathrm{ts\\\\_max}(\\\\mathrm{high}, 30) / \\\\mathrm{close}',
+  1540→    'columns_required': ['high', 'close'],
+  1541→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1542→    'frequency': ['1d'],
+  1543→    'decay_horizon': 30,
+  1544→    'min_warmup_bars': 30,
+  1545→}
+  1546→
+  1547→
+  1548→def compute_max30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1549→    """Return qlib158 MAX30 on the supplied OHLCV panel."""
+  1550→    h = panel['high']
+  1551→    c = panel['close']
+  1552→    return safe_div(ts_max(h, 30), c)
+  1553→
+  1554→
+  1555→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1556→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1557→"""qlib158 MAX5: formula = \\mathrm{ts\\_max}(\\mathrm{high}, 5) / \\mathrm{close}."""
+  1558→
+  1559→
+  1560→__alpha_meta_max5 = {
+  1561→    'id': 'qlib158_max5',
+  1562→    'theme': ['momentum'],
+  1563→    'formula_latex': '\\\\mathrm{ts\\\\_max}(\\\\mathrm{high}, 5) / \\\\mathrm{close}',
+  1564→    'columns_required': ['high', 'close'],
+  1565→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1566→    'frequency': ['1d'],
+  1567→    'decay_horizon': 5,
+  1568→    'min_warmup_bars': 5,
+  1569→}
+  1570→
+  1571→
+  1572→def compute_max5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1573→    """Return qlib158 MAX5 on the supplied OHLCV panel."""
+  1574→    h = panel['high']
+  1575→    c = panel['close']
+  1576→    return safe_div(ts_max(h, 5), c)
+  1577→
+  1578→
+  1579→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1580→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1581→"""qlib158 MAX60: formula = \\mathrm{ts\\_max}(\\mathrm{high}, 60) / \\mathrm{close}."""
+  1582→
+  1583→
+  1584→__alpha_meta_max60 = {
+  1585→    'id': 'qlib158_max60',
+  1586→    'theme': ['momentum'],
+  1587→    'formula_latex': '\\\\mathrm{ts\\\\_max}(\\\\mathrm{high}, 60) / \\\\mathrm{close}',
+  1588→    'columns_required': ['high', 'close'],
+  1589→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1590→    'frequency': ['1d'],
+  1591→    'decay_horizon': 60,
+  1592→    'min_warmup_bars': 60,
+  1593→}
+  1594→
+  1595→
+  1596→def compute_max60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1597→    """Return qlib158 MAX60 on the supplied OHLCV panel."""
+  1598→    h = panel['high']
+  1599→    c = panel['close']
+  1600→    return safe_div(ts_max(h, 60), c)
+  1601→
+  1602→
+  1603→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1604→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1605→"""qlib158 MIN10: formula = \\mathrm{ts\\_min}(\\mathrm{low}, 10) / \\mathrm{close}."""
+  1606→
+  1607→
+  1608→__alpha_meta_min10 = {
+  1609→    'id': 'qlib158_min10',
+  1610→    'theme': ['momentum'],
+  1611→    'formula_latex': '\\\\mathrm{ts\\\\_min}(\\\\mathrm{low}, 10) / \\\\mathrm{close}',
+  1612→    'columns_required': ['low', 'close'],
+  1613→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1614→    'frequency': ['1d'],
+  1615→    'decay_horizon': 10,
+  1616→    'min_warmup_bars': 10,
+  1617→}
+  1618→
+  1619→
+  1620→def compute_min10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1621→    """Return qlib158 MIN10 on the supplied OHLCV panel."""
+  1622→    lo = panel['low']
+  1623→    c = panel['close']
+  1624→    return safe_div(ts_min(lo, 10), c)
+  1625→
+  1626→
+  1627→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1628→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1629→"""qlib158 MIN20: formula = \\mathrm{ts\\_min}(\\mathrm{low}, 20) / \\mathrm{close}."""
+  1630→
+  1631→
+  1632→__alpha_meta_min20 = {
+  1633→    'id': 'qlib158_min20',
+  1634→    'theme': ['momentum'],
+  1635→    'formula_latex': '\\\\mathrm{ts\\\\_min}(\\\\mathrm{low}, 20) / \\\\mathrm{close}',
+  1636→    'columns_required': ['low', 'close'],
+  1637→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1638→    'frequency': ['1d'],
+  1639→    'decay_horizon': 20,
+  1640→    'min_warmup_bars': 20,
+  1641→}
+  1642→
+  1643→
+  1644→def compute_min20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1645→    """Return qlib158 MIN20 on the supplied OHLCV panel."""
+  1646→    lo = panel['low']
+  1647→    c = panel['close']
+  1648→    return safe_div(ts_min(lo, 20), c)
+  1649→
+  1650→
+  1651→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1652→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1653→"""qlib158 MIN30: formula = \\mathrm{ts\\_min}(\\mathrm{low}, 30) / \\mathrm{close}."""
+  1654→
+  1655→
+  1656→__alpha_meta_min30 = {
+  1657→    'id': 'qlib158_min30',
+  1658→    'theme': ['momentum'],
+  1659→    'formula_latex': '\\\\mathrm{ts\\\\_min}(\\\\mathrm{low}, 30) / \\\\mathrm{close}',
+  1660→    'columns_required': ['low', 'close'],
+  1661→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1662→    'frequency': ['1d'],
+  1663→    'decay_horizon': 30,
+  1664→    'min_warmup_bars': 30,
+  1665→}
+  1666→
+  1667→
+  1668→def compute_min30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1669→    """Return qlib158 MIN30 on the supplied OHLCV panel."""
+  1670→    lo = panel['low']
+  1671→    c = panel['close']
+  1672→    return safe_div(ts_min(lo, 30), c)
+  1673→
+  1674→
+  1675→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1676→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1677→"""qlib158 MIN5: formula = \\mathrm{ts\\_min}(\\mathrm{low}, 5) / \\mathrm{close}."""
+  1678→
+  1679→
+  1680→__alpha_meta_min5 = {
+  1681→    'id': 'qlib158_min5',
+  1682→    'theme': ['momentum'],
+  1683→    'formula_latex': '\\\\mathrm{ts\\\\_min}(\\\\mathrm{low}, 5) / \\\\mathrm{close}',
+  1684→    'columns_required': ['low', 'close'],
+  1685→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1686→    'frequency': ['1d'],
+  1687→    'decay_horizon': 5,
+  1688→    'min_warmup_bars': 5,
+  1689→}
+  1690→
+  1691→
+  1692→def compute_min5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1693→    """Return qlib158 MIN5 on the supplied OHLCV panel."""
+  1694→    lo = panel['low']
+  1695→    c = panel['close']
+  1696→    return safe_div(ts_min(lo, 5), c)
+  1697→
+  1698→
+  1699→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1700→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1701→"""qlib158 MIN60: formula = \\mathrm{ts\\_min}(\\mathrm{low}, 60) / \\mathrm{close}."""
+  1702→
+  1703→
+  1704→__alpha_meta_min60 = {
+  1705→    'id': 'qlib158_min60',
+  1706→    'theme': ['momentum'],
+  1707→    'formula_latex': '\\\\mathrm{ts\\\\_min}(\\\\mathrm{low}, 60) / \\\\mathrm{close}',
+  1708→    'columns_required': ['low', 'close'],
+  1709→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1710→    'frequency': ['1d'],
+  1711→    'decay_horizon': 60,
+  1712→    'min_warmup_bars': 60,
+  1713→}
+  1714→
+  1715→
+  1716→def compute_min60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1717→    """Return qlib158 MIN60 on the supplied OHLCV panel."""
+  1718→    lo = panel['low']
+  1719→    c = panel['close']
+  1720→    return safe_div(ts_min(lo, 60), c)
+  1721→
+  1722→
+  1723→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1724→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1725→"""qlib158 QTLD10: formula = \\mathrm{quantile}_{{0.2}}(\\mathrm{close}, 10) / \\mathrm{close}."""
+  1726→
+  1727→
+  1728→__alpha_meta_qtld10 = {
+  1729→    'id': 'qlib158_qtld10',
+  1730→    'theme': ['momentum'],
+  1731→    'formula_latex': '\\\\mathrm{quantile}_{{0.2}}(\\\\mathrm{close}, 10) / \\\\mathrm{close}',
+  1732→    'columns_required': ['close'],
+  1733→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1734→    'frequency': ['1d'],
+  1735→    'decay_horizon': 10,
+  1736→    'min_warmup_bars': 10,
+  1737→}
+  1738→
+  1739→
+  1740→def compute_qtld10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1741→    """Return qlib158 QTLD10 on the supplied OHLCV panel."""
+  1742→    c = panel['close']
+  1743→    q = c.rolling(window=10, min_periods=10).quantile(0.2)
+  1744→    return safe_div(q, c)
+  1745→
+  1746→
+  1747→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1748→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1749→"""qlib158 QTLD20: formula = \\mathrm{quantile}_{{0.2}}(\\mathrm{close}, 20) / \\mathrm{close}."""
+  1750→
+  1751→
+  1752→__alpha_meta_qtld20 = {
+  1753→    'id': 'qlib158_qtld20',
+  1754→    'theme': ['momentum'],
+  1755→    'formula_latex': '\\\\mathrm{quantile}_{{0.2}}(\\\\mathrm{close}, 20) / \\\\mathrm{close}',
+  1756→    'columns_required': ['close'],
+  1757→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1758→    'frequency': ['1d'],
+  1759→    'decay_horizon': 20,
+  1760→    'min_warmup_bars': 20,
+  1761→}
+  1762→
+  1763→
+  1764→def compute_qtld20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1765→    """Return qlib158 QTLD20 on the supplied OHLCV panel."""
+  1766→    c = panel['close']
+  1767→    q = c.rolling(window=20, min_periods=20).quantile(0.2)
+  1768→    return safe_div(q, c)
+  1769→
+  1770→
+  1771→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1772→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1773→"""qlib158 QTLD30: formula = \\mathrm{quantile}_{{0.2}}(\\mathrm{close}, 30) / \\mathrm{close}."""
+  1774→
+  1775→
+  1776→__alpha_meta_qtld30 = {
+  1777→    'id': 'qlib158_qtld30',
+  1778→    'theme': ['momentum'],
+  1779→    'formula_latex': '\\\\mathrm{quantile}_{{0.2}}(\\\\mathrm{close}, 30) / \\\\mathrm{close}',
+  1780→    'columns_required': ['close'],
+  1781→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1782→    'frequency': ['1d'],
+  1783→    'decay_horizon': 30,
+  1784→    'min_warmup_bars': 30,
+  1785→}
+  1786→
+  1787→
+  1788→def compute_qtld30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1789→    """Return qlib158 QTLD30 on the supplied OHLCV panel."""
+  1790→    c = panel['close']
+  1791→    q = c.rolling(window=30, min_periods=30).quantile(0.2)
+  1792→    return safe_div(q, c)
+  1793→
+  1794→
+  1795→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1796→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1797→"""qlib158 QTLD5: formula = \\mathrm{quantile}_{{0.2}}(\\mathrm{close}, 5) / \\mathrm{close}."""
+  1798→
+  1799→
+  1800→__alpha_meta_qtld5 = {
+  1801→    'id': 'qlib158_qtld5',
+  1802→    'theme': ['momentum'],
+  1803→    'formula_latex': '\\\\mathrm{quantile}_{{0.2}}(\\\\mathrm{close}, 5) / \\\\mathrm{close}',
+  1804→    'columns_required': ['close'],
+  1805→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1806→    'frequency': ['1d'],
+  1807→    'decay_horizon': 5,
+  1808→    'min_warmup_bars': 5,
+  1809→}
+  1810→
+  1811→
+  1812→def compute_qtld5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1813→    """Return qlib158 QTLD5 on the supplied OHLCV panel."""
+  1814→    c = panel['close']
+  1815→    q = c.rolling(window=5, min_periods=5).quantile(0.2)
+  1816→    return safe_div(q, c)
+  1817→
+  1818→
+  1819→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1820→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1821→"""qlib158 QTLD60: formula = \\mathrm{quantile}_{{0.2}}(\\mathrm{close}, 60) / \\mathrm{close}."""
+  1822→
+  1823→
+  1824→__alpha_meta_qtld60 = {
+  1825→    'id': 'qlib158_qtld60',
+  1826→    'theme': ['momentum'],
+  1827→    'formula_latex': '\\\\mathrm{quantile}_{{0.2}}(\\\\mathrm{close}, 60) / \\\\mathrm{close}',
+  1828→    'columns_required': ['close'],
+  1829→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1830→    'frequency': ['1d'],
+  1831→    'decay_horizon': 60,
+  1832→    'min_warmup_bars': 60,
+  1833→}
+  1834→
+  1835→
+  1836→def compute_qtld60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1837→    """Return qlib158 QTLD60 on the supplied OHLCV panel."""
+  1838→    c = panel['close']
+  1839→    q = c.rolling(window=60, min_periods=60).quantile(0.2)
+  1840→    return safe_div(q, c)
+  1841→
+  1842→
+  1843→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1844→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1845→"""qlib158 QTLU10: formula = \\mathrm{quantile}_{{0.8}}(\\mathrm{close}, 10) / \\mathrm{close}."""
+  1846→
+  1847→
+  1848→__alpha_meta_qtlu10 = {
+  1849→    'id': 'qlib158_qtlu10',
+  1850→    'theme': ['momentum'],
+  1851→    'formula_latex': '\\\\mathrm{quantile}_{{0.8}}(\\\\mathrm{close}, 10) / \\\\mathrm{close}',
+  1852→    'columns_required': ['close'],
+  1853→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1854→    'frequency': ['1d'],
+  1855→    'decay_horizon': 10,
+  1856→    'min_warmup_bars': 10,
+  1857→}
+  1858→
+  1859→
+  1860→def compute_qtlu10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1861→    """Return qlib158 QTLU10 on the supplied OHLCV panel."""
+  1862→    c = panel['close']
+  1863→    q = c.rolling(window=10, min_periods=10).quantile(0.8)
+  1864→    return safe_div(q, c)
+  1865→
+  1866→
+  1867→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1868→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1869→"""qlib158 QTLU20: formula = \\mathrm{quantile}_{{0.8}}(\\mathrm{close}, 20) / \\mathrm{close}."""
+  1870→
+  1871→
+  1872→__alpha_meta_qtlu20 = {
+  1873→    'id': 'qlib158_qtlu20',
+  1874→    'theme': ['momentum'],
+  1875→    'formula_latex': '\\\\mathrm{quantile}_{{0.8}}(\\\\mathrm{close}, 20) / \\\\mathrm{close}',
+  1876→    'columns_required': ['close'],
+  1877→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1878→    'frequency': ['1d'],
+  1879→    'decay_horizon': 20,
+  1880→    'min_warmup_bars': 20,
+  1881→}
+  1882→
+  1883→
+  1884→def compute_qtlu20(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1885→    """Return qlib158 QTLU20 on the supplied OHLCV panel."""
+  1886→    c = panel['close']
+  1887→    q = c.rolling(window=20, min_periods=20).quantile(0.8)
+  1888→    return safe_div(q, c)
+  1889→
+  1890→
+  1891→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1892→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1893→"""qlib158 QTLU30: formula = \\mathrm{quantile}_{{0.8}}(\\mathrm{close}, 30) / \\mathrm{close}."""
+  1894→
+  1895→
+  1896→__alpha_meta_qtlu30 = {
+  1897→    'id': 'qlib158_qtlu30',
+  1898→    'theme': ['momentum'],
+  1899→    'formula_latex': '\\\\mathrm{quantile}_{{0.8}}(\\\\mathrm{close}, 30) / \\\\mathrm{close}',
+  1900→    'columns_required': ['close'],
+  1901→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1902→    'frequency': ['1d'],
+  1903→    'decay_horizon': 30,
+  1904→    'min_warmup_bars': 30,
+  1905→}
+  1906→
+  1907→
+  1908→def compute_qtlu30(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1909→    """Return qlib158 QTLU30 on the supplied OHLCV panel."""
+  1910→    c = panel['close']
+  1911→    q = c.rolling(window=30, min_periods=30).quantile(0.8)
+  1912→    return safe_div(q, c)
+  1913→
+  1914→
+  1915→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1916→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1917→"""qlib158 QTLU5: formula = \\mathrm{quantile}_{{0.8}}(\\mathrm{close}, 5) / \\mathrm{close}."""
+  1918→
+  1919→
+  1920→__alpha_meta_qtlu5 = {
+  1921→    'id': 'qlib158_qtlu5',
+  1922→    'theme': ['momentum'],
+  1923→    'formula_latex': '\\\\mathrm{quantile}_{{0.8}}(\\\\mathrm{close}, 5) / \\\\mathrm{close}',
+  1924→    'columns_required': ['close'],
+  1925→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1926→    'frequency': ['1d'],
+  1927→    'decay_horizon': 5,
+  1928→    'min_warmup_bars': 5,
+  1929→}
+  1930→
+  1931→
+  1932→def compute_qtlu5(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1933→    """Return qlib158 QTLU5 on the supplied OHLCV panel."""
+  1934→    c = panel['close']
+  1935→    q = c.rolling(window=5, min_periods=5).quantile(0.8)
+  1936→    return safe_div(q, c)
+  1937→
+  1938→
+  1939→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1940→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1941→"""qlib158 QTLU60: formula = \\mathrm{quantile}_{{0.8}}(\\mathrm{close}, 60) / \\mathrm{close}."""
+  1942→
+  1943→
+  1944→__alpha_meta_qtlu60 = {
+  1945→    'id': 'qlib158_qtlu60',
+  1946→    'theme': ['momentum'],
+  1947→    'formula_latex': '\\\\mathrm{quantile}_{{0.8}}(\\\\mathrm{close}, 60) / \\\\mathrm{close}',
+  1948→    'columns_required': ['close'],
+  1949→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1950→    'frequency': ['1d'],
+  1951→    'decay_horizon': 60,
+  1952→    'min_warmup_bars': 60,
+  1953→}
+  1954→
+  1955→
+  1956→def compute_qtlu60(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1957→    """Return qlib158 QTLU60 on the supplied OHLCV panel."""
+  1958→    c = panel['close']
+  1959→    q = c.rolling(window=60, min_periods=60).quantile(0.8)
+  1960→    return safe_div(q, c)
+  1961→
+  1962→
+  1963→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1964→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1965→"""qlib158 RANK10: formula = \\mathrm{ts\\_rank}(\\mathrm{close}, 10)."""
+  1966→
+  1967→
+  1968→__alpha_meta_rank10 = {
+  1969→    'id': 'qlib158_rank10',
+  1970→    'theme': ['momentum'],
+  1971→    'formula_latex': '\\\\mathrm{ts\\\\_rank}(\\\\mathrm{close}, 10)',
+  1972→    'columns_required': ['close'],
+  1973→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1974→    'frequency': ['1d'],
+  1975→    'decay_horizon': 10,
+  1976→    'min_warmup_bars': 10,
+  1977→}
+  1978→
+  1979→
+  1980→def compute_rank10(panel: dict[str, pd.DataFrame]) -> pd.DataFrame:
+  1981→    """Return qlib158 RANK10 on the supplied OHLCV panel."""
+  1982→    c = panel['close']
+  1983→    return ts_rank(c, 10)
+  1984→
+  1985→
+  1986→# Adapted from microsoft/qlib@d5379c520f66a39953bad76234a7019a72796fd0:qlib/contrib/data/handler.py
+  1987→# (Apache-2.0). Copyright (c) Microsoft Corporation.
+  1988→"""qlib158 RANK20: formula = \\mathrm{ts\\_rank}(\\mathrm{close}, 20)."""
+  1989→
+  1990→
+  1991→__alpha_meta_rank20 = {
+  1992→    'id': 'qlib158_rank20',
+  1993→    'theme': ['momentum'],
+  1994→    'formula_latex': '\\\\mathrm{ts\\\\_rank}(\\\\mathrm{close}, 20)',
+  1995→    'columns_required': ['close'],
+  1996→    'universe': ['equity_us', 'equity_cn', 'equity_hk'],
+  1997→    'frequency': ['1d'],
+  1998→    'decay_horizon': 20,
+  1999→    'min_warmup_bars': 20,
+  2000→}
+
+[showing lines 1-2000 of 4070; use offset=2001 with limit to continue reading]

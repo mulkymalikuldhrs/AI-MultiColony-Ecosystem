@@ -1,0 +1,727 @@
+     1→"""Emotional Lockout System — Prevent revenge trading and emotional decisions.
+     2→
+     3→Implements an automated lockout system that blocks trading when the
+     4→trader's emotional state is likely compromised. This prevents the
+     5→common pattern of revenge trading after losses, which amplifies drawdowns.
+     6→
+     7→Auto-Lockout Triggers
+     8→---------------------
+     9→- 3 consecutive losing trades → lockout for 1 hour
+    10→- 3 override attempts in a day → lockout for 24 hours
+    11→- Daily loss exceeds 5% → lockout until next day
+    12→- Manual lockout by user → custom duration
+    13→
+    14→Lockout Enforcement
+    15→-------------------
+    16→- Block all new order submissions
+    17→- Allow only position-closing orders
+    18→- Log all lockout events
+    19→- Notify user of lockout reason and expiry
+    20→
+    21→Lockout Expiry
+    22→--------------
+    23→- Auto-expire after duration
+    24→- Manual unlock (requires confirmation)
+    25→- Progressive lockout (repeat violations = longer lockouts)
+    26→
+    27→Usage
+    28→-----
+    29→.. code-block:: python
+    30→
+    31→    service = EmotionalLockoutService()
+    32→
+    33→    # Record a trade outcome
+    34→    service.record_trade_result(symbol="BTC/USDT", pnl=-100.0)
+    35→
+    36→    # Check if trading is allowed
+    37→    allowed = service.check_order_allowed(symbol="BTC/USDT", is_closing=False)
+    38→
+    39→    # Manual lockout
+    40→    service.manual_lockout(duration_hours=2, reason="Taking a break")
+    41→
+    42→    # Manual unlock
+    43→    service.manual_unlock(confirmation="CONFIRM_UNLOCK")
+    44→"""
+    45→
+    46→from __future__ import annotations
+    47→
+    48→import logging
+    49→from datetime import datetime, timedelta, date
+    50→from enum import Enum
+    51→from typing import Any, Dict, List, Optional
+    52→
+    53→from pydantic import BaseModel, Field
+    54→
+    55→logger = logging.getLogger(__name__)
+    56→
+    57→
+    58→# ---------------------------------------------------------------------------
+    59→# Lockout state
+    60→# ---------------------------------------------------------------------------
+    61→
+    62→class LockoutState(str, Enum):
+    63→    """State of the emotional lockout.
+    64→
+    65→    ACTIVE: Lockout is in effect — no new orders allowed.
+    66→    EXPIRED: Lockout has expired — trading resumed.
+    67→    OVERRIDE_BLOCKED: Override attempted but blocked due to too many attempts.
+    68→    """
+    69→
+    70→    ACTIVE = "active"
+    71→    EXPIRED = "expired"
+    72→    OVERRIDE_BLOCKED = "override_blocked"
+    73→
+    74→
+    75→class LockoutReason(str, Enum):
+    76→    """Reason for the lockout."""
+    77→
+    78→    CONSECUTIVE_LOSSES = "consecutive_losses"
+    79→    DAILY_LOSS_LIMIT = "daily_loss_limit"
+    80→    OVERRIDE_ABUSE = "override_abuse"
+    81→    MANUAL = "manual"
+    82→    PROGRESSIVE = "progressive"
+    83→
+    84→
+    85→# ---------------------------------------------------------------------------
+    86→# Lockout event audit trail
+    87→# ---------------------------------------------------------------------------
+    88→
+    89→class LockoutEvent(BaseModel):
+    90→    """Audit trail entry for a lockout event.
+    91→
+    92→    Attributes:
+    93→        timestamp: When the event occurred.
+    94→        event_type: Type of event (activated, expired, override_blocked, etc.).
+    95→        reason: Lockout reason.
+    96→        duration_hours: Lockout duration in hours.
+    97→        expires_at: When the lockout expires.
+    98→        consecutive_losses: Number of consecutive losses at time of event.
+    99→        daily_loss_pct: Daily loss percentage at time of event.
+   100→        override_attempts_today: Number of override attempts today.
+   101→        message: Human-readable description.
+   102→    """
+   103→
+   104→    timestamp: datetime = Field(default_factory=datetime.now)
+   105→    event_type: str  # activated, expired, override_blocked, unlock_attempted, manual_unlocked
+   106→    reason: LockoutReason
+   107→    duration_hours: float = 0.0
+   108→    expires_at: Optional[datetime] = None
+   109→    consecutive_losses: int = 0
+   110→    daily_loss_pct: float = 0.0
+   111→    override_attempts_today: int = 0
+   112→    message: str = ""
+   113→
+   114→    model_config = {"from_attributes": True}
+   115→
+   116→
+   117→# ---------------------------------------------------------------------------
+   118→# Configuration
+   119→# ---------------------------------------------------------------------------
+   120→
+   121→class EmotionalLockoutConfig(BaseModel):
+   122→    """Configuration for the emotional lockout system.
+   123→
+   124→    Attributes:
+   125→        consecutive_losses_threshold: Number of consecutive losses to trigger lockout.
+   126→        consecutive_losses_lockout_hours: Duration of lockout after consecutive losses.
+   127→        daily_loss_pct_threshold: Daily loss percentage to trigger lockout.
+   128→        override_attempts_limit: Number of override attempts before blocking overrides.
+   129→        override_blockout_hours: Duration of lockout after override abuse.
+   130→        enable_progressive: Whether to enable progressive lockout durations.
+   131→        progressive_multiplier: Multiplier for progressive lockout durations.
+   132→        max_progressive_hours: Maximum lockout duration in hours.
+   133→    """
+   134→
+   135→    consecutive_losses_threshold: int = Field(default=3, ge=1, description="Consecutive losses to trigger lockout")
+   136→    consecutive_losses_lockout_hours: float = Field(default=1.0, gt=0, description="Lockout hours after consecutive losses")
+   137→    daily_loss_pct_threshold: float = Field(default=0.05, gt=0, le=1.0, description="Daily loss % to trigger lockout")
+   138→    override_attempts_limit: int = Field(default=3, ge=1, description="Override attempts before blocking")
+   139→    override_blockout_hours: float = Field(default=24.0, gt=0, description="Lockout hours after override abuse")
+   140→    enable_progressive: bool = Field(default=True, description="Enable progressive lockout durations")
+   141→    progressive_multiplier: float = Field(default=2.0, gt=1.0, description="Multiplier for progressive lockouts")
+   142→    max_progressive_hours: float = Field(default=72.0, gt=0, description="Maximum lockout duration")
+   143→
+   144→    model_config = {"from_attributes": True}
+   145→
+   146→
+   147→# ---------------------------------------------------------------------------
+   148→# Emotional Lockout Service
+   149→# ---------------------------------------------------------------------------
+   150→
+   151→UNLOCK_CONFIRMATION = "CONFIRM_UNLOCK"
+   152→
+   153→
+   154→class EmotionalLockoutService:
+   155→    """Emotional lockout service that prevents revenge trading.
+   156→
+   157→    Monitors trading activity and automatically locks out trading when
+   158→    emotional decision-making is likely. Supports progressive lockouts
+   159→    for repeat violations.
+   160→
+   161→    Features
+   162→    --------
+   163→    * Auto-lockout on consecutive losses
+   164→    * Auto-lockout on daily loss threshold
+   165→    * Override attempt tracking and blocking
+   166→    * Manual lockout with custom duration
+   167→    * Progressive lockout durations
+   168→    * Full audit trail of all lockout events
+   169→    * Position-closing orders allowed during lockout
+   170→    """
+   171→
+   172→    def __init__(
+   173→        self,
+   174→        config: Optional[EmotionalLockoutConfig] = None,
+   175→        initial_equity: float = 1_000_000.0,
+   176→    ) -> None:
+   177→        """Initialize the emotional lockout service.
+   178→
+   179→        Args:
+   180→            config: Lockout configuration. Uses defaults if not provided.
+   181→            initial_equity: Starting equity for loss percentage calculations.
+   182→        """
+   183→        self._config = config or EmotionalLockoutConfig()
+   184→        self._initial_equity = initial_equity
+   185→
+   186→        # State tracking
+   187→        self._consecutive_losses: int = 0
+   188→        self._daily_pnl: float = 0.0
+   189→        self._current_date: date = datetime.now().date()
+   190→        self._override_attempts_today: int = 0
+   191→        self._total_violations: int = 0
+   192→
+   193→        # Active lockout state
+   194→        self._lockout_active: bool = False
+   195→        self._lockout_state: LockoutState = LockoutState.EXPIRED
+   196→        self._lockout_reason: Optional[LockoutReason] = None
+   197→        self._lockout_expires_at: Optional[datetime] = None
+   198→        self._lockout_activated_at: Optional[datetime] = None
+   199→
+   200→        # Audit trail
+   201→        self._audit_trail: List[LockoutEvent] = []
+   202→
+   203→        # Notifications (callback-based)
+   204→        self._notification_callbacks: List = []
+   205→
+   206→    # ------------------------------------------------------------------ #
+   207→    # Core: Check if order is allowed
+   208→    # ------------------------------------------------------------------ #
+   209→
+   210→    def check_order_allowed(
+   211→        self,
+   212→        symbol: str,
+   213→        is_closing: bool = False,
+   214→    ) -> Dict[str, Any]:
+   215→        """Check whether an order is allowed under current lockout state.
+   216→
+   217→        Args:
+   218→            symbol: Trading symbol.
+   219→            is_closing: Whether this is a position-closing order.
+   220→
+   221→        Returns:
+   222→            Dict with:
+   223→            - ``allowed`` (bool): Whether the order is permitted.
+   224→            - ``reason`` (str): Reason if not allowed.
+   225→            - ``lockout_state`` (LockoutState): Current lockout state.
+   226→            - ``expires_at`` (Optional[datetime]): When lockout expires.
+   227→        """
+   228→        # Auto-expire lockout if duration has passed
+   229→        self._check_expiry()
+   230→
+   231→        # Closing orders are always allowed
+   232→        if is_closing:
+   233→            return {
+   234→                "allowed": True,
+   235→                "reason": "Closing orders are allowed during lockout",
+   236→                "lockout_state": self._lockout_state,
+   237→                "expires_at": self._lockout_expires_at,
+   238→            }
+   239→
+   240→        # Check if lockout is active
+   241→        if self._lockout_active:
+   242→            remaining = ""
+   243→            if self._lockout_expires_at:
+   244→                delta = self._lockout_expires_at - datetime.now()
+   245→                if delta.total_seconds() > 0:
+   246→                    remaining = f" ({delta.total_seconds() / 3600:.1f}h remaining)"
+   247→
+   248→            reason = (
+   249→                f"Trading locked out: {self._lockout_reason.value if self._lockout_reason else 'unknown'}"
+   250→                f"{remaining}"
+   251→            )
+   252→            return {
+   253→                "allowed": False,
+   254→                "reason": reason,
+   255→                "lockout_state": self._lockout_state,
+   256→                "expires_at": self._lockout_expires_at,
+   257→            }
+   258→
+   259→        return {
+   260→            "allowed": True,
+   261→            "reason": "No lockout active",
+   262→            "lockout_state": self._lockout_state,
+   263→            "expires_at": None,
+   264→        }
+   265→
+   266→    # ------------------------------------------------------------------ #
+   267→    # Core: Record trade results
+   268→    # ------------------------------------------------------------------ #
+   269→
+   270→    def record_trade_result(
+   271→        self,
+   272→        symbol: str,
+   273→        pnl: float,
+   274→    ) -> Dict[str, Any]:
+   275→        """Record the result of a completed trade.
+   276→
+   277→        Updates consecutive loss tracking and daily P&L, then checks
+   278→        whether an auto-lockout should be triggered.
+   279→
+   280→        Args:
+   281→            symbol: Trading symbol.
+   282→            pnl: Profit/loss from the trade.
+   283→
+   284→        Returns:
+   285→            Dict with updated state and whether a lockout was triggered.
+   286→        """
+   287→        self._reset_daily_if_needed()
+   288→
+   289→        # Update daily P&L
+   290→        self._daily_pnl += pnl
+   291→
+   292→        # Update consecutive losses
+   293→        if pnl < 0:
+   294→            self._consecutive_losses += 1
+   295→        else:
+   296→            self._consecutive_losses = 0
+   297→
+   298→        # Check auto-lockout triggers
+   299→        triggered = False
+   300→        trigger_reason = None
+   301→
+   302→        # Trigger 1: Consecutive losses
+   303→        if self._consecutive_losses >= self._config.consecutive_losses_threshold:
+   304→            triggered, trigger_reason = self._trigger_consecutive_losses_lockout()
+   305→
+   306→        # Trigger 2: Daily loss threshold
+   307→        if not triggered:
+   308→            daily_loss_pct = abs(min(0, self._daily_pnl)) / self._initial_equity
+   309→            if self._daily_pnl < 0 and daily_loss_pct >= self._config.daily_loss_pct_threshold:
+   310→                triggered, trigger_reason = self._trigger_daily_loss_lockout(daily_loss_pct)
+   311→
+   312→        return {
+   313→            "symbol": symbol,
+   314→            "pnl": pnl,
+   315→            "consecutive_losses": self._consecutive_losses,
+   316→            "daily_pnl": self._daily_pnl,
+   317→            "lockout_triggered": triggered,
+   318→            "trigger_reason": trigger_reason,
+   319→        }
+   320→
+   321→    # ------------------------------------------------------------------ #
+   322→    # Override attempts
+   323→    # ------------------------------------------------------------------ #
+   324→
+   325→    def attempt_override(self) -> Dict[str, Any]:
+   326→        """Attempt to override the current lockout.
+   327→
+   328→        Override attempts are tracked. Too many attempts will trigger
+   329→        an extended lockout (override abuse protection).
+   330→
+   331→        Returns:
+   332→            Dict with override result and current state.
+   333→        """
+   334→        self._reset_daily_if_needed()
+   335→
+   336→        if not self._lockout_active:
+   337→            return {
+   338→                "override_granted": True,
+   339→                "reason": "No lockout active",
+   340→            }
+   341→
+   342→        self._override_attempts_today += 1
+   343→
+   344→        # Check override abuse
+   345→        if self._override_attempts_today >= self._config.override_attempts_limit:
+   346→            return self._trigger_override_abuse_lockout()
+   347→
+   348→        # Log the override attempt
+   349→        event = LockoutEvent(
+   350→            event_type="override_attempted",
+   351→            reason=self._lockout_reason or LockoutReason.MANUAL,
+   352→            override_attempts_today=self._override_attempts_today,
+   353→            message=f"Override attempt #{self._override_attempts_today} — blocked",
+   354→        )
+   355→        self._audit_trail.append(event)
+   356→        logger.warning(
+   357→            "EmotionalLockout: Override attempt #%d blocked (limit: %d)",
+   358→            self._override_attempts_today,
+   359→            self._config.override_attempts_limit,
+   360→        )
+   361→
+   362→        return {
+   363→            "override_granted": False,
+   364→            "reason": (
+   365→                f"Override not allowed during active lockout. "
+   366→                f"Attempt {self._override_attempts_today}/{self._config.override_attempts_limit}"
+   367→            ),
+   368→            "lockout_state": self._lockout_state,
+   369→            "expires_at": self._lockout_expires_at,
+   370→            "override_attempts_remaining": (
+   371→                self._config.override_attempts_limit - self._override_attempts_today
+   372→            ),
+   373→        }
+   374→
+   375→    # ------------------------------------------------------------------ #
+   376→    # Manual lockout / unlock
+   377→    # ------------------------------------------------------------------ #
+   378→
+   379→    def manual_lockout(
+   380→        self,
+   381→        duration_hours: float = 1.0,
+   382→        reason: str = "Manual lockout",
+   383→    ) -> Dict[str, Any]:
+   384→        """Manually activate a lockout.
+   385→
+   386→        Args:
+   387→            duration_hours: Lockout duration in hours.
+   388→            reason: Reason for the manual lockout.
+   389→
+   390→        Returns:
+   391→            Dict with lockout activation status.
+   392→        """
+   393→        return self._activate_lockout(
+   394→            reason=LockoutReason.MANUAL,
+   395→            duration_hours=duration_hours,
+   396→            message=reason,
+   397→        )
+   398→
+   399→    def manual_unlock(self, confirmation: str = "") -> Dict[str, Any]:
+   400→        """Manually unlock the trading system.
+   401→
+   402→        Requires explicit confirmation to prevent accidental unlocks.
+   403→
+   404→        Args:
+   405→            confirmation: Must be exactly ``"CONFIRM_UNLOCK"``.
+   406→
+   407→        Returns:
+   408→            Dict with unlock result.
+   409→        """
+   410→        if not self._lockout_active:
+   411→            return {
+   412→                "status": "NOT_LOCKED",
+   413→                "message": "No lockout is currently active.",
+   414→            }
+   415→
+   416→        if confirmation != UNLOCK_CONFIRMATION:
+   417→            event = LockoutEvent(
+   418→                event_type="unlock_attempted",
+   419→                reason=self._lockout_reason or LockoutReason.MANUAL,
+   420→                message="Unlock failed — incorrect confirmation",
+   421→            )
+   422→            self._audit_trail.append(event)
+   423→            return {
+   424→                "status": "UNLOCK_DENIED",
+   425→                "message": "Unlock requires explicit confirmation.",
+   426→                "confirmation_required": UNLOCK_CONFIRMATION,
+   427→            }
+   428→
+   429→        # Perform unlock
+   430→        old_reason = self._lockout_reason
+   431→        self._lockout_active = False
+   432→        self._lockout_state = LockoutState.EXPIRED
+   433→        self._lockout_reason = None
+   434→        self._lockout_expires_at = None
+   435→        self._lockout_activated_at = None
+   436→
+   437→        event = LockoutEvent(
+   438→            event_type="manual_unlocked",
+   439→            reason=old_reason or LockoutReason.MANUAL,
+   440→            message="Manually unlocked after confirmation",
+   441→        )
+   442→        self._audit_trail.append(event)
+   443→        logger.info("EmotionalLockout: Manually unlocked")
+   444→
+   445→        self._notify("unlocked", {"reason": old_reason})
+   446→
+   447→        return {
+   448→            "status": "UNLOCKED",
+   449→            "message": "Lockout removed. Trading resumed.",
+   450→            "previous_reason": old_reason.value if old_reason else None,
+   451→        }
+   452→
+   453→    # ------------------------------------------------------------------ #
+   454→    # State queries
+   455→    # ------------------------------------------------------------------ #
+   456→
+   457→    @property
+   458→    def is_locked_out(self) -> bool:
+   459→        """Whether trading is currently locked out."""
+   460→        self._check_expiry()
+   461→        return self._lockout_active
+   462→
+   463→    @property
+   464→    def lockout_state(self) -> LockoutState:
+   465→        """Current lockout state."""
+   466→        self._check_expiry()
+   467→        return self._lockout_state
+   468→
+   469→    @property
+   470→    def lockout_reason(self) -> Optional[LockoutReason]:
+   471→        """Current lockout reason, if any."""
+   472→        return self._lockout_reason
+   473→
+   474→    @property
+   475→    def lockout_expires_at(self) -> Optional[datetime]:
+   476→        """When the current lockout expires, if any."""
+   477→        return self._lockout_expires_at
+   478→
+   479→    @property
+   480→    def consecutive_losses(self) -> int:
+   481→        """Current number of consecutive losing trades."""
+   482→        return self._consecutive_losses
+   483→
+   484→    @property
+   485→    def daily_pnl(self) -> float:
+   486→        """Current daily P&L."""
+   487→        return self._daily_pnl
+   488→
+   489→    @property
+   490→    def override_attempts_today(self) -> int:
+   491→        """Number of override attempts today."""
+   492→        return self._override_attempts_today
+   493→
+   494→    @property
+   495→    def total_violations(self) -> int:
+   496→        """Total number of lockout violations (for progressive calculation)."""
+   497→        return self._total_violations
+   498→
+   499→    @property
+   500→    def audit_trail(self) -> List[LockoutEvent]:
+   501→        """Full audit trail of all lockout events."""
+   502→        return list(self._audit_trail)
+   503→
+   504→    def get_status(self) -> Dict[str, Any]:
+   505→        """Get comprehensive status of the emotional lockout system.
+   506→
+   507→        Returns:
+   508→            Dict with all current state information.
+   509→        """
+   510→        self._check_expiry()
+   511→        self._reset_daily_if_needed()
+   512→
+   513→        daily_loss_pct = abs(min(0, self._daily_pnl)) / self._initial_equity if self._initial_equity > 0 else 0
+   514→
+   515→        return {
+   516→            "is_locked_out": self._lockout_active,
+   517→            "lockout_state": self._lockout_state.value,
+   518→            "lockout_reason": self._lockout_reason.value if self._lockout_reason else None,
+   519→            "lockout_expires_at": self._lockout_expires_at.isoformat() if self._lockout_expires_at else None,
+   520→            "lockout_activated_at": self._lockout_activated_at.isoformat() if self._lockout_activated_at else None,
+   521→            "consecutive_losses": self._consecutive_losses,
+   522→            "daily_pnl": self._daily_pnl,
+   523→            "daily_loss_pct": f"{daily_loss_pct:.4f}",
+   524→            "daily_loss_threshold": f"{self._config.daily_loss_pct_threshold:.4f}",
+   525→            "override_attempts_today": self._override_attempts_today,
+   526→            "override_attempts_limit": self._config.override_attempts_limit,
+   527→            "total_violations": self._total_violations,
+   528→            "remaining_lockout_hours": (
+   529→                (self._lockout_expires_at - datetime.now()).total_seconds() / 3600
+   530→                if self._lockout_active and self._lockout_expires_at
+   531→                else 0.0
+   532→            ),
+   533→        }
+   534→
+   535→    # ------------------------------------------------------------------ #
+   536→    # Notification callbacks
+   537→    # ------------------------------------------------------------------ #
+   538→
+   539→    def add_notification_callback(self, callback) -> None:
+   540→        """Add a callback to be notified of lockout events.
+   541→
+   542→        Args:
+   543→            callback: Callable accepting (event_type: str, data: dict).
+   544→        """
+   545→        self._notification_callbacks.append(callback)
+   546→
+   547→    def _notify(self, event_type: str, data: Dict[str, Any]) -> None:
+   548→        """Notify all registered callbacks of a lockout event."""
+   549→        for callback in self._notification_callbacks:
+   550→            try:
+   551→                callback(event_type, data)
+   552→            except Exception as exc:
+   553→                logger.warning("EmotionalLockout: Notification callback error: %s", exc)
+   554→
+   555→    # ------------------------------------------------------------------ #
+   556→    # Internal: Lockout triggers
+   557→    # ------------------------------------------------------------------ #
+   558→
+   559→    def _trigger_consecutive_losses_lockout(self) -> tuple:
+   560→        """Trigger lockout due to consecutive losses."""
+   561→        duration = self._calculate_progressive_duration(
+   562→            self._config.consecutive_losses_lockout_hours,
+   563→        )
+   564→        reason = LockoutReason.CONSECUTIVE_LOSSES
+   565→        message = (
+   566→            f"{self._consecutive_losses} consecutive losing trades — "
+   567→            f"lockout for {duration:.1f} hours"
+   568→        )
+   569→        self._activate_lockout(reason=reason, duration_hours=duration, message=message)
+   570→        return True, reason.value
+   571→
+   572→    def _trigger_daily_loss_lockout(self, daily_loss_pct: float) -> tuple:
+   573→        """Trigger lockout due to daily loss threshold."""
+   574→        duration = self._calculate_progressive_duration(
+   575→            self._config.consecutive_losses_lockout_hours,
+   576→        )
+   577→        reason = LockoutReason.DAILY_LOSS_LIMIT
+   578→        message = (
+   579→            f"Daily loss {daily_loss_pct:.2%} exceeds threshold "
+   580→            f"{self._config.daily_loss_pct_threshold:.2%} — "
+   581→            f"lockout for {duration:.1f} hours"
+   582→        )
+   583→        self._activate_lockout(reason=reason, duration_hours=duration, message=message)
+   584→        return True, reason.value
+   585→
+   586→    def _trigger_override_abuse_lockout(self) -> Dict[str, Any]:
+   587→        """Trigger extended lockout due to override abuse."""
+   588→        duration = self._calculate_progressive_duration(
+   589→            self._config.override_blockout_hours,
+   590→        )
+   591→        reason = LockoutReason.OVERRIDE_ABUSE
+   592→        message = (
+   593→            f"{self._override_attempts_today} override attempts — "
+   594→            f"lockout extended to {duration:.1f} hours"
+   595→        )
+   596→        result = self._activate_lockout(reason=reason, duration_hours=duration, message=message)
+   597→        self._lockout_state = LockoutState.OVERRIDE_BLOCKED
+   598→        return {
+   599→            "override_granted": False,
+   600→            "reason": message,
+   601→            "lockout_state": self._lockout_state,
+   602→            "expires_at": self._lockout_expires_at,
+   603→        }
+   604→
+   605→    # ------------------------------------------------------------------ #
+   606→    # Internal: Lockout lifecycle
+   607→    # ------------------------------------------------------------------ #
+   608→
+   609→    def _activate_lockout(
+   610→        self,
+   611→        reason: LockoutReason,
+   612→        duration_hours: float,
+   613→        message: str = "",
+   614→    ) -> Dict[str, Any]:
+   615→        """Activate a lockout.
+   616→
+   617→        Args:
+   618→            reason: Lockout reason.
+   619→            duration_hours: Lockout duration.
+   620→            message: Human-readable message.
+   621→
+   622→        Returns:
+   623→            Dict with activation status.
+   624→        """
+   625→        now = datetime.now()
+   626→        expires_at = now + timedelta(hours=duration_hours)
+   627→
+   628→        self._lockout_active = True
+   629→        self._lockout_state = LockoutState.ACTIVE
+   630→        self._lockout_reason = reason
+   631→        self._lockout_expires_at = expires_at
+   632→        self._lockout_activated_at = now
+   633→        self._total_violations += 1
+   634→
+   635→        event = LockoutEvent(
+   636→            event_type="activated",
+   637→            reason=reason,
+   638→            duration_hours=duration_hours,
+   639→            expires_at=expires_at,
+   640→            consecutive_losses=self._consecutive_losses,
+   641→            daily_loss_pct=abs(min(0, self._daily_pnl)) / self._initial_equity if self._initial_equity > 0 else 0,
+   642→            override_attempts_today=self._override_attempts_today,
+   643→            message=message,
+   644→        )
+   645→        self._audit_trail.append(event)
+   646→
+   647→        logger.warning(
+   648→            "EmotionalLockout: ACTIVATED — %s (duration=%.1fh, expires=%s)",
+   649→            reason.value, duration_hours, expires_at.isoformat(),
+   650→        )
+   651→
+   652→        self._notify("lockout_activated", {
+   653→            "reason": reason.value,
+   654→            "duration_hours": duration_hours,
+   655→            "expires_at": expires_at.isoformat(),
+   656→            "message": message,
+   657→        })
+   658→
+   659→        return {
+   660→            "status": "LOCKOUT_ACTIVATED",
+   661→            "reason": reason.value,
+   662→            "duration_hours": duration_hours,
+   663→            "expires_at": expires_at.isoformat(),
+   664→            "message": message,
+   665→        }
+   666→
+   667→    def _check_expiry(self) -> None:
+   668→        """Check and auto-expire the lockout if duration has passed."""
+   669→        if not self._lockout_active:
+   670→            return
+   671→
+   672→        if self._lockout_expires_at and datetime.now() >= self._lockout_expires_at:
+   673→            old_reason = self._lockout_reason
+   674→            self._lockout_active = False
+   675→            self._lockout_state = LockoutState.EXPIRED
+   676→            self._lockout_reason = None
+   677→            self._lockout_expires_at = None
+   678→            self._lockout_activated_at = None
+   679→
+   680→            event = LockoutEvent(
+   681→                event_type="expired",
+   682→                reason=old_reason or LockoutReason.MANUAL,
+   683→                message="Lockout auto-expired",
+   684→            )
+   685→            self._audit_trail.append(event)
+   686→            logger.info("EmotionalLockout: Auto-expired (reason was: %s)", old_reason)
+   687→
+   688→            self._notify("lockout_expired", {"reason": old_reason.value if old_reason else None})
+   689→
+   690→    # ------------------------------------------------------------------ #
+   691→    # Internal: Progressive lockout
+   692→    # ------------------------------------------------------------------ #
+   693→
+   694→    def _calculate_progressive_duration(self, base_hours: float) -> float:
+   695→        """Calculate progressive lockout duration based on violation count.
+   696→
+   697→        Each subsequent violation increases the duration by the multiplier.
+   698→
+   699→        Args:
+   700→            base_hours: Base lockout duration.
+   701→
+   702→        Returns:
+   703→            Calculated duration in hours.
+   704→        """
+   705→        if not self._config.enable_progressive:
+   706→            return base_hours
+   707→
+   708→        # Progressive: base * multiplier^(violations - 1)
+   709→        # First violation: base_hours
+   710→        # Second violation: base_hours * multiplier
+   711→        # Third violation: base_hours * multiplier^2
+   712→        violations = max(0, self._total_violations)
+   713→        duration = base_hours * (self._config.progressive_multiplier ** violations)
+   714→        return min(duration, self._config.max_progressive_hours)
+   715→
+   716→    # ------------------------------------------------------------------ #
+   717→    # Internal: Daily reset
+   718→    # ------------------------------------------------------------------ #
+   719→
+   720→    def _reset_daily_if_needed(self) -> None:
+   721→        """Reset daily counters if a new day has started."""
+   722→        today = datetime.now().date()
+   723→        if self._current_date != today:
+   724→            self._daily_pnl = 0.0
+   725→            self._override_attempts_today = 0
+   726→            self._current_date = today
+   727→

@@ -1,0 +1,675 @@
+     1→"""
+     2→Comprehensive Tests for the API Layer
+     3→======================================
+     4→Tests for FastAPI app creation, health check, market routes, trading routes,
+     5→agent routes, backtest routes, portfolio routes, rate limiting middleware,
+     6→and error handling. Uses FastAPI TestClient with mocked dependencies.
+     7→"""
+     8→
+     9→from __future__ import annotations
+    10→
+    11→import json
+    12→import time
+    13→from unittest.mock import AsyncMock, MagicMock, patch
+    14→
+    15→import pytest
+    16→from fastapi.testclient import TestClient
+    17→
+    18→
+    19→# ══════════════════════════════════════════════════════════════════════
+    20→# App Fixture — Create TestClient with mocked services
+    21→# ══════════════════════════════════════════════════════════════════════
+    22→
+    23→
+    24→@pytest.fixture(scope="module")
+    25→def client():
+    26→    """Create a TestClient with mocked service dependencies."""
+    27→    # Mock the services module that the app imports at startup
+    28→    with patch("quant_nanggroe.api.app.init_all_services", create=True):
+    29→        with patch("quant_nanggroe.services", create=True):
+    30→            from quant_nanggroe.api.app import create_app
+    31→
+    32→            app = create_app()
+    33→            with TestClient(app) as c:
+    34→                yield c
+    35→
+    36→
+    37→# ══════════════════════════════════════════════════════════════════════
+    38→# Health Check Tests
+    39→# ══════════════════════════════════════════════════════════════════════
+    40→
+    41→
+    42→class TestHealthCheck:
+    43→    """Test the /health endpoint."""
+    44→
+    45→    def test_health_check_returns_200(self, client: TestClient) -> None:
+    46→        """Health endpoint returns 200 status."""
+    47→        response = client.get("/health")
+    48→        assert response.status_code == 200
+    49→
+    50→    def test_health_check_response_structure(self, client: TestClient) -> None:
+    51→        """Health endpoint returns expected structure."""
+    52→        response = client.get("/health")
+    53→        data = response.json()
+    54→        assert data["status"] == "healthy"
+    55→        assert data["service"] == "quant-nanggroe-ai"
+    56→
+    57→
+    58→# ══════════════════════════════════════════════════════════════════════
+    59→# Market Route Tests
+    60→# ══════════════════════════════════════════════════════════════════════
+    61→
+    62→
+    63→class TestMarketRoutes:
+    64→    """Test /api/market/* routes."""
+    65→
+    66→    def test_get_price(self, client: TestClient) -> None:
+    67→        """GET /api/market/price/{symbol} returns price data."""
+    68→        response = client.get("/api/market/price/AAPL")
+    69→        assert response.status_code == 200
+    70→        data = response.json()
+    71→        assert data["symbol"] == "AAPL"
+    72→        assert "price" in data
+    73→
+    74→    def test_get_price_different_symbols(self, client: TestClient) -> None:
+    75→        """Price endpoint works for different symbols."""
+    76→        for symbol in ["BTC-USD", "EURUSD=X", "MSFT"]:
+    77→            response = client.get(f"/api/market/price/{symbol}")
+    78→            assert response.status_code == 200
+    79→            assert response.json()["symbol"] == symbol
+    80→
+    81→    def test_post_ohlcv(self, client: TestClient) -> None:
+    82→        """POST /api/market/ohlcv returns OHLCV data."""
+    83→        payload = {
+    84→            "symbol": "AAPL",
+    85→            "timeframe": "1d",
+    86→            "limit": 100,
+    87→        }
+    88→        response = client.post("/api/market/ohlcv", json=payload)
+    89→        assert response.status_code == 200
+    90→        data = response.json()
+    91→        assert data["symbol"] == "AAPL"
+    92→        assert data["timeframe"] == "1d"
+    93→        assert "data" in data
+    94→        assert "count" in data
+    95→
+    96→    def test_post_ohlcv_with_min_limit(self, client: TestClient) -> None:
+    97→        """POST /api/market/ohlcv with limit=1."""
+    98→        payload = {"symbol": "AAPL", "timeframe": "1d", "limit": 1}
+    99→        response = client.post("/api/market/ohlcv", json=payload)
+   100→        assert response.status_code == 200
+   101→
+   102→    def test_post_ohlcv_with_max_limit(self, client: TestClient) -> None:
+   103→        """POST /api/market/ohlcv with limit=1000."""
+   104→        payload = {"symbol": "AAPL", "timeframe": "1d", "limit": 1000}
+   105→        response = client.post("/api/market/ohlcv", json=payload)
+   106→        assert response.status_code == 200
+   107→
+   108→    def test_post_ohlcv_invalid_limit(self, client: TestClient) -> None:
+   109→        """POST /api/market/ohlcv with invalid limit returns 422."""
+   110→        payload = {"symbol": "AAPL", "timeframe": "1d", "limit": 0}
+   111→        response = client.post("/api/market/ohlcv", json=payload)
+   112→        assert response.status_code == 422
+   113→
+   114→    def test_post_ohlcv_limit_over_max(self, client: TestClient) -> None:
+   115→        """POST /api/market/ohlcv with limit > 1000 returns 422."""
+   116→        payload = {"symbol": "AAPL", "timeframe": "1d", "limit": 1001}
+   117→        response = client.post("/api/market/ohlcv", json=payload)
+   118→        assert response.status_code == 422
+   119→
+   120→    def test_post_regime_detection(self, client: TestClient) -> None:
+   121→        """POST /api/market/regime detects market regime."""
+   122→        payload = {
+   123→            "symbol": "XAUUSD",
+   124→            "price_change_5d": 1.0,
+   125→            "price_change_1d": 0.3,
+   126→            "adx": 30.0,
+   127→            "rsi": 55.0,
+   128→            "atr_pct": 1.2,
+   129→            "volume_ratio": 1.1,
+   130→            "ema_trend": "bullish",
+   131→        }
+   132→        response = client.post("/api/market/regime", json=payload)
+   133→        assert response.status_code == 200
+   134→        data = response.json()
+   135→        assert data["symbol"] == "XAUUSD"
+   136→        assert "regime" in data
+   137→        assert "base_regime" in data
+   138→        assert "volatility" in data
+   139→        assert "liquidity" in data
+   140→        assert "trade_allowed" in data
+   141→        assert "no_trade_reasons" in data
+   142→
+   143→    def test_post_regime_panic(self, client: TestClient) -> None:
+   144→        """POST /api/market/regime detects PANIC → NO_TRADE."""
+   145→        payload = {
+   146→            "symbol": "BTC-USD",
+   147→            "price_change_5d": -6.0,
+   148→        }
+   149→        response = client.post("/api/market/regime", json=payload)
+   150→        assert response.status_code == 200
+   151→        data = response.json()
+   152→        assert data["regime"] == "NO_TRADE"
+   153→        assert data["trade_allowed"] is False
+   154→
+   155→    def test_post_regime_default_values(self, client: TestClient) -> None:
+   156→        """POST /api/market/regime with only symbol (defaults)."""
+   157→        payload = {"symbol": "AAPL"}
+   158→        response = client.post("/api/market/regime", json=payload)
+   159→        assert response.status_code == 200
+   160→        data = response.json()
+   161→        assert data["symbol"] == "AAPL"
+   162→
+   163→    def test_get_pressure(self, client: TestClient) -> None:
+   164→        """GET /api/market/pressure/{symbol} returns pressure data."""
+   165→        response = client.get("/api/market/pressure/AAPL")
+   166→        assert response.status_code == 200
+   167→        data = response.json()
+   168→        assert data["symbol"] == "AAPL"
+   169→        assert "buy_pressure" in data
+   170→        assert "sell_pressure" in data
+   171→        assert "verdict" in data
+   172→
+   173→
+   174→# ══════════════════════════════════════════════════════════════════════
+   175→# Trading Route Tests
+   176→# ══════════════════════════════════════════════════════════════════════
+   177→
+   178→
+   179→class TestTradingRoutes:
+   180→    """Test /api/trading/* routes."""
+   181→
+   182→    def test_place_order(self, client: TestClient) -> None:
+   183→        """POST /api/trading/order places an order."""
+   184→        payload = {
+   185→            "symbol": "AAPL",
+   186→            "direction": "BUY",
+   187→            "quantity": 10,
+   188→            "order_type": "MARKET",
+   189→        }
+   190→        response = client.post("/api/trading/order", json=payload)
+   191→        assert response.status_code == 200
+   192→        data = response.json()
+   193→        assert "order_id" in data
+   194→        assert data["symbol"] == "AAPL"
+   195→        assert data["direction"] == "BUY"
+   196→        assert data["quantity"] == 10
+   197→
+   198→    def test_place_order_with_sl_tp(self, client: TestClient) -> None:
+   199→        """POST /api/trading/order with stop-loss and take-profit."""
+   200→        payload = {
+   201→            "symbol": "AAPL",
+   202→            "direction": "BUY",
+   203→            "quantity": 10,
+   204→            "order_type": "LIMIT",
+   205→            "price": 150.0,
+   206→            "stop_loss": 145.0,
+   207→            "take_profit": 160.0,
+   208→        }
+   209→        response = client.post("/api/trading/order", json=payload)
+   210→        assert response.status_code == 200
+   211→
+   212→    def test_place_order_sell(self, client: TestClient) -> None:
+   213→        """POST /api/trading/order with SELL direction."""
+   214→        payload = {
+   215→            "symbol": "MSFT",
+   216→            "direction": "SELL",
+   217→            "quantity": 5,
+   218→        }
+   219→        response = client.post("/api/trading/order", json=payload)
+   220→        assert response.status_code == 200
+   221→        assert response.json()["direction"] == "SELL"
+   222→
+   223→    def test_place_order_invalid_quantity(self, client: TestClient) -> None:
+   224→        """POST /api/trading/order with quantity=0 returns 422."""
+   225→        payload = {
+   226→            "symbol": "AAPL",
+   227→            "direction": "BUY",
+   228→            "quantity": 0,
+   229→        }
+   230→        response = client.post("/api/trading/order", json=payload)
+   231→        assert response.status_code == 422
+   232→
+   233→    def test_place_order_negative_quantity(self, client: TestClient) -> None:
+   234→        """POST /api/trading/order with negative quantity returns 422."""
+   235→        payload = {
+   236→            "symbol": "AAPL",
+   237→            "direction": "BUY",
+   238→            "quantity": -1,
+   239→        }
+   240→        response = client.post("/api/trading/order", json=payload)
+   241→        assert response.status_code == 422
+   242→
+   243→    def test_place_order_missing_symbol(self, client: TestClient) -> None:
+   244→        """POST /api/trading/order without symbol returns 422."""
+   245→        payload = {"direction": "BUY", "quantity": 10}
+   246→        response = client.post("/api/trading/order", json=payload)
+   247→        assert response.status_code == 422
+   248→
+   249→    def test_get_positions(self, client: TestClient) -> None:
+   250→        """GET /api/trading/positions returns positions."""
+   251→        response = client.get("/api/trading/positions")
+   252→        assert response.status_code == 200
+   253→        data = response.json()
+   254→        assert "positions" in data
+   255→        assert "total_count" in data
+   256→
+   257→    def test_get_trade_history(self, client: TestClient) -> None:
+   258→        """GET /api/trading/trades returns trade history."""
+   259→        response = client.get("/api/trading/trades")
+   260→        assert response.status_code == 200
+   261→        data = response.json()
+   262→        assert "trades" in data
+   263→        assert "total_count" in data
+   264→        assert "limit" in data
+   265→
+   266→    def test_get_trade_history_with_limit(self, client: TestClient) -> None:
+   267→        """GET /api/trading/trades?limit=10 respects the limit."""
+   268→        response = client.get("/api/trading/trades?limit=10")
+   269→        assert response.status_code == 200
+   270→        assert response.json()["limit"] == 10
+   271→
+   272→    def test_risk_check_endpoint(self, client: TestClient) -> None:
+   273→        """POST /api/trading/risk-check runs risk validation."""
+   274→        payload = {
+   275→            "symbol": "AAPL",
+   276→            "direction": "BUY",
+   277→            "entry": 150.0,
+   278→            "stop_loss": 145.0,
+   279→            "take_profit": 160.0,
+   280→            "lot_size": 0.1,
+   281→            "account_balance": 10000.0,
+   282→        }
+   283→        response = client.post("/api/trading/risk-check", json=payload)
+   284→        # May return 200 or 500 depending on services availability
+   285→        # but should not return 422 for valid payload
+   286→        assert response.status_code in (200, 500)
+   287→
+   288→    def test_risk_check_invalid_entry(self, client: TestClient) -> None:
+   289→        """POST /api/trading/risk-check with entry=0 returns 422."""
+   290→        payload = {
+   291→            "symbol": "AAPL",
+   292→            "direction": "BUY",
+   293→            "entry": 0,
+   294→        }
+   295→        response = client.post("/api/trading/risk-check", json=payload)
+   296→        assert response.status_code == 422
+   297→
+   298→
+   299→# ══════════════════════════════════════════════════════════════════════
+   300→# Agent Route Tests
+   301→# ══════════════════════════════════════════════════════════════════════
+   302→
+   303→
+   304→class TestAgentRoutes:
+   305→    """Test /api/agents/* routes."""
+   306→
+   307→    def test_run_agent(self, client: TestClient) -> None:
+   308→        """POST /api/agents/run runs an agent pipeline."""
+   309→        payload = {
+   310→            "symbol": "AAPL",
+   311→            "query": "Should I buy AAPL?",
+   312→            "timeframe": "1d",
+   313→        }
+   314→        response = client.post("/api/agents/run", json=payload)
+   315→        assert response.status_code == 200
+   316→        data = response.json()
+   317→        assert data["symbol"] == "AAPL"
+   318→        assert data["query"] == "Should I buy AAPL?"
+   319→        assert "status" in data
+   320→
+   321→    def test_run_agent_minimal(self, client: TestClient) -> None:
+   322→        """POST /api/agents/run with only symbol."""
+   323→        payload = {"symbol": "BTC-USD"}
+   324→        response = client.post("/api/agents/run", json=payload)
+   325→        assert response.status_code == 200
+   326→
+   327→    def test_run_agent_missing_symbol(self, client: TestClient) -> None:
+   328→        """POST /api/agents/run without symbol returns 422."""
+   329→        payload = {"query": "What's the market doing?"}
+   330→        response = client.post("/api/agents/run", json=payload)
+   331→        assert response.status_code == 422
+   332→
+   333→    def test_get_agent_status(self, client: TestClient) -> None:
+   334→        """GET /api/agents/status returns agent system status."""
+   335→        response = client.get("/api/agents/status")
+   336→        assert response.status_code == 200
+   337→        data = response.json()
+   338→        assert "agents" in data
+   339→        assert "active" in data
+   340→        assert "kill_switch_active" in data
+   341→
+   342→    def test_kill_switch_activate(self, client: TestClient) -> None:
+   343→        """POST /api/agents/kill-switch/activate activates kill switch."""
+   344→        payload = {"reason": "Emergency test"}
+   345→        response = client.post("/api/agents/kill-switch/activate", json=payload)
+   346→        assert response.status_code == 200
+   347→        data = response.json()
+   348→        assert "is_active" in data
+   349→        assert "message" in data
+   350→
+   351→    def test_kill_switch_status(self, client: TestClient) -> None:
+   352→        """GET /api/agents/kill-switch/status returns kill switch status."""
+   353→        response = client.get("/api/agents/kill-switch/status")
+   354→        assert response.status_code == 200
+   355→        data = response.json()
+   356→        assert "is_active" in data
+   357→
+   358→    def test_kill_switch_reset_requires_confirmation(self, client: TestClient) -> None:
+   359→        """POST /api/agents/kill-switch/reset without CONFIRM returns error."""
+   360→        payload = {"confirmation": "WRONG"}
+   361→        response = client.post("/api/agents/kill-switch/reset", json=payload)
+   362→        assert response.status_code == 200
+   363→        data = response.json()
+   364→        assert "CONFIRM" in data["message"] or data["is_active"] is True
+   365→
+   366→    def test_kill_switch_reset_with_confirm(self, client: TestClient) -> None:
+   367→        """POST /api/agents/kill-switch/reset with CONFIRM attempts reset."""
+   368→        payload = {"confirmation": "CONFIRM"}
+   369→        response = client.post("/api/agents/kill-switch/reset", json=payload)
+   370→        assert response.status_code == 200
+   371→
+   372→
+   373→# ══════════════════════════════════════════════════════════════════════
+   374→# Backtest Route Tests
+   375→# ══════════════════════════════════════════════════════════════════════
+   376→
+   377→
+   378→class TestBacktestRoutes:
+   379→    """Test /api/backtest/* routes."""
+   380→
+   381→    def test_submit_backtest(self, client: TestClient) -> None:
+   382→        """POST /api/backtest/run submits a backtest."""
+   383→        payload = {
+   384→            "symbol": "AAPL",
+   385→            "strategy": "sma_crossover",
+   386→            "start_date": "2023-01-01",
+   387→            "end_date": "2024-01-01",
+   388→            "initial_capital": 10000.0,
+   389→        }
+   390→        response = client.post("/api/backtest/run", json=payload)
+   391→        assert response.status_code == 200
+   392→        data = response.json()
+   393→        assert "backtest_id" in data
+   394→        assert data["symbol"] == "AAPL"
+   395→        assert data["strategy"] == "sma_crossover"
+   396→
+   397→    def test_get_backtest_result_not_found(self, client: TestClient) -> None:
+   398→        """GET /api/backtest/result/{id} for unknown ID returns NOT_FOUND."""
+   399→        response = client.get("/api/backtest/result/nonexistent-id")
+   400→        assert response.status_code == 200
+   401→        data = response.json()
+   402→        assert data["status"] == "NOT_FOUND"
+   403→        assert data["error"] == "Backtest not found"
+   404→
+   405→    def test_submit_and_get_backtest(self, client: TestClient) -> None:
+   406→        """Submit a backtest and then retrieve its result."""
+   407→        payload = {
+   408→            "symbol": "MSFT",
+   409→            "strategy": "rsi_mean_revert",
+   410→            "start_date": "2023-01-01",
+   411→            "end_date": "2024-01-01",
+   412→        }
+   413→        submit_response = client.post("/api/backtest/run", json=payload)
+   414→        assert submit_response.status_code == 200
+   415→        backtest_id = submit_response.json()["backtest_id"]
+   416→
+   417→        # Retrieve the result
+   418→        result_response = client.get(f"/api/backtest/result/{backtest_id}")
+   419→        assert result_response.status_code == 200
+   420→        data = result_response.json()
+   421→        assert data["backtest_id"] == backtest_id
+   422→        assert data["symbol"] == "MSFT"
+   423→        assert data["strategy"] == "rsi_mean_revert"
+   424→        assert data["status"] in ("QUEUED", "RUNNING", "COMPLETED", "FAILED")
+   425→
+   426→    def test_list_backtests(self, client: TestClient) -> None:
+   427→        """GET /api/backtest/list lists all backtests."""
+   428→        response = client.get("/api/backtest/list")
+   429→        assert response.status_code == 200
+   430→        data = response.json()
+   431→        assert "backtests" in data
+   432→        assert "total" in data
+   433→        assert isinstance(data["backtests"], list)
+   434→
+   435→    def test_submit_backtest_invalid_capital(self, client: TestClient) -> None:
+   436→        """POST /api/backtest/run with capital=0 returns 422."""
+   437→        payload = {
+   438→            "symbol": "AAPL",
+   439→            "strategy": "sma_crossover",
+   440→            "start_date": "2023-01-01",
+   441→            "end_date": "2024-01-01",
+   442→            "initial_capital": 0,
+   443→        }
+   444→        response = client.post("/api/backtest/run", json=payload)
+   445→        assert response.status_code == 422
+   446→
+   447→    def test_submit_backtest_missing_dates(self, client: TestClient) -> None:
+   448→        """POST /api/backtest/run without dates returns 422."""
+   449→        payload = {
+   450→            "symbol": "AAPL",
+   451→            "strategy": "sma_crossover",
+   452→        }
+   453→        response = client.post("/api/backtest/run", json=payload)
+   454→        assert response.status_code == 422
+   455→
+   456→    def test_submit_backtest_custom_params(self, client: TestClient) -> None:
+   457→        """POST /api/backtest/run with custom commission and slippage."""
+   458→        payload = {
+   459→            "symbol": "AAPL",
+   460→            "strategy": "macd_crossover",
+   461→            "start_date": "2023-01-01",
+   462→            "end_date": "2024-01-01",
+   463→            "initial_capital": 50000.0,
+   464→            "commission": 0.002,
+   465→            "slippage": 0.001,
+   466→        }
+   467→        response = client.post("/api/backtest/run", json=payload)
+   468→        assert response.status_code == 200
+   469→
+   470→
+   471→# ══════════════════════════════════════════════════════════════════════
+   472→# Portfolio Route Tests
+   473→# ══════════════════════════════════════════════════════════════════════
+   474→
+   475→
+   476→class TestPortfolioRoutes:
+   477→    """Test /api/portfolio/* routes."""
+   478→
+   479→    def test_get_portfolio_summary(self, client: TestClient) -> None:
+   480→        """GET /api/portfolio/summary returns portfolio data."""
+   481→        response = client.get("/api/portfolio/summary")
+   482→        assert response.status_code == 200
+   483→        data = response.json()
+   484→        assert "total_value" in data
+   485→        assert "unrealized_pnl" in data
+   486→        assert "realized_pnl" in data
+   487→        assert "position_count" in data
+   488→
+   489→    def test_get_portfolio_risk(self, client: TestClient) -> None:
+   490→        """GET /api/portfolio/risk returns risk metrics."""
+   491→        response = client.get("/api/portfolio/risk")
+   492→        assert response.status_code == 200
+   493→        data = response.json()
+   494→        assert "max_drawdown" in data
+   495→        assert "current_drawdown" in data
+   496→        assert "risk_status" in data
+   497→
+   498→    def test_get_portfolio_stress_test(self, client: TestClient) -> None:
+   499→        """GET /api/portfolio/stress-test returns stress test results."""
+   500→        response = client.get("/api/portfolio/stress-test")
+   501→        assert response.status_code == 200
+   502→        data = response.json()
+   503→        assert "scenarios" in data
+   504→        # Real implementation returns scenario results with estimated losses
+   505→        # instead of the old placeholder "message" field
+   506→        scenarios = data["scenarios"]
+   507→        assert isinstance(scenarios, dict)
+   508→        assert len(scenarios) > 0
+   509→
+   510→
+   511→# ══════════════════════════════════════════════════════════════════════
+   512→# Rate Limiting Middleware Tests
+   513→# ══════════════════════════════════════════════════════════════════════
+   514→
+   515→
+   516→class TestRateLimitMiddleware:
+   517→    """Test the RateLimitMiddleware."""
+   518→
+   519→    def test_rate_limit_allows_normal_requests(self) -> None:
+   520→        """Normal request volume is allowed through."""
+   521→        from quant_nanggroe.api.middleware import RateLimitMiddleware
+   522→        from fastapi import FastAPI
+   523→
+   524→        app = FastAPI()
+   525→        app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
+   526→
+   527→        @app.get("/test")
+   528→        async def test_endpoint():
+   529→            return {"ok": True}
+   530→
+   531→        with TestClient(app) as client:
+   532→            response = client.get("/test")
+   533→            assert response.status_code == 200
+   534→
+   535→    def test_rate_limit_blocks_excess_requests(self) -> None:
+   536→        """Requests exceeding the limit receive 429."""
+   537→        from quant_nanggroe.api.middleware import RateLimitMiddleware
+   538→        from fastapi import FastAPI
+   539→
+   540→        app = FastAPI()
+   541→        app.add_middleware(RateLimitMiddleware, requests_per_minute=5)
+   542→
+   543→        @app.get("/test")
+   544→        async def test_endpoint():
+   545→            return {"ok": True}
+   546→
+   547→        with TestClient(app) as client:
+   548→            # Send 6 requests (limit is 5)
+   549→            responses = []
+   550→            for _ in range(6):
+   551→                responses.append(client.get("/test"))
+   552→
+   553→            # At least one should be rate limited
+   554→            status_codes = [r.status_code for r in responses]
+   555→            assert 429 in status_codes
+   556→
+   557→    def test_rate_limit_tracks_per_client(self) -> None:
+   558→        """Rate limit counts are tracked per client ID."""
+   559→        from quant_nanggroe.api.middleware import RateLimitMiddleware
+   560→
+   561→        middleware = RateLimitMiddleware(app=None, requests_per_minute=10)
+   562→        assert middleware.requests == {}
+   563→
+   564→    def test_rate_limit_custom_rpm(self) -> None:
+   565→        """Custom requests_per_minute value is respected."""
+   566→        from quant_nanggroe.api.middleware import RateLimitMiddleware
+   567→
+   568→        middleware = RateLimitMiddleware(app=None, requests_per_minute=30)
+   569→        assert middleware.requests_per_minute == 30
+   570→
+   571→
+   572→# ══════════════════════════════════════════════════════════════════════
+   573→# Error Handling Tests
+   574→# ══════════════════════════════════════════════════════════════════════
+   575→
+   576→
+   577→class TestErrorHandling:
+   578→    """Test error handling and validation."""
+   579→
+   580→    def test_404_not_found(self, client: TestClient) -> None:
+   581→        """Requesting a non-existent route returns 404."""
+   582→        response = client.get("/api/nonexistent")
+   583→        assert response.status_code == 404
+   584→
+   585→    def test_404_not_found_root(self, client: TestClient) -> None:
+   586→        """Root path returns 404 (no root handler)."""
+   587→        response = client.get("/")
+   588→        assert response.status_code == 404
+   589→
+   590→    def test_422_validation_error_invalid_json(self, client: TestClient) -> None:
+   591→        """Invalid JSON payload returns 422."""
+   592→        response = client.post(
+   593→            "/api/trading/order",
+   594→            content="not json",
+   595→            headers={"Content-Type": "application/json"},
+   596→        )
+   597→        assert response.status_code == 422
+   598→
+   599→    def test_422_validation_error_ohlcv_limit_exceeded(self, client: TestClient) -> None:
+   600→        """OHLCV limit > 1000 returns 422 validation error."""
+   601→        payload = {"symbol": "AAPL", "timeframe": "1d", "limit": 5000}
+   602→        response = client.post("/api/market/ohlcv", json=payload)
+   603→        assert response.status_code == 422
+   604→
+   605→    def test_422_validation_error_negative_rsi(self, client: TestClient) -> None:
+   606→        """Negative RSI returns 422 validation error."""
+   607→        payload = {"symbol": "AAPL", "rsi": -1.0}
+   608→        response = client.post("/api/market/regime", json=payload)
+   609→        assert response.status_code == 422
+   610→
+   611→    def test_422_validation_error_rsi_over_100(self, client: TestClient) -> None:
+   612→        """RSI > 100 returns 422 validation error."""
+   613→        payload = {"symbol": "AAPL", "rsi": 101.0}
+   614→        response = client.post("/api/market/regime", json=payload)
+   615→        assert response.status_code == 422
+   616→
+   617→    def test_422_validation_error_negative_adx(self, client: TestClient) -> None:
+   618→        """Negative ADX returns 422 validation error."""
+   619→        payload = {"symbol": "AAPL", "adx": -1.0}
+   620→        response = client.post("/api/market/regime", json=payload)
+   621→        assert response.status_code == 422
+   622→
+   623→    def test_cors_headers_present(self, client: TestClient) -> None:
+   624→        """CORS headers are included in responses."""
+   625→        response = client.options(
+   626→            "/health",
+   627→            headers={
+   628→                "Origin": "http://localhost:3000",
+   629→                "Access-Control-Request-Method": "GET",
+   630→            },
+   631→        )
+   632→        # CORS preflight should be handled
+   633→        assert response.status_code in (200, 204)
+   634→
+   635→
+   636→# ══════════════════════════════════════════════════════════════════════
+   637→# App Creation Tests
+   638→# ══════════════════════════════════════════════════════════════════════
+   639→
+   640→
+   641→class TestAppCreation:
+   642→    """Test the FastAPI app creation and configuration."""
+   643→
+   644→    def test_create_app_returns_fastapi(self) -> None:
+   645→        """create_app() returns a FastAPI application."""
+   646→        with patch("quant_nanggroe.api.app.init_all_services", create=True):
+   647→            with patch("quant_nanggroe.services", create=True):
+   648→                from quant_nanggroe.api.app import create_app
+   649→
+   650→                app = create_app()
+   651→                assert app is not None
+   652→                assert app.title == "Quant Nanggroe AI"
+   653→
+   654→    def test_app_has_routes(self, client: TestClient) -> None:
+   655→        """App has all expected route prefixes."""
+   656→        routes = [route.path for route in client.app.routes]
+   657→        # Check for key route prefixes
+   658→        assert any("/api/market" in r for r in routes)
+   659→        assert any("/api/trading" in r for r in routes)
+   660→        assert any("/api/agents" in r for r in routes)
+   661→        assert any("/api/backtest" in r for r in routes)
+   662→        assert any("/api/portfolio" in r for r in routes)
+   663→        assert "/health" in routes
+   664→
+   665→    def test_global_exception_handler(self, client: TestClient) -> None:
+   666→        """Global exception handler returns 500 for unhandled errors."""
+   667→        # This is harder to test directly, but we can verify the handler exists
+   668→        from quant_nanggroe.api.app import create_app
+   669→
+   670→        with patch("quant_nanggroe.api.app.init_all_services", create=True):
+   671→            with patch("quant_nanggroe.services", create=True):
+   672→                app = create_app()
+   673→                # Check that exception handlers are registered
+   674→                assert Exception in app.exception_handlers
+   675→

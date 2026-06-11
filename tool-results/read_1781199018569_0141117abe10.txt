@@ -1,0 +1,804 @@
+     1→"""Pydantic v2 models and enums for the AI-MultiColony ecosystem.
+     2→
+     3→This module contains every type definition used across the system,
+     4→organized by domain: agents, colonies, tasks, tools, MCP, memory,
+     5→security, A2A, channels, and API.
+     6→"""
+     7→
+     8→from __future__ import annotations
+     9→
+    10→import enum
+    11→from datetime import datetime, timezone
+    12→from typing import Any, Dict, List, Optional, Union
+    13→from uuid import uuid4
+    14→
+    15→from pydantic import BaseModel, Field, ConfigDict
+    16→
+    17→
+    18→def _uid() -> str:
+    19→    """Generate a short unique identifier."""
+    20→    return uuid4().hex[:12]
+    21→
+    22→
+    23→def _now() -> datetime:
+    24→    """Return the current UTC datetime."""
+    25→    return datetime.now(timezone.utc)
+    26→
+    27→
+    28→# ═══════════════════════════════════════════════════════════════════════════════
+    29→# ENUMS
+    30→# ═══════════════════════════════════════════════════════════════════════════════
+    31→
+    32→
+    33→class AgentType(str, enum.Enum):
+    34→    """Types of agents in the ecosystem."""
+    35→    MANUS = "manus"
+    36→    PLANNER = "planner"
+    37→    EXECUTOR = "executor"
+    38→    CODER = "coder"
+    39→    BROWSER = "browser"
+    40→    VOICE = "voice"
+    41→    SECURITY = "security"
+    42→    RESEARCHER = "researcher"
+    43→    COLONY = "colony"
+    44→
+    45→
+    46→class AgentState(str, enum.Enum):
+    47→    """Lifecycle states of an agent."""
+    48→    REGISTERED = "registered"
+    49→    INITIALIZING = "initializing"
+    50→    READY = "ready"
+    51→    ACTIVE = "active"
+    52→    SUSPENDED = "suspended"
+    53→    WAITING = "waiting"
+    54→    COMPACTING = "compacting"
+    55→    DRAINING = "draining"
+    56→    TERMINATED = "terminated"
+    57→
+    58→
+    59→class AutonomyLevel(int, enum.Enum):
+    60→    """Autonomy levels controlling what actions an agent may take.
+    61→
+    62→    L0 – Read-only, no side effects.
+    63→    L1 – Safe operations (search, read files).
+    64→    L2 – Moderate (write files, run tests).
+    65→    L3 – Sensitive (deploy, network calls).
+    66→    L4 – Destructive (delete resources, shell access).
+    67→    """
+    68→    L0_READONLY = 0
+    69→    L1_SAFE_OPS = 1
+    70→    L2_MODERATE = 2
+    71→    L3_SENSITIVE = 3
+    72→    L4_DESTRUCTIVE = 4
+    73→
+    74→
+    75→class ColonyStatus(str, enum.Enum):
+    76→    """Lifecycle states of a colony."""
+    77→    CREATING = "creating"
+    78→    ACTIVE = "active"
+    79→    PAUSED = "paused"
+    80→    TERMINATING = "terminating"
+    81→    TERMINATED = "terminated"
+    82→
+    83→
+    84→class TaskStatus(str, enum.Enum):
+    85→    """Lifecycle states of a task."""
+    86→    PENDING = "pending"
+    87→    ASSIGNED = "assigned"
+    88→    RUNNING = "running"
+    89→    COMPLETED = "completed"
+    90→    FAILED = "failed"
+    91→    CANCELLED = "cancelled"
+    92→    RETRYING = "retrying"
+    93→    TIMED_OUT = "timed_out"
+    94→
+    95→
+    96→class TaskPriority(int, enum.Enum):
+    97→    """Task priority levels."""
+    98→    CRITICAL = 4
+    99→    HIGH = 3
+   100→    MEDIUM = 2
+   101→    LOW = 1
+   102→
+   103→
+   104→class ToolCategory(str, enum.Enum):
+   105→    """Categories of tools available to agents."""
+   106→    BROWSER = "browser"
+   107→    VCS = "vcs"
+   108→    API = "api"
+   109→    SANDBOX = "sandbox"
+   110→    MEMORY = "memory"
+   111→    COMPUTE = "compute"
+   112→    COMMUNICATION = "communication"
+   113→    DATA = "data"
+   114→    SECURITY = "security"
+   115→    VOICE = "voice"
+   116→    DESKTOP = "desktop"
+   117→    KNOWLEDGE = "knowledge"
+   118→
+   119→
+   120→class MemoryTier(str, enum.Enum):
+   121→    """Memory storage tiers."""
+   122→    T0_CONTEXT = "t0_context"
+   123→    T1_LETTA = "t1_letta"
+   124→    T2_VECTOR = "t2_vector"
+   125→    T3_TEMPORAL = "t3_temporal"
+   126→    T4_TREE = "t4_tree"
+   127→
+   128→
+   129→class HandType(str, enum.Enum):
+   130→    """The 7 specialist hand types in a colony."""
+   131→    SECURITY = "security"
+   132→    CODE = "code"
+   133→    RESEARCH = "research"
+   134→    BROWSER = "browser"
+   135→    VOICE = "voice"
+   136→    COMPUTE = "compute"
+   137→    INTEGRATION = "integration"
+   138→
+   139→
+   140→class EventType(str, enum.Enum):
+   141→    """Event types emitted by the event bus."""
+   142→    AGENT_SPAWNED = "agent_spawned"
+   143→    AGENT_TERMINATED = "agent_terminated"
+   144→    AGENT_STATE_CHANGED = "agent_state_changed"
+   145→    TASK_SUBMITTED = "task_submitted"
+   146→    TASK_COMPLETED = "task_completed"
+   147→    TASK_FAILED = "task_failed"
+   148→    TOOL_CALLED = "tool_called"
+   149→    TOOL_RESULT = "tool_result"
+   150→    MEMORY_STORED = "memory_stored"
+   151→    MEMORY_RETRIEVED = "memory_retrieved"
+   152→    MEMORY_COMPACTED = "memory_compacted"
+   153→    COLONY_CREATED = "colony_created"
+   154→    COLONY_SHUTDOWN = "colony_shutdown"
+   155→    A2A_MESSAGE = "a2a_message"
+   156→    HEARTBEAT = "heartbeat"
+   157→    APPROVAL_REQUESTED = "approval_requested"
+   158→    APPROVAL_GRANTED = "approval_granted"
+   159→    APPROVAL_DENIED = "approval_denied"
+   160→    SECURITY_ALERT = "security_alert"
+   161→    CHANNEL_MESSAGE = "channel_message"
+   162→
+   163→
+   164→class CondenserType(str, enum.Enum):
+   165→    """Memory condenser strategies."""
+   166→    SUMMARY = "summary"
+   167→    EXTRACTION = "extraction"
+   168→    TEMPORAL = "temporal"
+   169→    ROLLUP = "rollup"
+   170→    DEDUPLICATION = "deduplication"
+   171→    PRIORITY = "priority"
+   172→    SLIDING_WINDOW = "sliding_window"
+   173→    HIERARCHICAL = "hierarchical"
+   174→
+   175→
+   176→class AuditLevel(str, enum.Enum):
+   177→    """Audit logging verbosity levels."""
+   178→    MINIMAL = "minimal"
+   179→    SUMMARY = "summary"
+   180→    FULL = "full"
+   181→
+   182→
+   183→class AuditEventType(str, enum.Enum):
+   184→    """Types of auditable events."""
+   185→    TOOL_CALL = "tool_call"
+   186→    AUTH = "auth"
+   187→    CREDENTIAL_ACCESS = "credential_access"
+   188→    ESCALATION = "escalation"
+   189→    COLONY_CHANGE = "colony_change"
+   190→    PERMISSION_CHECK = "permission_check"
+   191→    APPROVAL_GRANT = "approval_grant"
+   192→    APPROVAL_DENY = "approval_deny"
+   193→    AGENT_ACTION = "agent_action"
+   194→
+   195→
+   196→class MessageFormat(str, enum.Enum):
+   197→    """Message format types for channels."""
+   198→    PLAIN = "plain"
+   199→    MARKDOWN = "markdown"
+   200→    HTML = "html"
+   201→
+   202→
+   203→class A2AMessageType(str, enum.Enum):
+   204→    """Agent-to-Agent message types."""
+   205→    TASK_DELEGATION = "task_delegation"
+   206→    QUERY = "query"
+   207→    RESULT = "result"
+   208→    HEARTBEAT = "heartbeat"
+   209→    CAPABILITY_AD = "capability_ad"
+   210→    ERROR = "error"
+   211→    HANDSHAKE_INIT = "handshake_init"
+   212→    HANDSHAKE_ACK = "handshake_ack"
+   213→    HANDSHAKE_COMPLETE = "handshake_complete"
+   214→
+   215→
+   216→class ColonyScale(str, enum.Enum):
+   217→    """Colony sizing presets."""
+   218→    MICRO = "micro"
+   219→    SMALL = "small"
+   220→    MEDIUM = "medium"
+   221→    LARGE = "large"
+   222→
+   223→
+   224→class RoutingStrategy(str, enum.Enum):
+   225→    """Task routing strategies."""
+   226→    LEAST_LOADED = "least-loaded"
+   227→    ROUND_ROBIN = "round-robin"
+   228→    CAPABILITY_MATCH = "capability-match"
+   229→
+   230→
+   231→class CircuitBreakerState(str, enum.Enum):
+   232→    """Circuit breaker states for fault tolerance."""
+   233→    CLOSED = "closed"
+   234→    OPEN = "open"
+   235→    HALF_OPEN = "half_open"
+   236→
+   237→
+   238→class ChannelType(str, enum.Enum):
+   239→    """Supported communication channel types."""
+   240→    TELEGRAM = "telegram"
+   241→    WHATSAPP = "whatsapp"
+   242→    DISCORD = "discord"
+   243→    SLACK = "slack"
+   244→
+   245→
+   246→# ═══════════════════════════════════════════════════════════════════════════════
+   247→# AGENT TYPES
+   248→# ═══════════════════════════════════════════════════════════════════════════════
+   249→
+   250→
+   251→class AgentCapabilities(BaseModel):
+   252→    """Declares what an agent can do."""
+   253→    tools: List[str] = Field(default_factory=list, description="Tool names the agent can use")
+   254→    skills: List[str] = Field(default_factory=list, description="Skill names the agent possesses")
+   255→    languages: List[str] = Field(default_factory=list, description="Programming languages")
+   256→    max_concurrent_tasks: int = Field(default=3, description="Max parallel tasks")
+   257→    supports_streaming: bool = Field(default=False)
+   258→    supports_multimodal: bool = Field(default=False)
+   259→
+   260→
+   261→class AgentSpec(BaseModel):
+   262→    """Specification for creating a new agent."""
+   263→    model_config = ConfigDict(frozen=False)
+   264→
+   265→    agent_id: str = Field(default_factory=_uid)
+   266→    agent_type: AgentType = AgentType.MANUS
+   267→    autonomy_level: AutonomyLevel = AutonomyLevel.L1_SAFE_OPS
+   268→    colony_id: Optional[str] = None
+   269→    capabilities: AgentCapabilities = Field(default_factory=AgentCapabilities)
+   270→    required_tools: List[str] = Field(default_factory=list)
+   271→    skill_bindings: List[str] = Field(default_factory=list)
+   272→    heartbeat_interval_ms: int = 30_000
+   273→    timeout_ms: int = 300_000
+   274→    max_retries: int = 3
+   275→    metadata: Dict[str, Any] = Field(default_factory=dict)
+   276→
+   277→
+   278→class AgentInfo(BaseModel):
+   279→    """Runtime information about an agent."""
+   280→    agent_id: str
+   281→    agent_type: AgentType
+   282→    state: AgentState = AgentState.REGISTERED
+   283→    autonomy_level: AutonomyLevel = AutonomyLevel.L1_SAFE_OPS
+   284→    colony_id: Optional[str] = None
+   285→    health_score: float = 1.0
+   286→    created_at: datetime = Field(default_factory=_now)
+   287→    last_heartbeat: Optional[datetime] = None
+   288→    tasks_completed: int = 0
+   289→    tasks_failed: int = 0
+   290→    current_task_id: Optional[str] = None
+   291→    capabilities: AgentCapabilities = Field(default_factory=AgentCapabilities)
+   292→
+   293→
+   294→# ═══════════════════════════════════════════════════════════════════════════════
+   295→# COLONY TYPES
+   296→# ═══════════════════════════════════════════════════════════════════════════════
+   297→
+   298→
+   299→class HandConfig(BaseModel):
+   300→    """Configuration for a single hand (specialist group)."""
+   301→    hand_type: HandType
+   302→    min_replicas: int = 1
+   303→    max_replicas: int = 10
+   304→    description: str = ""
+   305→    scaling_policy: str = "manual"  # manual | auto
+   306→    target_cpu_pct: float = 70.0
+   307→    target_task_queue_depth: int = 5
+   308→
+   309→
+   310→class ColonyConfig(BaseModel):
+   311→    """Configuration for creating a new colony."""
+   312→    colony_id: str = Field(default_factory=_uid)
+   313→    name: str = "default"
+   314→    goal: str = ""
+   315→    scale: ColonyScale = ColonyScale.MEDIUM
+   316→    routing_strategy: RoutingStrategy = RoutingStrategy.LEAST_LOADED
+   317→    heartbeat_interval_ms: int = 30_000
+   318→    default_autonomy: AutonomyLevel = AutonomyLevel.L1_SAFE_OPS
+   319→    a2a_enabled: bool = True
+   320→    inter_colony: bool = True
+   321→    skill_sharing: bool = True
+   322→    max_agents: int = 50
+   323→    hands: Dict[str, Dict[str, int]] = Field(default_factory=lambda: {
+   324→        "security": {"min": 1, "max": 5},
+   325→        "code": {"min": 2, "max": 10},
+   326→        "research": {"min": 1, "max": 5},
+   327→        "browser": {"min": 2, "max": 10},
+   328→        "voice": {"min": 0, "max": 3},
+   329→        "compute": {"min": 3, "max": 20},
+   330→        "integration": {"min": 1, "max": 5},
+   331→    })
+   332→    resource_limits: Dict[str, Any] = Field(default_factory=lambda: {
+   333→        "cpu": "2",
+   334→        "memory": "4Gi",
+   335→        "max_concurrent_tasks": 20,
+   336→    })
+   337→
+   338→
+   339→class ColonyInfo(BaseModel):
+   340→    """Runtime information about a colony."""
+   341→    colony_id: str
+   342→    name: str
+   343→    goal: str
+   344→    status: ColonyStatus = ColonyStatus.CREATING
+   345→    scale: ColonyScale = ColonyScale.MEDIUM
+   346→    agent_count: int = 0
+   347→    task_count: int = 0
+   348→    overseer_id: Optional[str] = None
+   349→    created_at: datetime = Field(default_factory=_now)
+   350→    routing_strategy: RoutingStrategy = RoutingStrategy.LEAST_LOADED
+   351→    hand_status: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+   352→
+   353→
+   354→class ColonyHealth(BaseModel):
+   355→    """Health assessment of a colony."""
+   356→    colony_id: str
+   357→    overall_score: float = 1.0
+   358→    agent_health_avg: float = 1.0
+   359→    task_success_rate: float = 1.0
+   360→    hand_coverage: float = 1.0
+   361→    resource_utilization: float = 0.0
+   362→    last_heartbeat: Optional[datetime] = None
+   363→    issues: List[str] = Field(default_factory=list)
+   364→    checked_at: datetime = Field(default_factory=_now)
+   365→
+   366→
+   367→# ═══════════════════════════════════════════════════════════════════════════════
+   368→# TASK TYPES
+   369→# ═══════════════════════════════════════════════════════════════════════════════
+   370→
+   371→
+   372→class TaskDeadline(BaseModel):
+   373→    """Deadline specification for a task."""
+   374→    absolute: Optional[datetime] = None
+   375→    relative_ms: Optional[int] = None
+   376→    enforced: bool = True
+   377→
+   378→
+   379→class Task(BaseModel):
+   380→    """A unit of work to be executed by an agent."""
+   381→    model_config = ConfigDict(frozen=False)
+   382→
+   383→    task_id: str = Field(default_factory=_uid)
+   384→    description: str = ""
+   385→    assigned_agent: Optional[str] = None
+   386→    colony_id: Optional[str] = None
+   387→    hand_type: Optional[HandType] = None
+   388→    parent_task_id: Optional[str] = None
+   389→    status: TaskStatus = TaskStatus.PENDING
+   390→    priority: TaskPriority = TaskPriority.MEDIUM
+   391→    payload: Dict[str, Any] = Field(default_factory=dict)
+   392→    result: Optional[Any] = None
+   393→    error: Optional[str] = None
+   394→    deadline: Optional[TaskDeadline] = None
+   395→    required_capabilities: List[str] = Field(default_factory=list)
+   396→    retry_count: int = 0
+   397→    max_retries: int = 3
+   398→    retry_delay_ms: int = 1000
+   399→    timeout_ms: int = 300_000
+   400→    created_at: datetime = Field(default_factory=_now)
+   401→    started_at: Optional[datetime] = None
+   402→    completed_at: Optional[datetime] = None
+   403→
+   404→
+   405→class TaskResult(BaseModel):
+   406→    """Result of a completed task."""
+   407→    task_id: str
+   408→    success: bool = True
+   409→    data: Any = None
+   410→    error: Optional[str] = None
+   411→    execution_time_ms: float = 0.0
+   412→    tools_used: List[str] = Field(default_factory=list)
+   413→    agent_id: Optional[str] = None
+   414→    colony_id: Optional[str] = None
+   415→    retry_count: int = 0
+   416→
+   417→
+   418→# ═══════════════════════════════════════════════════════════════════════════════
+   419→# TOOL TYPES
+   420→# ═══════════════════════════════════════════════════════════════════════════════
+   421→
+   422→
+   423→class ToolSpec(BaseModel):
+   424→    """Specification of a tool."""
+   425→    name: str
+   426→    category: ToolCategory
+   427→    description: str = ""
+   428→    required_autonomy: AutonomyLevel = AutonomyLevel.L1_SAFE_OPS
+   429→    parameters: Dict[str, Any] = Field(default_factory=dict)
+   430→    returns: Dict[str, Any] = Field(default_factory=dict)
+   431→    rate_limit_rpm: int = 60
+   432→    timeout_ms: int = 30_000
+   433→    dangerous: bool = False
+   434→
+   435→
+   436→class ToolCall(BaseModel):
+   437→    """A tool invocation request."""
+   438→    call_id: str = Field(default_factory=_uid)
+   439→    tool_name: str
+   440→    arguments: Dict[str, Any] = Field(default_factory=dict)
+   441→    agent_id: Optional[str] = None
+   442→    colony_id: Optional[str] = None
+   443→    autonomy_level: AutonomyLevel = AutonomyLevel.L1_SAFE_OPS
+   444→    session_id: Optional[str] = None
+   445→
+   446→
+   447→class ToolResult(BaseModel):
+   448→    """Result of a tool invocation."""
+   449→    call_id: str
+   450→    tool_name: str
+   451→    status: str = "success"
+   452→    data: Any = None
+   453→    error: Optional[str] = None
+   454→    execution_time_ms: float = 0.0
+   455→    audit_id: Optional[str] = None
+   456→
+   457→
+   458→# ═══════════════════════════════════════════════════════════════════════════════
+   459→# MCP MESSAGE TYPES
+   460→# ═══════════════════════════════════════════════════════════════════════════════
+   461→
+   462→
+   463→class MCPRequest(BaseModel):
+   464→    """JSON-RPC style MCP request."""
+   465→    jsonrpc: str = "2.0"
+   466→    id: str = Field(default_factory=_uid)
+   467→    method: str = ""
+   468→    params: Dict[str, Any] = Field(default_factory=dict)
+   469→
+   470→
+   471→class MCPResponse(BaseModel):
+   472→    """JSON-RPC style MCP response."""
+   473→    jsonrpc: str = "2.0"
+   474→    id: str = ""
+   475→    result: Optional[Any] = None
+   476→    error: Optional[Dict[str, Any]] = None
+   477→
+   478→
+   479→class MCPNotification(BaseModel):
+   480→    """MCP server-sent notification."""
+   481→    jsonrpc: str = "2.0"
+   482→    method: str = ""
+   483→    params: Dict[str, Any] = Field(default_factory=dict)
+   484→
+   485→
+   486→# ═══════════════════════════════════════════════════════════════════════════════
+   487→# MEMORY TYPES
+   488→# ═══════════════════════════════════════════════════════════════════════════════
+   489→
+   490→
+   491→class MemoryPage(BaseModel):
+   492→    """A page of agent context in the Letta-style paging system."""
+   493→    page_id: str = Field(default_factory=_uid)
+   494→    agent_id: str = ""
+   495→    colony_id: str = ""
+   496→    session_id: str = ""
+   497→    page_number: int = 0
+   498→    created_at: datetime = Field(default_factory=_now)
+   499→    token_count: int = 0
+   500→    summary: str = ""
+   501→    messages: List[Dict[str, Any]] = Field(default_factory=list)
+   502→    key_facts: List[str] = Field(default_factory=list)
+   503→    metadata: Dict[str, Any] = Field(default_factory=dict)
+   504→    is_compacted: bool = False
+   505→
+   506→
+   507→class TemporalFact(BaseModel):
+   508→    """A time-bounded fact in the temporal knowledge graph."""
+   509→    fact_id: str = Field(default_factory=_uid)
+   510→    subject: str = ""
+   511→    predicate: str = ""
+   512→    obj: str = ""
+   513→    valid_from: datetime = Field(default_factory=_now)
+   514→    valid_to: Optional[datetime] = None
+   515→    confidence: float = 1.0
+   516→    source: Dict[str, Any] = Field(default_factory=dict)
+   517→
+   518→
+   519→class TreeNode(BaseModel):
+   520→    """A node in the hierarchical tree memory."""
+   521→    node_id: str = Field(default_factory=_uid)
+   522→    parent_id: Optional[str] = None
+   523→    path: str = "/"
+   524→    node_type: str = "generic"
+   525→    content: Dict[str, Any] = Field(default_factory=dict)
+   526→    children: List[str] = Field(default_factory=list)
+   527→    tags: List[str] = Field(default_factory=list)
+   528→    created_at: datetime = Field(default_factory=_now)
+   529→    updated_at: datetime = Field(default_factory=_now)
+   530→    access_count: int = 0
+   531→
+   532→
+   533→class FactQuery(BaseModel):
+   534→    """A query against the temporal knowledge graph."""
+   535→    subject: Optional[str] = None
+   536→    predicate: Optional[str] = None
+   537→    obj: Optional[str] = None
+   538→    at_time: Optional[datetime] = None
+   539→    min_confidence: float = 0.0
+   540→    limit: int = 100
+   541→
+   542→
+   543→# ═══════════════════════════════════════════════════════════════════════════════
+   544→# SECURITY TYPES
+   545→# ═══════════════════════════════════════════════════════════════════════════════
+   546→
+   547→
+   548→class AuditEntry(BaseModel):
+   549→    """A single entry in the audit trail (Merkle hash-chain)."""
+   550→    entry_id: str = Field(default_factory=_uid)
+   551→    agent_id: str = ""
+   552→    colony_id: str = ""
+   553→    tool_name: str = ""
+   554→    action: str = ""
+   555→    autonomy_level: AutonomyLevel = AutonomyLevel.L0_READONLY
+   556→    approved: bool = True
+   557→    timestamp: datetime = Field(default_factory=_now)
+   558→    details: Dict[str, Any] = Field(default_factory=dict)
+   559→
+   560→
+   561→class AuditEvent(BaseModel):
+   562→    """Structured audit event with full context."""
+   563→    event_id: str = Field(default_factory=_uid)
+   564→    event_type: AuditEventType
+   565→    agent_id: str = ""
+   566→    colony_id: str = ""
+   567→    timestamp: datetime = Field(default_factory=_now)
+   568→    level: AuditLevel = AuditLevel.FULL
+   569→    description: str = ""
+   570→    metadata: Dict[str, Any] = Field(default_factory=dict)
+   571→    session_id: Optional[str] = None
+   572→    ip_address: Optional[str] = None
+   573→    user_id: Optional[str] = None
+   574→
+   575→
+   576→class AuditQuery(BaseModel):
+   577→    """Query parameters for filtering audit entries."""
+   578→    agent_id: Optional[str] = None
+   579→    colony_id: Optional[str] = None
+   580→    event_type: Optional[AuditEventType] = None
+   581→    start_time: Optional[datetime] = None
+   582→    end_time: Optional[datetime] = None
+   583→    level: Optional[AuditLevel] = None
+   584→    approved_only: bool = False
+   585→    limit: int = 100
+   586→    offset: int = 0
+   587→
+   588→
+   589→class RoleDef(BaseModel):
+   590→    """RBAC role definition."""
+   591→    name: str
+   592→    autonomy_level: AutonomyLevel = AutonomyLevel.L1_SAFE_OPS
+   593→    allowed_tools: List[str] = Field(default_factory=list)  # "*" means all
+   594→    allowed_actions: List[str] = Field(default_factory=list)
+   595→    description: str = ""
+   596→    is_default: bool = False
+   597→
+   598→
+   599→class PermissionDef(BaseModel):
+   600→    """A permission definition mapping tool/action to required autonomy."""
+   601→    tool_name: str
+   602→    required_level: AutonomyLevel
+   603→    description: str = ""
+   604→    requires_approval: bool = False
+   605→    approval_timeout_ms: int = 300_000
+   606→    auto_approve_from: Optional[AutonomyLevel] = None
+   607→
+   608→
+   609→class PermissionCheck(BaseModel):
+   610→    """Result of a permission check."""
+   611→    tool_name: str
+   612→    autonomy_level: AutonomyLevel
+   613→    agent_id: str = ""
+   614→    colony_id: str = ""
+   615→    granted: bool = False
+   616→    reason: str = ""
+   617→    requires_approval: bool = False
+   618→
+   619→
+   620→class ApprovalRequest(BaseModel):
+   621→    """Request for autonomy level escalation."""
+   622→    request_id: str = Field(default_factory=_uid)
+   623→    agent_id: str = ""
+   624→    colony_id: str = ""
+   625→    current_level: AutonomyLevel = AutonomyLevel.L0_READONLY
+   626→    requested_level: AutonomyLevel = AutonomyLevel.L2_MODERATE
+   627→    justification: str = ""
+   628→    task_context: Dict[str, Any] = Field(default_factory=dict)
+   629→    timestamp: datetime = Field(default_factory=_now)
+   630→    expires_at: Optional[datetime] = None
+   631→    approved: Optional[bool] = None
+   632→    approver: Optional[str] = None
+   633→    auto_approved: bool = False
+   634→
+   635→
+   636→class EscalationRecord(BaseModel):
+   637→    """Record of a time-bounded autonomy escalation."""
+   638→    record_id: str = Field(default_factory=_uid)
+   639→    agent_id: str = ""
+   640→    colony_id: str = ""
+   641→    from_level: AutonomyLevel
+   642→    to_level: AutonomyLevel
+   643→    reason: str = ""
+   644→    granted_at: datetime = Field(default_factory=_now)
+   645→    expires_at: datetime
+   646→    auto_approved: bool = False
+   647→    approval_request_id: Optional[str] = None
+   648→
+   649→
+   650→# ═══════════════════════════════════════════════════════════════════════════════
+   651→# A2A TYPES
+   652→# ═══════════════════════════════════════════════════════════════════════════════
+   653→
+   654→
+   655→class A2AMessage(BaseModel):
+   656→    """Agent-to-Agent protocol message."""
+   657→    version: str = "1.0"
+   658→    message_id: str = Field(default_factory=_uid)
+   659→    timestamp: datetime = Field(default_factory=_now)
+   660→    sender: Dict[str, str] = Field(default_factory=dict)  # agent_id, colony_id, hand_type
+   661→    recipient: Dict[str, str] = Field(default_factory=dict)  # agent_id, colony_id, or broadcast
+   662→    message_type: A2AMessageType = A2AMessageType.TASK_DELEGATION
+   663→    payload: Dict[str, Any] = Field(default_factory=dict)
+   664→    context: Dict[str, Any] = Field(default_factory=dict)  # correlation_id, reply_to, etc.
+   665→    ttl: int = 300  # seconds
+   666→
+   667→
+   668→class A2AHandshake(BaseModel):
+   669→    """A2A handshake sequence state."""
+   670→    initiator_id: str
+   671→    responder_id: str
+   672→    state: str = "init"  # init → ack → complete
+   673→    initiator_capabilities: List[str] = Field(default_factory=list)
+   674→    responder_capabilities: List[str] = Field(default_factory=list)
+   675→    protocol_version: str = "1.0"
+   676→    started_at: datetime = Field(default_factory=_now)
+   677→    completed_at: Optional[datetime] = None
+   678→
+   679→
+   680→class A2ACapabilityAd(BaseModel):
+   681→    """Capability advertisement for A2A discovery."""
+   682→    agent_id: str
+   683→    colony_id: str
+   684→    hand_type: Optional[HandType] = None
+   685→    capabilities: List[str] = Field(default_factory=list)
+   686→    available: bool = True
+   687→    load: float = 0.0  # 0.0–1.0
+   688→    advertised_at: datetime = Field(default_factory=_now)
+   689→    ttl: int = 300
+   690→
+   691→
+   692→# ═══════════════════════════════════════════════════════════════════════════════
+   693→# EVENT TYPES
+   694→# ═══════════════════════════════════════════════════════════════════════════════
+   695→
+   696→
+   697→class Event(BaseModel):
+   698→    """An event on the system-wide event bus."""
+   699→    event_id: str = Field(default_factory=_uid)
+   700→    event_type: EventType
+   701→    source: str = ""
+   702→    timestamp: datetime = Field(default_factory=_now)
+   703→    data: Dict[str, Any] = Field(default_factory=dict)
+   704→
+   705→
+   706→# ═══════════════════════════════════════════════════════════════════════════════
+   707→# CHANNEL MESSAGE TYPES
+   708→# ═══════════════════════════════════════════════════════════════════════════════
+   709→
+   710→
+   711→class InlineKeyboard(BaseModel):
+   712→    """Telegram-style inline keyboard button."""
+   713→    text: str
+   714→    callback_data: str = ""
+   715→    url: str = ""
+   716→
+   717→
+   718→class EmbedField(BaseModel):
+   719→    """Discord-style embed field."""
+   720→    name: str
+   721→    value: str
+   722→    inline: bool = False
+   723→
+   724→
+   725→class BlockElement(BaseModel):
+   726→    """Slack-style block kit element."""
+   727→    type: str = "section"
+   728→    text: str = ""
+   729→    fields: List[Dict[str, str]] = Field(default_factory=list)
+   730→
+   731→
+   732→class ChannelMessage(BaseModel):
+   733→    """Universal message type for channel communication."""
+   734→    message_id: str = Field(default_factory=_uid)
+   735→    channel_type: ChannelType
+   736→    channel_id: str = ""
+   737→    sender_id: str = ""
+   738→    recipient_id: str = ""
+   739→    text: str = ""
+   740→    format: MessageFormat = MessageFormat.MARKDOWN
+   741→    inline_keyboard: Optional[List[List[InlineKeyboard]]] = None
+   742→    embed_fields: Optional[List[EmbedField]] = None
+   743→    block_elements: Optional[List[BlockElement]] = None
+   744→    media_url: Optional[str] = None
+   745→    media_type: Optional[str] = None  # image, video, document
+   746→    template_name: Optional[str] = None
+   747→    template_params: Dict[str, str] = Field(default_factory=dict)
+   748→    thread_id: Optional[str] = None
+   749→    reply_to: Optional[str] = None
+   750→    timestamp: datetime = Field(default_factory=_now)
+   751→    metadata: Dict[str, Any] = Field(default_factory=dict)
+   752→
+   753→
+   754→class ChannelConfig(BaseModel):
+   755→    """Configuration for a communication channel."""
+   756→    channel_type: ChannelType
+   757→    enabled: bool = False
+   758→    token: str = ""
+   759→    api_url: str = ""
+   760→    webhook_url: str = ""
+   761→    allowed_chat_ids: List[str] = Field(default_factory=list)
+   762→    rate_limit_rpm: int = 30
+   763→    max_message_length: int = 4096
+   764→    extra: Dict[str, Any] = Field(default_factory=dict)
+   765→
+   766→
+   767→# ═══════════════════════════════════════════════════════════════════════════════
+   768→# SKILL TYPES
+   769→# ═══════════════════════════════════════════════════════════════════════════════
+   770→
+   771→
+   772→class SkillDef(BaseModel):
+   773→    """Definition of a reusable skill."""
+   774→    name: str
+   775→    version: str = "1.0.0"
+   776→    category: str = ""
+   777→    autonomy_level: AutonomyLevel = AutonomyLevel.L1_SAFE_OPS
+   778→    tools_required: List[str] = Field(default_factory=list)
+   779→    skills_required: List[str] = Field(default_factory=list)
+   780→    timeout_ms: int = 60_000
+   781→    tags: List[str] = Field(default_factory=list)
+   782→    description: str = ""
+   783→
+   784→
+   785→# ═══════════════════════════════════════════════════════════════════════════════
+   786→# API REQUEST/RESPONSE TYPES
+   787→# ═══════════════════════════════════════════════════════════════════════════════
+   788→
+   789→
+   790→class APIError(BaseModel):
+   791→    """Standard API error response."""
+   792→    code: str = "UNKNOWN"
+   793→    message: str = ""
+   794→    details: Optional[Dict[str, Any]] = None
+   795→
+   796→
+   797→class PaginatedResponse(BaseModel):
+   798→    """Generic paginated response wrapper."""
+   799→    items: List[Any] = Field(default_factory=list)
+   800→    total: int = 0
+   801→    page: int = 1
+   802→    page_size: int = 50
+   803→    has_next: bool = False
+   804→
