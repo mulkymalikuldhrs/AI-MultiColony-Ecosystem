@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { StatusCard } from "@/components/shared/status-card";
 import { ChartCard } from "@/components/shared/chart-card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import {
   mockEquityCurve,
   mockRiskData,
 } from "@/lib/mock-data";
+import { portfolioApi, marketApi, agentsApi } from "@/lib/api-client";
 import { formatCurrency, formatPercent, cn } from "@/lib/utils";
 import {
   TrendingUp,
@@ -25,6 +26,8 @@ import {
   Zap,
   ArrowUpRight,
   ArrowDownRight,
+  X,
+  AlertTriangle,
 } from "lucide-react";
 import {
   AreaChart,
@@ -35,45 +38,222 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// Types for API responses (fall back to mock shapes)
+interface PortfolioData {
+  totalValue: number;
+  dayPnl: number;
+  dayPnlPercent: number;
+  totalPnl?: number;
+  totalPnlPercent?: number;
+  cashBalance?: number;
+  investedAmount?: number;
+  positions?: unknown[];
+  allocation?: unknown[];
+}
+
+interface MarketSymbol {
+  symbol: string;
+  price: number;
+  change: number;
+  volume: string;
+}
+
+interface MarketData {
+  symbols: MarketSymbol[];
+  sentiment?: {
+    overall: number;
+    fear_greed: number;
+    sectors: { name: string; sentiment: number }[];
+  };
+}
+
+interface AgentInfo {
+  id: string;
+  name: string;
+  status: string;
+  emotion?: string;
+  action: string;
+  lastDecision?: string;
+  icon: string;
+}
+
+interface SignalInfo {
+  id: number;
+  time: string;
+  agent: string;
+  symbol: string;
+  signal: string;
+  confidence: number;
+  reason: string;
+}
+
+interface DecisionInfo {
+  id: number;
+  time: string;
+  agent: string;
+  decision: string;
+  impact: string;
+}
+
+interface RiskInfo {
+  var95: number;
+  var99?: number;
+  cvar95: number;
+  maxDrawdown: number;
+  currentDrawdown?: number;
+  kellyFraction: number;
+  riskScore: number;
+  checks?: unknown[];
+  correlationMatrix?: number[][];
+  correlationLabels?: string[];
+}
+
+interface EquityPoint {
+  date: string;
+  value: number;
+}
+
+/** Dismissible demo-mode banner shown when using mock data */
+function DemoBanner({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <div className="relative flex items-center gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200 animate-slide-up">
+      <AlertTriangle className="h-5 w-5 flex-shrink-0 text-amber-400" />
+      <span className="flex-1 font-medium">
+        ⚠️ DEMO MODE — Using simulated data. The backend API is unavailable.
+      </span>
+      <button
+        onClick={onDismiss}
+        className="ml-2 rounded-md p-1 hover:bg-amber-500/20 transition-colors"
+        aria-label="Dismiss demo banner"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
-  const equityData = mockEquityCurve.slice(-30).map((d) => ({
+  // ── State ───────────────────────────────────────────────────────────
+  const [usingMockData, setUsingMockData] = useState(true);
+  const [showBanner, setShowBanner] = useState(true);
+
+  const [portfolio, setPortfolio] = useState<PortfolioData>(mockPortfolio);
+  const [marketData, setMarketData] = useState<MarketData>(mockMarketData);
+  const [agents, setAgents] = useState<AgentInfo[]>(mockAgents);
+  const [signals, setSignals] = useState<SignalInfo[]>(mockSignals);
+  const [recentDecisions, setRecentDecisions] = useState<DecisionInfo[]>(mockRecentDecisions);
+  const [riskData, setRiskData] = useState<RiskInfo>(mockRiskData);
+  const [equityCurve, setEquityCurve] = useState<EquityPoint[]>(mockEquityCurve);
+
+  // ── Try to fetch live data on mount ─────────────────────────────────
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchLiveData() {
+      try {
+        // Attempt parallel fetches from the backend API
+        const [portfolioRes, marketRes, agentsRes] = await Promise.allSettled([
+          portfolioApi.getSummary(),
+          marketApi.getSentiment(),
+          agentsApi.getStatus(),
+        ]);
+
+        // If ALL requests failed, stay on mock data
+        const anySucceeded =
+          portfolioRes.status === "fulfilled" ||
+          marketRes.status === "fulfilled" ||
+          agentsRes.status === "fulfilled";
+
+        if (!anySucceeded) {
+          if (isMounted) setUsingMockData(true);
+          return;
+        }
+
+        // Apply whichever responses succeeded, keeping mock as fallback
+        if (isMounted) {
+          if (portfolioRes.status === "fulfilled" && portfolioRes.value) {
+            try {
+              const p = portfolioRes.value as PortfolioData;
+              if (p && typeof p.totalValue === "number") {
+                setPortfolio(p);
+              }
+            } catch { /* keep mock */ }
+          }
+
+          if (marketRes.status === "fulfilled" && marketRes.value) {
+            try {
+              const m = marketRes.value as MarketData;
+              if (m && m.symbols) {
+                setMarketData(m);
+              }
+            } catch { /* keep mock */ }
+          }
+
+          if (agentsRes.status === "fulfilled" && agentsRes.value) {
+            try {
+              const a = agentsRes.value as AgentInfo[];
+              if (Array.isArray(a)) {
+                setAgents(a);
+              }
+            } catch { /* keep mock */ }
+          }
+
+          setUsingMockData(false);
+        }
+      } catch {
+        // API unreachable — stick with mock
+        if (isMounted) setUsingMockData(true);
+      }
+    }
+
+    fetchLiveData();
+    return () => { isMounted = false; };
+  }, []);
+
+  // ── Derived data ────────────────────────────────────────────────────
+  const equityData = equityCurve.slice(-30).map((d) => ({
     ...d,
     date: d.date.slice(5),
   }));
 
-  const activeAgentCount = mockAgents.filter((a) => a.status === "active").length;
+  const activeAgentCount = agents.filter((a) => a.status === "active").length;
 
   return (
     <div className="space-y-4 animate-slide-up">
+      {/* Demo mode banner */}
+      {usingMockData && showBanner && (
+        <DemoBanner onDismiss={() => setShowBanner(false)} />
+      )}
+
       {/* Top Status Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatusCard
           title="Portfolio Value"
-          value={mockPortfolio.totalValue}
-          change={mockPortfolio.dayPnlPercent}
+          value={portfolio.totalValue}
+          change={portfolio.dayPnlPercent}
           changeLabel="24h"
           icon={<DollarSign className="w-4 h-4" />}
           variant="success"
         />
         <StatusCard
           title="Day P&L"
-          value={mockPortfolio.dayPnl}
-          change={mockPortfolio.dayPnlPercent}
+          value={portfolio.dayPnl}
+          change={portfolio.dayPnlPercent}
           changeLabel="today"
           icon={<TrendingUp className="w-4 h-4" />}
-          variant={mockPortfolio.dayPnl >= 0 ? "success" : "danger"}
+          variant={portfolio.dayPnl >= 0 ? "success" : "danger"}
         />
         <StatusCard
           title="Active Agents"
-          value={`${activeAgentCount}/11`}
+          value={`${activeAgentCount}/${agents.length}`}
           icon={<Bot className="w-4 h-4" />}
           variant="default"
         />
         <StatusCard
           title="Risk Score"
-          value={mockRiskData.riskScore}
+          value={riskData.riskScore}
           icon={<Shield className="w-4 h-4" />}
-          variant={mockRiskData.riskScore > 60 ? "warning" : "default"}
+          variant={riskData.riskScore > 60 ? "warning" : "default"}
         />
       </div>
 
@@ -132,23 +312,23 @@ export default function DashboardPage() {
         {/* Risk Gauge */}
         <ChartCard title="Risk Dashboard" subtitle="Current risk metrics">
           <div className="flex flex-col items-center gap-4 py-2">
-            <RiskGauge value={mockRiskData.riskScore} label="Overall Risk" sublabel="out of 100" />
+            <RiskGauge value={riskData.riskScore} label="Overall Risk" sublabel="out of 100" />
             <div className="w-full space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-white/40">VaR (95%)</span>
-                <span className="text-xs font-mono text-red-400">{formatCurrency(Math.abs(mockRiskData.var95))}</span>
+                <span className="text-xs font-mono text-red-400">{formatCurrency(Math.abs(riskData.var95))}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-white/40">CVaR (95%)</span>
-                <span className="text-xs font-mono text-red-400">{formatCurrency(Math.abs(mockRiskData.cvar95))}</span>
+                <span className="text-xs font-mono text-red-400">{formatCurrency(Math.abs(riskData.cvar95))}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-white/40">Max Drawdown</span>
-                <span className="text-xs font-mono text-amber-400">{mockRiskData.maxDrawdown}%</span>
+                <span className="text-xs font-mono text-amber-400">{riskData.maxDrawdown}%</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-white/40">Kelly Fraction</span>
-                <span className="text-xs font-mono text-emerald-400">{(mockRiskData.kellyFraction * 100).toFixed(1)}%</span>
+                <span className="text-xs font-mono text-emerald-400">{(riskData.kellyFraction * 100).toFixed(1)}%</span>
               </div>
             </div>
           </div>
@@ -160,7 +340,7 @@ export default function DashboardPage() {
         {/* Market Overview */}
         <ChartCard title="Market Overview" subtitle="Key instruments">
           <div className="space-y-3">
-            {mockMarketData.symbols.map((item) => (
+            {marketData.symbols.map((item) => (
               <div
                 key={item.symbol}
                 className="flex items-center justify-between p-2.5 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] transition-colors border border-white/[0.04]"
@@ -212,7 +392,7 @@ export default function DashboardPage() {
         >
           <ScrollArea className="max-h-72">
             <div className="space-y-2">
-              {mockSignals.map((signal) => (
+              {signals.map((signal) => (
                 <div
                   key={signal.id}
                   className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition-colors"
@@ -249,10 +429,10 @@ export default function DashboardPage() {
         </ChartCard>
 
         {/* Agent Council Status */}
-        <ChartCard title="Agent Council" subtitle="11-agent system status">
+        <ChartCard title="Agent Council" subtitle={`${agents.length}-agent system status`}>
           <ScrollArea className="max-h-72">
             <div className="space-y-2">
-              {mockAgents.map((agent) => (
+              {agents.map((agent) => (
                 <div
                   key={agent.id}
                   className="flex items-center justify-between p-2 rounded-lg hover:bg-white/[0.03] transition-colors"
@@ -297,7 +477,7 @@ export default function DashboardPage() {
       >
         <ScrollArea className="max-h-48">
           <div className="space-y-2">
-            {mockRecentDecisions.map((decision) => (
+            {recentDecisions.map((decision) => (
               <div
                 key={decision.id}
                 className="flex items-start gap-3 p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04]"

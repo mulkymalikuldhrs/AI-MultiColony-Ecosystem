@@ -11,6 +11,9 @@ constitutional trading rules:
 
 These limits are constitutional – they cannot be overridden by
 any agent or configuration.
+
+NOTE: All risk constants are imported from quant_nanggroe.engine.risk.constants
+which is the SINGLE SOURCE OF TRUTH for constitutional limits.
 """
 
 from __future__ import annotations
@@ -23,17 +26,23 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, ConfigDict
 
+# ── Import from the SINGLE SOURCE OF TRUTH ──────────────────────────────────
+from quant_nanggroe.engine.risk.constants import (
+    MAX_RISK_PER_TRADE as _MAX_RISK_PER_TRADE_FRAC,     # 0.005 (fraction)
+    MAX_DAILY_LOSS as _MAX_DAILY_LOSS_FRAC,               # 0.01 (fraction)
+    MAX_WEEKLY_LOSS as _MAX_WEEKLY_LOSS_FRAC,             # 0.03 (fraction)
+    MAX_POSITION_SIZE_PCT as _MAX_POSITION_SIZE_FRAC,     # 0.10 (fraction)
+    MAX_LEVERAGE as _MAX_LEVERAGE,                         # 3.0
+)
+
+# Convert fractions to percentages for this module's API (backward compat)
+MAX_RISK_PER_TRADE_PCT: float = _MAX_RISK_PER_TRADE_FRAC * 100   # 0.5%
+MAX_DAILY_LOSS_PCT: float = _MAX_DAILY_LOSS_FRAC * 100           # 1.0%
+MAX_WEEKLY_LOSS_PCT: float = _MAX_WEEKLY_LOSS_FRAC * 100         # 3.0%
+MAX_POSITION_SIZE_PCT: float = _MAX_POSITION_SIZE_FRAC * 100     # 10.0%
+MANDATORY_STOP_LOSS_PCT: float = 2.0  # 2% stop-loss required (operational, not constitutional)
+
 logger = logging.getLogger(__name__)
-
-
-# ── Constitutional Limits (CANNOT BE OVERRIDDEN) ────────────────────────────
-
-MAX_RISK_PER_TRADE_PCT = 0.5   # 0.5% per trade
-MAX_DAILY_LOSS_PCT = 1.0       # 1.0% daily loss
-MAX_WEEKLY_LOSS_PCT = 3.0      # 3.0% weekly loss
-MAX_POSITION_SIZE_PCT = 10.0   # 10% of portfolio per position
-MAX_LEVERAGE = 1.0             # No leverage by default
-MANDATORY_STOP_LOSS_PCT = 2.0  # 2% stop-loss required
 
 
 # ── Enums ────────────────────────────────────────────────────────────────────
@@ -257,8 +266,8 @@ class ConstitutionalRiskGuard:
                 request.stop_loss_pct = MANDATORY_STOP_LOSS_PCT
 
         # Check 6: Leverage
-        if proposed_risk_pct > portfolio.total_equity * MAX_LEVERAGE:
-            result.warnings.append("Lverage limit check applied")
+        if proposed_risk_pct > portfolio.total_equity * _MAX_LEVERAGE:
+            result.warnings.append("Leverage limit check applied")
 
         # Determine overall risk level
         if proposed_risk_pct <= MAX_RISK_PER_TRADE_PCT * 0.5:

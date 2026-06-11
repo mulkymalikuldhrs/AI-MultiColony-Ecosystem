@@ -2,12 +2,17 @@
 
 Standardizes on LiteLLM for multi-provider support with token counting,
 retry logic, and cost tracking. Patterns from OpenHands, Suna, and Nanobot.
+
+NOTE: This is the canonical LLM client. Other LLM clients in this repo
+(connectors/llm_gateway.py, ai_multicolony/core/legacy/llm_client.py,
+quant_nanggroe/engine/llm_router.py) are deprecated in favour of this module.
 """
 
 from __future__ import annotations
 
 import asyncio
 import time
+import warnings
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Optional
@@ -16,6 +21,40 @@ from ai_multicolony.config.logging_config import get_logger
 from ai_multicolony.exceptions import LLMError, LLMRateLimitError, LLMTokensExceededError
 
 logger = get_logger(__name__)
+
+# ── Emit deprecation warnings for other LLM clients ──────────────────────
+try:
+    from connectors.llm_gateway import LLMGateway as _LegacyLLMGateway  # noqa: F401
+    warnings.warn(
+        "connectors.llm_gateway.LLMGateway is deprecated — use "
+        "ai_multicolony.core.llm_provider.LLMProvider instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+except ImportError:
+    pass
+
+try:
+    from ai_multicolony.core.legacy.llm_client import LLMClient as _LegacyLLMClient  # noqa: F401
+    warnings.warn(
+        "ai_multicolony.core.legacy.llm_client.LLMClient is deprecated — use "
+        "ai_multicolony.core.llm_provider.LLMProvider instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+except ImportError:
+    pass
+
+try:
+    from quant_nanggroe.engine.llm_router import LLMRouter as _LegacyLLMRouter  # noqa: F401
+    warnings.warn(
+        "quant_nanggroe.engine.llm_router.LLMRouter is deprecated — use "
+        "ai_multicolony.core.llm_provider.LLMProvider instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+except ImportError:
+    pass
 
 
 @dataclass
@@ -125,7 +164,15 @@ class LLMProvider:
     - Cost tracking per model and per day
     - Streaming support
     - Graceful fallback when litellm is not installed
+
+    Attributes:
+        mock_mode: True when litellm is not installed and the provider is
+            returning mock responses.  Other code can check this flag to
+            alter behaviour (e.g. skip real trading).
     """
+
+    # Class-level flag — set to True when litellm is unavailable
+    mock_mode: bool = False
 
     def __init__(
         self,
@@ -308,12 +355,31 @@ class LLMProvider:
         """
         try:
             import litellm
+            # If we were previously in mock mode, clear the flag
+            if self.mock_mode:
+                logger.warning("llm_mock_mode_deactivated", message="litellm became available, switching off mock mode")
+                self.mock_mode = False
             return await litellm.acompletion(**kwargs)
         except ImportError:
+            if not self.mock_mode:
+                # First time falling back — emit a LOUD warning
+                logger.warning(
+                    "llm_mock_mode_activated",
+                    message=(
+                        "⚠️  litellm is NOT installed — LLMProvider is in MOCK MODE. "
+                        "All LLM responses will be simulated. "
+                        "Install litellm (`pip install litellm`) to enable real LLM calls."
+                    ),
+                )
+                self.mock_mode = True
             return await self._mock_completion(kwargs)
 
     async def _mock_completion(self, kwargs: dict[str, Any]) -> Any:
-        """Mock completion for testing without a real LLM."""
+        """Mock completion for testing without a real LLM.
+
+        All mock responses are prefixed with [MOCK] so consumers can
+        detect and handle simulated data.
+        """
         from types import SimpleNamespace
 
         messages = kwargs.get("messages", [])
@@ -323,11 +389,19 @@ class LLMProvider:
                 last_content = msg.get("content", "")
                 break
 
+        # Log every mock call so it's impossible to miss
+        logger.warning(
+            "llm_mock_response_generated",
+            model=kwargs.get("model", "unknown"),
+            prompt_preview=last_content[:80],
+            message="Returning [MOCK] response — litellm is not installed",
+        )
+
         return SimpleNamespace(
             choices=[
                 SimpleNamespace(
                     message=SimpleNamespace(
-                        content=f"Mock response to: {last_content[:100]}",
+                        content=f"[MOCK] Mock response to: {last_content[:100]}",
                         tool_calls=None,
                     ),
                     finish_reason="stop",
@@ -376,7 +450,12 @@ class LLMProvider:
                 if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
         except ImportError:
-            yield "Mock streaming response"
+            logger.warning(
+                "llm_mock_stream_activated",
+                message="litellm not installed — returning [MOCK] streaming response",
+            )
+            self.mock_mode = True
+            yield "[MOCK] Mock streaming response"
 
     def get_stats(self) -> dict[str, Any]:
         """Get provider statistics.

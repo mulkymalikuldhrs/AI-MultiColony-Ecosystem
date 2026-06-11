@@ -1,0 +1,57 @@
+# Quant Nanggroe AI — Full Optional Dependencies
+# All optional and exchange-specific dependencies.
+# Install with: pip install -r requirements-full.txt
+
+# Include base requirements
+-r requirements.txt
+
+# =============================================================================
+# ADDITIONAL EXCHANGE BROKERS
+# =============================================================================
+ib_insync>=0.9              # Interactive Brokers
+MetaTrader5>=5.0            # MetaTrader 5 (Windows only)
+
+# =============================================================================
+# ADDITIONAL DATA PROVIDERS
+# =============================================================================
+alpha-vantage>=2.3          # Alpha Vantage API
+finnhub-python>=2.4         # Finnhub API
+pycoingecko>=3.1            # CoinGecko API
+
+# =============================================================================
+# LLM / AGENT FRAMEWORKS
+# =============================================================================
+langgraph>=0.2
+langchain>=0.3
+langchain-openai>=0.2
+langchain-anthropic>=0.2
+langchain-google-genai>=2.0
+langchain-community>=0.3
+
+# =============================================================================
+# ADVANCED ML
+# =============================================================================
+xgboost>=2.0
+torch>=2.0
+lightgbm>=4.0
+catboost>=1.2
+
+# =============================================================================
+# MEMORY & VECTOR STORES
+# =============================================================================
+chromadb>=0.4
+faiss-cpu>=1.7
+
+# =============================================================================
+# SOLANA / DEFI
+# =============================================================================
+solana>=0.30
+solders>=0.14
+
+# =============================================================================
+# ADDITIONAL TOOLS
+# =============================================================================
+docker>=7.0
+selenium>=4.15
+arxiv>=2.1
+asyncpg>=0.29

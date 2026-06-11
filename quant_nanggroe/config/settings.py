@@ -3,16 +3,54 @@ Application settings using Pydantic Settings.
 
 All configuration is loaded from environment variables with sensible defaults.
 API keys, database URLs, and other secrets MUST be set via environment variables.
+
+IMPORTANT: Constitutional risk limits (risk_max_per_trade, risk_max_daily_loss, etc.)
+are NOT configurable here. They are IMMUTABLE constants defined in:
+    quant_nanggroe/engine/risk/constants.py
+
+That file is the SINGLE SOURCE OF TRUTH for all risk limits. Any attempt to
+override them via environment variables is detected and rejected at startup.
 """
 
 from __future__ import annotations
 
 import os
+import logging
 from functools import lru_cache
 from typing import Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
+
+# ── Constitutional override detection ────────────────────────────────────────
+# These env var names are FORBIDDEN — they would override immutable risk limits.
+_CONSTITUTIONAL_ENV_VARS = [
+    "QNAI_RISK_MAX_PER_TRADE",
+    "QNAI_RISK_MAX_DAILY_LOSS",
+    "QNAI_RISK_MAX_WEEKLY_LOSS",
+    "QNAI_RISK_MAX_DRAWDOWN",
+]
+
+
+def _check_no_constitutional_overrides() -> list[str]:
+    """Detect any attempt to override constitutional limits via env vars.
+
+    Returns a list of violation messages (empty if clean).
+    """
+    violations: list[str] = []
+    for env_var in _CONSTITUTIONAL_ENV_VARS:
+        value = os.environ.get(env_var)
+        if value is not None:
+            violations.append(
+                f"SECURITY VIOLATION: Environment variable {env_var}={value!r} "
+                f"attempts to override a constitutional risk limit. "
+                f"Constitutional limits are IMMUTABLE and defined in "
+                f"quant_nanggroe/engine/risk/constants.py. "
+                f"Remove this environment variable to proceed."
+            )
+    return violations
 
 
 class Settings(BaseSettings):
@@ -21,6 +59,9 @@ class Settings(BaseSettings):
 
     All values are loaded from environment variables with the prefix QNAI_.
     For example, QNAI_DATABASE_URL maps to database_url.
+
+    IMPORTANT: Risk limits are NOT here. See quant_nanggroe/engine/risk/constants.py
+    for the SINGLE SOURCE OF TRUTH on constitutional risk limits.
 
     Attributes:
         app_name: Application name
@@ -46,10 +87,6 @@ class Settings(BaseSettings):
         default_llm_provider: Default LLM provider
         default_llm_model: Default LLM model name
         log_level: Logging level
-        risk_max_per_trade: Maximum risk percentage per trade (constitutional)
-        risk_max_daily_loss: Maximum daily loss percentage (constitutional)
-        risk_max_weekly_loss: Maximum weekly loss percentage (constitutional)
-        risk_max_drawdown: Maximum drawdown percentage (constitutional)
     """
 
     model_config = SettingsConfigDict(
@@ -68,6 +105,12 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "sqlite:///quant_nanggroe.db"
     redis_url: Optional[str] = None
+
+    # CORS
+    cors_origins: list[str] = Field(
+        default_factory=lambda: ["http://localhost:3000", "http://localhost:8000"],
+        description="Allowed CORS origins. Set via QNAI_CORS_ORIGINS (comma-separated).",
+    )
 
     # LLM API Keys
     openai_api_key: Optional[str] = None
@@ -107,31 +150,11 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_format: str = "json"
 
-    # Constitutional Risk Limits (CANNOT be overridden by agents)
-    risk_max_per_trade: float = Field(
-        default=0.5,
-        description="Maximum risk percentage per trade. Constitutional limit.",
-        ge=0.1,
-        le=2.0,
-    )
-    risk_max_daily_loss: float = Field(
-        default=1.0,
-        description="Maximum daily loss percentage. Constitutional limit.",
-        ge=0.5,
-        le=5.0,
-    )
-    risk_max_weekly_loss: float = Field(
-        default=3.0,
-        description="Maximum weekly loss percentage. Constitutional limit.",
-        ge=1.0,
-        le=10.0,
-    )
-    risk_max_drawdown: float = Field(
-        default=10.0,
-        description="Maximum drawdown percentage. Constitutional limit.",
-        ge=5.0,
-        le=20.0,
-    )
+    # ── Constitutional Risk Limits REMOVED from settings ────────────────
+    # Risk limits are IMMUTABLE and defined in quant_nanggroe/engine/risk/constants.py
+    # They CANNOT be overridden via environment variables.
+    # See that file for: MAX_RISK_PER_TRADE, MAX_DAILY_LOSS, MAX_WEEKLY_LOSS,
+    #   MAX_DRAWDOWN_PCT, KILL_SWITCH_DAILY_PNL, KILL_SWITCH_WEEKLY_PNL, etc.
 
     # Backtesting
     backtest_default_commission: float = 0.001
@@ -158,7 +181,23 @@ def get_settings() -> Settings:
     """
     Get cached application settings instance.
 
+    On first call, this also checks for forbidden constitutional override
+    environment variables and logs a critical warning if any are found.
+
     Returns:
         Cached Settings instance loaded from environment variables
+
+    Raises:
+        RuntimeError: If any QNAI_RISK_* env vars are set (constitutional override attempt)
     """
+    violations = _check_no_constitutional_overrides()
+    if violations:
+        for v in violations:
+            logger.critical(v)
+        raise RuntimeError(
+            "Constitutional risk limit override detected! "
+            "Remove the forbidden environment variables listed above and restart. "
+            "Constitutional limits are defined in quant_nanggroe/engine/risk/constants.py "
+            "and CANNOT be overridden."
+        )
     return Settings()

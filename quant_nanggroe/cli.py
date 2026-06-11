@@ -14,7 +14,9 @@ Commands:
 from __future__ import annotations
 
 import json
+import os
 import sys
+import time
 from datetime import datetime
 from typing import Optional
 
@@ -34,6 +36,18 @@ _BANNER = """
 [bold cyan]║   [dim]Agentic Trading Intelligence OS[/dim]           [bold cyan]║[/bold cyan]
 [bold cyan]║   [dim]v0.2.0 — Multi-Agent · LangGraph · Risk[/dim]   [bold cyan]║[/bold cyan]
 [bold cyan]╚══════════════════════════════════════════════╝[/bold cyan]
+"""
+
+# Simulated-mode warning banner
+_SIMULATED_BANNER = """
+[bold yellow]╔══════════════════════════════════════════════════════════════╗[/bold yellow]
+[bold yellow]║  [bold red]⚠  SIMULATED MODE — NO REAL TRADING ⚠[/bold red]                   [bold yellow]║[/bold yellow]
+[bold yellow]║                                                              [bold yellow]║[/bold yellow]
+[bold yellow]║  [dim]LLM API keys are not configured. All outputs are[/dim]         [bold yellow]║[/bold yellow]
+[bold yellow]║  [dim]simulated and do NOT represent real market analysis.[/dim]    [bold yellow]║[/bold yellow]
+[bold yellow]║                                                              [bold yellow]║[/bold yellow]
+[bold yellow]║  [dim]Set QNAI_OPENAI_API_KEY (or similar) for real execution.[/dim] [bold yellow]║[/bold yellow]
+[bold yellow]╚══════════════════════════════════════════════════════════════╝[/bold yellow]
 """
 
 
@@ -65,6 +79,8 @@ def main():
 @click.option("--quick-model", default="gpt-4o-mini", help="Quick-thinking model")
 @click.option("--paper", is_flag=True, default=True, help="Use paper trading (default)")
 @click.option("--live", is_flag=True, default=False, help="Use LIVE trading (dangerous!)")
+@click.option("--allow-simulated", is_flag=True, default=False,
+              help="Allow simulated output when LLM keys are not configured")
 @click.option("--trade-date", default=None, help="Trading date YYYY-MM-DD (default: today)")
 def run(
     symbols: str,
@@ -73,6 +89,7 @@ def run(
     quick_model: str,
     paper: bool,
     live: bool,
+    allow_simulated: bool,
     trade_date: Optional[str],
 ):
     """Run the trading pipeline with specified symbols and provider."""
@@ -81,6 +98,36 @@ def run(
     symbol_list = [s.strip() for s in symbols.split(",")]
     mode = "LIVE" if live else "PAPER"
     trade_date = trade_date or datetime.now().strftime("%Y-%m-%d")
+
+    # ── P0-2: LIVE TRADING SAFEGUARDS ────────────────────────────────────
+    if live:
+        if not _verify_live_trading_safety():
+            # Safety check failed — refuse live mode
+            console.print(
+                Panel(
+                    "[bold red]LIVE TRADING REFUSED[/bold red]\n\n"
+                    "One or more safety checks failed. See errors above.\n"
+                    "Falling back to PAPER mode.",
+                    title="[bold red]SAFETY GATE[/bold red]",
+                    border_style="red",
+                )
+            )
+            live = False
+            mode = "PAPER"
+        else:
+            # All checks passed — proceed with 10-second cooldown
+            console.print(
+                Panel(
+                    "[bold green]✓ All live trading safety checks PASSED[/bold green]\n"
+                    f"[bold yellow]10-second cooldown before first live trade...[/bold yellow]",
+                    title="[bold green]SAFETY GATE[/bold green]",
+                    border_style="green",
+                )
+            )
+            for i in range(10, 0, -1):
+                console.print(f"  [dim]Cooldown: {i}s...[/dim]", end="\r")
+                time.sleep(1)
+            console.print("  [bold green]Cooldown complete. Live trading enabled.[/bold green]     ")
 
     # Display run configuration
     config_table = Table(title="Pipeline Configuration", box=box.ROUNDED, show_header=False)
@@ -121,10 +168,24 @@ def run(
         )
 
         if not api_key:
-            console.print(
-                "[bold yellow]⚠ No LLM API keys configured. Set QNAI_OPENAI_API_KEY or similar.[/bold yellow]"
-            )
-            console.print("[dim]Showing simulated pipeline output...[/dim]")
+            # ── P1-4: SIMULATED MODE SAFEGUARD ────────────────────────────
+            if not allow_simulated:
+                console.print(
+                    Panel(
+                        "[bold red]SIMULATED MODE BLOCKED[/bold red]\n\n"
+                        "No LLM API keys are configured. The pipeline would run in\n"
+                        "SIMULATED mode with NO real market analysis.\n\n"
+                        "To allow simulated output, use the --allow-simulated flag:\n"
+                        "  [bold]qnai run --allow-simulated[/bold]\n\n"
+                        "[dim]Configure QNAI_OPENAI_API_KEY (or similar) for real execution.[/dim]",
+                        title="[bold red]SAFETY GATE[/bold red]",
+                        border_style="red",
+                    )
+                )
+                sys.exit(1)
+
+            # Simulated mode explicitly allowed — show loud warning
+            console.print(_SIMULATED_BANNER)
             _show_simulated_pipeline(symbol_list, trade_date)
             return
 
@@ -144,16 +205,165 @@ def run(
         _display_pipeline_result(result, symbol_list)
 
     except ImportError as e:
+        # ── P1-4: Import error fallback also requires --allow-simulated ───
+        if not allow_simulated:
+            console.print(
+                Panel(
+                    f"[bold red]IMPORT ERROR — SIMULATED FALLBACK BLOCKED[/bold red]\n\n"
+                    f"Import error: {e}\n\n"
+                    f"Without all dependencies, the pipeline would run in SIMULATED mode\n"
+                    f"with NO real market analysis.\n\n"
+                    f"To allow simulated output, use the --allow-simulated flag:\n"
+                    f"  [bold]qnai run --allow-simulated[/bold]\n\n"
+                    f"[dim]Install full dependencies for real execution.[/dim]",
+                    title="[bold red]SAFETY GATE[/bold red]",
+                    border_style="red",
+                )
+            )
+            sys.exit(1)
+
         console.print(f"[bold red]✗ Import error: {e}[/bold red]")
-        console.print("[dim]Some dependencies may not be installed.[/dim]")
+        console.print(_SIMULATED_BANNER)
         _show_simulated_pipeline(symbol_list, trade_date)
     except Exception as e:
+        if not allow_simulated:
+            console.print(
+                Panel(
+                    f"[bold red]PIPELINE ERROR — SIMULATED FALLBACK BLOCKED[/bold red]\n\n"
+                    f"Error: {e}\n\n"
+                    f"The pipeline failed and would fall back to SIMULATED mode.\n"
+                    f"To allow simulated output, use the --allow-simulated flag:\n"
+                    f"  [bold]qnai run --allow-simulated[/bold]",
+                    title="[bold red]SAFETY GATE[/bold red]",
+                    border_style="red",
+                )
+            )
+            sys.exit(1)
+
         console.print(f"[bold red]✗ Pipeline error: {e}[/bold red]")
+        console.print(_SIMULATED_BANNER)
         _show_simulated_pipeline(symbol_list, trade_date)
+
+
+# =============================================================================
+# P0-2: Live Trading Safety Checks
+# =============================================================================
+
+
+def _verify_live_trading_safety() -> bool:
+    """Run mandatory safety checks before allowing live trading.
+
+    Checks:
+    1. QNAI_ENABLE_LIVE_TRADING=CONFIRMED env var must be set
+    2. Explicit user confirmation (must type "I UNDERSTAND THE RISKS")
+    3. Risk guardian must be importable and functional
+    4. Constitutional override check must pass
+
+    Returns:
+        True if all checks pass, False otherwise.
+    """
+    all_passed = True
+
+    # Check 1: Environment variable gate
+    live_env = os.environ.get("QNAI_ENABLE_LIVE_TRADING", "")
+    if live_env != "CONFIRMED":
+        console.print(
+            Panel(
+                "[bold red]CHECK 1 FAILED: Environment variable not set[/bold red]\n\n"
+                "You must set the environment variable:\n"
+                "  [bold]export QNAI_ENABLE_LIVE_TRADING=CONFIRMED[/bold]\n\n"
+                "[dim]This is a mandatory safety gate to prevent accidental live trading.[/dim]",
+                title="[bold red]SAFETY CHECK 1/3[/bold red]",
+                border_style="red",
+            )
+        )
+        all_passed = False
+    else:
+        console.print("  [green]✓ Check 1/3: QNAI_ENABLE_LIVE_TRADING=CONFIRMED[/green]")
+
+    # Check 2: Explicit user confirmation
+    console.print()
+    console.print(
+        Panel(
+            "[bold yellow]LIVE TRADING CONFIRMATION REQUIRED[/bold yellow]\n\n"
+            "You are about to enable LIVE TRADING with REAL MONEY.\n\n"
+            "Type [bold]I UNDERSTAND THE RISKS[/bold] to confirm:",
+            title="[bold yellow]SAFETY CHECK 2/3[/bold yellow]",
+            border_style="yellow",
+        )
+    )
+    try:
+        confirmation = input("  > ").strip()
+    except (EOFError, KeyboardInterrupt):
+        console.print("\n  [bold red]✗ Confirmation cancelled.[/bold red]")
+        all_passed = False
+        confirmation = ""
+
+    if confirmation != "I UNDERSTAND THE RISKS":
+        console.print(
+            "  [bold red]✗ Check 2/3 FAILED: Confirmation does not match.[/bold red]\n"
+            '  You must type exactly: I UNDERSTAND THE RISKS'
+        )
+        all_passed = False
+    else:
+        console.print("  [green]✓ Check 2/3: User confirmation received[/green]")
+
+    # Check 3: Risk guardian must be initialized
+    console.print()
+    try:
+        from quant_nanggroe.engine.risk.manager import RiskManager
+        from quant_nanggroe.engine.risk.kill_switch import KillSwitch
+
+        rm = RiskManager()
+        ks = KillSwitch()
+
+        # Verify kill switch is not already active
+        if ks.is_active:
+            console.print(
+                "  [bold red]✗ Check 3/3 FAILED: Kill switch is ACTIVE.[/bold red]\n"
+                "  All trading is halted. Reset the kill switch before enabling live trading."
+            )
+            all_passed = False
+        else:
+            console.print("  [green]✓ Check 3/3: Risk guardian initialized, kill switch inactive[/green]")
+    except ImportError as e:
+        console.print(
+            f"  [bold red]✗ Check 3/3 FAILED: Cannot import risk guardian: {e}[/bold red]\n"
+            "  Live trading requires a functional risk guardian."
+        )
+        all_passed = False
+    except Exception as e:
+        console.print(
+            f"  [bold red]✗ Check 3/3 FAILED: Risk guardian error: {e}[/bold red]"
+        )
+        all_passed = False
+
+    # Bonus check: Constitutional override detection
+    console.print()
+    try:
+        from quant_nanggroe.config.settings import _check_no_constitutional_overrides
+        violations = _check_no_constitutional_overrides()
+        if violations:
+            console.print(
+                "  [bold red]✗ BONUS CHECK FAILED: Constitutional override detected![/bold red]"
+            )
+            for v in violations:
+                console.print(f"    [red]{v}[/red]")
+            all_passed = False
+        else:
+            console.print("  [green]✓ No constitutional override attempts detected[/green]")
+    except Exception:
+        pass  # Non-blocking
+
+    return all_passed
 
 
 def _show_simulated_pipeline(symbols: list, trade_date: str) -> None:
-    """Display simulated pipeline output when LLM is not available."""
+    """Display simulated pipeline output when LLM is not available.
+
+    All outputs are prefixed with [SIMULATED] to make it clear
+    this is not real market analysis.
+    """
     phases = [
         ("Market Analysis", ["researcher", "macro", "crypto", "forex"]),
         ("Signal Generation", ["strategist"]),
@@ -164,18 +374,19 @@ def _show_simulated_pipeline(symbols: list, trade_date: str) -> None:
     ]
 
     for phase_name, agents in phases:
-        console.print(f"  [bold cyan]▸ {phase_name}[/bold cyan]")
+        console.print(f"  [bold cyan]▸ [SIMULATED] {phase_name}[/bold cyan]")
         for agent in agents:
-            console.print(f"    [dim]→ {agent}: ready[/dim]")
+            console.print(f"    [dim]→ [SIMULATED] {agent}: ready (no real analysis)[/dim]")
 
     console.print()
     console.print(
         Panel(
-            f"[bold green]✓ Pipeline configured for {', '.join(symbols)}[/bold green]\n"
-            f"[dim]Date: {trade_date} | Mode: SIMULATED[/dim]\n"
-            f"[dim]Configure LLM API keys for live execution[/dim]",
-            title="Pipeline Status",
-            border_style="green",
+            f"[bold green]✓ [SIMULATED] Pipeline configured for {', '.join(symbols)}[/bold green]\n"
+            f"[dim]Date: {trade_date} | Mode: SIMULATED (no real data)[/dim]\n"
+            f"[dim]Configure LLM API keys for live execution[/dim]\n\n"
+            f"[bold yellow]⚠ All outputs above are SIMULATED — not real market analysis[/bold yellow]",
+            title="[SIMULATED] Pipeline Status",
+            border_style="yellow",
         )
     )
 

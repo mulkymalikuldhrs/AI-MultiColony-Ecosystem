@@ -8,8 +8,8 @@
 
 <br/>
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![LangGraph](https://img.shields.io/badge/LangGraph-0.2+-00D4AA?style=for-the-badge&logo=ai&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
 [![Binance](https://img.shields.io/badge/Binance-API-F0B90B?style=for-the-badge&logo=binance&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
 [![Multi-Agent](https://img.shields.io/badge/Multi-Agent-5_Layers-00D4AA?style=for-the-badge&logo=ai&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
 [![Version](https://img.shields.io/badge/Version-v15.3.0-005c2a?style=for-the-badge&logo=semanticrelease&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
@@ -132,7 +132,7 @@ The final layer combines the normalized pressure vector with portfolio state and
 - **Deterministic Pipeline** — Every decision is traceable, auditable, and defensible. The same inputs follow the same processing path every time
 - **Darwinian Strategy Lifecycle** — Strategies and sensors are continuously evaluated; underperformers are automatically retired and replaced with evolved variants
 - **Risk Guardian Constitution** — Independent hard-coded safety rules immune to AI reasoning that can block, reduce, or modify any action regardless of agent confidence
-- **Desktop-OS UI** — React 19 interface with draggable windows, macOS-style dock, OmniBar command palette, and real-time visualization of agent states and pressure vectors
+- **Desktop-OS UI** — Dashboard interface with real-time visualization of agent states and pressure vectors
 - **AutoSwitch Data Engine** — Automatic failover between data providers (Binance, CoinCap, AlphaVantage, Polygon, Finnhub) with latency-aware routing
 - **Pressure-Based Outputs** — Agents produce continuous pressure vectors (direction + magnitude), not binary signals, enabling nuanced decision-making
 - **Regime-Aware Analysis** — All agents operate within detected market regime context, reducing false signals from regime-inappropriate strategies
@@ -144,12 +144,12 @@ The final layer combines the normalized pressure vector with portfolio state and
 
 ```
                           ┌──────────────────────┐
-                          │   Desktop-OS UI      │
-                          │   (React 19)         │
+                          │   Dashboard UI       │
+                          │   (FastAPI + REST)    │
                           │   ┌──────────────┐   │
-                          │   │  OmniBar     │   │
-                          │   │  Dock        │   │
-                          │   │  Windows     │   │
+                          │   │  CLI (qnai)  │   │
+                          │   │  REST API    │   │
+                          │   │  WebSocket   │   │
                           │   └──────┬───────┘   │
                           └─────────┼────────────┘
                                     │
@@ -222,8 +222,8 @@ The final layer combines the normalized pressure vector with portfolio state and
 
 ### Prerequisites
 
-- **Node.js** >= 18.x
-- **npm** >= 9.x (or pnpm/yarn)
+- **Python** >= 3.11
+- **pip** >= 23.x (or uv/poetry)
 - Binance API key (use **testnet** first)
 
 ### Installation
@@ -241,36 +241,40 @@ git clone https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI.git
 cd Quant-Nanggroe-AI
 
 # Install dependencies
-npm install
+pip install -r requirements.txt
+
+# Or install the quant-nanggroe-ai package
+pip install -e .
 
 # Configure environment
 cp .env.example .env
 # Edit .env with your API keys (use testnet keys for initial testing)
 
-# Start development server
-npm run dev
+# Run the CLI
+qnai run --symbols BTC/USDT --provider openai
+
+# Or start the API server
+qnai serve --port 8000
 ```
 
 ### Environment Variables
 
 ```env
 # Required — Data Provider
-BINANCE_API_KEY=your_testnet_key
-BINANCE_API_SECRET=your_testnet_secret
+QNAI_BINANCE_API_KEY=your_testnet_key
+QNAI_BINANCE_API_SECRET=your_testnet_secret
 
 # Optional — Fallback Data Providers
-COINCAP_API_KEY=
-ALPHAVANTAGE_API_KEY=
-POLYGON_API_KEY=
-FINNHUB_API_KEY=
+QNAI_ALPHA_VANTAGE_API_KEY=
+QNAI_POLYGON_API_KEY=
+QNAI_FINNHUB_API_KEY=
 
 # Optional — LLM Reasoning Engine
-OPENAI_API_KEY=
+QNAI_OPENAI_API_KEY=
 
-# Risk Guardian Configuration
-MAX_POSITION_SIZE_PCT=5
-MAX_PORTFOLIO_HEAT_PCT=20
-MAX_DAILY_DRAWDOWN_PCT=3
+# IMPORTANT: Risk limits are CONSTITUTIONAL and CANNOT be overridden via env vars.
+# They are defined in quant_nanggroe/engine/risk/constants.py
+# Do NOT set QNAI_RISK_MAX_PER_TRADE or similar — they will be rejected at startup.
 ```
 
 > **Important**: Always start with Binance Testnet. Never connect to mainnet with untested configurations.
@@ -279,117 +283,112 @@ MAX_DAILY_DRAWDOWN_PCT=3
 
 ## API Reference
 
-### Core Modules
+### Core Modules (Python)
 
 #### Layer 0 — Data Engine
 
-```typescript
-import { DataEngine } from '@quant-nanggroe/data-engine';
+```python
+from quant_nanggroe.exchange.ccxt_broker import CCXTBroker
+from quant_nanggroe.exchange.paper_broker import PaperExchangeBroker
 
-const engine = new DataEngine({
-  primary: 'binance',
-  fallbacks: ['coincap', 'alphavantage'],
-  autoSwitch: true,
-});
+# Paper trading (default, safe)
+broker = PaperExchangeBroker()
+await broker.connect()
 
-// Subscribe to real-time L2 order book
-engine.onOrderBook('BTC/USDT', (snapshot) => {
-  console.log(snapshot.bids, snapshot.asks);
-});
+# Real exchange via CCXT
+broker = CCXTBroker(exchange_id="binance", api_key=key, api_secret=secret)
+await broker.connect()
 
-// Get historical ticks with deterministic replay
-const ticks = await engine.getHistoricalTicks('BTC/USDT', {
-  start: '2025-01-01',
-  end: '2025-01-31',
-  source: 'cache', // ensures deterministic replay
-});
+# Get ticker data
+ticker = await broker.get_ticker("BTC/USDT")
+print(ticker.last_price, ticker.bid, ticker.ask)
 ```
 
-#### Layer 1 — Regime Detector
+#### Layer 1 — Regime Detection
 
-```typescript
-import { RegimeDetector } from '@quant-nanggroe/regime';
+```python
+from quant_nanggroe.engine.risk.manager import RiskManager
 
-const detector = new RegimeDetector({
-  lookback: 100,
-  transitionSensitivity: 0.7,
-});
-
-detector.onRegimeChange((current, previous, confidence) => {
-  console.log(`Regime: ${previous} → ${current} (confidence: ${confidence})`);
-  // Regime labels: 'trending' | 'mean-reverting' | 'volatile' | 'quiet' | 'transitional'
-});
+rm = RiskManager()
+status = rm.status()
+# status includes: daily_pnl, weekly_pnl, drawdown, kill_switch state
 ```
 
-#### Layer 2 — Sensor Agents
+#### Layer 2 — Agent Sensors
 
-```typescript
-import { SensorOrchestrator } from '@quant-nanggroe/sensors';
+```python
+from quant_nanggroe.agents import TradingGraph
 
-const sensors = new SensorOrchestrator({
-  enabled: ['technical', 'sentiment', 'liquidity', 'onchain'],
-  regimeAware: true, // sensors auto-configure based on regime
-});
+# Build the multi-agent trading graph
+graph = TradingGraph(
+    llm_provider="openai",
+    deep_think_model="gpt-4o",
+    quick_think_model="gpt-4o-mini",
+    api_key="your-openai-key",
+)
 
-// Each sensor outputs a pressure vector
-sensors.onPressure('BTC/USDT', (readings) => {
-  // readings.technical → { direction: 0.72, magnitude: 0.65, confidence: 0.81 }
-  // readings.sentiment → { direction: 0.45, magnitude: 0.30, confidence: 0.52 }
-  // ...
-});
+# Run the pipeline
+result = graph.run(
+    symbols=["BTC/USDT", "ETH/USDT"],
+    trade_date="2025-01-15",
+)
+# result includes: risk_verdict, decisions, signals, agent_outputs
 ```
 
-#### Layer 3 — Pressure Normalizer
+#### Layer 3 — Risk Assessment
 
-```typescript
-import { PressureNormalizer } from '@quant-nanggroe/normalizer';
+```python
+from quant_nanggroe.engine.risk.checks import RiskCheckGate
+from quant_nanggroe.engine.risk.constants import (
+    MAX_RISK_PER_TRADE, MAX_DAILY_LOSS, MAX_WEEKLY_LOSS,
+)
 
-const normalizer = new PressureNormalizer({
-  darwinianWeighting: true,
-  conflictThreshold: 0.4,
-  smoothingWindow: 5,
-});
+# All constants are Final and cannot be overridden
+print(f"Max risk per trade: {MAX_RISK_PER_TRADE:.2%}")  # 0.50%
+print(f"Max daily loss: {MAX_DAILY_LOSS:.2%}")           # 1.00%
+print(f"Max weekly loss: {MAX_WEEKLY_LOSS:.2%}")         # 3.00%
 
-const unified = normalizer.aggregate(pressureReadings, regimeContext);
-// → { direction: 0.61, magnitude: 0.55, confidence: 0.68, contributingSensors: 4 }
+# Run the 9-checkpoint risk gate
+gate = RiskCheckGate()
+result = gate.evaluate(symbol="BTC/USDT", direction="BUY",
+                       position_size_pct=0.05, portfolio_value=100000)
 ```
 
 #### Layer 4 — Decision Synthesizer
 
-```typescript
-import { DecisionSynthesizer } from '@quant-nanggroe/decision';
+```python
+from quant_nanggroe.engine.risk.kill_switch import KillSwitch
 
-const synthesizer = new DecisionSynthesizer({
-  riskGuardianEnabled: true,
-  auditLogging: true,
-});
+# Kill switch with file-based persistence
+ks = KillSwitch()
 
-const decision = synthesizer.evaluate(unifiedPressure, portfolioState);
-// decision → {
-//   action: 'reduce_long',
-//   size: 0.03,
-//   confidence: 0.68,
-//   guardianRulings: ['portfolio_heat_within_limits'],
-//   provenance: { sensors: [...], regime: 'volatile', weights: {...} }
-// }
+# Check if kill switch is active (persists across restarts)
+if ks.is_active:
+    print("TRADING HALTED - manual reset required")
+
+# Auto-trigger based on risk limits
+ks.check_auto_trigger(
+    daily_loss_pct=0.009,
+    weekly_loss_pct=0.02,
+    drawdown_pct=0.12,
+)
 ```
 
 ### Risk Guardian Constitution
 
-```typescript
-import { RiskGuardian } from '@quant-nanggroe/guardian';
+```python
+from quant_nanggroe.engine.risk.constants import (
+    MAX_RISK_PER_TRADE,      # 0.5% per trade (Final, immutable)
+    MAX_DAILY_LOSS,          # 1% daily loss (Final, immutable)
+    MAX_WEEKLY_LOSS,         # 3% weekly loss (Final, immutable)
+    MAX_DRAWDOWN_PCT,        # 15% max drawdown (Final, immutable)
+    KILL_SWITCH_DAILY_PNL,   # -0.8% early warning before 1% hard limit
+)
 
-const guardian = new RiskGuardian({
-  maxPositionSizePct: 5,     // max 5% per position
-  maxPortfolioHeatPct: 20,    // max 20% total portfolio heat
-  maxDailyDrawdownPct: 3,    // max 3% daily drawdown
-  maxCorrelatedExposure: 15,  // max 15% in correlated assets
-  killSwitchEnabled: true,    // emergency halt capability
-});
-
-// The Guardian acts as a gate — it can BLOCK, REDUCE, or MODIFY actions
-const ruling = guardian.evaluate(proposedAction, portfolioState);
-// ruling → { verdict: 'REDUCE', originalSize: 0.05, adjustedSize: 0.03, reason: 'portfolio_heat_15.2pct' }
+# These limits are constitutional — they CANNOT be overridden
+# by environment variables, agents, or configuration.
+# Any attempt to set QNAI_RISK_MAX_PER_TRADE etc. will cause
+# a RuntimeError at startup.
 ```
 
 ---
@@ -412,28 +411,28 @@ Contributions are welcome! We especially value contributions that improve transp
 - **Do** improve risk management, error handling, and audit trail capabilities
 - **Do** add tests for any new logic in the execution stack
 - **Do** update documentation to reflect any behavioral changes
-- Code style follows the existing TypeScript strict configuration
+- Code style follows the existing Python strict configuration
 
 ### Development Setup
 
 ```bash
 # Install dependencies
-npm install
+pip install -e ".[dev]"
 
-# Run in development mode with hot reload
-npm run dev
+# Run the CLI
+qnai run --symbols BTC/USDT
 
 # Run type checking
-npm run typecheck
+mypy quant_nanggroe/
 
 # Run linting
-npm run lint
+ruff check quant_nanggroe/
 
 # Run tests
-npm run test
+pytest
 
-# Build for production
-npm run build
+# Start API server
+qnai serve
 ```
 
 ---
@@ -532,7 +531,7 @@ SOFTWARE.
     "name": "Mulky Malikul Adhr",
     "url": "https://github.com/mulkymalikuldhrs"
   },
-  "programmingLanguage": "TypeScript",
+  "programmingLanguage": "Python",
   "license": "https://spdx.org/licenses/MIT",
   "codeRepository": "https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI",
   "contributor": {

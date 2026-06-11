@@ -6,9 +6,10 @@ All settings can be overridden via MULTICOLONY_ prefixed env vars.
 
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, List, Optional
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -65,6 +66,7 @@ class MemorySettings(BaseSettings):
 
 class APISettings(BaseSettings):
     """API server configuration."""
+
     host: str = "0.0.0.0"
     port: int = 8000
     workers: int = 4
@@ -72,7 +74,7 @@ class APISettings(BaseSettings):
     cors_methods: List[str] = Field(default_factory=lambda: ["*"])
     cors_headers: List[str] = Field(default_factory=lambda: ["*"])
     api_key_enabled: bool = True
-    jwt_secret: str = "change-me-in-production"
+    jwt_secret: str = ""  # MUST be set via MULTICOLONY_API_JWT_SECRET env var
     jwt_expiry_hours: int = 24
     rate_limit_per_minute: int = 60
     rate_limit_burst: int = 10
@@ -81,6 +83,25 @@ class APISettings(BaseSettings):
     ws_max_connections: int = 100
 
     model_config = {"env_prefix": "MULTICOLONY_API_"}
+
+    @field_validator("jwt_secret")
+    @classmethod
+    def _validate_jwt_secret(cls, v: str) -> str:
+        """Ensure jwt_secret is set in production (when DEBUG is not true)."""
+        if not v:
+            # Allow empty in test/debug via env var, but warn loudly
+            debug_env = os.getenv("MULTICOLONY_DEBUG", "false").lower() in ("1", "true", "yes")
+            if not debug_env:
+                raise ValueError(
+                    "jwt_secret MUST be set via MULTICOLONY_API_JWT_SECRET "
+                    "in production. Refusing to start with an empty secret."
+                )
+        elif v in ("change-me-in-production", "secret", "changeme"):
+            raise ValueError(
+                f"jwt_secret is set to the insecure default '{v}'. "
+                "Please set a strong secret via MULTICOLONY_API_JWT_SECRET."
+            )
+        return v
 
 
 class ChannelSettings(BaseSettings):

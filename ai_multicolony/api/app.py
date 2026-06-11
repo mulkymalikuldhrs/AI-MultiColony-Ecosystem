@@ -1,5 +1,10 @@
 """FastAPI application factory and configuration.
 
+⚠️  IMPORTANT: The ``FastAPIApp`` class below is NOT a real FastAPI application.
+It is a custom, framework-agnostic dispatcher that mirrors the FastAPI interface
+but cannot be served directly by uvicorn.  Use ``create_fastapi_app()`` to obtain
+a real ``fastapi.FastAPI`` instance that delegates to the custom dispatcher.
+
 Creates the FastAPI app instance with middleware, CORS, exception
 handlers, lifespan events, and mounted route routers.
 """
@@ -78,7 +83,12 @@ def create_app(
 
 
 class FastAPIApp:
-    """FastAPI application wrapper.
+    """⚠️  NOT a real FastAPI application — custom dispatcher.
+
+    This is a framework-agnostic wrapper that mirrors what a real FastAPI
+    app would expose but **cannot be served by uvicorn directly**.
+    Use :func:`create_fastapi_app` to obtain a real ``fastapi.FastAPI``
+    instance that delegates to this dispatcher.
 
     Provides a framework-agnostic interface that mirrors what a real
     FastAPI app would expose.  Can be used standalone or adapted to
@@ -248,3 +258,78 @@ class FastAPIApp:
 
         else:
             return {"error": "Not found", "code": "NOT_FOUND", "status_code": 404}
+
+
+# ---------------------------------------------------------------------------
+# Real FastAPI wrapper — this IS uvicorn-compatible
+# ---------------------------------------------------------------------------
+
+def create_fastapi_app(**kwargs: Any) -> "fastapi.FastAPI":
+    """Create a **real** ``fastapi.FastAPI`` instance that delegates to :class:`FastAPIApp`.
+
+    This function is the intended entry point for ``uvicorn``.  It builds a
+    genuine FastAPI application and wires every route to the custom
+    ``FastAPIApp.dispatch`` method so that existing business logic continues
+    to work without rewriting route handlers.
+
+    Usage::
+
+        uvicorn ai_multicolony.api.app:create_fastapi_app --factory
+
+    Parameters
+    ----------
+    **kwargs
+        Forwarded to :func:`create_app` (agent_registry, colony_manager, …).
+
+    Returns
+    -------
+    fastapi.FastAPI
+        A fully-wired FastAPI application ready to be served.
+    """
+    import fastapi
+    from fastapi import Request
+    from fastapi.responses import JSONResponse
+
+    settings = get_settings()
+    custom_app = create_app(**kwargs)
+
+    @asynccontextmanager
+    async def _lifespan(app: fastapi.FastAPI):
+        logger.info("AI-MultiColony real FastAPI starting up")
+        yield
+        logger.info("AI-MultiColony real FastAPI shutting down")
+
+    app = fastapi.FastAPI(
+        title="AI-MultiColony",
+        version=settings.version,
+        lifespan=_lifespan,
+    )
+
+    # ── Catch-all route that delegates to the custom dispatcher ────────
+    @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
+    async def _dispatch(request: Request, path: str) -> JSONResponse:
+        method = request.method.upper()
+        body = None
+        if method in ("POST", "PUT", "PATCH"):
+            try:
+                body = await request.json()
+            except Exception:
+                body = None
+
+        result = await custom_app.dispatch(method, f"/{path}", body=body)
+
+        # Determine status code from result if present
+        status_code = result.get("status_code", 200) if isinstance(result, dict) else 200
+        # Errors from the dispatcher set their own codes; 404 for not-found
+        if isinstance(result, dict) and result.get("code") == "NOT_FOUND":
+            status_code = 404
+
+        return JSONResponse(content=result, status_code=status_code)
+
+    # ── Health check (also at root-level /health) ──────────────────────
+    @app.get("/health")
+    async def _health() -> dict:
+        return custom_app.get_health()
+
+    logger.info("Real FastAPI app created, wrapping FastAPIApp dispatcher")
+    return app
