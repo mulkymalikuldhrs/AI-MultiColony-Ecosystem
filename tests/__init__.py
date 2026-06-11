@@ -1,1 +1,1 @@
-"""Test suite for the Agentic AI System"""
+"""Tests for the AI MultiColony Ecosystem."""

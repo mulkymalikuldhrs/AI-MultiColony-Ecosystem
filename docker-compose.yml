@@ -1,243 +1,101 @@
-# 🐳 Agentic AI System - Docker Compose Configuration
-# Complete development and production environment setup
-# Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
-
-version: '3.8'
+version: "3.9"
 
 services:
-  # Main Agentic AI System
-  agentic-ai:
+  # === Infrastructure ===
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # === Application ===
+
+  api:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
-      args:
-        BUILD_DATE: ${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
-        VERSION: ${VERSION:-2.0.0}
-        COMMIT_SHA: ${COMMIT_SHA:-unknown}
-    container_name: agentic-ai-system
-    restart: unless-stopped
     ports:
-      - "5000:5000"  # Web interface
-      - "8765:8765"  # WebSocket
+      - "8000:8000"
     environment:
-      - FLASK_ENV=${FLASK_ENV:-production}
-      - DATABASE_URL=postgresql://agentic:${POSTGRES_PASSWORD:-changeme_secure_password}@postgres:5432/agentic_db
+      - APP_ENV=production
+      - DATABASE_URL=sqlite:///./data/ecosystem.db
       - REDIS_URL=redis://redis:6379/0
-      # SECURITY: Never use default API keys in production. Set via .env file.
-      - LLM7_API_KEY=${LLM7_API_KEY:-}
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - WEB_INTERFACE_HOST=0.0.0.0
-      - WEB_INTERFACE_PORT=5000
-      - ENABLE_SCHEDULER=true
-      - ENABLE_SYNC_ENGINE=true
-      - ENABLE_WEB_INTERFACE=true
+      - QDRANT_URL=http://qdrant:6333
     volumes:
-      - agentic_data:/app/data
-      - agentic_logs:/app/logs
-      - agentic_projects:/app/projects
-      - ./config:/app/config:ro
+      - ./data:/app/data
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
-    networks:
-      - agentic_network
+      qdrant:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/system/status"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
-
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: agentic-postgres
     restart: unless-stopped
-    environment:
-      - POSTGRES_DB=agentic_db
-      - POSTGRES_USER=agentic
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme_secure_password}
-      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    ports:
-      - "5432:5432"
-    networks:
-      - agentic_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U agentic -d agentic_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: agentic-redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme_secure_password}
-    environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme_secure_password}
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    networks:
-      - agentic_network
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Nginx Reverse Proxy (Production)
-  nginx:
-    image: nginx:alpine
-    container_name: agentic-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - agentic_logs:/var/log/nginx
-    depends_on:
-      - agentic-ai
-    networks:
-      - agentic_network
-    profiles:
-      - production
-
-  # Monitoring with Prometheus
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: agentic-prometheus
-    restart: unless-stopped
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
-    networks:
-      - agentic_network
-    profiles:
-      - monitoring
-
-  # Grafana Dashboard
-  grafana:
-    image: grafana/grafana:latest
-    container_name: agentic-grafana
-    restart: unless-stopped
-    environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-changeme_secure_password}
-      - GF_USERS_ALLOW_SIGN_UP=false
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-    ports:
-      - "3000:3000"
-    depends_on:
-      - prometheus
-    networks:
-      - agentic_network
-    profiles:
-      - monitoring
-
-  # ElasticSearch for Log Analysis
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.0
-    container_name: agentic-elasticsearch
-    restart: unless-stopped
-    environment:
-      - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-      - xpack.security.enabled=false
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
-    networks:
-      - agentic_network
-    profiles:
-      - logging
-
-  # Kibana for Log Visualization
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.10.0
-    container_name: agentic-kibana
-    restart: unless-stopped
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    depends_on:
-      - elasticsearch
-    networks:
-      - agentic_network
-    profiles:
-      - logging
-
-  # Development Tools Container
-  dev-tools:
+  worker:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development
-    container_name: agentic-dev-tools
-    volumes:
-      - .:/app
-      - agentic_data:/app/data
-      - agentic_logs:/app/logs
+    command: celery -A ai_multicolony.worker worker --loglevel=info --concurrency=4
     environment:
-      - FLASK_ENV=development
-      - DATABASE_URL=postgresql://agentic:${POSTGRES_PASSWORD:-changeme_secure_password}@postgres:5432/agentic_db
+      - APP_ENV=production
+      - DATABASE_URL=sqlite:///./data/ecosystem.db
       - REDIS_URL=redis://redis:6379/0
+      - QDRANT_URL=http://qdrant:6333
+    volumes:
+      - ./data:/app/data
     depends_on:
-      - postgres
-      - redis
-    networks:
-      - agentic_network
-    profiles:
-      - development
-    command: /bin/bash
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    restart: unless-stopped
 
-# Named Volumes
+  mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m ai_multicolony.mcp.server
+    ports:
+      - "5000:5000"
+    environment:
+      - APP_ENV=production
+      - MCP_SERVER_HOST=0.0.0.0
+      - MCP_SERVER_PORT=5000
+      - REDIS_URL=redis://redis:6379/0
+      - QDRANT_URL=http://qdrant:6333
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
-  agentic_data:
-    driver: local
-  agentic_logs:
-    driver: local
-  agentic_projects:
-    driver: local
-  postgres_data:
-    driver: local
   redis_data:
-    driver: local
-  prometheus_data:
-    driver: local
-  grafana_data:
-    driver: local
-  elasticsearch_data:
-    driver: local
-
-# Networks
-networks:
-  agentic_network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
+  qdrant_data:

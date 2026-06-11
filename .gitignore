@@ -1,109 +1,11 @@
-# =============================================================================
-# Agentic AI System - Git Ignore
-# =============================================================================
-
-# Environment and secrets
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.mypy_cache
+*.egg-info
+dist
+build
 .env
-.env.*
-!.env.example
-.env.local
-.env.production
-.env.*.local
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-*.egg
-dist/
-build/
-.eggs/
-
-# Virtual environments
-venv/
-.venv/
-env/
-
-# Node.js
-node_modules/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-Desktop.ini
-
-# Logs
-logs/
-*.log
-
-# Test results and browser reports
-test_results.json
-browser_test_report.json
-
-# Screenshots
-Screenshot_*.jpg
-Screenshot_*.png
-
-# =============================================================================
-# DATA FILES (runtime - never commit)
-# =============================================================================
-data/memory.json
-data/agents_registry.json
-data/schedule.json
-data/system_config.json
-data/last_session.json
-data/financial/
-data/knowledge/
-data/marketing/
-data/backups/
-data/bug_reports/
-data/logs/
-data/cache/
-
-# =============================================================================
-# SENSITIVE DATA - NEVER COMMIT
-# =============================================================================
-data/credentials.salt
-data/master.key
-data/salt.key
-data/credentials.db
-data/*.key
-data/*.db
-data/*.salt
-web_interface/data/credentials.db
-credentials.local.json
-
-# =============================================================================
-# CRYPTOGRAPHIC MATERIAL - NEVER COMMIT
-# =============================================================================
-*.pem
-*.key
-*.crt
-*.p12
-*.jks
-
-# =============================================================================
-# RUNTIME ARTIFACTS
-# =============================================================================
-.deps_installed
-*.pid
-package-lock.json
-.next/
-.vercel/
-tmp/
-temp/
-temp_sessions/
-
-# PDF files
-*.pdf
-
-# Replit
-.replit
+.venv
+node_modules

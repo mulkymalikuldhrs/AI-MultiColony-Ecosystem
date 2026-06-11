@@ -1,86 +1,57 @@
-# =============================================================================
-# Agentic AI System - Production Dockerfile
-# Multi-stage build for optimized production deployment
-# =============================================================================
+# Multi-stage Dockerfile for AI MultiColony Ecosystem
+# Stage 1: Build dependencies
+# Stage 2: Production runtime
 
-# --- Build stage ---
-FROM python:3.11-slim AS builder
+FROM python:3.12-slim AS builder
 
-ARG BUILD_DATE
-ARG VERSION=2.0.0
-ARG COMMIT_SHA
+WORKDIR /build
 
-LABEL maintainer="Mulky Malikul Dhaher <mulkymalikul@gmail.com>"
-LABEL description="Agentic AI System - Autonomous Multi-Agent Intelligence Platform"
-LABEL version=${VERSION}
-LABEL build-date=${BUILD_DATE}
-LABEL commit-sha=${COMMIT_SHA}
-LABEL org.opencontainers.image.title="Agentic AI System"
-LABEL org.opencontainers.image.description="Autonomous Multi-Agent Intelligence Platform"
-LABEL org.opencontainers.image.source="https://github.com/jakForever/Agentic-AI-Ecosystem"
-
+# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Copy requirements and install
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir --prefix=/install -e ".[all]"
 
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r /tmp/requirements.txt && \
-    pip install --no-cache-dir gunicorn gevent gevent-websocket
-
-# --- Production stage ---
-FROM python:3.11-slim AS production
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create non-root user
-RUN groupadd -r agentic && useradd -r -g agentic -d /app -s /sbin/nologin agentic
-
-# Copy virtual environment from builder
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Stage 2: Production
+FROM python:3.12-slim AS production
 
 WORKDIR /app
 
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy installed packages from builder
+COPY --from=builder /install /usr/local
+
 # Copy application code
-COPY --chown=agentic:agentic . .
+COPY . .
 
-# Create necessary directories with proper permissions
-RUN mkdir -p data logs reports projects && \
-    chown -R agentic:agentic /app
+# Create data directory
+RUN mkdir -p /app/data
 
-# Environment defaults
-ENV PYTHONPATH=/app \
-    PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    FLASK_ENV=production \
-    WEB_INTERFACE_HOST=0.0.0.0 \
-    WEB_INTERFACE_PORT=5000
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV APP_ENV=production
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:5000/api/system/status || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
 
-USER agentic
+# Expose API port
+EXPOSE 8000
 
-EXPOSE 5000
+# Run with entrypoint
+COPY scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-VOLUME ["/app/data", "/app/logs"]
-
-# Production: gunicorn with gevent workers
-CMD ["gunicorn", \
-     "--worker-class", "geventwebsocket.gunicorn.workers.GeventWebSocketWorker", \
-     "--workers", "1", \
-     "--bind", "0.0.0.0:5000", \
-     "--timeout", "120", \
-     "--graceful-timeout", "30", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-", \
-     "web_interface.app:app"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["uvicorn", "ai_multicolony.api.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]

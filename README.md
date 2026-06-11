@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <a href="https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem">
   <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:1a0a00,50:3d1f00,100:5c3000&height=220&section=header&text=AI%20MultiColony%20Ecosystem&fontSize=42&fontColor=f59e0b&animation=fadeIn&fontAlignY=30&desc=Multi-Agent%20Colony%20Coordination%20Platform&descSize=16&descColor=ef4444&descAlignY=50" />
 </a>
@@ -886,3 +887,39 @@ SOFTWARE.
   }
 }
 </script>
+=======
+# AI MultiColony Ecosystem
+
+A consolidated colony-based agent operating system merging 21 repos into a unified platform.
+
+## Quick Start
+
+```bash
+# Install
+pip install -e ".[dev]"
+
+# Run tests
+make test
+
+# Start API server
+make api
+
+# CLI
+ai-multicolony run
+```
+
+## Architecture
+
+- **Core**: BaseAgent, AgentLoop, ToolRegistry, EventBus, LLMProvider, MemoryManager
+- **Agents**: Manus, Planner, Executor, Coder, Browser, Voice, Security, Researcher, Colony
+- **Tools**: Shell, File, Browser, Search, Code, MCP, Docker, Voice, Memory, Channel
+- **Colony**: Manager, Hands, Scheduler, Coordinator
+- **Memory**: Condensers, Vector Store, Paging, Session, Knowledge
+- **Channels**: Telegram, WhatsApp, Discord, Slack
+- **Security**: Analyzer, Audit, Permissions
+- **API**: FastAPI with WebSocket support
+
+## License
+
+MIT
+>>>>>>> origin/cl2-agent-3

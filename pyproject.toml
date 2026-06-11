@@ -1,0 +1,96 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-multicolony-ecosystem"
+version = "0.1.0"
+description = "Consolidated colony-based agent operating system merging 21 repos into a unified platform"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [
+    {name = "AI MultiColony Team"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+dependencies = [
+    "litellm>=1.20",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.1",
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "httpx>=0.27",
+    "aiohttp>=3.9",
+    "structlog>=24.1",
+    "rich>=13.7",
+    "click>=8.1",
+    "redis>=5.0",
+    "docker>=7.0",
+    "qdrant-client>=1.8",
+    "chromadb>=0.4",
+    "playwright>=1.41",
+    "python-dotenv>=1.0",
+    "tenacity>=8.2",
+    "tiktoken>=0.6",
+    "websockets>=12.0",
+    "aiofiles>=23.2",
+]
+
+[project.optional-dependencies]
+voice = [
+    "pyaudio>=0.2",
+    "librosa>=0.10",
+    "transformers>=4.36",
+]
+sandbox = [
+    "docker>=7.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=4.1",
+    "ruff>=0.2",
+    "mypy>=1.8",
+]
+all = [
+    "ai-multicolony-ecosystem[voice,sandbox,dev]",
+]
+
+[project.scripts]
+amce = "ai_multicolony.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ai_multicolony*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks integration tests",
+    "unit: marks unit tests",
+]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["ai_multicolony", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "A", "SIM", "TCH"]
+ignore = ["E501", "B008"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
