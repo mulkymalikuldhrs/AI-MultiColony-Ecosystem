@@ -1,25 +1,25 @@
-<a href="https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI">
-  <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:001a0a,50:003d1a,100:005c2a&height=220&section=header&text=Quant%20Nanggroe%20AI&fontSize=42&fontColor=00D4AA&animation=fadeIn&fontAlignY=30&desc=Multi-Agent%20Decision%20Intelligence%20OS%20for%20Quantitative%20Trading&descSize=16&descColor=fbbf24&descAlignY=50" />
+<a href="https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem">
+  <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:0a0a1a,50:1a1a3e,100:2d1b69&height=220&section=header&text=AI%20MultiColony%20Ecosystem&fontSize=42&fontColor=7c3aed&animation=fadeIn&fontAlignY=30&desc=5-Package%20Monorepo%20%7C%20Multi-LLM%20%7C%20OSINT%20%2B%20Trading%20%2B%20Autonomous%20Agents&descSize=16&descColor=a78bfa&descAlignY=50" />
 </a>
 
 <div align="center">
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=00D4AA&center=true&vCenter=true&width=720&lines=Multi-Agent+Decision+Intelligence+OS;5-Layer+Deterministic+Execution+Stack;Darwinian+Strategy+Lifecycle;Risk+Guardian+Constitution;Decision-Support+%E2%80%94+Not+Guaranteed+Profit)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=7C3AED&center=true&vCenter=true&width=720&lines=5-Package+Integrated+Monorepo;Multi-LLM+9-Provider+Router;Crucix+OSINT+%2B+deer-flow+Agents;HermesQuantOS+Trading+Engine;Autonomous+Organism+Engine)](https://git.io/typing-svg)
 
 <br/>
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
-[![Binance](https://img.shields.io/badge/Binance-API-F0B90B?style=for-the-badge&logo=binance&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
-[![Multi-Agent](https://img.shields.io/badge/Multi-Agent-5_Layers-00D4AA?style=for-the-badge&logo=ai&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
-[![Version](https://img.shields.io/badge/Version-v15.3.0-005c2a?style=for-the-badge&logo=semanticrelease&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
+[![Multi-LLM](https://img.shields.io/badge/Multi--LLM-9_Providers-7c3aed?style=for-the-badge&logo=ai&logoColor=white)](#)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
 
 <br/>
 
-[![GitHub Stars](https://img.shields.io/github/stars/mulkymalikuldhrs/Quant-Nanggroe-AI?style=for-the-badge&logo=github&color=gold)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/mulkymalikuldhrs/Quant-Nanggroe-AI?style=for-the-badge&logo=github&color=blue)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI/fork)
-[![GitHub Issues](https://img.shields.io/github/issues/mulkymalikuldhrs/Quant-Nanggroe-AI?style=for-the-badge&logo=github&color=red)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI/issues)
+[![GitHub Stars](https://img.shields.io/github/stars/mulkymalikuldhrs/AI-MultiColony-Ecosystem?style=for-the-badge&logo=github&color=gold)](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/mulkymalikuldhrs/AI-MultiColony-Ecosystem?style=for-the-badge&logo=github&color=blue)](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem/fork)
+[![GitHub Issues](https://img.shields.io/github/issues/mulkymalikuldhrs/AI-MultiColony-Ecosystem?style=for-the-badge&logo=github&color=red)](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem/issues)
 
 <br/>
 
@@ -33,188 +33,361 @@
 
 ---
 
-<a href="https://www.producthunt.com/products/quant-nanggroe-ai?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-quant-nanggroe-ai" target="_blank" rel="noopener noreferrer"><img alt="Quant Nanggroe AI - trading, quantitative, stocks, ai, ai agent, swarm | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1169196&amp;theme=dark&amp;t=1781170069213"></a>
-
 ## Overview
 
-Quant Nanggroe AI is a **Multi-Agent Decision Intelligence Operating System** for quantitative research and systematic trading in financial markets. It is part of the [HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) unified project ecosystem.
+**AI MultiColony Ecosystem** is a monorepo containing 5 integrated packages that together form a multi-agent AI platform spanning OSINT intelligence, autonomous agent orchestration, quantitative trading, and self-evolving organisms. The core Python backend (`ai_multicolony/`) exposes a FastAPI API, while a Next.js 16 dashboard provides real-time monitoring and control.
 
-Built on the principle of **Deterministic Decision Intelligence**, the platform treats LLMs as Logical Reasoning Engines operating under strict contracts that forbid subjective opinions, mandate data grounding, and require pressure-based numerical outputs rather than direct trade signals.
+> **Honest Note**: This is a **research platform and scaffold**. Many modules are in active development. The 5 packages vary in maturity — some have substantial test suites, others are early prototypes. See the [Maturity Assessment](#maturity-assessment) below for details.
 
-The system implements a **5-Layer Execution Stack** that processes market data from raw L1/L2 feeds through regime detection, multi-agent sensor analysis, pressure normalization, and decision synthesis with risk enforcement. It features a **Darwinian Strategy Lifecycle** that automatically retires underperforming strategies and a **Risk Guardian Constitution** as an independent layer of hard-coded safety rules.
+### The 5 Packages
 
-> **Honest Note**: This is a **decision-support and research tool**, not an autonomous trading system that guarantees profits. "Deterministic Decision Intelligence" means the data flow pipeline is deterministic — **not** that its outputs are guaranteed correct. All trading involves risk of loss. The Risk Guardian reduces but cannot eliminate risk.
+| Package | Purpose | Language | Status |
+|---------|---------|----------|--------|
+| **Crucix** | OSINT intelligence platform — 25+ data sources, multi-LLM briefing engine, real-time alerts | Node.js / JavaScript | Active development |
+| **deer-flow** | AI Agent Platform — skill-based workflow engine, multi-modal generation, LangGraph/CrewAI adapters | Python + Next.js | Active development |
+| **autonomous-organism** | Autonomous Engine — sense/decide/act loop, self-evolving, Supabase-backed | TypeScript + Python | Early prototype |
+| **HermesQuantOS** | Trading Engine — 5-layer decision stack, risk guardian, exchange adapters | Python | Active development |
+| **Agentic-AI-System_OLD** | Legacy reference — original multi-agent system, Flask + WebSocket | Python | Archived (read-only) |
 
 ---
 
-## 5-Layer Execution Stack
+## Visual Architecture
 
-The core of Quant Nanggroe AI is its layered execution architecture. Each layer has a single responsibility and strict data contracts with the layers above and below it. This is what makes the pipeline **deterministic** — the same inputs always follow the same processing path, producing auditable, traceable decision artifacts.
+### 1. Ecosystem Architecture — How All 5 Packages Interconnect
 
+```mermaid
+graph TB
+    subgraph "AI MultiColony Ecosystem"
+        direction TB
+
+        subgraph "Frontend Layer"
+            Dashboard["Next.js 16 Dashboard<br/>Real-time Monitoring"]
+            CrucixUI["Crucix Dashboard<br/>OSINT Visualization"]
+            DeerUI["deer-flow Frontend<br/>Agent Chat & Skills"]
+            OrganismUI["Organism UI<br/>Live Evolution View"]
+        end
+
+        subgraph "API Gateway"
+            Nginx["Nginx Reverse Proxy<br/>:80/:443"]
+            FastAPI["FastAPI Backend<br/>ai_multicolony/"]
+        end
+
+        subgraph "Core Packages"
+            Crucix["Crucix<br/>OSINT Engine<br/>25+ Data Sources"]
+            DeerFlow["deer-flow<br/>AI Agent Platform<br/>Skill Orchestration"]
+            Organism["autonomous-organism<br/>Self-Evolving Engine<br/>Sense/Decide/Act"]
+            Hermes["HermesQuantOS<br/>Trading Engine<br/>5-Layer Decision Stack"]
+            Legacy["Agentic-AI-System_OLD<br/>Legacy Reference<br/>Archived"]
+        end
+
+        subgraph "Infrastructure"
+            Docker["Docker Compose<br/>Orchestration"]
+            DB["PostgreSQL + Redis<br/>State & Cache"]
+            Monitoring["Prometheus + Grafana<br/>Observability"]
+        end
+    end
+
+    Dashboard --> Nginx
+    CrucixUI --> Nginx
+    DeerUI --> Nginx
+    OrganismUI --> Nginx
+
+    Nginx --> FastAPI
+
+    FastAPI --> Crucix
+    FastAPI --> DeerFlow
+    FastAPI --> Organism
+    FastAPI --> Hermes
+
+    Crucix -.->|"Intel Feed"| DeerFlow
+    DeerFlow -.->|"Agent Delegation"| Organism
+    Hermes -.->|"Market Data"| Crucix
+    Organism -.->|"Self-Optimize"| Hermes
+
+    Legacy -.->|"Historical Reference"| FastAPI
+
+    FastAPI --> DB
+    FastAPI --> Monitoring
+    Docker --> FastAPI
+
+    style Crucix fill:#1e40af,stroke:#3b82f6,color:#fff
+    style DeerFlow fill:#065f46,stroke:#10b981,color:#fff
+    style Organism fill:#7c2d12,stroke:#f97316,color:#fff
+    style Hermes fill:#581c87,stroke:#a855f7,color:#fff
+    style Legacy fill:#374151,stroke:#6b7280,color:#9ca3af
+    style FastAPI fill:#134e4a,stroke:#14b8a6,color:#fff
+    style Nginx fill:#1e293b,stroke:#475569,color:#fff
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    LAYER 4 — DECISION                   │
-│              Decision Synthesis & Risk Enforcement       │
-│         Final pressure vector → action recommendation    │
-├─────────────────────────────────────────────────────────┤
-│                  LAYER 3 — NORMALIZATION                 │
-│            Pressure Normalization & Conflict Resolution   │
-│       Multi-agent outputs → unified pressure vector      │
-├─────────────────────────────────────────────────────────┤
-│                   LAYER 2 — SENSORS                      │
-│          Multi-Agent Sensor Analysis & Interpretation    │
-│       Regime context → specialized agent analysis        │
-├─────────────────────────────────────────────────────────┤
-│                    LAYER 1 — REGIME                      │
-│            Market Regime Detection & Classification      │
-│       Raw market data → regime labels & transitions      │
-├─────────────────────────────────────────────────────────┤
-│                     LAYER 0 — DATA                       │
-│          Data Foundation & Market Feeds (L1/L2)          │
-│       External feeds → normalized internal data model    │
-└─────────────────────────────────────────────────────────┘
+
+### 2. Agent Communication Flow — How Agents Talk Between Packages
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Dashboard as Next.js Dashboard
+    participant API as FastAPI Gateway
+    participant Crucix as Crucix OSINT
+    participant DeerFlow as deer-flow Agents
+    participant Organism as Autonomous Organism
+    participant Hermes as HermesQuantOS
+
+    User->>Dashboard: Submit Task
+    Dashboard->>API: POST /api/tasks
+    API->>DeerFlow: Route to Skill Engine
+
+    alt OSINT Required
+        DeerFlow->>Crucix: Request Intelligence Briefing
+        Crucix->>Crucix: Aggregate 25+ Sources
+        Crucix-->>DeerFlow: Structured Intel Feed
+    end
+
+    DeerFlow->>Organism: Delegate to Autonomous Agent
+    Organism->>Organism: Sense → Decide → Act Loop
+
+    alt Trading Decision Needed
+        Organism->>Hermes: Market Analysis Request
+        Hermes->>Hermes: 5-Layer Decision Stack
+        Hermes-->>Organism: Pressure Vector + Risk Assessment
+    end
+
+    Organism-->>DeerFlow: Action Result
+    DeerFlow-->>API: Task Completion
+    API-->>Dashboard: WebSocket Update
+    Dashboard-->>User: Real-time Notification
 ```
 
-### Layer 0 — Data Foundation
+### 3. Data Pipeline — From Data Ingestion to Decision Output
 
-The bedrock layer ingests raw market data from multiple providers and normalizes it into a unified internal data model.
+```mermaid
+flowchart LR
+    subgraph "Ingestion"
+        OSINT["OSINT Sources<br/>25+ APIs"]
+        Market["Market Feeds<br/>Binance/Alpaca/IBKR"]
+        Social["Social Signals<br/>Telegram/Discord/Reddit"]
+        News["News & Research<br/>GDELT/FRED/SEC"]
+    end
 
-- **L1/L2 Feed Ingestion** — Real-time order book snapshots, trade prints, and ticker updates from Binance and fallback providers
-- **AutoSwitch Data Engine** — Automatic failover between data providers (Binance → CoinCap → AlphaVantage → Polygon → Finnhub) with latency tracking
-- **Normalization Pipeline** — All incoming data is mapped to a canonical schema regardless of source, ensuring upstream layers never need provider-specific logic
-- **Historical Replay** — Cached tick data enables deterministic replay for backtesting and audit trails
+    subgraph "Processing"
+        Normalize["Normalization<br/>Canonical Schema"]
+        Enrich["Enrichment<br/>LLM Classification"]
+        Validate["Validation<br/>Schema Checks"]
+    end
 
-### Layer 1 — Regime Detection
+    subgraph "Storage"
+        PgDB[("PostgreSQL<br/>Persistent State")]
+        Redis[("Redis<br/>Cache & Queues")]
+        Vector[("Vector Store<br/>Embeddings")]
+    end
 
-Processes normalized data to identify the current market regime, which governs how all downstream agents interpret signals.
+    subgraph "Agent Analysis"
+        Tech["Technical<br/>Sensor"]
+        Sent["Sentiment<br/>Sensor"]
+        Macro["Macro<br/>Sensor"]
+        Liquidity["Liquidity<br/>Sensor"]
+        OnChain["On-Chain<br/>Sensor"]
+    end
 
-- **Regime Classification** — Labels market state (trending, mean-reverting, volatile, quiet, transitional) using statistical and structural indicators
-- **Transition Detection** — Identifies regime shifts in real-time, triggering agent reconfiguration
-- **Context Propagation** — Broadcasts regime labels to all Layer 2 sensors, ensuring every agent operates within the correct market context
-- **Confidence Scoring** — Each regime label carries a confidence score; low-confidence regimes trigger conservative agent behavior
+    subgraph "Decision"
+        Pressure["Pressure<br/>Normalization"]
+        Guardian["Risk<br/>Guardian"]
+        Decision["Decision<br/>Artifact"]
+    end
 
-### Layer 2 — Multi-Agent Sensors
+    OSINT --> Normalize
+    Market --> Normalize
+    Social --> Normalize
+    News --> Normalize
 
-Specialized agents analyze the market within the context provided by Layer 1. Each agent is a narrow expert, not a generalist.
+    Normalize --> Enrich --> Validate
 
-- **Technical Sensor** — Pattern recognition, momentum, mean-reversion, and volatility analysis
-- **Sentiment Sensor** — NLP-based sentiment extraction from news, social, and on-chain data
-- **Macro Sensor** — Interest rates, funding rates, correlation shifts, and cross-asset analysis
-- **Liquidity Sensor** — Order book depth analysis, slippage estimation, and flow detection
-- **Volatility Sensor** — Realized vs. implied volatility, regime-adjusted volatility forecasting
-- **On-Chain Sensor** — Whale movements, exchange flows, and smart money tracking (crypto markets)
+    Validate --> PgDB
+    Validate --> Redis
+    Validate --> Vector
 
-Each sensor produces a **pressure vector** (directional bias + magnitude) rather than a binary signal, enabling nuanced downstream synthesis.
+    PgDB --> Tech
+    PgDB --> Sent
+    PgDB --> Macro
+    PgDB --> Liquidity
+    PgDB --> OnChain
 
-### Layer 3 — Pressure Normalization
+    Vector --> Tech
+    Vector --> Sent
 
-Receives pressure vectors from all active sensors and resolves conflicts into a unified assessment.
+    Tech --> Pressure
+    Sent --> Pressure
+    Macro --> Pressure
+    Liquidity --> Pressure
+    OnChain --> Pressure
 
-- **Weighted Aggregation** — Sensor pressures are weighted by historical accuracy in the current regime
-- **Conflict Resolution** — When sensors disagree, the system reduces overall confidence rather than picking a winner
-- **Temporal Smoothing** — Prevents whipsaw by requiring sustained pressure before adjusting the aggregate
-- **Darwinian Weighting** — Sensors with consistently poor performance in a given regime have their weights automatically reduced (linked to the Strategy Lifecycle)
+    Pressure --> Guardian --> Decision
 
-### Layer 4 — Decision Synthesis & Risk Enforcement
+    style Decision fill:#15803d,stroke:#22c55e,color:#fff
+    style Guardian fill:#b91c1c,stroke:#ef4444,color:#fff
+    style Normalize fill:#1e40af,stroke:#3b82f6,color:#fff
+```
 
-The final layer combines the normalized pressure vector with portfolio state and risk constraints to produce an action recommendation.
+### 4. Tech Stack Visualization — Full Stack Diagram
 
-- **Position Sizing** — Kelly-derived sizing modulated by current portfolio heat and regime confidence
-- **Risk Guardian Gate** — Every recommendation passes through the Risk Guardian Constitution before reaching the execution layer. The Guardian can **block, reduce, or modify** any action
-- **Audit Trail** — Every decision is logged with full provenance: which sensors contributed, their weights, regime context, and Guardian rulings
-- **Action Output** — The system outputs a structured decision artifact (not a direct trade order), which a human operator or downstream execution system can act upon
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        Browser["Browser<br/>React 19 / Next.js 16"]
+        PWA["PWA<br/>Offline Support"]
+        Mobile["Mobile<br/>Responsive"]
+    end
+
+    subgraph "Web Server"
+        Nginx["Nginx<br/>Reverse Proxy + SSL"]
+        Static["Static Assets<br/>CSS/JS/Icons"]
+    end
+
+    subgraph "Application Layer"
+        FastAPI["FastAPI<br/>Python 3.11+"]
+        WS["WebSocket<br/>Real-time Events"]
+        Workers["Background Workers<br/>Task Queue"]
+    end
+
+    subgraph "Agent Framework"
+        Colony["Colony Manager<br/>Agent Orchestration"]
+        Registry["Agent Registry<br/>Capability Discovery"]
+        Memory["Memory Manager<br/>Context & Recall"]
+        MCP["MCP Server<br/>Tool Protocol"]
+        Skills["Skill Engine<br/>Plugin Architecture"]
+    end
+
+    subgraph "LLM Router"
+        Gateway["LLM Gateway<br/>Priority Fallback"]
+        LLM7["LLM7<br/>Primary"]
+        OpenRouter["OpenRouter<br/>Secondary"]
+        OpenAI["OpenAI<br/>Tertiary"]
+        Anthropic["Anthropic<br/>Quaternary"]
+        CAMEL["CAMEL<br/>Quinary"]
+        Local["Local Models<br/>Ollama"]
+    end
+
+    subgraph "Data Layer"
+        Postgres[("PostgreSQL<br/>Alembic Migrations")]
+        Redis[("Redis<br/>Cache & Pub/Sub")]
+        Vector[("Vector DB<br/>Embeddings")]
+    end
+
+    subgraph "Infrastructure"
+        Docker["Docker Compose<br/>Multi-Container"]
+        Prometheus["Prometheus<br/>Metrics"]
+        Grafana["Grafana<br/>Dashboards"]
+        K8s["Kubernetes<br/>Production Orchestration"]
+    end
+
+    Browser --> Nginx
+    PWA --> Nginx
+    Mobile --> Nginx
+    Nginx --> FastAPI
+    Nginx --> Static
+    FastAPI --> WS
+    FastAPI --> Workers
+
+    FastAPI --> Colony
+    Colony --> Registry
+    Colony --> Memory
+    Colony --> MCP
+    Colony --> Skills
+
+    Skills --> Gateway
+    Gateway --> LLM7
+    Gateway --> OpenRouter
+    Gateway --> OpenAI
+    Gateway --> Anthropic
+    Gateway --> CAMEL
+    Gateway --> Local
+
+    FastAPI --> Postgres
+    FastAPI --> Redis
+    FastAPI --> Vector
+
+    Docker --> FastAPI
+    Prometheus --> FastAPI
+    Grafana --> Prometheus
+    K8s --> Docker
+
+    style Gateway fill:#7c3aed,stroke:#a855f7,color:#fff
+    style Colony fill:#065f46,stroke:#10b981,color:#fff
+    style FastAPI fill:#134e4a,stroke:#14b8a6,color:#fff
+```
+
+### 5. Multi-LLM Router — Provider Fallback Chain
+
+```mermaid
+flowchart TD
+    Request["Incoming LLM Request"] --> Router["LLM Gateway Router"]
+
+    Router --> Check1{"LLM7<br/>Available?"}
+    Check1 -->|"Yes + Free Tier"| LLM7["LLM7<br/>Priority 1<br/>GPT-3.5/4, Claude"]
+    Check1 -->|"No / Rate Limited"| Check2
+
+    Check2{"OpenRouter<br/>Available?"}
+    Check2 -->|"Yes"| OpenRouter["OpenRouter<br/>Priority 2<br/>Claude, Llama-3-70B"]
+    Check2 -->|"No / Rate Limited"| Check3
+
+    Check3{"CAMEL<br/>Available?"}
+    Check3 -->|"Yes"| CAMEL["CAMEL<br/>Priority 3<br/>camel-chat, camel-agent"]
+    Check3 -->|"No / Rate Limited"| Check4
+
+    Check4{"OpenAI<br/>Available?"}
+    Check4 -->|"Yes"| OpenAI["OpenAI<br/>Priority 4<br/>GPT-4, GPT-4o"]
+    Check4 -->|"No / Rate Limited"| Check5
+
+    Check5{"Anthropic<br/>Available?"}
+    Check5 -->|"Yes"| Anthropic["Anthropic<br/>Priority 5<br/>Claude 3.5 Sonnet"]
+    Check5 -->|"No / Rate Limited"| Check6
+
+    Check6{"Ollama Local<br/>Available?"}
+    Check6 -->|"Yes"| Local["Ollama Local<br/>Priority 6<br/>Llama 3, Mistral"]
+    Check6 -->|"No"| Fallback["Return Cached<br/>Response or Error"]
+
+    LLM7 --> Response["Unified Response<br/>+ Provider Metadata"]
+    OpenRouter --> Response
+    CAMEL --> Response
+    OpenAI --> Response
+    Anthropic --> Response
+    Local --> Response
+
+    Response --> Audit["Audit Trail<br/>Provider, Latency, Tokens"]
+
+    style Router fill:#7c3aed,stroke:#a855f7,color:#fff
+    style LLM7 fill:#15803d,stroke:#22c55e,color:#fff
+    style Fallback fill:#b91c1c,stroke:#ef4444,color:#fff
+    style Audit fill:#1e40af,stroke:#3b82f6,color:#fff
+```
+
+---
+
+## Maturity Assessment
+
+> Radical transparency about what works and what doesn't.
+
+| Component | Maturity | Test Coverage | Notes |
+|-----------|----------|---------------|-------|
+| FastAPI Backend (`ai_multicolony/`) | **Alpha** | Partial | Core routes exist; integration between packages is scaffolded |
+| Crucix OSINT | **Beta** | Moderate | 25+ API sources working; LLM briefing engine functional |
+| deer-flow | **Beta** | Moderate | Skill system works; LangGraph/CrewAI adapters present |
+| autonomous-organism | **Prototype** | Minimal | Sense/Decide/Act loop scaffolded; self-evolution is aspirational |
+| HermesQuantOS | **Alpha** | Moderate | 5-layer stack designed; paper trading not yet validated |
+| Multi-LLM Gateway | **Beta** | Moderate | 9 providers defined; fallback chain tested for top 3 |
+| Next.js Dashboard | **Alpha** | Minimal | UI shell and pages exist; real data integration in progress |
+| Docker Orchestration | **Alpha** | Minimal | Compose files present; not production-hardened |
 
 ---
 
 ## Features
 
-- **5-Layer Execution Stack** — Deterministic data flow from raw feeds to decision artifacts, with strict layer contracts and full audit trails
-- **Deterministic Pipeline** — Every decision is traceable, auditable, and defensible. The same inputs follow the same processing path every time
-- **Darwinian Strategy Lifecycle** — Strategies and sensors are continuously evaluated; underperformers are automatically retired and replaced with evolved variants
-- **Risk Guardian Constitution** — Independent hard-coded safety rules immune to AI reasoning that can block, reduce, or modify any action regardless of agent confidence
-- **Desktop-OS UI** — React 19 interface with draggable windows, macOS-style dock, OmniBar command palette, and real-time visualization of agent states and pressure vectors
-- **AutoSwitch Data Engine** — Automatic failover between data providers (Binance, CoinCap, AlphaVantage, Polygon, Finnhub) with latency-aware routing
-- **Pressure-Based Outputs** — Agents produce continuous pressure vectors (direction + magnitude), not binary signals, enabling nuanced decision-making
-- **Regime-Aware Analysis** — All agents operate within detected market regime context, reducing false signals from regime-inappropriate strategies
-- **Full Provenance Audit** — Every decision artifact includes which sensors contributed, their weights, regime context, and Guardian rulings
-
----
-
-## Architecture
-
-```
-                          ┌──────────────────────┐
-                          │   Desktop-OS UI      │
-                          │   (React 19)         │
-                          │   ┌──────────────┐   │
-                          │   │  OmniBar     │   │
-                          │   │  Dock        │   │
-                          │   │  Windows     │   │
-                          │   └──────┬───────┘   │
-                          └─────────┼────────────┘
-                                    │
-                          ┌─────────▼────────────┐
-                          │   Layer 4: Decision   │
-                          │  ┌─────────────────┐  │
-                          │  │ Risk Guardian ◄────── Constitution
-                          │  │ Position Sizer  │  │  (Hard Rules)
-                          │  │ Audit Logger    │  │
-                          │  └────────┬────────┘  │
-                          └───────────┼───────────┘
-                                      │
-                          ┌───────────▼───────────┐
-                          │  Layer 3: Normalizer  │
-                          │  ┌─────────────────┐  │
-                          │  │ Weighted Agg    │  │
-                          │  │ Conflict Res    │  │
-                          │  │ Darwinian Wt    │◄──── Strategy
-                          │  └────────┬────────┘  │  Lifecycle
-                          └───────────┼───────────┘
-                                      │
-                   ┌──────────┬───────▼───────┬──────────┐
-                   │          │               │          │
-             ┌─────▼───┐ ┌───▼─────┐ ┌───────▼──┐ ┌────▼────┐
-             │Technical│ │Sentiment│ │Liquidity │ │On-Chain │
-             │ Sensor  │ │ Sensor  │ │  Sensor  │ │ Sensor  │
-             └─────┬───┘ └───┬─────┘ └───────┬──┘ └────┬────┘
-                   │         │               │         │
-             ┌─────▼─────────▼───────────────▼─────────▼────┐
-             │        Layer 1: Regime Detection             │
-             │   ┌──────────────────────────────────────┐   │
-             │   │ Classifier │ Transitions │ Confidence │   │
-             │   └──────────────────────────────────────┘   │
-             └──────────────────────┬───────────────────────┘
-                                    │
-             ┌──────────────────────▼───────────────────────┐
-             │         Layer 0: Data Foundation             │
-             │  ┌───────┐ ┌─────────┐ ┌───────┐ ┌───────┐ │
-             │  │Binance│ │CoinCap  │ │Polygn │ │Finnhb │ │
-             │  └───────┘ └─────────┘ └───────┘ └───────┘ │
-             │        AutoSwitch Data Engine                │
-             └─────────────────────────────────────────────┘
-```
-
----
-
-## Honest Notes
-
-> We believe in radical transparency. Here are the limitations and clarifications you should know before using this project.
-
-| Claim | Reality |
-|-------|---------|
-| "Deterministic Decision Intelligence" | The **data flow pipeline** is deterministic — same inputs follow the same path. This does **not** mean outputs are guaranteed correct. |
-| "Decision Intelligence OS" | This is a **decision-support tool**. It produces structured decision artifacts for human review, not autonomous trade execution. |
-| "Risk Guardian" | Reduces risk through hard-coded safety rules, but **cannot eliminate risk**. Market conditions can exceed any risk model. |
-| "Darwinian Strategy Lifecycle" | Automatically retires poor strategies based on metrics, but **past performance does not guarantee future results**. |
-| "Multi-Agent Analysis" | Multiple agents provide diverse perspectives, but **diverse analysis does not equal correct analysis**. |
-| Part of HermesQuantOS | This project is one component of the larger [HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) ecosystem. |
-
-**Critical reminders:**
-- All trading involves **significant risk of loss**
-- This software is for **education and research** purposes
-- Always test with **paper trading** before committing real capital
-- Never risk more than you can afford to lose
-- Past backtest results do not predict future performance
+- **5-Package Monorepo** — Crucix (OSINT), deer-flow (Agent Platform), autonomous-organism (Self-Evolving), HermesQuantOS (Trading), Agentic-AI-System_OLD (Legacy)
+- **Multi-LLM 9-Provider Router** — LLM7, OpenRouter, CAMEL, OpenAI, Anthropic, Ollama, Grok, Gemini, MiniMax with priority-based fallback
+- **Colony-Based Agent Architecture** — Agents form colonies with shared memory, specialized roles, and inter-colony communication
+- **FastAPI + Next.js 16** — Python backend with async WebSocket support and modern React dashboard
+- **Docker Compose Orchestration** — Multi-container setup with Nginx reverse proxy
+- **Skill Plugin System** — Extensible skill registry for adding new agent capabilities
+- **MCP (Model Context Protocol)** — Standardized tool interface for agent-tool interaction
+- **Monitoring Stack** — Prometheus metrics + Grafana dashboards
 
 ---
 
@@ -222,181 +395,104 @@ The final layer combines the normalized pressure vector with portfolio state and
 
 ### Prerequisites
 
-- **Node.js** >= 18.x
-- **npm** >= 9.x (or pnpm/yarn)
-- Binance API key (use **testnet** first)
+- **Docker** and **Docker Compose**
+- **Python** 3.11+
+- **Node.js** 18+ (for dashboard)
+- API keys for LLM providers (at least one)
 
 ### Installation
 
 ```bash
 # Clone the repository
+git clone https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git
+cd AI-MultiColony-Ecosystem
 
-<!-- AUTO-PACKAGE-BADGES:START -->
-<!-- Auto-generated package badges -->
-
-![PyPI version](https://img.shields.io/pypi/v/quant-nanggroe-ai?style=flat-square&logo=pypi&color=green) ![PyPI downloads](https://img.shields.io/pypi/dm/quant-nanggroe-ai?style=flat-square&color=brightgreen) ![PyPI license](https://img.shields.io/pypi/l/quant-nanggroe-ai?style=flat-square) [![Deployed](https://img.shields.io/badge/deployed-0.2.0-blue?style=flat-square)](https://pypi.org/project/quant-nanggroe-ai)
-
-<!-- AUTO-PACKAGE-BADGES:END -->
-git clone https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI.git
-cd Quant-Nanggroe-AI
-
-# Install dependencies
-npm install
-
-# Configure environment
+# Copy environment template
 cp .env.example .env
-# Edit .env with your API keys (use testnet keys for initial testing)
+# Edit .env with your API keys
 
-# Start development server
-npm run dev
+# Option 1: Docker Compose (recommended)
+docker-compose up --build
+
+# Option 2: Manual start
+pip install -r requirements.txt
+python main.py  # FastAPI backend on :8000
+cd dashboard && npm install && npm run dev  # Next.js on :3000
 ```
 
 ### Environment Variables
 
 ```env
-# Required — Data Provider
-BINANCE_API_KEY=your_testnet_key
-BINANCE_API_SECRET=your_testnet_secret
+# LLM Providers (at least one required)
+LLM7_API_KEY=           # Primary (free tier available)
+OPENROUTER_API_KEY=     # Secondary
+OPENAI_API_KEY=         # Tertiary
+ANTHROPIC_API_KEY=      # Quaternary
+CAMEL_API_KEY=          # Quinary
 
-# Optional — Fallback Data Providers
-COINCAP_API_KEY=
-ALPHAVANTAGE_API_KEY=
-POLYGON_API_KEY=
-FINNHUB_API_KEY=
+# Optional: Data Sources
+BINANCE_API_KEY=
+BINANCE_API_SECRET=
 
-# Optional — LLM Reasoning Engine
-OPENAI_API_KEY=
+# Database
+DATABASE_URL=postgresql://user:pass@localhost:5432/multicolony
+REDIS_URL=redis://localhost:6379
 
-# Risk Guardian Configuration
-MAX_POSITION_SIZE_PCT=5
-MAX_PORTFOLIO_HEAT_PCT=20
-MAX_DAILY_DRAWDOWN_PCT=3
+# Infrastructure
+LOG_LEVEL=info
+DEBUG=false
 ```
-
-> **Important**: Always start with Binance Testnet. Never connect to mainnet with untested configurations.
 
 ---
 
-## API Reference
+## Project Structure
 
-### Core Modules
-
-#### Layer 0 — Data Engine
-
-```typescript
-import { DataEngine } from '@quant-nanggroe/data-engine';
-
-const engine = new DataEngine({
-  primary: 'binance',
-  fallbacks: ['coincap', 'alphavantage'],
-  autoSwitch: true,
-});
-
-// Subscribe to real-time L2 order book
-engine.onOrderBook('BTC/USDT', (snapshot) => {
-  console.log(snapshot.bids, snapshot.asks);
-});
-
-// Get historical ticks with deterministic replay
-const ticks = await engine.getHistoricalTicks('BTC/USDT', {
-  start: '2025-01-01',
-  end: '2025-01-31',
-  source: 'cache', // ensures deterministic replay
-});
+```
+AI-MultiColony-Ecosystem/
+├── ai_multicolony/              # Core Python backend
+│   ├── api/                     # FastAPI routes (agents, colonies, tasks, tools, memory)
+│   ├── browser/                 # Browser automation (stealth, human-like behavior)
+│   ├── channels/                # Messaging integrations (Telegram, Discord, Slack, WhatsApp)
+│   ├── integrations/            # Cross-package bridges (Crucix, Organism, Hermes)
+│   ├── sources/                 # Data source managers (OSINT, market, economic)
+│   └── types/                   # Shared type definitions
+├── packages/
+│   ├── crucix/                  # OSINT intelligence platform
+│   ├── deer-flow/               # AI agent platform with skill system
+│   ├── autonomous-organism/     # Self-evolving autonomous engine
+│   ├── hermes-quant/            # Quantitative trading engine
+│   └── agentic-legacy/          # Legacy archived system
+├── connectors/                  # LLM gateway and external service connectors
+├── dashboard/                   # Next.js 16 dashboard
+├── database/                    # SQLAlchemy models and migrations
+├── docker/                      # Docker Compose configurations
+├── monitoring/                  # Prometheus + Grafana configs
+├── skills/                      # Skill plugin registry
+├── tests/                       # Test suites
+├── docs/                        # Architecture and design docs
+└── web_interface/               # Legacy Flask web interface
 ```
 
-#### Layer 1 — Regime Detector
+---
 
-```typescript
-import { RegimeDetector } from '@quant-nanggroe/regime';
+## Honest Notes
 
-const detector = new RegimeDetector({
-  lookback: 100,
-  transitionSensitivity: 0.7,
-});
+> We believe in radical transparency. Here are the limitations you should know.
 
-detector.onRegimeChange((current, previous, confidence) => {
-  console.log(`Regime: ${previous} → ${current} (confidence: ${confidence})`);
-  // Regime labels: 'trending' | 'mean-reverting' | 'volatile' | 'quiet' | 'transitional'
-});
-```
-
-#### Layer 2 — Sensor Agents
-
-```typescript
-import { SensorOrchestrator } from '@quant-nanggroe/sensors';
-
-const sensors = new SensorOrchestrator({
-  enabled: ['technical', 'sentiment', 'liquidity', 'onchain'],
-  regimeAware: true, // sensors auto-configure based on regime
-});
-
-// Each sensor outputs a pressure vector
-sensors.onPressure('BTC/USDT', (readings) => {
-  // readings.technical → { direction: 0.72, magnitude: 0.65, confidence: 0.81 }
-  // readings.sentiment → { direction: 0.45, magnitude: 0.30, confidence: 0.52 }
-  // ...
-});
-```
-
-#### Layer 3 — Pressure Normalizer
-
-```typescript
-import { PressureNormalizer } from '@quant-nanggroe/normalizer';
-
-const normalizer = new PressureNormalizer({
-  darwinianWeighting: true,
-  conflictThreshold: 0.4,
-  smoothingWindow: 5,
-});
-
-const unified = normalizer.aggregate(pressureReadings, regimeContext);
-// → { direction: 0.61, magnitude: 0.55, confidence: 0.68, contributingSensors: 4 }
-```
-
-#### Layer 4 — Decision Synthesizer
-
-```typescript
-import { DecisionSynthesizer } from '@quant-nanggroe/decision';
-
-const synthesizer = new DecisionSynthesizer({
-  riskGuardianEnabled: true,
-  auditLogging: true,
-});
-
-const decision = synthesizer.evaluate(unifiedPressure, portfolioState);
-// decision → {
-//   action: 'reduce_long',
-//   size: 0.03,
-//   confidence: 0.68,
-//   guardianRulings: ['portfolio_heat_within_limits'],
-//   provenance: { sensors: [...], regime: 'volatile', weights: {...} }
-// }
-```
-
-### Risk Guardian Constitution
-
-```typescript
-import { RiskGuardian } from '@quant-nanggroe/guardian';
-
-const guardian = new RiskGuardian({
-  maxPositionSizePct: 5,     // max 5% per position
-  maxPortfolioHeatPct: 20,    // max 20% total portfolio heat
-  maxDailyDrawdownPct: 3,    // max 3% daily drawdown
-  maxCorrelatedExposure: 15,  // max 15% in correlated assets
-  killSwitchEnabled: true,    // emergency halt capability
-});
-
-// The Guardian acts as a gate — it can BLOCK, REDUCE, or MODIFY actions
-const ruling = guardian.evaluate(proposedAction, portfolioState);
-// ruling → { verdict: 'REDUCE', originalSize: 0.05, adjustedSize: 0.03, reason: 'portfolio_heat_15.2pct' }
-```
+| Claim | Reality |
+|-------|---------|
+| "5-Package Ecosystem" | 5 packages exist in the monorepo, but **inter-package communication is partially scaffolded**. Some bridges work; others are aspirational. |
+| "Multi-LLM 9-Provider" | 9 providers are defined in the gateway. **Fallback has been tested for the top 3**; lower-priority providers may need API key validation. |
+| "Autonomous Organism" | The sense/decide/act loop is **scaffolded, not production-ready**. Self-evolution is a design goal, not a current capability. |
+| "Colony-Based Agents" | Colony management works for **basic task delegation**. Advanced features (inter-colony negotiation, shared learning) are in development. |
+| "Docker Orchestration" | Docker Compose files exist but are **not production-hardened**. Use for development only. |
+| "Next.js 16 Dashboard" | UI shell and pages exist with **mock data**. Real backend integration is ongoing. |
 
 ---
 
 ## Contributing
 
-Contributions are welcome! We especially value contributions that improve transparency, risk management, and honest documentation.
+Contributions are welcome! We especially value contributions that improve transparency, testing, and cross-package integration.
 
 ### How to Contribute
 
@@ -406,34 +502,23 @@ Contributions are welcome! We especially value contributions that improve transp
 4. **Push** to the branch (`git push origin feature/amazing-feature`)
 5. Open a **Pull Request**
 
-### Contribution Guidelines
-
-- **Do not** add features that overclaim about trading performance or guaranteed returns
-- **Do** improve risk management, error handling, and audit trail capabilities
-- **Do** add tests for any new logic in the execution stack
-- **Do** update documentation to reflect any behavioral changes
-- Code style follows the existing TypeScript strict configuration
-
 ### Development Setup
 
 ```bash
-# Install dependencies
-npm install
+# Install Python dependencies
+pip install -r requirements.txt
 
-# Run in development mode with hot reload
-npm run dev
-
-# Run type checking
-npm run typecheck
-
-# Run linting
-npm run lint
+# Install dashboard dependencies
+cd dashboard && npm install
 
 # Run tests
-npm run test
+pytest tests/
 
-# Build for production
-npm run build
+# Run linting
+ruff check .
+
+# Start development environment
+docker-compose -f docker-compose.dev.yml up
 ```
 
 ---
@@ -442,62 +527,27 @@ npm run build
 
 **FOR EDUCATION AND RESEARCH PURPOSE ONLY**
 
-This project is provided strictly for educational and research purposes. The authors and contributors assume **no responsibility or liability** for any financial damages, losses, or risks arising from the use of this software.
+This project is provided strictly for educational and research purposes. The authors and contributors assume **no responsibility or liability** for any damages, losses, or risks arising from the use of this software.
 
-**Key risks:**
-
-- **All trading involves significant risk of loss.** You can lose your entire investment and more.
-- **Past performance does not guarantee future results.** Backtested strategies may fail in live markets.
-- **The Risk Guardian reduces but cannot eliminate risk.** Market conditions can exceed any risk model's assumptions.
-- **Decision-support outputs are not financial advice.** The system produces structured decision artifacts — you are solely responsible for any trading decisions you make.
-- **We do not bear any responsibility or risk** for how this software is used.
-- **Always use testnet/paper trading** before connecting to live markets with real capital.
+- Trading modules are for **research only** — not financial advice
+- OSINT modules must be used **responsibly and legally**
+- The autonomous agent system is **not production-ready**
+- Always use **test environments** before connecting to live systems
 
 ---
 
+## Related Projects
 
-
-## 🔗 Related Projects
-
-We're building a family of open source tools! Check out our other projects:
-
-| Project | Description | Stars |
-|---------|-------------|-------|
-| [📈 Quant-Nanggroe-AI](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI) | AI-powered quantitative analysis for Nanggroe market | ⭐ |
-| [🧠 AI-MultiColony-Ecosystem](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem) | Multi-agent AI colony simulation | ⭐ 3 |
-| [📋 Kalen](https://github.com/mulkymalikuldhrs/kalen) | Smart scheduling & AI task management | ⭐ |
-| [🤖 ProxyGateLLM](https://github.com/mulkymalikuldhrs/ProxyGateLLM) | Multi-LLM gateway with priority fallback | ⭐ 36 |
-| [🧩 Mnemosyne](https://github.com/mulkymalikuldhrs/mnemosyne) | Knowledge management & note-taking | ⭐ |
-
-🚀 **[Visit our Contributor Hub](https://mulkymalikuldhrs.github.io/contribute-to-our-projects/)** — 28 open source projects seeking contributors!
+| Project | Description |
+|---------|-------------|
+| [Quant-Nanggroe-AI](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI) | Multi-Agent Decision Intelligence OS for Quantitative Trading |
+| [HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) | Unified Trading Intelligence Platform |
+| [ProxyGateLLM](https://github.com/mulkymalikuldhrs/ProxyGateLLM) | Multi-LLM Gateway with Priority Fallback |
+| [Agentic-AI-System_OLD](https://github.com/mulkymalikuldhrs/Agentic-AI-System_OLD) | Legacy Multi-Agent System (Archived) |
 
 ## License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
-```
-MIT License
-
-Copyright (c) 2024-2026 Mulky Malikul Dhaher
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
 
 ---
 
@@ -516,29 +566,6 @@ SOFTWARE.
 
 </div>
 
-<a href="https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI">
-  <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=100:005c2a,50:003d1a,0:001a0a&height=100&section=footer" />
+<a href="https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem">
+  <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:2d1b69,50:1a1a3e,100:0a0a1a&height=100&section=footer" />
 </a>
-
-
-<!-- Schema.org Structured Data for Search Engines -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareSourceCode",
-  "name": "Quant-Nanggroe-AI",
-  "author": {
-    "@type": "Person",
-    "name": "Mulky Malikul Adhr",
-    "url": "https://github.com/mulkymalikuldhrs"
-  },
-  "programmingLanguage": "TypeScript",
-  "license": "https://spdx.org/licenses/MIT",
-  "codeRepository": "https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI",
-  "contributor": {
-    "@type": "Organization",
-    "name": "Open Source Contributors",
-    "url": "https://mulkymalikuldhrs.github.io/contribute-to-our-projects/"
-  }
-}
-</script>
