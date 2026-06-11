@@ -85,6 +85,11 @@ class AgentRole(str, Enum):
     CRYPTO = "crypto"
     FOREX = "forex"
     COUNCIL = "council"
+    SMC = "smc"
+    DEBATE = "debate"
+    GEOPOLITICS = "geopolitics"
+    PERSONAS = "personas"
+    PERSONA = "persona"  # Alias for individual persona agents
 
 
 # =============================================================================
