@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 
@@ -15,7 +15,7 @@ class BrowserPage:
         self.status_code: int = 200
         self.content: str = ""
         self.screenshot: Optional[bytes] = None
-        self.loaded_at: datetime = datetime.utcnow()
+        self.loaded_at: datetime = datetime.now(timezone.utc)
         self.cookies: List[Dict[str, Any]] = []
         self.headers: Dict[str, str] = {}
 

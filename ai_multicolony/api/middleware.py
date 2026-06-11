@@ -6,11 +6,22 @@ Designed to work with FastAPI or any ASGI-compatible framework.
 from __future__ import annotations
 
 import logging
+import os
 import time
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
+
+# ── JWT Support ───────────────────────────────────────────────────────────────
+
+try:
+    import jwt as _jwt
+
+    _HAS_PYJWT = True
+except ImportError:  # pragma: no cover
+    _jwt = None  # type: ignore[assignment]
+    _HAS_PYJWT = False
 
 
 # ── Authentication Middleware ──────────────────────────────────────────────────
@@ -64,19 +75,58 @@ class AuthMiddleware:
     def validate_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Validate a JWT Bearer token.
 
-        In production this would decode and verify the JWT signature.
-        Returns decoded claims or None.
+        Decodes and verifies the JWT signature using PyJWT when available.
+        Checks the ``exp`` (expiration) and ``iss`` (issuer, if configured)
+        claims.  Falls back to a warning log + basic validation when PyJWT
+        is not installed.
+
+        Returns decoded claims dict or ``None`` if the token is invalid.
         """
         if token in self._revoked_tokens:
             return None
 
-        # Simplified validation: token must be non-empty and reasonably long
-        if not token or len(token) < 10:
+        if not token:
             return None
 
-        # Would decode JWT here:
-        # payload = jwt.decode(token, self.jwt_secret, algorithms=["HS256"])
-        # Check expiry, issuer, etc.
+        # ── Real JWT validation when PyJWT is available ──────────────────
+        if _HAS_PYJWT and _jwt is not None:
+            try:
+                decode_options: Dict[str, bool] = {
+                    "require_exp": True,
+                    "verify_exp": True,
+                }
+                decode_kwargs: Dict[str, Any] = {
+                    "algorithms": ["HS256"],
+                    "options": decode_options,
+                }
+
+                # If an expected issuer is configured, verify it
+                expected_iss = os.getenv("JWT_ISSUER")
+                if expected_iss:
+                    decode_kwargs["issuer"] = expected_iss
+
+                payload = _jwt.decode(
+                    token, self.jwt_secret, **decode_kwargs
+                )
+                return payload  # type: ignore[return-value]
+
+            except _jwt.ExpiredSignatureError:
+                logger.warning("JWT token has expired")
+                return None
+            except _jwt.InvalidTokenError as exc:
+                logger.warning("JWT token is invalid: %s", exc)
+                return None
+            except Exception as exc:  # pragma: no cover
+                logger.warning("Unexpected JWT validation error: %s", exc)
+                return None
+
+        # ── Fallback when PyJWT is not installed ─────────────────────────
+        logger.warning(
+            "PyJWT is not installed — falling back to basic token validation. "
+            "Install PyJWT for proper JWT verification."
+        )
+        if len(token) < 10:
+            return None
         return {"sub": "agent", "role": "agent", "valid": True}
 
     def revoke_token(self, token: str) -> None:

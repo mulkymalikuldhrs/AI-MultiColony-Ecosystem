@@ -19,7 +19,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - QNAI_DATABASE_URL=postgresql://qnai:qnai@db:5432/qnai
+      # WARNING: Never use default passwords in production — set POSTGRES_PASSWORD in .env
+      - QNAI_DATABASE_URL=postgresql://qnai:${POSTGRES_PASSWORD:-changeme_in_production}@db:5432/qnai
       - QNAI_REDIS_URL=redis://redis:6379/0
       - QNAI_CHROMA_URL=http://chroma:8000
       - QNAI_DEBUG=false
@@ -49,7 +50,8 @@ services:
       dockerfile: docker/Dockerfile
     command: ["python", "-m", "quant_nanggroe.cli", "serve", "--host", "0.0.0.0", "--port", "8001"]
     environment:
-      - QNAI_DATABASE_URL=postgresql://qnai:qnai@db:5432/qnai
+      # WARNING: Never use default passwords in production — set POSTGRES_PASSWORD in .env
+      - QNAI_DATABASE_URL=postgresql://qnai:${POSTGRES_PASSWORD:-changeme_in_production}@db:5432/qnai
       - QNAI_REDIS_URL=redis://redis:6379/0
       - QNAI_CHROMA_URL=http://chroma:8000
       - QNAI_DEBUG=false
@@ -69,9 +71,10 @@ services:
   db:
     image: postgres:16-alpine
     environment:
+      # WARNING: Never use default passwords in production — set POSTGRES_PASSWORD in .env
       POSTGRES_DB: qnai
       POSTGRES_USER: qnai
-      POSTGRES_PASSWORD: qnai
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_in_production}
     volumes:
       - pg-data:/var/lib/postgresql/data
     ports:

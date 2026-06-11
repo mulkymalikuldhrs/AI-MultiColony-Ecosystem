@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 
@@ -70,7 +70,7 @@ class SandboxHandle:
         """Wall-clock execution time in milliseconds."""
         if self.started_at is None:
             return 0.0
-        end = self.completed_at or datetime.utcnow()
+        end = self.completed_at or datetime.now(timezone.utc)
         return (end - self.started_at).total_seconds() * 1000
 
     def to_dict(self) -> Dict[str, Any]:

@@ -9,6 +9,7 @@ import os
 import json
 import hashlib
 import sqlite3
+import warnings
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Any, Optional
@@ -22,8 +23,15 @@ logger = structlog.get_logger(__name__)
 
 class SecureCredentialManager:
     """Secure credential storage and management"""
-    
+
+    DEPRECATED = True
+
     def __init__(self, master_password: Optional[str] = None):
+        warnings.warn(
+            "SecureCredentialManager is deprecated. Use CredentialVault instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.db_path = "data/credentials.db"
         self.master_password = master_password
         self.encryption_key = None

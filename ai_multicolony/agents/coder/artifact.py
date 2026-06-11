@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 
@@ -28,7 +28,7 @@ class CodeArtifact:
         self.issues: List[Dict[str, Any]] = []
         self.security_findings: List[Dict[str, Any]] = []
         self.suggestions: List[str] = []
-        self.created_at = datetime.utcnow()
+        self.created_at = datetime.now(timezone.utc)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
