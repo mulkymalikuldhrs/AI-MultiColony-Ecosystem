@@ -3,11 +3,31 @@
 
 from __future__ import annotations
 
+import logging
+import os
 import time
 from typing import Any
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+
+logger = logging.getLogger(__name__)
+
+# Auth configuration — read dynamically from env so test overrides work
+API_KEY_HEADER = "X-API-Key"
+
+
+def _is_auth_required() -> bool:
+    """Check if auth is required by reading env at runtime."""
+    return os.environ.get("REQUIRE_AUTH", "true").lower() in ("true", "1", "yes")
+
+
+def _get_valid_api_keys() -> set[str]:
+    """Load valid API keys from environment variable."""
+    keys_str = os.environ.get("QUANT_API_KEYS", "")
+    if keys_str:
+        return {k.strip() for k in keys_str.split(",") if k.strip()}
+    return set()
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -47,3 +67,55 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.requests[client_id].append(now)
         response = await call_next(request)
         return response
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    """API key authentication middleware.
+
+    When REQUIRE_AUTH=true (default), all requests must include a valid
+    X-API-Key header matching one of the keys in QUANT_API_KEYS env var.
+
+    Health check endpoints (/health, /) are always accessible.
+    When REQUIRE_AUTH=false, auth is skipped (development only).
+    """
+
+    # Paths that never require authentication
+    PUBLIC_PATHS = {"/health", "/", "/docs", "/redoc", "/openapi.json"}
+
+    async def dispatch(self, request: Request, call_next: Any) -> Response:
+        """Enforce API key authentication if enabled."""
+        # Skip auth for public paths
+        if request.url.path in self.PUBLIC_PATHS:
+            return await call_next(request)
+
+        if not _is_auth_required():
+            return await call_next(request)
+
+        api_key = request.headers.get(API_KEY_HEADER, "")
+        valid_keys = _get_valid_api_keys()
+
+        if not valid_keys:
+            logger.warning(
+                "SEC-001: REQUIRE_AUTH=true but no QUANT_API_KEYS set — "
+                "denying requests. Set QUANT_API_KEYS or REQUIRE_AUTH=false"
+            )
+            # In development/testing without keys configured, allow through with warning
+            # In production, this MUST be configured properly
+            dev_mode = os.environ.get("QUANT_DEV_MODE", "false").lower() in ("true", "1", "yes")
+            if dev_mode:
+                logger.warning("SEC-003: Dev mode bypass — auth skipped (NEVER use in production!)")
+                return await call_next(request)
+            return Response(
+                content="Authentication required but no API keys configured",
+                status_code=503,
+            )
+
+        if api_key not in valid_keys:
+            logger.warning(
+                "SEC-002: Invalid API key from %s for %s",
+                request.client.host if request.client else "?",
+                request.url.path,
+            )
+            return Response(content="Unauthorized", status_code=401)
+
+        return await call_next(request)

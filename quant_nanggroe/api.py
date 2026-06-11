@@ -276,10 +276,22 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
     )
 
-    # CORS middleware for dashboard integration
+    # CORS middleware — default to localhost only; override via CORS_ORIGINS env var
+    import os as _os
+    _cors_env = _os.environ.get("CORS_ORIGINS", "")
+    if _cors_env:
+        _allowed_origins = [o.strip() for o in _cors_env.split(",") if o.strip()]
+        if _allowed_origins == ["*"]:
+            logger.warning(
+                "CORS_ORIGINS=['*'] with credentials is insecure — "
+                "use specific origins in production"
+            )
+    else:
+        _allowed_origins = ["http://localhost:3000", "http://localhost:8000"]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Restrict in production
+        allow_origins=_allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

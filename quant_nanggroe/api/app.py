@@ -82,6 +82,12 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # ── Auth Middleware (SEC-AUTH) ─────────────────────────────────────
+    from quant_nanggroe.api.middleware import AuthMiddleware, RateLimitMiddleware
+
+    app.add_middleware(AuthMiddleware)
+    app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
+
     # ── Include Routers ─────────────────────────────────────────────
     from quant_nanggroe.api.routes import market, trading, agents, backtest, portfolio, ws
 
