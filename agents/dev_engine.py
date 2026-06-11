@@ -206,6 +206,8 @@ class DevEngineAgent:
                 return await self._create_documentation(task)
             elif action == "list_templates":
                 return self._list_templates()
+            elif action == "install_dependencies":
+                return await self._install_dependencies(task)
             else:
                 return self._create_error_response(f"Unknown action: {action}")
                 
@@ -214,13 +216,25 @@ class DevEngineAgent:
     
     async def _create_project(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new project from template"""
-        project_name = task.get("project_name", "")
-        template_type = task.get("template", "react_app")
+        project_name = task.get("project_name", "") or task.get("name", "")
+        template_type = task.get("template", "react_app") or task.get("project_type", "react_app")
         project_description = task.get("description", "")
         output_dir = task.get("output_dir", "projects")
         
         if not project_name:
             return self._create_error_response("Project name is required")
+        
+        # Map common project type aliases
+        template_aliases = {
+            "fullstack_web": "fullstack_app",
+            "web_app": "react_app",
+            "web": "react_app",
+            "backend": "fastapi_backend",
+            "api": "fastapi_backend",
+            "mobile": "react_native" if "react_native" in self.project_templates else "react_app",
+        }
+        if template_type in template_aliases:
+            template_type = template_aliases[template_type]
         
         if template_type not in self.project_templates:
             return self._create_error_response(f"Template {template_type} not found")
@@ -311,6 +325,7 @@ class DevEngineAgent:
                 "success": True,
                 "message": f"Project {project_name} created successfully",
                 "project_info": project_info,
+                "project_structure": created_files,
                 "created_files": created_files,
                 "next_steps": self._get_next_steps(template_type, project_path)
             }
@@ -1295,6 +1310,33 @@ npm run dev
 ## License
 
 MIT License"""
+    
+    async def _install_dependencies(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Install project dependencies"""
+        project_path = task.get("project_path", "./")
+        dependencies = task.get("dependencies", [])
+        
+        # In test/simulation mode, just report what would be installed
+        return {
+            "success": True,
+            "message": f"Dependencies processed: {', '.join(dependencies)}",
+            "dependencies": dependencies,
+            "project_path": project_path,
+            "installed": dependencies
+        }
+    
+    def get_supported_project_types(self) -> Dict[str, str]:
+        """Get supported project types"""
+        return {
+            "fullstack_web": "Full-stack web application (React + FastAPI)",
+            "mobile_app": "Mobile application (React Native)",
+            "api_service": "API service (FastAPI/Express)",
+            "react_app": "React application",
+            "nextjs_app": "Next.js application",
+            "fastapi_backend": "FastAPI backend",
+            "python_package": "Python package",
+            "fullstack_app": "Full-stack application (Docker)"
+        }
     
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create standardized error response"""

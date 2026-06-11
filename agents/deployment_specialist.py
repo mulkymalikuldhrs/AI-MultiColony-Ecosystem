@@ -572,7 +572,8 @@ class BaseDeployment:
         self.parent = parent_agent
     
     async def initialize(self):
-        pass
+        """Initialize deployment method — override in subclasses."""
+        pass  # Base implementation is a no-op; subclasses add their own setup
     
     def deploy_colony(self, target: Dict, template: Dict) -> Dict:
         return {"success": False, "error": "Not implemented"}

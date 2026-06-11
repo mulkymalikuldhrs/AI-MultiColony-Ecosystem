@@ -4,7 +4,7 @@
 
 <div align="center">
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&duration=3000&pause=1000&color=f59e0b&center=true&vCenter=true&width=700&lines=36%2B+Specialized+AI+Agents;Multi-LLM+Gateway+%2B+Automatic+Failover;AES-256+Encrypted+Credential+Vault;PWA+%2B+Docker+%2B+Kubernetes+Ready)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&duration=3000&pause=1000&color=f59e0b&center=true&vCenter=true&width=700&lines=40%2B+Specialized+AI+Agents;Multi-LLM+Gateway+%2B+Automatic+Failover;AES-256+Encrypted+Credential+Vault;Prometheus+%2B+Grafana+Monitoring;PWA+%2B+Docker+%2B+Kubernetes+Ready)](https://git.io/typing-svg)
 
 <br/>
 
@@ -49,9 +49,9 @@
 
 ## Overview
 
-AI MultiColony Ecosystem is a **multi-agent AI platform** built with Python and Flask that orchestrates 36+ specialized AI agents across a unified web interface. It features a multi-LLM gateway with automatic failover, AES-256 encrypted credential management, and Progressive Web App support.
+AI MultiColony Ecosystem is a **multi-agent AI platform** built with Python and Flask that orchestrates 40+ specialized AI agents across a unified web interface. It features a multi-LLM gateway with automatic failover, AES-256 encrypted credential management, Prometheus + Grafana monitoring, and Progressive Web App support.
 
-The platform organizes agents into colony-style categories — **Core**, **Security**, **Infrastructure**, **Development**, **Data & Knowledge**, **Business & Marketing**, and **Quality** — enabling coordinated multi-agent workflows through a central dispatcher.
+The platform organizes agents into colony-style categories — **Core**, **Security**, **Infrastructure**, **Development**, **Data & Knowledge**, **Business & Marketing**, **Quality**, and **Integration** — enabling coordinated multi-agent workflows through a central dispatcher.
 
 > **Transparency Notice**: This is an **early-stage project** under active development. Some agent modules contain `TODO` placeholders and are not fully implemented. The "Money Making Agent" provides workflow scaffolding for revenue-generating tasks but does **not** autonomously generate income. No built-in user authentication exists — a reverse proxy is required for production deployments. See [Known Limitations](#known-limitations) and [Honest Notes](#honest-notes) for full details.
 
@@ -59,8 +59,8 @@ The platform organizes agents into colony-style categories — **Core**, **Secur
 
 ## Features
 
-### 🤖 36+ Specialized AI Agents
-A diverse colony of agents spanning core orchestration, security auditing, infrastructure management, code generation, knowledge curation, and business operations — each designed for a focused domain.
+### 🤖 40+ Specialized AI Agents
+A diverse colony of agents spanning core orchestration, security auditing, infrastructure management, code generation, knowledge curation, business operations, and integration (GitHub, Voice, Web3, Monitoring) — each designed for a focused domain.
 
 ### 🔀 Multi-LLM Gateway with Failover
 Route requests through **7 LLM providers** with automatic failover: LLM7 (free tier), OpenRouter, DeepSeek, OpenAI, Anthropic, Google AI, and Hugging Face. If one provider is unavailable, the gateway transparently falls back to the next.
@@ -82,6 +82,9 @@ Agents communicate through a central dispatch system, enabling multi-step workfl
 
 ### 🐳 Container-Ready
 Full Docker, Docker Compose, and Kubernetes deployment support with health checks, volume mounts, and scalable configurations.
+
+### 📊 Production Monitoring
+Prometheus + Grafana observability stack with preconfigured scrape targets for the Flask app, PostgreSQL, Redis, Nginx, and Node Exporter. Agent Watcher provides agent-level health monitoring with alerting and auto-restart capabilities.
 
 ---
 
@@ -153,6 +156,14 @@ Full Docker, Docker Compose, and Kubernetes deployment support with health check
 | **Performance Tester** | Runs performance benchmarks and load tests |
 | **Integration Tester** | Tests integration points between agents and services |
 
+### 🔗 Integration Agents
+| Agent | Description |
+|-------|-------------|
+| **GitHub Agent** | GitHub API integration — repo management, PRs, issues, file operations, CI status, code search |
+| **Voice Agent** | Speech-to-text (Whisper), text-to-speech, voice command parsing and routing, audio processing |
+| **Web3 Plugin** | Multi-chain blockchain queries (read-only) — ERC-20, DeFi reads, gas estimation, ENS resolution |
+| **Agent Watcher** | Agent health monitoring, heartbeat checks, auto-restart, alerting, and health reports |
+
 > **Note**: Some agents listed above contain `TODO` placeholders and are under active development. Agent availability and functionality may vary. See [Known Limitations](#known-limitations) for details.
 
 ---
@@ -221,13 +232,14 @@ Full Docker, Docker Compose, and Kubernetes deployment support with health check
 
 | Limitation | Impact | Workaround |
 |-----------|--------|------------|
-| **No built-in authentication** | Anyone with network access can use the platform | Use a reverse proxy (Nginx/Apache) with HTTP Basic Auth or OAuth |
+| **No built-in authentication** | Anyone with network access can use the platform | Basic auth endpoints available; use reverse proxy (Nginx) with HTTP Basic Auth or OAuth |
 | **Duplicate credential managers** | Two implementations exist — potential confusion | Use the `src/core/` version which is the more secure implementation |
 | **Incomplete agent implementations** | Some agents contain `TODO` placeholders | Check agent source before relying on functionality |
 | **Missing imports in requirements.txt** | Some third-party imports are not listed | Agents fail gracefully; install missing packages as needed |
 | **"Money Making Agent" is scaffolding only** | Does not autonomously generate income | Use it as a template for building custom revenue workflows |
 | **SQLite for production** | Not ideal for high-concurrency workloads | Consider PostgreSQL for production deployments |
 | **Single-process Flask** | Not suitable for high-traffic production | Use Gunicorn/uWSGI with multiple workers |
+| **Web3 is read-only** | Cannot sign or broadcast transactions | By design for safety; implement separate signing service if needed |
 
 ---
 
@@ -237,7 +249,7 @@ Full Docker, Docker Compose, and Kubernetes deployment support with health check
 
 1. **Early-stage project** — Some agents contain `TODO` placeholders and are not fully implemented. The agent list represents the intended architecture, not necessarily the current state of every module.
 
-2. **No built-in user authentication** — The platform does not include user login, session management, or role-based access control. For production deployments, use a reverse proxy (e.g., Nginx with `auth_basic`, Traefik with forward auth, or Cloudflare Access).
+2. **No built-in user authentication** — The platform does not include user login, session management, or role-based access control. Basic auth API endpoints are now available with rate limiting. For production deployments, use a reverse proxy (e.g., Nginx with `auth_basic`, Traefik with forward auth, or Cloudflare Access).
 
 3. **"Money Making Agent" is workflow scaffolding** — This agent provides templates and workflow structures for revenue-related tasks. It does **not** autonomously generate income, trade assets, or make financial decisions. Any revenue generation requires significant human configuration and oversight.
 
@@ -677,13 +689,13 @@ kubectl get pods -l app=multicolony
 ### Production Checklist
 
 - [ ] Set strong `SECRET_KEY` and `CREDENTIAL_MASTER_PASSWORD`
-- [ ] Use a reverse proxy (Nginx/Traefik) with TLS termination
+- [x] Use a reverse proxy (Nginx/Traefik) with TLS termination — `nginx/nginx.conf` provided
 - [ ] Enable HTTP Basic Auth or OAuth at the proxy level
 - [ ] Set `FLASK_ENV=production` and `FLASK_DEBUG=0`
 - [ ] Use Gunicorn with multiple workers: `gunicorn -w 4 -b 0.0.0.0:5000 web_interface.app:app`
 - [ ] Enable Docker sandboxing for code execution
 - [ ] Configure regular database backups
-- [ ] Set up monitoring and alerting
+- [x] Set up monitoring and alerting — Prometheus + Grafana stack configured
 
 ---
 
@@ -720,12 +732,13 @@ encrypted = fernet.encrypt(credential_value.encode())
 | Area | Status | Recommendation |
 |------|--------|---------------|
 | Encryption at rest | ✅ AES-256 | Ensure `CREDENTIAL_MASTER_PASSWORD` is strong |
-| TLS/HTTPS | ❌ Not built-in | Use reverse proxy with TLS termination |
-| Authentication | ❌ Not built-in | Use reverse proxy with HTTP Basic Auth / OAuth |
+| TLS/HTTPS | ✅ Nginx config provided | Use `nginx/nginx.conf` with TLS termination |
+| Authentication | ⚠️ Basic auth endpoints | Use reverse proxy with HTTP Basic Auth / OAuth |
 | Code execution sandboxing | ⚠️ Optional | Enable `DOCKER_SANDBOX_ENABLED=true` in production |
-| Rate limiting | ❌ Not built-in | Add Flask-Limiter or proxy-level rate limiting |
+| Rate limiting | ✅ Nginx-level | Configure via `nginx/nginx.conf` (30r/s general, 10r/s API, 5r/s auth) |
 | Input validation | ⚠️ Partial | Review agent inputs before production use |
-| CORS | ⚠️ Default open | Restrict `CORS_ORIGINS` in production |
+| CORS | ✅ Configurable | Set `CORS_ALLOWED_ORIGINS` in production |
+| Monitoring | ✅ Prometheus + Grafana | See `monitoring/prometheus.yml` |
 
 ---
 
@@ -739,11 +752,14 @@ Contributions are welcome! This project has specific areas where help is most ne
 |----------|------|-------------|
 | 🔴 High | **Agent implementations** | Complete `TODO` placeholders in partially implemented agents |
 | 🔴 High | **Missing requirements.txt entries** | Identify and add missing third-party dependencies |
+| 🔴 High | **Test coverage** | Add unit and integration tests for new and existing agents |
 | 🟡 Medium | **Authentication** | Add optional built-in user authentication module |
 | 🟡 Medium | **Deduplicate credential managers** | Consolidate into a single, well-tested implementation |
-| 🟡 Medium | **Test coverage** | Add unit and integration tests |
+| 🟡 Medium | **Prometheus alerting rules** | Add alerting rules for critical service failures |
+| 🟡 Medium | **Grafana dashboards** | Create pre-built dashboard configurations |
 | 🟢 Low | **Documentation** | Improve agent documentation and usage examples |
 | 🟢 Low | **PostgreSQL support** | Add database backend option beyond SQLite |
+| 🟢 Low | **Web3 write operations** | Add optional transaction signing with proper security controls |
 
 ### How to Contribute
 

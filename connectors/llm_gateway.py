@@ -462,6 +462,13 @@ class LLMGateway:
         
         return status
     
+    def get_available_providers(self) -> List[str]:
+        """Get list of available (non-disabled) provider names"""
+        return [
+            name for name, config in self.providers.items()
+            if config.get("status") != "disabled" and config.get("api_key")
+        ]
+    
     def get_usage_summary(self) -> Dict[str, Any]:
         """Get overall usage summary"""
         total_requests = sum(stats.get("requests", 0) for stats in self.usage_stats.values())

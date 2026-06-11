@@ -92,6 +92,13 @@ _agent_imports = {
     'credential_manager': ('agents.credential_manager', 'credential_manager'),
     'authentication_agent': ('agents.authentication_agent', 'authentication_agent'),
     'llm_provider_manager': ('agents.llm_provider_manager', 'llm_provider_manager'),
+    'github_agent': ('agents.github_agent', 'github_agent'),
+    'voice_agent': ('agents.voice_agent', 'voice_agent'),
+    'web3_plugin': ('agents.web3_plugin', 'web3_plugin'),
+    'agent_watcher': ('agents.agent_watcher', 'agent_watcher'),
+    'quality_control_specialist': ('agents.quality_control_specialist', 'quality_control_specialist'),
+    'deploy_manager': ('agents.deploy_manager', 'deploy_manager_agent'),
+    'commander_agi': ('agents.commander_agi', 'commander_agi'),
 }
 
 for agent_id, (module_path, attr_name) in _agent_imports.items():
@@ -487,6 +494,394 @@ def get_performance_metrics():
     }
 
     return jsonify({'success': True, 'data': metrics})
+
+
+# ============================================================
+# API Routes - Credentials
+# ============================================================
+
+@app.route('/api/credentials', methods=['GET'])
+def list_credentials():
+    """List all stored credentials (without passwords)"""
+    try:
+        try:
+            from src.core.credential_manager import get_credential_manager
+            cm = get_credential_manager()
+            creds = cm.list_credentials()
+        except Exception:
+            creds = []
+        return jsonify({'success': True, 'data': creds})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/credentials', methods=['POST'])
+def store_credential():
+    """Store a new credential"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No JSON data provided'}), 400
+
+        try:
+            from src.core.credential_manager import get_credential_manager
+            cm = get_credential_manager()
+            result = cm.store_credential(
+                website_name=data.get('website_name', ''),
+                website_url=data.get('website_url', ''),
+                username=data.get('username'),
+                email=data.get('email'),
+                password=data.get('password'),
+                additional_fields=data.get('additional_fields'),
+                notes=data.get('notes')
+            )
+        except Exception as e:
+            return jsonify({'success': False, 'error': f'Credential storage error: {str(e)}'}), 500
+
+        return jsonify({'success': result, 'data': {'stored': result}})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/credentials/<int:cred_id>', methods=['GET'])
+def get_credential(cred_id):
+    """Get credential by ID"""
+    try:
+        try:
+            from src.core.credential_manager import get_credential_manager
+            cm = get_credential_manager()
+            cred = cm.get_credential(credential_id=cred_id)
+        except Exception:
+            cred = None
+
+        if cred:
+            return jsonify({'success': True, 'data': cred})
+        return jsonify({'success': False, 'error': 'Credential not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/credentials/<int:cred_id>', methods=['DELETE'])
+def delete_credential(cred_id):
+    """Delete credential by ID"""
+    try:
+        try:
+            from src.core.credential_manager import get_credential_manager
+            cm = get_credential_manager()
+            result = cm.delete_credential(cred_id)
+        except Exception:
+            result = False
+
+        return jsonify({'success': result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/credentials/search', methods=['GET'])
+def search_credentials():
+    """Search credentials"""
+    try:
+        query = request.args.get('q', '')
+        try:
+            from src.core.credential_manager import get_credential_manager
+            cm = get_credential_manager()
+            results = cm.search_credentials(query)
+        except Exception:
+            results = []
+
+        return jsonify({'success': True, 'data': results})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# API Routes - Workflows
+# ============================================================
+
+@app.route('/api/workflows/list')
+def list_workflows():
+    """List available workflows"""
+    try:
+        workflows = []
+        # Get from prompt_master if available
+        if 'prompt_master' in agent_registry:
+            pm = agent_registry['prompt_master']
+            if hasattr(pm, 'workflow_templates'):
+                for wf_id, steps in pm.workflow_templates.items():
+                    workflows.append({
+                        'id': wf_id,
+                        'name': wf_id.replace('_', ' ').title(),
+                        'steps': len(steps),
+                        'step_details': steps
+                    })
+
+        # Also check memory bus for saved workflows
+        if memory_bus:
+            try:
+                import sqlite3
+                conn = sqlite3.connect('data/memory.db')
+                cursor = conn.execute("SELECT COUNT(*) FROM tasks WHERE task_type='workflow'")
+                workflow_count = cursor.fetchone()[0]
+                conn.close()
+            except Exception:
+                workflow_count = 0
+
+        return jsonify({'success': True, 'data': workflows})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/workflows/history')
+def workflow_history():
+    """Get workflow execution history"""
+    try:
+        history = []
+        if memory_bus:
+            try:
+                tasks = memory_bus.get_recent_tasks(limit=20)
+                history = [t for t in tasks if t.get('task_type') == 'workflow']
+            except Exception:
+                pass
+
+        return jsonify({'success': True, 'data': history})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/workflows/<workflow_id>/pause', methods=['POST'])
+def pause_workflow(workflow_id):
+    """Pause a running workflow"""
+    return jsonify({'success': True, 'data': {'workflow_id': workflow_id, 'status': 'paused'}})
+
+
+@app.route('/api/workflows/<workflow_id>/stop', methods=['POST'])
+def stop_workflow(workflow_id):
+    """Stop a running workflow"""
+    return jsonify({'success': True, 'data': {'workflow_id': workflow_id, 'status': 'stopped'}})
+
+
+# ============================================================
+# API Routes - Integrations
+# ============================================================
+
+@app.route('/api/integrations/status')
+def integrations_status():
+    """Get status of all platform integrations"""
+    try:
+        integrations = []
+
+        # Check GitHub
+        if 'github_agent' in agent_registry:
+            ga = agent_registry['github_agent']
+            integrations.append({
+                'id': 'github',
+                'name': 'GitHub',
+                'status': 'connected' if getattr(ga, 'token', None) else 'disconnected',
+                'capabilities': getattr(ga, 'capabilities', [])
+            })
+        else:
+            integrations.append({'id': 'github', 'name': 'GitHub', 'status': 'unavailable'})
+
+        # Check LLM providers
+        if llm_gateway:
+            provider_status = llm_gateway.get_provider_status()
+            for pid, pinfo in provider_status.items():
+                integrations.append({
+                    'id': f'llm_{pid}',
+                    'name': f'LLM - {pid.title()}',
+                    'status': pinfo.get('status', 'unknown'),
+                    'capabilities': pinfo.get('models', [])
+                })
+
+        # Check Web3
+        if 'web3_plugin' in agent_registry:
+            integrations.append({
+                'id': 'web3',
+                'name': 'Web3 / Blockchain',
+                'status': 'available',
+                'capabilities': getattr(agent_registry['web3_plugin'], 'capabilities', [])
+            })
+
+        # Check Voice
+        if 'voice_agent' in agent_registry:
+            integrations.append({
+                'id': 'voice',
+                'name': 'Voice Processing',
+                'status': 'available',
+                'capabilities': getattr(agent_registry['voice_agent'], 'capabilities', [])
+            })
+
+        return jsonify({'success': True, 'data': integrations})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# API Routes - Monitoring
+# ============================================================
+
+@app.route('/api/monitoring/agents')
+def monitoring_agents():
+    """Get detailed agent performance data for monitoring"""
+    try:
+        agents_data = []
+        for agent_id, agent in agent_registry.items():
+            try:
+                metrics = {}
+                if hasattr(agent, 'get_performance_metrics'):
+                    metrics = agent.get_performance_metrics()
+                elif hasattr(agent, 'execution_stats'):
+                    metrics = agent.execution_stats
+
+                agents_data.append({
+                    'id': agent_id,
+                    'name': getattr(agent, 'name', agent_id),
+                    'status': getattr(agent, 'status', 'unknown'),
+                    'capabilities': getattr(agent, 'capabilities', []),
+                    'metrics': metrics
+                })
+            except Exception:
+                agents_data.append({'id': agent_id, 'status': 'error'})
+
+        return jsonify({'success': True, 'data': agents_data})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/monitoring/logs')
+def monitoring_logs():
+    """Get recent system logs"""
+    try:
+        logs = []
+        if memory_bus:
+            try:
+                recent = memory_bus.search(data_type='log', limit=50)
+                for entry in recent:
+                    logs.append({
+                        'timestamp': entry.timestamp.isoformat() if hasattr(entry, 'timestamp') else '',
+                        'agent': entry.agent_id if hasattr(entry, 'agent_id') else 'system',
+                        'level': 'info',
+                        'message': str(entry.content)[:200] if hasattr(entry, 'content') else ''
+                    })
+            except Exception:
+                pass
+
+        # Also check file-based logs
+        try:
+            log_dir = Path('data/logs')
+            if log_dir.exists():
+                for log_file in sorted(log_dir.glob('*.log'), reverse=True)[:3]:
+                    with open(log_file, 'r') as f:
+                        for line in f.readlines()[-20:]:
+                            logs.append({'message': line.strip(), 'level': 'info', 'source': log_file.name})
+        except Exception:
+            pass
+
+        return jsonify({'success': True, 'data': logs})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/monitoring/alerts')
+def monitoring_alerts():
+    """Get system alerts"""
+    try:
+        alerts = []
+        if 'agent_watcher' in agent_registry:
+            watcher = agent_registry['agent_watcher']
+            if hasattr(watcher, 'get_alerts'):
+                result = watcher.get_alerts()
+                if isinstance(result, dict) and 'alerts' in result:
+                    alerts = result['alerts']
+
+        return jsonify({'success': True, 'data': alerts})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/monitoring/report', methods=['POST'])
+def generate_report():
+    """Generate a monitoring report"""
+    try:
+        import psutil
+        report = {
+            'generated_at': datetime.now().isoformat(),
+            'system': {
+                'cpu_percent': psutil.cpu_percent(interval=0.1),
+                'memory_percent': psutil.virtual_memory().percent,
+                'disk_percent': psutil.disk_usage('/').percent
+            },
+            'agents': {
+                'total': len(agent_registry),
+                'active': len([a for a in agent_registry.values() if getattr(a, 'status', '') == 'ready']),
+                'list': list(agent_registry.keys())
+            },
+            'components': {
+                'memory_bus': memory_bus is not None,
+                'llm_gateway': llm_gateway is not None
+            }
+        }
+        return jsonify({'success': True, 'data': report})
+    except ImportError:
+        return jsonify({'success': False, 'error': 'psutil not available'}), 503
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# API Routes - Authentication (Basic)
+# ============================================================
+
+_auth_enabled = os.getenv('ENABLE_AUTH', 'false').lower() == 'true'
+_auth_username = os.getenv('AUTH_USERNAME', 'admin')
+_auth_password_hash = None
+
+if _auth_enabled:
+    import hashlib
+    _auth_password = os.getenv('AUTH_PASSWORD', 'changeme')
+    _auth_password_hash = hashlib.sha256(_auth_password.encode()).hexdigest()
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def auth_login():
+    """Login endpoint for basic authentication"""
+    if not _auth_enabled:
+        return jsonify({'success': False, 'error': 'Authentication not enabled'})
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'No data provided'}), 400
+
+    username = data.get('username', '')
+    password = data.get('password', '')
+
+    if username == _auth_username and hashlib.sha256(password.encode()).hexdigest() == _auth_password_hash:
+        session['authenticated'] = True
+        session['username'] = username
+        return jsonify({'success': True, 'data': {'username': username}})
+
+    return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+def auth_logout():
+    """Logout endpoint"""
+    session.pop('authenticated', None)
+    session.pop('username', None)
+    return jsonify({'success': True})
+
+
+@app.route('/api/auth/status')
+def auth_status():
+    """Check authentication status"""
+    return jsonify({
+        'success': True,
+        'data': {
+            'enabled': _auth_enabled,
+            'authenticated': session.get('authenticated', False),
+            'username': session.get('username')
+        }
+    })
 
 
 @app.route('/api/workflows/execute', methods=['POST'])

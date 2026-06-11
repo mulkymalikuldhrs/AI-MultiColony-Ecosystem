@@ -71,6 +71,7 @@ class CyberShellAgent:
             # File operations
             "ls", "cat", "head", "tail", "grep", "find", "locate",
             "cp", "mv", "mkdir", "rmdir", "touch", "chmod", "chown",
+            "echo", "pwd", "whoami", "which", "whereis", "type",
             
             # System info
             "ps", "top", "htop", "free", "df", "du", "uname", "whoami",
@@ -98,14 +99,14 @@ class CyberShellAgent:
         try:
             task_type = task.get("action", "execute")
             
-            if task_type == "execute":
+            if task_type in ("execute", "execute_command"):
                 return await self._execute_command(task)
+            elif task_type in ("file_operations", "list_files", "read_file", "write_file"):
+                return await self._handle_file_action(task)
             elif task_type == "monitor_system":
                 return await self._monitor_system(task)
             elif task_type == "manage_processes":
                 return await self._manage_processes(task)
-            elif task_type == "file_operations":
-                return await self._file_operations(task)
             elif task_type == "automation_script":
                 return await self._run_automation_script(task)
             else:
@@ -140,6 +141,7 @@ class CyberShellAgent:
             work_dir = task.get("working_dir", self.working_dir)
             
             # Execute command
+            timeout = task.get("timeout", 300)  # 5 minutes default
             process = subprocess.Popen(
                 args,
                 stdout=subprocess.PIPE,
@@ -147,7 +149,6 @@ class CyberShellAgent:
                 text=True,
                 cwd=work_dir,
                 env=env,
-                timeout=task.get("timeout", 300)  # 5 minutes default
             )
             
             # Store active process
@@ -155,7 +156,7 @@ class CyberShellAgent:
             self.active_processes[process_id] = process
             
             # Wait for completion
-            stdout, stderr = process.communicate()
+            stdout, stderr = process.communicate(timeout=timeout)
             
             execution_time = time.time() - start_time
             return_code = process.returncode
@@ -169,6 +170,7 @@ class CyberShellAgent:
                 "success": return_code == 0,
                 "command": command,
                 "return_code": return_code,
+                "output": stdout,
                 "stdout": stdout,
                 "stderr": stderr,
                 "execution_time": round(execution_time, 2),
@@ -375,6 +377,47 @@ class CyberShellAgent:
         except Exception as e:
             return self._create_error_response(f"Failed to kill process: {str(e)}")
     
+    async def _handle_file_action(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle file action tasks (list_files, read_file, write_file, file_operations)"""
+        action = task.get("action", "")
+        if action == "list_files":
+            path = task.get("path", ".")
+            return await self._list_directory(path)
+        elif action == "read_file":
+            return await self._read_file(task.get("file_path"))
+        elif action == "write_file":
+            return await self._write_file(task.get("file_path"), task.get("content", ""))
+        else:
+            # Default to file_operations handler
+            return await self._file_operations(task)
+    
+    async def _list_directory(self, directory: str = ".") -> Dict[str, Any]:
+        """List files in a directory"""
+        try:
+            dir_path = Path(directory)
+            if not dir_path.exists():
+                return self._create_error_response(f"Directory not found: {directory}")
+            if not dir_path.is_dir():
+                return self._create_error_response(f"Path is not a directory: {directory}")
+            
+            files = []
+            for item in sorted(dir_path.iterdir()):
+                files.append({
+                    "name": item.name,
+                    "type": "directory" if item.is_dir() else "file",
+                    "size": item.stat().st_size if item.is_file() else 0,
+                    "modified": datetime.fromtimestamp(item.stat().st_mtime).isoformat()
+                })
+            
+            return {
+                "success": True,
+                "files": files,
+                "path": str(dir_path.resolve()),
+                "total_files": len(files)
+            }
+        except Exception as e:
+            return self._create_error_response(f"Failed to list directory: {str(e)}")
+    
     async def _file_operations(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Perform file operations"""
         operation = task.get("operation", "")
@@ -429,6 +472,27 @@ class CyberShellAgent:
             return self._create_error_response("File is not readable as text")
         except Exception as e:
             return self._create_error_response(f"Failed to read file: {str(e)}")
+    
+    async def _write_file(self, file_path: str, content: str = "") -> Dict[str, Any]:
+        """Write content to a file"""
+        try:
+            if not file_path:
+                return self._create_error_response("No file path provided")
+            
+            path = Path(file_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            
+            return {
+                "success": True,
+                "file_path": file_path,
+                "size": len(content),
+                "message": f"File written successfully: {file_path}"
+            }
+        except Exception as e:
+            return self._create_error_response(f"Failed to write file: {str(e)}")
     
     async def _run_automation_script(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Run automation script with multiple commands"""

@@ -550,6 +550,34 @@ CMD ["{start_command}"]
             "capabilities": self.capabilities
         }
     
+    async def _get_deployment_status(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Get deployment status"""
+        deployment_id = task.get("deployment_id", "")
+        
+        # Check active deployments
+        if deployment_id in self.active_deployments:
+            return {
+                "status": self.active_deployments[deployment_id].get("status", "unknown"),
+                "deployment_id": deployment_id,
+                "details": self.active_deployments[deployment_id]
+            }
+        
+        # Check deployment history
+        for deployment in self.deployment_history:
+            if deployment.get("deployment_id") == deployment_id:
+                return {
+                    "status": deployment.get("status", "unknown"),
+                    "deployment_id": deployment_id,
+                    "details": deployment
+                }
+        
+        # Deployment not found - return a default status
+        return {
+            "status": "unknown",
+            "deployment_id": deployment_id,
+            "message": f"Deployment {deployment_id} not found in history"
+        }
+    
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create standardized error response"""
         return {

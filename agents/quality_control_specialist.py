@@ -699,6 +699,824 @@ class QualityControlSpecialist:
         
         return recommendations
 
+    async def _analyze_code_style(self, code_content: str) -> Dict[str, Any]:
+        """Analyze code style and formatting"""
+        issues = []
+        lines = code_content.split('\n')
+
+        for i, line in enumerate(lines, 1):
+            stripped = line.strip()
+
+            # Check indentation consistency
+            if line.startswith(' ') and not line.startswith('    '):
+                leading_spaces = len(line) - len(stripped)
+                if leading_spaces % 4 != 0:
+                    issues.append({
+                        "type": "inconsistent_indentation",
+                        "severity": "medium",
+                        "description": f"Inconsistent indentation ({leading_spaces} spaces)",
+                        "line": i
+                    })
+
+            # Check for trailing whitespace
+            if line != line.rstrip():
+                issues.append({
+                    "type": "trailing_whitespace",
+                    "severity": "low",
+                    "description": "Trailing whitespace detected",
+                    "line": i
+                })
+
+            # Check for missing blank lines between functions/classes
+            if stripped.startswith('def ') or stripped.startswith('class '):
+                if i > 1 and lines[i - 2].strip() and not lines[i - 2].strip().startswith('#'):
+                    issues.append({
+                        "type": "missing_blank_line",
+                        "severity": "low",
+                        "description": "Missing blank line before definition",
+                        "line": i
+                    })
+
+            # Check naming conventions
+            if stripped.startswith('def '):
+                func_name = stripped.split('(')[0].replace('def ', '').strip()
+                if func_name and not func_name.startswith('_') and not func_name.islower():
+                    has_upper = any(c.isupper() for c in func_name)
+                    if has_upper:
+                        issues.append({
+                            "type": "naming_convention",
+                            "severity": "medium",
+                            "description": f"Function '{func_name}' should use snake_case",
+                            "line": i
+                        })
+
+        return {"issues": issues}
+
+    async def _analyze_code_security(self, code_content: str) -> Dict[str, Any]:
+        """Analyze code for security vulnerabilities"""
+        issues = []
+        lines = code_content.split('\n')
+
+        security_patterns = {
+            'eval(': {'type': 'security_vulnerability', 'severity': 'critical',
+                      'desc': 'Use of eval() is a security risk - use ast.literal_eval() for safe parsing'},
+            'exec(': {'type': 'security_vulnerability', 'severity': 'critical',
+                      'desc': 'Use of exec() is a security risk - consider safer alternatives'},
+            'subprocess.call(': {'type': 'security_vulnerability', 'severity': 'high',
+                                 'desc': 'Subprocess call without shell=False may allow command injection'},
+            'subprocess.Popen(': {'type': 'security_vulnerability', 'severity': 'high',
+                                  'desc': 'Subprocess Popen without shell=False may allow command injection'},
+            'os.system(': {'type': 'security_vulnerability', 'severity': 'high',
+                           'desc': 'os.system() is vulnerable to command injection - use subprocess with args list'},
+            'pickle.loads(': {'type': 'security_vulnerability', 'severity': 'high',
+                              'desc': 'pickle.loads() can execute arbitrary code - use json or msgpack'},
+            'yaml.load(': {'type': 'security_vulnerability', 'severity': 'high',
+                           'desc': 'yaml.load() is unsafe - use yaml.safe_load() instead'},
+            'hashlib.md5(': {'type': 'weak_hash', 'severity': 'medium',
+                             'desc': 'MD5 is cryptographically broken - use SHA-256 or stronger'},
+            'hashlib.sha1(': {'type': 'weak_hash', 'severity': 'medium',
+                              'desc': 'SHA-1 is cryptographically weak - use SHA-256 or stronger'},
+            'password': {'type': 'hardcoded_secret', 'severity': 'high',
+                         'desc': 'Potential hardcoded password/secret detected'},
+            'api_key': {'type': 'hardcoded_secret', 'severity': 'high',
+                        'desc': 'Potential hardcoded API key detected'},
+            'secret': {'type': 'hardcoded_secret', 'severity': 'medium',
+                       'desc': 'Potential hardcoded secret detected'},
+            'sql_string': {'type': 'sql_injection', 'severity': 'high',
+                           'desc': 'String formatting in SQL may allow SQL injection'},
+        }
+
+        for i, line in enumerate(lines, 1):
+            stripped = line.strip()
+            # Skip comments
+            if stripped.startswith('#'):
+                continue
+
+            for pattern, info in security_patterns.items():
+                if pattern in stripped.lower() if pattern in ['password', 'api_key', 'secret'] else pattern in stripped:
+                    # Avoid false positives in variable names by checking assignment patterns
+                    if pattern in ['password', 'api_key', 'secret']:
+                        if '=' in stripped and not stripped.startswith('#') and 'get(' not in stripped and 'env(' not in stripped and 'os.getenv' not in stripped:
+                            issues.append({
+                                "type": info['type'],
+                                "severity": info['severity'],
+                                "description": info['desc'],
+                                "line": i
+                            })
+                    elif pattern == 'sql_string' and ('%' in stripped or 'format(' in stripped or 'f"' in stripped) and 'SELECT' in stripped.upper():
+                        issues.append({
+                            "type": info['type'],
+                            "severity": info['severity'],
+                            "description": info['desc'],
+                            "line": i
+                        })
+                    else:
+                        # Check specific patterns with context
+                        if pattern in ['yaml.load('] and 'safe_load' not in stripped:
+                            issues.append({
+                                "type": info['type'],
+                                "severity": info['severity'],
+                                "description": info['desc'],
+                                "line": i
+                            })
+                        elif pattern in ['eval(', 'exec(', 'os.system(', 'pickle.loads(', 'subprocess.call(', 'subprocess.Popen(']:
+                            issues.append({
+                                "type": info['type'],
+                                "severity": info['severity'],
+                                "description": info['desc'],
+                                "line": i
+                            })
+
+        return {"issues": issues}
+
+    async def _analyze_code_complexity(self, code_content: str) -> Dict[str, Any]:
+        """Analyze code complexity metrics"""
+        issues = []
+        lines = code_content.split('\n')
+
+        # Track function complexity
+        current_function = None
+        current_complexity = 1
+        function_start = 0
+        function_lines = 0
+
+        complexity_keywords = ['if ', 'elif ', 'else:', 'for ', 'while ', 'except ',
+                               'and ', 'or ', 'with ']
+
+        for i, line in enumerate(lines, 1):
+            stripped = line.strip()
+
+            # Track function definitions
+            if stripped.startswith('def '):
+                # Save previous function
+                if current_function and current_complexity > 10:
+                    issues.append({
+                        "type": "high_complexity",
+                        "severity": "medium",
+                        "description": f"Function '{current_function}' has cyclomatic complexity of {current_complexity} (recommended max: 10)",
+                        "line": function_start
+                    })
+
+                # Start tracking new function
+                current_function = stripped.split('(')[0].replace('def ', '').strip()
+                current_complexity = 1
+                function_start = i
+                function_lines = 0
+
+            if current_function:
+                function_lines += 1
+                for keyword in complexity_keywords:
+                    if keyword in stripped:
+                        current_complexity += 1
+
+                # Check function length
+                if function_lines > 50:
+                    issues.append({
+                        "type": "function_too_long",
+                        "severity": "low",
+                        "description": f"Function '{current_function}' is {function_lines} lines (recommended max: 50)",
+                        "line": function_start
+                    })
+
+        # Check last function
+        if current_function and current_complexity > 10:
+            issues.append({
+                "type": "high_complexity",
+                "severity": "medium",
+                "description": f"Function '{current_function}' has cyclomatic complexity of {current_complexity} (recommended max: 10)",
+                "line": function_start
+            })
+
+        return {"issues": issues}
+
+    async def _analyze_image_technical_quality(self, img_array, image) -> Dict[str, Any]:
+        """Analyze image technical quality metrics"""
+        issues = []
+
+        try:
+            # Check resolution
+            height, width = img_array.shape[:2]
+            if width < 640 or height < 480:
+                issues.append({
+                    "type": "low_resolution",
+                    "severity": "medium",
+                    "description": f"Low resolution: {width}x{height} (minimum recommended: 640x480)"
+                })
+
+            # Check aspect ratio
+            aspect_ratio = width / height
+            if aspect_ratio < 0.5 or aspect_ratio > 3.0:
+                issues.append({
+                    "type": "unusual_aspect_ratio",
+                    "severity": "low",
+                    "description": f"Unusual aspect ratio: {aspect_ratio:.2f}"
+                })
+
+            # Check if image is too dark or too bright using numpy
+            if np is not None:
+                mean_brightness = np.mean(img_array)
+                if mean_brightness < 30:
+                    issues.append({
+                        "type": "too_dark",
+                        "severity": "medium",
+                        "description": f"Image appears too dark (mean brightness: {mean_brightness:.1f})"
+                    })
+                elif mean_brightness > 225:
+                    issues.append({
+                        "type": "too_bright",
+                        "severity": "medium",
+                        "description": f"Image appears too bright (mean brightness: {mean_brightness:.1f})"
+                    })
+
+                # Check contrast
+                std_dev = np.std(img_array)
+                if std_dev < 20:
+                    issues.append({
+                        "type": "low_contrast",
+                        "severity": "medium",
+                        "description": f"Low contrast (std dev: {std_dev:.1f})"
+                    })
+
+            # Check color mode
+            if hasattr(image, 'mode'):
+                if image.mode == 'L':
+                    issues.append({
+                        "type": "grayscale",
+                        "severity": "low",
+                        "description": "Image is grayscale - may lack visual appeal for some use cases"
+                    })
+
+        except Exception as e:
+            self.logger.error(f"Image technical analysis failed: {e}")
+
+        return {"issues": issues}
+
+    async def _analyze_image_visual_quality(self, img_array) -> Dict[str, Any]:
+        """Analyze visual quality aspects of an image"""
+        issues = []
+
+        try:
+            if np is not None and img_array is not None:
+                # Check for noise (high frequency variation)
+                if len(img_array.shape) == 3:
+                    gray = np.mean(img_array, axis=2)
+                else:
+                    gray = img_array.astype(float)
+
+                # Simple noise detection using gradient magnitude
+                if gray.shape[0] > 2 and gray.shape[1] > 2:
+                    grad_x = np.diff(gray, axis=1)
+                    grad_y = np.diff(gray, axis=0)
+                    noise_level = np.mean(np.abs(grad_x)) + np.mean(np.abs(grad_y))
+
+                    if noise_level > 80:
+                        issues.append({
+                            "type": "high_noise",
+                            "severity": "medium",
+                            "description": f"High noise level detected (noise metric: {noise_level:.1f})"
+                        })
+
+                # Check for blurriness using Laplacian variance
+                if cv2 is not None:
+                    laplacian_var = cv2.Laplacian(img_array.astype(np.uint8), cv2.CV_64F).var()
+                    if laplacian_var < 50:
+                        issues.append({
+                            "type": "blurry",
+                            "severity": "high",
+                            "description": f"Image appears blurry (Laplacian variance: {laplacian_var:.1f})"
+                        })
+
+        except Exception as e:
+            self.logger.error(f"Image visual analysis failed: {e}")
+
+        return {"issues": issues}
+
+    async def _analyze_image_composition(self, img_array) -> Dict[str, Any]:
+        """Analyze image composition"""
+        issues = []
+
+        try:
+            if np is not None and img_array is not None:
+                height, width = img_array.shape[:2]
+
+                # Check rule of thirds (simplified)
+                third_h = height // 3
+                third_w = width // 3
+
+                if len(img_array.shape) == 3:
+                    # Check if there's interesting content at the thirds intersections
+                    sections = [
+                        img_array[:third_h, :third_w],
+                        img_array[:third_h, 2*third_w:],
+                        img_array[2*third_h:, :third_w],
+                        img_array[2*third_h:, 2*third_w:]
+                    ]
+                    section_variances = [np.var(s) for s in sections]
+
+                    # If all sections have very similar variance, the composition may be flat
+                    if max(section_variances) > 0 and min(section_variances) > 0:
+                        variance_ratio = max(section_variances) / min(section_variances)
+                        if variance_ratio < 1.5:
+                            issues.append({
+                                "type": "flat_composition",
+                                "severity": "low",
+                                "description": "Image composition may lack a clear focal point (consider rule of thirds)"
+                            })
+
+        except Exception as e:
+            self.logger.error(f"Image composition analysis failed: {e}")
+
+        return {"issues": issues}
+
+    def _calculate_image_quality_score(self, issues: List[Dict[str, Any]], img_array) -> float:
+        """Calculate image quality score based on issues found"""
+        base_score = 100.0
+
+        for issue in issues:
+            severity = issue.get("severity", "low")
+            if severity == "critical":
+                base_score -= 25
+            elif severity == "high":
+                base_score -= 15
+            elif severity == "medium":
+                base_score -= 8
+            else:
+                base_score -= 3
+
+        # Resolution bonus
+        if np is not None and img_array is not None:
+            height, width = img_array.shape[:2]
+            total_pixels = width * height
+            if total_pixels > 2000000:  # > 2MP
+                base_score += 5
+            if total_pixels > 8000000:  # > 8MP
+                base_score += 5
+
+        return max(0.0, min(100.0, base_score))
+
+    def _generate_image_recommendations(self, issues: List[Dict[str, Any]], image) -> List[str]:
+        """Generate image improvement recommendations"""
+        recommendations = []
+        issue_types = [issue.get("type") for issue in issues]
+
+        if "low_resolution" in issue_types:
+            recommendations.append("Increase image resolution - consider using higher resolution source images")
+        if "too_dark" in issue_types:
+            recommendations.append("Increase brightness - use image editing tools to adjust exposure")
+        if "too_bright" in issue_types:
+            recommendations.append("Reduce brightness - the image may be overexposed")
+        if "low_contrast" in issue_types:
+            recommendations.append("Increase contrast - apply contrast enhancement or histogram equalization")
+        if "high_noise" in issue_types:
+            recommendations.append("Reduce noise - apply denoising filters or use a lower ISO setting")
+        if "blurry" in issue_types:
+            recommendations.append("Improve sharpness - use a tripod, faster shutter speed, or apply sharpening filters")
+        if "flat_composition" in issue_types:
+            recommendations.append("Improve composition - apply rule of thirds to place key subjects at intersection points")
+        if "grayscale" in issue_types:
+            recommendations.append("Consider adding color for better visual appeal, if the content allows")
+
+        if not recommendations:
+            recommendations.append("Image quality is acceptable - no major improvements needed")
+
+        return recommendations
+
+    async def _analyze_system_performance(self, metrics: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze system performance metrics"""
+        issues = []
+
+        # Response time analysis
+        if "response_time" in metrics:
+            avg_response = metrics["response_time"].get("average", 0)
+            p99_response = metrics["response_time"].get("p99", 0)
+            if avg_response > 2000:  # > 2s
+                issues.append({
+                    "type": "slow_response_time",
+                    "severity": "high",
+                    "description": f"Average response time is {avg_response}ms (target: <2000ms)"
+                })
+            if p99_response > 10000:  # > 10s
+                issues.append({
+                    "type": "slow_p99_response",
+                    "severity": "critical",
+                    "description": f"P99 response time is {p99_response}ms (target: <10000ms)"
+                })
+
+        # Throughput analysis
+        if "throughput" in metrics:
+            rps = metrics["throughput"].get("requests_per_second", 0)
+            if rps < 10:
+                issues.append({
+                    "type": "low_throughput",
+                    "severity": "medium",
+                    "description": f"Throughput is {rps} rps (minimum recommended: 10 rps)"
+                })
+
+        # Error rate analysis
+        if "error_rate" in metrics:
+            error_rate = metrics["error_rate"]
+            if error_rate > 0.05:  # > 5%
+                issues.append({
+                    "type": "high_error_rate",
+                    "severity": "critical",
+                    "description": f"Error rate is {error_rate*100:.1f}% (target: <5%)"
+                })
+            elif error_rate > 0.01:  # > 1%
+                issues.append({
+                    "type": "elevated_error_rate",
+                    "severity": "medium",
+                    "description": f"Error rate is {error_rate*100:.1f}% (target: <1%)"
+                })
+
+        # Resource utilization
+        if "cpu_usage" in metrics and metrics["cpu_usage"] > 80:
+            issues.append({
+                "type": "high_cpu_usage",
+                "severity": "high",
+                "description": f"CPU usage is {metrics['cpu_usage']}% (target: <80%)"
+            })
+        if "memory_usage" in metrics and metrics["memory_usage"] > 85:
+            issues.append({
+                "type": "high_memory_usage",
+                "severity": "high",
+                "description": f"Memory usage is {metrics['memory_usage']}% (target: <85%)"
+            })
+
+        return {"issues": issues}
+
+    async def _analyze_system_security(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze system security configuration"""
+        issues = []
+
+        # Authentication checks
+        if not config.get("authentication_enabled", True):
+            issues.append({
+                "type": "missing_authentication",
+                "severity": "critical",
+                "description": "System authentication is not enabled"
+            })
+
+        # HTTPS/TLS checks
+        if not config.get("tls_enabled", True):
+            issues.append({
+                "type": "no_tls",
+                "severity": "critical",
+                "description": "TLS/HTTPS is not enabled - data may be transmitted in plaintext"
+            })
+
+        # Encryption at rest
+        if not config.get("encryption_at_rest", True):
+            issues.append({
+                "type": "no_encryption_at_rest",
+                "severity": "high",
+                "description": "Data at rest is not encrypted"
+            })
+
+        # Rate limiting
+        if not config.get("rate_limiting_enabled", True):
+            issues.append({
+                "type": "no_rate_limiting",
+                "severity": "medium",
+                "description": "Rate limiting is not configured - system may be vulnerable to DoS"
+            })
+
+        # CORS configuration
+        cors_config = config.get("cors", {})
+        if cors_config.get("allow_all_origins", False):
+            issues.append({
+                "type": "open_cors",
+                "severity": "high",
+                "description": "CORS allows all origins - restrict to known domains"
+            })
+
+        # Secret management
+        if config.get("hardcoded_secrets", False):
+            issues.append({
+                "type": "hardcoded_secrets",
+                "severity": "critical",
+                "description": "Secrets appear to be hardcoded - use environment variables or secret managers"
+            })
+
+        return {"issues": issues}
+
+    async def _analyze_system_reliability(self, metrics: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze system reliability metrics"""
+        issues = []
+
+        # Uptime analysis
+        uptime_percent = metrics.get("uptime_percentage", 100)
+        if uptime_percent < 99.0:
+            issues.append({
+                "type": "low_uptime",
+                "severity": "critical",
+                "description": f"Uptime is {uptime_percent}% (SLA target: 99.9%)"
+            })
+        elif uptime_percent < 99.9:
+            issues.append({
+                "type": "below_sla",
+                "severity": "medium",
+                "description": f"Uptime is {uptime_percent}% (SLA target: 99.9%)"
+            })
+
+        # MTTR (Mean Time To Recovery)
+        mttr = metrics.get("mttr_minutes", 0)
+        if mttr > 60:
+            issues.append({
+                "type": "slow_recovery",
+                "severity": "high",
+                "description": f"MTTR is {mttr} minutes (target: <60 minutes)"
+            })
+
+        # Deployment frequency
+        deploy_freq = metrics.get("deploy_frequency_per_week", 0)
+        if deploy_freq < 1:
+            issues.append({
+                "type": "infrequent_deployments",
+                "severity": "low",
+                "description": "Deployment frequency is less than once per week"
+            })
+
+        # Backup status
+        if not metrics.get("backups_enabled", True):
+            issues.append({
+                "type": "no_backups",
+                "severity": "critical",
+                "description": "Database backups are not enabled"
+            })
+
+        return {"issues": issues}
+
+    async def _analyze_system_scalability(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze system scalability characteristics"""
+        issues = []
+
+        # Horizontal scaling
+        if not data.get("supports_horizontal_scaling", True):
+            issues.append({
+                "type": "no_horizontal_scaling",
+                "severity": "high",
+                "description": "System does not support horizontal scaling"
+            })
+
+        # Connection pooling
+        if not data.get("connection_pooling_enabled", True):
+            issues.append({
+                "type": "no_connection_pooling",
+                "severity": "medium",
+                "description": "Connection pooling is not enabled - may limit scalability"
+            })
+
+        # Caching
+        if not data.get("caching_enabled", True):
+            issues.append({
+                "type": "no_caching",
+                "severity": "medium",
+                "description": "Caching is not configured - repeated queries may overload the database"
+            })
+
+        # Database scalability
+        db_type = data.get("database_type", "")
+        if db_type.lower() == "sqlite":
+            issues.append({
+                "type": "sqlite_for_production",
+                "severity": "medium",
+                "description": "SQLite may not scale well for concurrent write workloads - consider PostgreSQL"
+            })
+
+        return {"issues": issues}
+
+    def _generate_system_recommendations(self, issues: List[Dict[str, Any]]) -> List[str]:
+        """Generate system improvement recommendations"""
+        recommendations = []
+        issue_types = [issue.get("type") for issue in issues]
+
+        if "slow_response_time" in issue_types:
+            recommendations.append("Optimize response time by adding caching, optimizing database queries, or scaling horizontally")
+        if "high_error_rate" in issue_types:
+            recommendations.append("Investigate and fix errors - add monitoring, error tracking, and circuit breakers")
+        if "missing_authentication" in issue_types:
+            recommendations.append("Implement authentication immediately - use OAuth2, JWT, or API key-based auth")
+        if "no_tls" in issue_types:
+            recommendations.append("Enable TLS/HTTPS to protect data in transit - use Let's Encrypt for free certificates")
+        if "no_encryption_at_rest" in issue_types:
+            recommendations.append("Enable encryption at rest for sensitive data - use AES-256 or cloud provider encryption")
+        if "open_cors" in issue_types:
+            recommendations.append("Restrict CORS to known origins - never use wildcard (*) in production")
+        if "low_uptime" in issue_types:
+            recommendations.append("Improve uptime by adding redundancy, health checks, and automated failover")
+        if "no_backups" in issue_types:
+            recommendations.append("Enable automated database backups with point-in-time recovery")
+        if "no_horizontal_scaling" in issue_types:
+            recommendations.append("Design for horizontal scaling - use stateless services and external session stores")
+        if "sqlite_for_production" in issue_types:
+            recommendations.append("Consider migrating from SQLite to PostgreSQL for production workloads")
+
+        return recommendations
+
+    def _calculate_system_quality_score(self, issues: List[Dict[str, Any]], data: Dict[str, Any]) -> float:
+        """Calculate system quality score"""
+        base_score = 100.0
+
+        for issue in issues:
+            severity = issue.get("severity", "low")
+            if severity == "critical":
+                base_score -= 20
+            elif severity == "high":
+                base_score -= 12
+            elif severity == "medium":
+                base_score -= 6
+            else:
+                base_score -= 2
+
+        # Bonus for best practices
+        if data.get("monitoring_enabled"):
+            base_score += 3
+        if data.get("ci_cd_enabled"):
+            base_score += 3
+        if data.get("automated_testing"):
+            base_score += 3
+
+        return max(0.0, min(100.0, base_score))
+
+    async def _analyze_process_efficiency(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze process efficiency"""
+        issues = []
+
+        automation_level = data.get("automation_percentage", 0)
+        if automation_level < 30:
+            issues.append({
+                "type": "low_automation",
+                "severity": "high",
+                "description": f"Only {automation_level}% of the process is automated (target: >70%)"
+            })
+        elif automation_level < 70:
+            issues.append({
+                "type": "partial_automation",
+                "severity": "medium",
+                "description": f"Process is {automation_level}% automated (target: >70%)"
+            })
+
+        error_rate = data.get("error_rate", 0)
+        if error_rate > 0.1:
+            issues.append({
+                "type": "high_error_rate",
+                "severity": "high",
+                "description": f"Process error rate is {error_rate*100:.1f}% (target: <5%)"
+            })
+
+        avg_completion = data.get("avg_completion_time_minutes", 0)
+        target_time = data.get("target_completion_time_minutes", 30)
+        if avg_completion > target_time * 1.5:
+            issues.append({
+                "type": "slow_process",
+                "severity": "medium",
+                "description": f"Average completion time is {avg_completion}min (target: {target_time}min)"
+            })
+
+        return {"issues": issues}
+
+    async def _analyze_process_compliance(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze process compliance with standards"""
+        issues = []
+
+        if not data.get("documentation_complete", True):
+            issues.append({
+                "type": "incomplete_documentation",
+                "severity": "high",
+                "description": "Process documentation is incomplete"
+            })
+
+        if not data.get("audit_trail_enabled", True):
+            issues.append({
+                "type": "no_audit_trail",
+                "severity": "high",
+                "description": "Audit trail is not enabled - cannot trace process changes"
+            })
+
+        if not data.get("standards_adherence", True):
+            issues.append({
+                "type": "standards_non_compliance",
+                "severity": "medium",
+                "description": "Process does not adhere to defined standards"
+            })
+
+        return {"issues": issues}
+
+    async def _analyze_process_automation(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze process automation opportunities"""
+        issues = []
+
+        manual_steps = data.get("manual_steps_count", 0)
+        if manual_steps > 5:
+            issues.append({
+                "type": "too_many_manual_steps",
+                "severity": "medium",
+                "description": f"Process has {manual_steps} manual steps - consider automation"
+            })
+
+        if not data.get("automated_notifications", True):
+            issues.append({
+                "type": "no_auto_notifications",
+                "severity": "low",
+                "description": "Notifications are not automated - may cause delays"
+            })
+
+        if not data.get("automated_error_handling", True):
+            issues.append({
+                "type": "no_auto_error_handling",
+                "severity": "medium",
+                "description": "Error handling is not automated - manual intervention required"
+            })
+
+        return {"issues": issues}
+
+    def _generate_process_recommendations(self, issues: List[Dict[str, Any]]) -> List[str]:
+        """Generate process improvement recommendations"""
+        recommendations = []
+        issue_types = [issue.get("type") for issue in issues]
+
+        if "low_automation" in issue_types or "partial_automation" in issue_types:
+            recommendations.append("Increase automation level by identifying repetitive manual tasks and automating them with scripts or workflows")
+        if "high_error_rate" in issue_types:
+            recommendations.append("Reduce error rate by adding validation steps, automated testing, and error recovery mechanisms")
+        if "slow_process" in issue_types:
+            recommendations.append("Optimize process speed by parallelizing independent steps and eliminating bottlenecks")
+        if "incomplete_documentation" in issue_types:
+            recommendations.append("Complete process documentation including SOPs, flowcharts, and decision trees")
+        if "no_audit_trail" in issue_types:
+            recommendations.append("Enable audit trail to track all process changes for compliance and debugging")
+        if "too_many_manual_steps" in issue_types:
+            recommendations.append("Automate manual steps using CI/CD pipelines, scheduling tools, or custom scripts")
+
+        return recommendations
+
+    def _calculate_process_quality_score(self, issues: List[Dict[str, Any]], data: Dict[str, Any]) -> float:
+        """Calculate process quality score"""
+        base_score = 100.0
+
+        for issue in issues:
+            severity = issue.get("severity", "low")
+            if severity == "critical":
+                base_score -= 20
+            elif severity == "high":
+                base_score -= 12
+            elif severity == "medium":
+                base_score -= 6
+            else:
+                base_score -= 2
+
+        # Bonus for good practices
+        if data.get("automation_percentage", 0) > 80:
+            base_score += 5
+        if data.get("monitoring_enabled"):
+            base_score += 3
+        if data.get("continuous_improvement"):
+            base_score += 3
+
+        return max(0.0, min(100.0, base_score))
+
+    def _generate_period_recommendations(self, period_assessments: List[QualityAssessment]) -> List[str]:
+        """Generate recommendations based on period assessment trends"""
+        recommendations = []
+
+        if not period_assessments:
+            return recommendations
+
+        # Analyze trends
+        avg_score = sum(a.score for a in period_assessments) / len(period_assessments)
+
+        if avg_score < 60:
+            recommendations.append("Overall quality is critically low - prioritize fixing critical issues across all categories")
+        elif avg_score < 75:
+            recommendations.append("Quality is below target - focus on the lowest-scoring categories first")
+
+        # Check for declining trends
+        if len(period_assessments) >= 3:
+            recent_scores = [a.score for a in period_assessments[:len(period_assessments)//2]]
+            older_scores = [a.score for a in period_assessments[len(period_assessments)//2:]]
+            if recent_scores and older_scores:
+                recent_avg = sum(recent_scores) / len(recent_scores)
+                older_avg = sum(older_scores) / len(older_scores)
+                if recent_avg < older_avg - 5:
+                    recommendations.append("Quality trend is declining - investigate recent changes that may have introduced regressions")
+
+        # Category-specific recommendations
+        categories = {}
+        for a in period_assessments:
+            if a.item_type not in categories:
+                categories[a.item_type] = []
+            categories[a.item_type].append(a.score)
+
+        for category, scores in categories.items():
+            cat_avg = sum(scores) / len(scores)
+            if cat_avg < 70:
+                recommendations.append(f"Focus on improving {category} quality (current average: {cat_avg:.1f})")
+
+        if not recommendations:
+            recommendations.append("Quality is on track - continue monitoring and maintain current standards")
+
+        return recommendations
+
 # Global instance
 quality_control_specialist = QualityControlSpecialist()
 

@@ -475,6 +475,15 @@ class PromptMasterAgent:
             elif agent_name == "deploy_manager":
                 from agents.deploy_manager import DeployManagerAgent
                 return DeployManagerAgent()
+            elif agent_name == "voice_agent":
+                from agents.voice_agent import VoiceAgent
+                return VoiceAgent()
+            elif agent_name == "web3_plugin":
+                from agents.web3_plugin import Web3Plugin
+                return Web3Plugin()
+            elif agent_name == "agent_watcher":
+                from agents.agent_watcher import AgentWatcherAgent
+                return AgentWatcherAgent()
             # Add other agents as needed
             else:
                 return None

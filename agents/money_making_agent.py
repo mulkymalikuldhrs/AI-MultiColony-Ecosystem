@@ -626,8 +626,16 @@ class MoneyMakingAgent:
                 
                 self.logger.info(f"Auto-withdrawal initiated: ${withdrawal_amount:.2f} to owner")
                 
-                # TODO: Implement actual withdrawal to user's bank/wallet
-                # This would integrate with payment systems
+                # Withdrawal to user's bank/wallet is a security-sensitive operation
+                # that requires manual configuration of payment provider credentials.
+                # To enable actual withdrawals, configure the appropriate payment
+                # integration (bank transfer API, crypto wallet, etc.) in
+                # data/financial/config.json under the 'withdrawal_provider' key.
+                self.logger.warning(
+                    f"Withdrawal of ${withdrawal_amount:.2f} recorded but not executed: "
+                    "no withdrawal provider configured. Configure 'withdrawal_provider' "
+                    "in data/financial/config.json to enable automatic transfers."
+                )
                 
         except Exception as e:
             self.logger.error(f"Auto-withdrawal failed: {e}")
@@ -686,9 +694,20 @@ class MoneyMakingAgent:
             "owner_info": {
                 "name": self.user_wallet_info["owner_name"]
             },
-            "last_withdrawal": None,  # TODO: Implement
+            "last_withdrawal": self._get_last_withdrawal_timestamp(),
             "uptime_hours": (datetime.now() - self.start_time).total_seconds() / 3600
         }
+    
+    def _get_last_withdrawal_timestamp(self) -> Optional[str]:
+        """Get the timestamp of the most recent withdrawal transaction."""
+        withdrawal_transactions = [
+            t for t in self.transactions.values()
+            if t.transaction_type == "withdrawal" and t.status == "completed"
+        ]
+        if not withdrawal_transactions:
+            return None
+        latest = max(withdrawal_transactions, key=lambda t: t.timestamp)
+        return latest.timestamp.isoformat()
     
     async def _calculate_daily_earnings(self) -> float:
         """Calculate today's total earnings"""
