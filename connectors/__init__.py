@@ -5,7 +5,10 @@ External service integrations and API gateways
 Made with love by Mulky Malikul Dhaher in Indonesia
 """
 
-from .llm_gateway import LLMGateway
+try:
+    from .llm_gateway import LLMGateway
+except ImportError:
+    LLMGateway = None
 
 # Optional connectors - require additional dependencies
 # These are lightweight stubs that gracefully degrade when dependencies are missing
