@@ -45,6 +45,7 @@ class LLMProvider(str, Enum):
     GOOGLE = "google"
     NVIDIA = "nvidia"
     LOCAL = "local"
+    NVIDIA_NIM = "nvidia_nim"
 
 
 class ModelTier(str, Enum):
@@ -151,6 +152,11 @@ _DEFAULT_MODELS: Dict[LLMProvider, Dict[ModelTier, str]] = {
         ModelTier.STANDARD: "llama3:8b",
         ModelTier.QUICK: "phi3:mini",
     },
+    LLMProvider.NVIDIA_NIM: {
+        ModelTier.DEEP_THINKING: "meta/llama-3.1-405b-instruct",
+        ModelTier.STANDARD: "meta/llama-3.1-70b-instruct",
+        ModelTier.QUICK: "google/gemma-2-27b-it",
+    },
 }
 
 _DEFAULT_MAX_TOKENS: Dict[ModelTier, int] = {
@@ -166,6 +172,7 @@ _COST_PER_1K: Dict[str, Dict[str, float]] = {
     "google": {"input": 0.001, "output": 0.002},
     "nvidia": {"input": 0.002, "output": 0.006},
     "local": {"input": 0.0, "output": 0.0},
+    "nvidia_nim": {"input": 0.003, "output": 0.008},
 }
 
 
@@ -429,6 +436,8 @@ class LLMRouter:
             return await self._call_nvidia(config, messages, model, max_tokens, temperature)
         elif provider == LLMProvider.LOCAL:
             return await self._call_local(config, messages, model, max_tokens, temperature)
+        elif provider == LLMProvider.NVIDIA_NIM:
+            return await self._call_nvidia_nim(config, messages, model, max_tokens, temperature)
         else:
             raise ValueError(f"Unsupported provider: {provider}")
 
@@ -612,6 +621,55 @@ class LLMRouter:
             raise ImportError("httpx is required for local LLM provider")
         except Exception as exc:
             raise RuntimeError(f"Local LLM call failed: {exc}") from exc
+
+    @staticmethod
+    async def _call_nvidia_nim(
+        config: ProviderConfig,
+        messages: List[Dict[str, str]],
+        model: str,
+        max_tokens: Optional[int],
+        temperature: float,
+    ) -> tuple[str, int, int]:
+        """Call NVIDIA NIM API using the NIMClient."""
+        try:
+            from quant_nanggroe.engine.nvidia_nim.client import NIMClient
+            from quant_nanggroe.engine.nvidia_nim.models import NIMChatMessage, NIMRole
+
+            nim_messages: list[NIMChatMessage] = []
+            for m in messages:
+                try:
+                    role = NIMRole(m["role"])
+                except ValueError:
+                    role = NIMRole.USER
+                nim_messages.append(NIMChatMessage(role=role, content=m["content"]))
+
+            nim_config = None
+            if config.api_key or config.base_url:
+                from quant_nanggroe.engine.nvidia_nim.config import NIMConfig
+                nim_config = NIMConfig(
+                    nvidia_nim_api_key=config.api_key,
+                    nvidia_nim_base_url=config.base_url or "https://integrate.api.nvidia.com/v1",
+                )
+
+            client = NIMClient(config=nim_config)
+            try:
+                response = await client.chat_with_messages(
+                    nim_messages,
+                    model=model,
+                    temperature=temperature,
+                    max_tokens=max_tokens or 4096,
+                )
+                return (
+                    response.content,
+                    response.usage.prompt_tokens,
+                    response.usage.completion_tokens,
+                )
+            finally:
+                await client.close()
+        except ImportError:
+            raise ImportError(
+                "quant_nanggroe.engine.nvidia_nim is required for NVIDIA NIM provider"
+            )
 
     def _record_success(self, provider: LLMProvider, latency_ms: float) -> None:
         """Record a successful provider call."""

@@ -98,6 +98,11 @@ class Settings(BaseSettings):
     default_llm_model: str = "gpt-4o"
     default_llm_temperature: float = 0.0
 
+    # NVIDIA NIM
+    nvidia_nim_api_key: Optional[str] = None
+    nvidia_nim_base_url: str = "https://integrate.api.nvidia.com/v1"
+    nvidia_nim_default_model: str = "meta/llama-3.1-70b-instruct"
+
     # Logging
     log_level: str = "INFO"
     log_format: str = "json"
