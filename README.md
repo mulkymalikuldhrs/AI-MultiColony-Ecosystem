@@ -1,319 +1,401 @@
-<!-- 🦅 QUANT NANGGROE AI — Professional README -->
-<!-- Language: English -->
-
 <a href="https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI">
-  <img align="center" src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=36&duration=3000&pause=1500&color=00D4AA&center=true&vCenter=true&multiline=true&repeat=true&width=800&height=120&lines=QUANT+NANGGROE+AI;Multi-Agent+Decision+Intelligence+OS" alt="Typing SVG" />
+  <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:001a0a,50:003d1a,100:005c2a&height=220&section=header&text=Quant%20Nanggroe%20AI&fontSize=42&fontColor=00D4AA&animation=fadeIn&fontAlignY=30&desc=Multi-Agent%20Decision%20Intelligence%20OS%20for%20Quantitative%20Trading&descSize=16&descColor=fbbf24&descAlignY=50" />
 </a>
 
 <div align="center">
 
-[![Version](https://img.shields.io/badge/Version-1.0.0-gold?style=for-the-badge&logo=semver&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge&logo=open-source-initiative&logoColor=white)](./LICENSE)
-[![Status](https://img.shields.io/badge/Status-Operational_Full-22C55E?style=for-the-badge&logo=checkmarx&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=00D4AA&center=true&vCenter=true&width=720&lines=Multi-Agent+Decision+Intelligence+OS;5-Layer+Deterministic+Execution+Stack;Darwinian+Strategy+Lifecycle;Risk+Guardian+Constitution;Decision-Support+%E2%80%94+Not+Guaranteed+Profit)](https://git.io/typing-svg)
+
+<br/>
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![Binance](https://img.shields.io/badge/Binance-API-F0B90B?style=for-the-badge&logo=binance&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![Multi-Agent](https://img.shields.io/badge/Multi-Agent-5_Layers-00D4AA?style=for-the-badge&logo=ai&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![Version](https://img.shields.io/badge/Version-v15.3.0-005c2a?style=for-the-badge&logo=semanticrelease&logoColor=white)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
+
+<br/>
+
+[![GitHub Stars](https://img.shields.io/github/stars/mulkymalikuldhrs/Quant-Nanggroe-AI?style=for-the-badge&logo=github&color=gold)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/mulkymalikuldhrs/Quant-Nanggroe-AI?style=for-the-badge&logo=github&color=blue)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI/fork)
+[![GitHub Issues](https://img.shields.io/github/issues/mulkymalikuldhrs/Quant-Nanggroe-AI?style=for-the-badge&logo=github&color=red)](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI/issues)
+
+<br/>
+
+**Language / Bahasa / 语言**
+
+[![EN](https://img.shields.io/badge/EN-English-blue?style=flat-square)](README.md)
+[![ID](https://img.shields.io/badge/ID-Bahasa%20Indonesia-red?style=flat-square)](README_id.md)
+[![CN](https://img.shields.io/badge/CN-中文-green?style=flat-square)](README_zh.md)
 
 </div>
 
-<div align="center">
+---
 
-**Language / Bahasa / 语言:**
-[![English](https://img.shields.io/badge/EN-English-blue?style=flat-square)](./README.md)
-[![Bahasa Indonesia](https://img.shields.io/badge/ID-Bahasa_Indonesia-red?style=flat-square)](./README_id.md)
-[![中文](https://img.shields.io/badge/CN-中文-yellow?style=flat-square)](./README_zh.md)
+<a href="https://www.producthunt.com/products/quant-nanggroe-ai?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-quant-nanggroe-ai" target="_blank" rel="noopener noreferrer"><img alt="Quant Nanggroe AI - trading, quantitative, stocks, ai, ai agent, swarm | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1169196&amp;theme=dark&amp;t=1781170069213"></a>
 
-</div>
+## Overview
+
+Quant Nanggroe AI is a **Multi-Agent Decision Intelligence Operating System** for quantitative research and systematic trading in financial markets. It is part of the [HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) unified project ecosystem.
+
+Built on the principle of **Deterministic Decision Intelligence**, the platform treats LLMs as Logical Reasoning Engines operating under strict contracts that forbid subjective opinions, mandate data grounding, and require pressure-based numerical outputs rather than direct trade signals.
+
+The system implements a **5-Layer Execution Stack** that processes market data from raw L1/L2 feeds through regime detection, multi-agent sensor analysis, pressure normalization, and decision synthesis with risk enforcement. It features a **Darwinian Strategy Lifecycle** that automatically retires underperforming strategies and a **Risk Guardian Constitution** as an independent layer of hard-coded safety rules.
+
+> **Honest Note**: This is a **decision-support and research tool**, not an autonomous trading system that guarantees profits. "Deterministic Decision Intelligence" means the data flow pipeline is deterministic — **not** that its outputs are guaranteed correct. All trading involves risk of loss. The Risk Guardian reduces but cannot eliminate risk.
 
 ---
 
-## 🏛️ Overview
+## 5-Layer Execution Stack
 
-**Quant Nanggroe AI** is an advanced **Multi-Agent Decision Intelligence Operating System** engineered for quantitative research and systematic trading in financial markets. Built on the principle of **Deterministic Decision Intelligence**, this platform fundamentally rejects subjective AI narratives and psychological bias in favor of mathematically constrained reasoning over raw numerical data. The system treats Large Language Models not as advisors, but as **Logical Reasoning Engines** — each operating under strict contracts that forbid subjective opinions, mandate data grounding, and require pressure-based numerical outputs rather than direct trade signals.
+The core of Quant Nanggroe AI is its layered execution architecture. Each layer has a single responsibility and strict data contracts with the layers above and below it. This is what makes the pipeline **deterministic** — the same inputs always follow the same processing path, producing auditable, traceable decision artifacts.
 
-At its core, Quant Nanggroe AI implements a **5-Layer Execution Stack** that processes market data from raw L1/L2 feeds through regime detection, multi-agent sensor analysis, pressure normalization, and ultimately decision synthesis with risk enforcement. The architecture is inspired by institutional quantitative trading desks, where every decision must be traceable, auditable, and defensible. The system employs a **Darwinian Strategy Lifecycle** that automatically kills underperforming strategies, an **Execution Reality Engine** that accounts for slippage, spread, and latency in backtesting, and a **Risk Guardian Constitution** that acts as an independent layer of hard-coded safety rules immune to AI reasoning.
+```
+┌─────────────────────────────────────────────────────────┐
+│                    LAYER 4 — DECISION                   │
+│              Decision Synthesis & Risk Enforcement       │
+│         Final pressure vector → action recommendation    │
+├─────────────────────────────────────────────────────────┤
+│                  LAYER 3 — NORMALIZATION                 │
+│            Pressure Normalization & Conflict Resolution   │
+│       Multi-agent outputs → unified pressure vector      │
+├─────────────────────────────────────────────────────────┤
+│                   LAYER 2 — SENSORS                      │
+│          Multi-Agent Sensor Analysis & Interpretation    │
+│       Regime context → specialized agent analysis        │
+├─────────────────────────────────────────────────────────┤
+│                    LAYER 1 — REGIME                      │
+│            Market Regime Detection & Classification      │
+│       Raw market data → regime labels & transitions      │
+├─────────────────────────────────────────────────────────┤
+│                     LAYER 0 — DATA                       │
+│          Data Foundation & Market Feeds (L1/L2)          │
+│       External feeds → normalized internal data model    │
+└─────────────────────────────────────────────────────────┘
+```
 
-The frontend is a desktop-OS-inspired interface built with React 19 and TypeScript, featuring draggable windows, a macOS-style dock, an AI-powered command center (OmniBar), and real-time visualization of the multi-agent swarm. It is designed to be a complete research and decision-support workstation — not just a dashboard, but an operating environment for quantitative intelligence.
+### Layer 0 — Data Foundation
 
-> 🔗 **Part of the [HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) Unified Project** — A full-stack quantitative intelligence ecosystem.
+The bedrock layer ingests raw market data from multiple providers and normalizes it into a unified internal data model.
 
----
+- **L1/L2 Feed Ingestion** — Real-time order book snapshots, trade prints, and ticker updates from Binance and fallback providers
+- **AutoSwitch Data Engine** — Automatic failover between data providers (Binance → CoinCap → AlphaVantage → Polygon → Finnhub) with latency tracking
+- **Normalization Pipeline** — All incoming data is mapped to a canonical schema regardless of source, ensuring upstream layers never need provider-specific logic
+- **Historical Replay** — Cached tick data enables deterministic replay for backtesting and audit trails
 
-## 🏗️ Architecture
+### Layer 1 — Regime Detection
 
-Quant Nanggroe AI is built on a **5-Layer Deterministic Execution Stack**, where each layer acts as a strict filter that either passes data forward or blocks it entirely. No layer can be bypassed, and no agent can override the constraints imposed by layers above it. This design ensures that every trading decision is the result of a fully auditable, deterministic pipeline — from raw market data ingestion to final execution parameters with risk clearance.
+Processes normalized data to identify the current market regime, which governs how all downstream agents interpret signals.
 
-### Layer 0: Contextual Neural Grounding (Data Foundation)
-The bedrock of the entire system. This layer harvests real-time L1/L2 market data from multiple providers — Binance, CoinCap, AlphaVantage, Polygon, and Finnhub — using the **AutoSwitch** engine for automatic failover and provider health monitoring. Every piece of data that enters the system is tagged with metadata including source, trust score (0.0–1.0), latency estimate, update frequency, and domain type. This metadata flows downstream, allowing every agent and engine to weight its confidence based on data quality. The **MarketService** orchestrates all data access, providing a unified API for price feeds, candle data, news, and technical indicators.
+- **Regime Classification** — Labels market state (trending, mean-reverting, volatile, quiet, transitional) using statistical and structural indicators
+- **Transition Detection** — Identifies regime shifts in real-time, triggering agent reconfiguration
+- **Context Propagation** — Broadcasts regime labels to all Layer 2 sensors, ensuring every agent operates within the correct market context
+- **Confidence Scoring** — Each regime label carries a confidence score; low-confidence regimes trigger conservative agent behavior
 
-### Layer 1: Market Regime Engine (The Gatekeeper)
-The **MarketStateEngine** sits above all agents and serves as the system's gatekeeper. It determines the global market condition — `TRENDING`, `RANGE`, `MEAN_REVERT`, `RISK_OFF`, `PANIC`, or `NO_TRADE` — using a combination of ADX trend strength, RSI extremes, and rapid price change detection. If the regime is `NO_TRADE` or `PANIC`, all downstream agents are forced into idle mode, protecting capital during unsuitable conditions. This is a hard constraint that cannot be overridden by any agent or LLM reasoning.
+### Layer 2 — Multi-Agent Sensors
 
-### Layer 2: Multi-Agent Sensors (The Eyes)
-Four specialized agents operate in parallel as numerical sensors, each producing structured output types rather than subjective analysis:
-- **QuantScanner** (`quant_scanner.ts`) — Technical momentum, ADX trend strength, volatility expansion, and structure state (BULL/BEAR/NEUTRAL).
-- **SMCAgent** (`smc_agent.ts`) — Smart Money Concepts: liquidity sweeps, displacement strength, and Point of Interest validity.
-- **NewsSentinel** (`news_sentinel.ts`) — Macroeconomic event classification (MACRO/SCHEDULED/SHOCK/NOISE) with logarithmic time decay and directional uncertainty scoring.
-- **FlowAgent** (`flow_agent.ts`) — Institutional whale flow tracking, COT positioning bias (LONG/SHORT/NEUTRAL), and flow imbalance measurement.
+Specialized agents analyze the market within the context provided by Layer 1. Each agent is a narrow expert, not a generalist.
 
-### Layer 3: Pressure Normalization Engine (The Compiler)
-The **PressureNormalizationEngine** aggregates raw sensor outputs from all four agents and compiles them into two primary vectors: `BUY_PRESSURE` (0.0–1.0) and `SELL_PRESSURE` (0.0–1.0), along with volatility risk classification, liquidity condition, and an overall confidence score. Each sensor contributes a weighted portion to the pressure calculation, with the specific weights derived from the Blueprint Final specification. This layer eliminates the problem of conflicting agent signals by reducing everything to a single, normalized pressure field.
+- **Technical Sensor** — Pattern recognition, momentum, mean-reversion, and volatility analysis
+- **Sentiment Sensor** — NLP-based sentiment extraction from news, social, and on-chain data
+- **Macro Sensor** — Interest rates, funding rates, correlation shifts, and cross-asset analysis
+- **Liquidity Sensor** — Order book depth analysis, slippage estimation, and flow detection
+- **Volatility Sensor** — Realized vs. implied volatility, regime-adjusted volatility forecasting
+- **On-Chain Sensor** — Whale movements, exchange flows, and smart money tracking (crypto markets)
 
-### Layer 4: Decision Synthesis Engine (The Judge)
-The **DecisionSynthesisEngine** is the final authority. It uses a **Decision Table** (machine-readable rules) to evaluate whether the current pressure state, regime, volatility, and confidence levels meet the criteria for entry. If confluence is achieved, the **EntryRiskEngine** calculates geometric entry parameters — entry price, structural stop loss (invalidation-based, not percentage-based), and tiered take profits (TP1: nearest liquidity, TP2: volatility extension, TP3: volatility extension ×2). Risk clearance is independently verified by the **RiskManagement** module, which enforces the Trading Constitution.
+Each sensor produces a **pressure vector** (directional bias + magnitude) rather than a binary signal, enabling nuanced downstream synthesis.
 
----
+### Layer 3 — Pressure Normalization
 
-## ⚡ Key Features
+Receives pressure vectors from all active sensors and resolves conflicts into a unified assessment.
 
-### 🧠 Deterministic Multi-Agent Swarm
-The system coordinates 5 default swarm agents — Alpha Prime (portfolio manager), Quant-Scanner (technical analyst), News-Sentinel (macro/sentiment), Risk-Guardian (risk control), and Strategy-Weaver (algorithm developer) — each with constrained reasoning scopes, explicit input domains, and hard constraints that prevent subjective analysis or hallucinated outputs. Agents communicate through structured contracts, not free-form text.
+- **Weighted Aggregation** — Sensor pressures are weighted by historical accuracy in the current regime
+- **Conflict Resolution** — When sensors disagree, the system reduces overall confidence rather than picking a winner
+- **Temporal Smoothing** — Prevents whipsaw by requiring sustained pressure before adjusting the aggregate
+- **Darwinian Weighting** — Sensors with consistently poor performance in a given regime have their weights automatically reduced (linked to the Strategy Lifecycle)
 
-### 🛡️ Risk Guardian Constitution
-Risk management is hard-coded and independent of AI logic. The Trading Constitution enforces: maximum daily drawdown limit with automatic kill-switch, maximum correlation between active positions (0.70 threshold), maximum exposure per asset, and structural invalidation-based stop losses that take precedence over risk-reward ratios. No agent can "reason around" these rules.
+### Layer 4 — Decision Synthesis & Risk Enforcement
 
-### 🧬 Darwinian Strategy Lifecycle
-Every strategy is monitored for statistical significance. If a strategy's **expectancy** becomes negative over a sufficient sample size (minimum 20 trades), it is automatically marked as `KILLED` and resources shift to higher-performing variants. Strategies with drawdown exceeding 15% are placed in `HIBERNATING` status. This natural selection mechanism ensures the system continuously evolves toward profitability.
+The final layer combines the normalized pressure vector with portfolio state and risk constraints to produce an action recommendation.
 
-### 📊 Execution Reality Engine
-Backtesting isn't fantasy. The **BacktestEngine** accounts for dynamic spread (volatility-adjusted), random slippage, partial fill probability (2–15% depending on volatility), order rejection simulation, and realistic latency (100–500ms). This ensures that backtested performance reflects real-world trading conditions rather than idealized assumptions.
-
-### 🔍 Full Audit Trail
-The **AuditLogger** records every event across all layers — Market, Sensor, Pressure, Decision, Risk, and Execution — with timestamps, structured data payloads, and severity levels. Every decision the system makes is fully traceable and reproducible, meeting institutional compliance requirements.
-
-### 🔄 AutoSwitch API Failover
-The **AutoSwitch** engine provides automatic provider failover with exponential backoff retry logic, health-based provider prioritization, cooldown mechanisms for failing providers, and real-time health reporting. This ensures uninterrupted data flow even when individual API providers experience outages or rate limits.
-
-### 📚 Autonomous Research Agent
-The **ResearchAgent** runs continuously on a configurable interval, harvesting intelligence from 8+ sources including global news, market snapshots, geopolitical data, social sentiment, institutional flows, and AI ecosystem updates. All harvested intelligence is persisted to the Knowledge Base for cross-referencing and historical analysis.
-
-### 🧮 Institutional-Grade Math Engine
-The **MathEngine** provides a comprehensive suite of pure mathematical indicators: RSI, SMA, EMA, MACD, Bollinger Bands, VWAP with bands, Volume Profile, Stochastic Oscillator, CCI, ADX, and ATR. Every calculation is 100% deterministic with zero AI involvement — eliminating hallucination risk from technical analysis.
-
----
-
-## 🖥️ Component Descriptions
-
-| Component | File | Description |
-|---|---|---|
-| **Launchpad** | `components/Launchpad.tsx` | macOS-style application launcher providing quick access to all system windows and tools. Displays all available applications in a grid layout with animated icons and labels. |
-| **TradingTerminal** | `components/TradingTerminalWindow.tsx` | Professional trading terminal featuring real-time candlestick charts powered by Lightweight Charts v4.1, order placement interface, and live position tracking with equity/margin/PnL display. |
-| **SwarmGraph** | `components/SwarmConfigModal.tsx` | Swarm intelligence configuration panel for managing agent capabilities, assigning tools, and monitoring the health and activity of each agent in the swarm. |
-| **NexusWindow** | `components/NexusWindow.tsx` | Quantum Nexus visualization dashboard displaying system coherence metrics, active qubits, synaptic load, and operational status of the neural processing pipeline. |
-| **MarketWindow** | `components/MarketWindow.tsx` | Real-time market data dashboard showing price tickers, 24h changes, volume, technical indicators, and market state classification for tracked assets. |
-| **ResearchAgentWindow** | `components/ResearchAgentWindow.tsx` | Research intelligence console displaying autonomous research logs, harvested intelligence summaries, and source scanning status for all 8+ intelligence sources. |
-| **KnowledgeBaseWindow** | `components/KnowledgeBaseWindow.tsx` | Knowledge management interface for browsing, searching, and managing research items, market analyses, and institutional intelligence stored in the persistent knowledge base. |
-| **BrowserWindow** | `components/BrowserWindow.tsx` | Integrated web browser for navigating financial news sites, research papers, and market data sources directly within the Quant Nanggroe OS environment. |
-| **PortfolioWindow** | `components/PortfolioWindow.tsx` | Portfolio management dashboard with real-time equity tracking, margin status, PnL calculations, asset allocation visualization, and position management. |
-| **SystemArchitecture** | `components/SystemArchitecture.tsx` | Visual system architecture diagram showing the 5-layer execution stack, data flow between engines, and agent communication pathways. |
-| **AgentHud** | `components/AgentHud.tsx` | Heads-Up Display for monitoring swarm agent states, including current action, emotion, thinking status, and active browser URL tracking. |
-| **ControlCenter** | `components/ControlCenter.tsx` | System control panel with security matrix, risk guardian dashboard, theme toggle, and system configuration options. |
-| **OmniBar** | `components/OmniBar.tsx` | Spotlight-style universal command bar for quick access to any system function, market scan commands (`/scan`), and AI-powered search. |
-| **Taskbar** | `components/Taskbar.tsx` | macOS-inspired dock at the bottom of the screen providing window management, application launching, and system status indicators. |
-| **WindowFrame** | `components/WindowFrame.tsx` | Draggable, resizable window container with title bar, minimize/close buttons, z-index management, and focus tracking for the desktop OS experience. |
+- **Position Sizing** — Kelly-derived sizing modulated by current portfolio heat and regime confidence
+- **Risk Guardian Gate** — Every recommendation passes through the Risk Guardian Constitution before reaching the execution layer. The Guardian can **block, reduce, or modify** any action
+- **Audit Trail** — Every decision is logged with full provenance: which sensors contributed, their weights, regime context, and Guardian rulings
+- **Action Output** — The system outputs a structured decision artifact (not a direct trade order), which a human operator or downstream execution system can act upon
 
 ---
 
-## 🚀 Quick Start
+## Features
 
-Quant Nanggroe AI is a **dual-stack** project: a Python backend (FastAPI + agents + engines) and a Node.js/TypeScript frontend (React 19 desktop-OS UI). Both stacks must be set up for full functionality.
+- **5-Layer Execution Stack** — Deterministic data flow from raw feeds to decision artifacts, with strict layer contracts and full audit trails
+- **Deterministic Pipeline** — Every decision is traceable, auditable, and defensible. The same inputs follow the same processing path every time
+- **Darwinian Strategy Lifecycle** — Strategies and sensors are continuously evaluated; underperformers are automatically retired and replaced with evolved variants
+- **Risk Guardian Constitution** — Independent hard-coded safety rules immune to AI reasoning that can block, reduce, or modify any action regardless of agent confidence
+- **Desktop-OS UI** — React 19 interface with draggable windows, macOS-style dock, OmniBar command palette, and real-time visualization of agent states and pressure vectors
+- **AutoSwitch Data Engine** — Automatic failover between data providers (Binance, CoinCap, AlphaVantage, Polygon, Finnhub) with latency-aware routing
+- **Pressure-Based Outputs** — Agents produce continuous pressure vectors (direction + magnitude), not binary signals, enabling nuanced decision-making
+- **Regime-Aware Analysis** — All agents operate within detected market regime context, reducing false signals from regime-inappropriate strategies
+- **Full Provenance Audit** — Every decision artifact includes which sensors contributed, their weights, regime context, and Guardian rulings
+
+---
+
+## Architecture
+
+```
+                          ┌──────────────────────┐
+                          │   Desktop-OS UI      │
+                          │   (React 19)         │
+                          │   ┌──────────────┐   │
+                          │   │  OmniBar     │   │
+                          │   │  Dock        │   │
+                          │   │  Windows     │   │
+                          │   └──────┬───────┘   │
+                          └─────────┼────────────┘
+                                    │
+                          ┌─────────▼────────────┐
+                          │   Layer 4: Decision   │
+                          │  ┌─────────────────┐  │
+                          │  │ Risk Guardian ◄────── Constitution
+                          │  │ Position Sizer  │  │  (Hard Rules)
+                          │  │ Audit Logger    │  │
+                          │  └────────┬────────┘  │
+                          └───────────┼───────────┘
+                                      │
+                          ┌───────────▼───────────┐
+                          │  Layer 3: Normalizer  │
+                          │  ┌─────────────────┐  │
+                          │  │ Weighted Agg    │  │
+                          │  │ Conflict Res    │  │
+                          │  │ Darwinian Wt    │◄──── Strategy
+                          │  └────────┬────────┘  │  Lifecycle
+                          └───────────┼───────────┘
+                                      │
+                   ┌──────────┬───────▼───────┬──────────┐
+                   │          │               │          │
+             ┌─────▼───┐ ┌───▼─────┐ ┌───────▼──┐ ┌────▼────┐
+             │Technical│ │Sentiment│ │Liquidity │ │On-Chain │
+             │ Sensor  │ │ Sensor  │ │  Sensor  │ │ Sensor  │
+             └─────┬───┘ └───┬─────┘ └───────┬──┘ └────┬────┘
+                   │         │               │         │
+             ┌─────▼─────────▼───────────────▼─────────▼────┐
+             │        Layer 1: Regime Detection             │
+             │   ┌──────────────────────────────────────┐   │
+             │   │ Classifier │ Transitions │ Confidence │   │
+             │   └──────────────────────────────────────┘   │
+             └──────────────────────┬───────────────────────┘
+                                    │
+             ┌──────────────────────▼───────────────────────┐
+             │         Layer 0: Data Foundation             │
+             │  ┌───────┐ ┌─────────┐ ┌───────┐ ┌───────┐ │
+             │  │Binance│ │CoinCap  │ │Polygn │ │Finnhb │ │
+             │  └───────┘ └─────────┘ └───────┘ └───────┘ │
+             │        AutoSwitch Data Engine                │
+             └─────────────────────────────────────────────┘
+```
+
+---
+
+## Honest Notes
+
+> We believe in radical transparency. Here are the limitations and clarifications you should know before using this project.
+
+| Claim | Reality |
+|-------|---------|
+| "Deterministic Decision Intelligence" | The **data flow pipeline** is deterministic — same inputs follow the same path. This does **not** mean outputs are guaranteed correct. |
+| "Decision Intelligence OS" | This is a **decision-support tool**. It produces structured decision artifacts for human review, not autonomous trade execution. |
+| "Risk Guardian" | Reduces risk through hard-coded safety rules, but **cannot eliminate risk**. Market conditions can exceed any risk model. |
+| "Darwinian Strategy Lifecycle" | Automatically retires poor strategies based on metrics, but **past performance does not guarantee future results**. |
+| "Multi-Agent Analysis" | Multiple agents provide diverse perspectives, but **diverse analysis does not equal correct analysis**. |
+| Part of HermesQuantOS | This project is one component of the larger [HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) ecosystem. |
+
+**Critical reminders:**
+- All trading involves **significant risk of loss**
+- This software is for **education and research** purposes
+- Always test with **paper trading** before committing real capital
+- Never risk more than you can afford to lose
+- Past backtest results do not predict future performance
+
+---
+
+## Quick Start
 
 ### Prerequisites
 
-| Stack | Requirement |
-|---|---|
-| **Python Backend** | Python >= 3.12, [Poetry](https://python-poetry.org/) >= 1.8 |
-| **Node.js Frontend** | Node.js >= 18.0.0, npm >= 9.0.0 (or yarn/pnpm) |
-| **External** | PostgreSQL 16+, Redis 7+, QuestDB (optional for time-series) |
+- **Node.js** >= 18.x
+- **npm** >= 9.x (or pnpm/yarn)
+- Binance API key (use **testnet** first)
 
-### 1. Clone the Repository
+### Installation
 
 ```bash
+# Clone the repository
+
+<!-- AUTO-PACKAGE-BADGES:START -->
+
+<!-- AUTO-PACKAGE-BADGES:END -->
 git clone https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI.git
 cd Quant-Nanggroe-AI
-```
 
-### 2. Python Backend Setup
-
-```bash
-# Install Poetry if you don't have it
-curl -sSL https://install.python-poetry.org | python3 -
-
-# Install Python dependencies
-poetry install
-
-# Copy the environment template and fill in your values
-cp .env.example .env
-
-# Run database migrations
-poetry run alembic upgrade head
-
-# Start the FastAPI server
-poetry run uvicorn quant_nanggroe_ai.main:app --reload
-```
-
-### 3. Node.js Frontend Setup
-
-```bash
-# Install Node.js dependencies
+# Install dependencies
 npm install
 
-# Start the development server
+# Configure environment
+cp .env.example .env
+# Edit .env with your API keys (use testnet keys for initial testing)
+
+# Start development server
 npm run dev
 ```
 
-### 4. Configuration
+### Environment Variables
 
-1. Copy `.env.example` to `.env` and fill in your API keys and service URLs
-2. From the frontend UI, open the **Settings** panel from the Control Center or Taskbar
-3. Enter your API keys in the configuration section:
-   - `Google API Key` — Required for Gemini-powered agent swarm
-   - `Finnhub API Key` — For real-time market data feeds
-   - `AlphaVantage API Key` — For stock technical indicators
-4. The system will automatically initialize storage services (IndexedDB, BrowserFS, Memory Manager) on startup
-5. The **ResearchAgent** will begin autonomous intelligence harvesting immediately
+```env
+# Required — Data Provider
+BINANCE_API_KEY=your_testnet_key
+BINANCE_API_SECRET=your_testnet_secret
 
-### Build for Production
+# Optional — Fallback Data Providers
+COINCAP_API_KEY=
+ALPHAVANTAGE_API_KEY=
+POLYGON_API_KEY=
+FINNHUB_API_KEY=
 
-```bash
-# Python backend
-poetry build
+# Optional — LLM Reasoning Engine
+OPENAI_API_KEY=
 
-# Node.js frontend — optimized production build
-npm run build
-npm run preview   # Preview the production build locally
+# Risk Guardian Configuration
+MAX_POSITION_SIZE_PCT=5
+MAX_PORTFOLIO_HEAT_PCT=20
+MAX_DAILY_DRAWDOWN_PCT=3
+```
+
+> **Important**: Always start with Binance Testnet. Never connect to mainnet with untested configurations.
+
+---
+
+## API Reference
+
+### Core Modules
+
+#### Layer 0 — Data Engine
+
+```typescript
+import { DataEngine } from '@quant-nanggroe/data-engine';
+
+const engine = new DataEngine({
+  primary: 'binance',
+  fallbacks: ['coincap', 'alphavantage'],
+  autoSwitch: true,
+});
+
+// Subscribe to real-time L2 order book
+engine.onOrderBook('BTC/USDT', (snapshot) => {
+  console.log(snapshot.bids, snapshot.asks);
+});
+
+// Get historical ticks with deterministic replay
+const ticks = await engine.getHistoricalTicks('BTC/USDT', {
+  start: '2025-01-01',
+  end: '2025-01-31',
+  source: 'cache', // ensures deterministic replay
+});
+```
+
+#### Layer 1 — Regime Detector
+
+```typescript
+import { RegimeDetector } from '@quant-nanggroe/regime';
+
+const detector = new RegimeDetector({
+  lookback: 100,
+  transitionSensitivity: 0.7,
+});
+
+detector.onRegimeChange((current, previous, confidence) => {
+  console.log(`Regime: ${previous} → ${current} (confidence: ${confidence})`);
+  // Regime labels: 'trending' | 'mean-reverting' | 'volatile' | 'quiet' | 'transitional'
+});
+```
+
+#### Layer 2 — Sensor Agents
+
+```typescript
+import { SensorOrchestrator } from '@quant-nanggroe/sensors';
+
+const sensors = new SensorOrchestrator({
+  enabled: ['technical', 'sentiment', 'liquidity', 'onchain'],
+  regimeAware: true, // sensors auto-configure based on regime
+});
+
+// Each sensor outputs a pressure vector
+sensors.onPressure('BTC/USDT', (readings) => {
+  // readings.technical → { direction: 0.72, magnitude: 0.65, confidence: 0.81 }
+  // readings.sentiment → { direction: 0.45, magnitude: 0.30, confidence: 0.52 }
+  // ...
+});
+```
+
+#### Layer 3 — Pressure Normalizer
+
+```typescript
+import { PressureNormalizer } from '@quant-nanggroe/normalizer';
+
+const normalizer = new PressureNormalizer({
+  darwinianWeighting: true,
+  conflictThreshold: 0.4,
+  smoothingWindow: 5,
+});
+
+const unified = normalizer.aggregate(pressureReadings, regimeContext);
+// → { direction: 0.61, magnitude: 0.55, confidence: 0.68, contributingSensors: 4 }
+```
+
+#### Layer 4 — Decision Synthesizer
+
+```typescript
+import { DecisionSynthesizer } from '@quant-nanggroe/decision';
+
+const synthesizer = new DecisionSynthesizer({
+  riskGuardianEnabled: true,
+  auditLogging: true,
+});
+
+const decision = synthesizer.evaluate(unifiedPressure, portfolioState);
+// decision → {
+//   action: 'reduce_long',
+//   size: 0.03,
+//   confidence: 0.68,
+//   guardianRulings: ['portfolio_heat_within_limits'],
+//   provenance: { sensors: [...], regime: 'volatile', weights: {...} }
+// }
+```
+
+### Risk Guardian Constitution
+
+```typescript
+import { RiskGuardian } from '@quant-nanggroe/guardian';
+
+const guardian = new RiskGuardian({
+  maxPositionSizePct: 5,     // max 5% per position
+  maxPortfolioHeatPct: 20,    // max 20% total portfolio heat
+  maxDailyDrawdownPct: 3,    // max 3% daily drawdown
+  maxCorrelatedExposure: 15,  // max 15% in correlated assets
+  killSwitchEnabled: true,    // emergency halt capability
+});
+
+// The Guardian acts as a gate — it can BLOCK, REDUCE, or MODIFY actions
+const ruling = guardian.evaluate(proposedAction, portfolioState);
+// ruling → { verdict: 'REDUCE', originalSize: 0.05, adjustedSize: 0.03, reason: 'portfolio_heat_15.2pct' }
 ```
 
 ---
 
-## 📁 Project Structure
+## Contributing
 
-```
-Quant-Nanggroe-AI/
-├── 📄 App.tsx                          # Main application component with OS-style window management
-├── 📄 index.tsx                         # Application entry point
-├── 📄 types.ts                          # Core type definitions (MarketState, DecisionSynthesis, AgentContract, etc.)
-├── 📄 index.html                        # HTML entry point
-├── 📄 vite.config.ts                    # Vite build configuration
-├── 📄 tsconfig.json                     # TypeScript configuration
-├── 📄 package.json                      # Dependencies and scripts
-├── 📄 metadata.json                     # System metadata (version, description)
-├── 📄 CHANGELOG.md                      # Version history and release notes
-│
-├── 📂 components/                       # React UI components
-│   ├── 📄 Launchpad.tsx                 # Application launcher
-│   ├── 📄 TradingTerminalWindow.tsx     # Trading terminal with charts
-│   ├── 📄 MarketWindow.tsx              # Market data dashboard
-│   ├── 📄 PortfolioWindow.tsx           # Portfolio management
-│   ├── 📄 ResearchAgentWindow.tsx       # Research intelligence console
-│   ├── 📄 KnowledgeBaseWindow.tsx       # Knowledge base browser
-│   ├── 📄 BrowserWindow.tsx             # Integrated web browser
-│   ├── 📄 NexusWindow.tsx              # Quantum Nexus visualization
-│   ├── 📄 SwarmConfigModal.tsx          # Swarm agent configuration
-│   ├── 📄 SystemArchitecture.tsx        # Architecture diagram
-│   ├── 📄 AgentHud.tsx                  # Agent HUD display
-│   ├── 📄 ControlCenter.tsx             # System control panel
-│   ├── 📄 OmniBar.tsx                   # Universal command bar
-│   ├── 📄 Taskbar.tsx                   # Dock/taskbar
-│   ├── 📄 WindowFrame.tsx              # Draggable window container
-│   ├── 📄 ChatMessage.tsx              # Chat message component
-│   ├── 📄 InputArea.tsx                # Message input area
-│   ├── 📄 ArtifactWindow.tsx           # Artifact display window
-│   ├── 📄 Avatar.tsx                   # User avatar component
-│   ├── 📄 RealTimeChart.tsx            # Real-time chart component
-│   ├── 📄 SystemUpdater.tsx            # System update checker
-│   └── 📄 Icons.tsx                    # SVG icon library
-│
-├── 📂 services/                         # Core business logic and engines
-│   ├── 📄 strategy_engine.ts           # Strategy evaluation (SMC, S/R, Retail TA)
-│   ├── 📄 quantum_engine.ts            # Pressure normalization & decision synthesis
-│   ├── 📄 decision_synthesis_engine.ts  # Decision table & synthesis logic
-│   ├── 📄 pressure_normalization_engine.ts # Sensor-to-pressure compilation
-│   ├── 📄 market_state_engine.ts       # Market regime detection (Layer 1)
-│   ├── 📄 entry_risk_engine.ts         # Entry geometry & risk calculation
-│   ├── 📄 smc_agent.ts                # Smart Money Concepts sensor
-│   ├── 📄 news_sentinel.ts             # News & macro event classification
-│   ├── 📄 flow_agent.ts               # Institutional flow tracking
-│   ├── 📄 quant_scanner.ts            # Quantitative momentum scanner
-│   ├── 📄 math_engine.ts              # Pure mathematical indicators
-│   ├── 📄 ml_engine.ts                # Machine learning utilities
-│   ├── 📄 backtest_engine.ts          # Backtesting with execution reality
-│   ├── 📄 strategy_lifecycle.ts        # Darwinian strategy management
-│   ├── 📄 audit_logger.ts             # Full audit trail system
-│   ├── 📄 autoswitch.ts               # API failover engine
-│   ├── 📄 research_agent.ts           # Autonomous research harvester
-│   ├── 📄 knowledge_base.ts           # Persistent knowledge storage
-│   ├── 📄 browser_core.ts             # Browser navigation controller
-│   ├── 📄 llm_router.ts              # Multi-LLM routing engine
-│   ├── 📄 gemini.ts                   # Google Gemini AI integration
-│   ├── 📄 market.ts                   # Market data service (unified API)
-│   ├── 📄 risk_management.ts          # Risk Guardian enforcement
-│   ├── 📄 correlation_monitor.ts      # Asset correlation tracking
-│   ├── 📄 memory_manager.ts           # Session memory management
-│   ├── 📄 storage_manager.ts          # Hybrid storage orchestration
-│   ├── 📄 storage_adapter.ts          # Storage adapter pattern
-│   ├── 📄 file_system.ts             # Browser-based file system
-│   ├── 📄 drive.ts                   # Virtual drive management
-│   ├── 📄 adaptive_layout.ts          # Responsive layout engine
-│   ├── 📄 evolution_monitor.ts        # Strategy evolution tracking
-│   ├── 📄 backup_service.ts           # System backup & restore
-│   └── 📄 desktop_intelligence.ts     # Desktop AI integration
-│
-└── 📂 docs/                            # Documentation
-    ├── 📄 ARCHITECTURE.md              # System architecture reference
-    ├── 📄 BLUEPRINT.md                 # Design blueprint
-    ├── 📄 BUILD_PLAN.md               # Build roadmap
-    ├── 📄 EVOLUTION_MANIFEST.md       # Strategy evolution philosophy
-    ├── 📄 SERVICES_GUIDE.md           # Services documentation
-    ├── 📄 STORAGE.md                  # Storage architecture
-    ├── 📄 SYSTEM_AUDIT_LOG.md         # System audit reference
-    └── 📄 USER_GUIDE.md              # User guide
-```
+Contributions are welcome! We especially value contributions that improve transparency, risk management, and honest documentation.
 
----
-
-## 🔗 Related Projects
-
-| Project | Description | Link |
-|---|---|---|
-| **HermesQuantOS** | Unified Quantitative Intelligence Ecosystem — the parent project integrating Quant Nanggroe AI with backend services | [https://github.com/mulkymalikuldhrs/HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) |
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
-
----
-
-## ⚠️ Current Limitations
-
-The following features are currently **stub implementations** or **simplified approximations** and should not be relied upon for production trading:
-
-| Feature | Status | Details |
-|---|---|---|
-| **FlowAgent** | Stub | Always returns neutral state; requires WhaleAlert/Coinglass API integration for real institutional flow data |
-| **ADX Calculation** | Approximation | Uses SMA-slope proxy instead of Wilders Smoothing; not production-accurate |
-| **Trade Execution** | No live execution | The system generates analysis and decision outputs but does **not** connect to any exchange API for order placement |
-| **Quantum Nexus** | UI visualization only | Dashboard displays cosmetic metrics; not related to quantum computing |
-| **Sentiment Analysis** | Keyword-based | Uses simple keyword matching, not NLP-based sentiment analysis |
-| **CORS Proxies** | Third-party | Market data relies on public CORS proxy services whose availability is not guaranteed |
-
----
-
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0D9488,50:065F46,100:020205&height=120&section=footer" width="100%" />
-</p>
-
-<p align="center">
-  <strong>&copy; 2025-2026 Quant Nanggroe AI</strong><br/>
-  Built with 💎 by <a href="https://github.com/mulkymalikuldhrs">Mulky Malikul Dhaher</a><br/>
-  <em>Waiting for Contributors from Around the World 🌎</em>
-</p>
----
-
-## 🤝 Contributors Welcome
-
-We welcome contributions from developers, quantitative analysts, risk engineers, and AI researchers!
+### How to Contribute
 
 1. **Fork** the repository
 2. Create a **feature branch** (`git checkout -b feature/amazing-feature`)
@@ -321,33 +403,139 @@ We welcome contributions from developers, quantitative analysts, risk engineers,
 4. **Push** to the branch (`git push origin feature/amazing-feature`)
 5. Open a **Pull Request**
 
-Please make sure to update tests as appropriate and follow the existing code style.
+### Contribution Guidelines
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+- **Do not** add features that overclaim about trading performance or guaranteed returns
+- **Do** improve risk management, error handling, and audit trail capabilities
+- **Do** add tests for any new logic in the execution stack
+- **Do** update documentation to reflect any behavioral changes
+- Code style follows the existing TypeScript strict configuration
 
-**Contact:** mulkymalikuldhaher@email.com | Mulky Malikul Dhaher
+### Development Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Run in development mode with hot reload
+npm run dev
+
+# Run type checking
+npm run typecheck
+
+# Run linting
+npm run lint
+
+# Run tests
+npm run test
+
+# Build for production
+npm run build
+```
 
 ---
 
-## 📬 Contact
+## Disclaimer
 
-**Mulky Malikul Dhaher** — [mulkymalikuldhaher@email.com](mailto:mulkymalikuldhaher@email.com)
+**FOR EDUCATION AND RESEARCH PURPOSE ONLY**
 
-GitHub: [https://github.com/mulkymalikuldhrs](https://github.com/mulkymalikuldhrs)
+This project is provided strictly for educational and research purposes. The authors and contributors assume **no responsibility or liability** for any financial damages, losses, or risks arising from the use of this software.
 
----
+**Key risks:**
 
-## ⚠️ Disclaimer
-
-**EN (English):** For Education Purpose Only. This project is provided strictly for educational and research purposes. The authors and contributors assume no responsibility or liability for any damages, losses, or risks arising from the use of this software. We do not bear any responsibility or risk for how this software is used.
-
-**ID (Bahasa Indonesia):** Untuk Tujuan Pendidikan Saja. Proyek ini disediakan secara ketat untuk tujuan pendidikan dan penelitian. Penulis dan kontributor tidak menanggung tanggung jawab atau risiko atas kerusakan, kerugian, atau risiko yang timbul dari penggunaan perangkat lunak ini. Kami tidak menanggung tanggung jawab atau risiko atas bagaimana perangkat lunak ini digunakan.
-
-**CN (中文):** 仅供教育目的。本项目严格用于教育和研究目的。作者和贡献者对因使用本软件而产生的任何损害、损失或风险不承担任何责任。我们不对本软件的使用方式承担任何责任或风险。
-
-**Contact:** Mulky Malikul Dhaher | mulkymalikuldhaher@email.com
+- **All trading involves significant risk of loss.** You can lose your entire investment and more.
+- **Past performance does not guarantee future results.** Backtested strategies may fail in live markets.
+- **The Risk Guardian reduces but cannot eliminate risk.** Market conditions can exceed any risk model's assumptions.
+- **Decision-support outputs are not financial advice.** The system produces structured decision artifacts — you are solely responsible for any trading decisions you make.
+- **We do not bear any responsibility or risk** for how this software is used.
+- **Always use testnet/paper trading** before connecting to live markets with real capital.
 
 ---
 
-Copyright © 2025-2026 Mulky Malikul Dhaher. All rights reserved.
 
+
+## 🔗 Related Projects
+
+We're building a family of open source tools! Check out our other projects:
+
+| Project | Description | Stars |
+|---------|-------------|-------|
+| [📈 Quant-Nanggroe-AI](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI) | AI-powered quantitative analysis for Nanggroe market | ⭐ |
+| [🧠 AI-MultiColony-Ecosystem](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem) | Multi-agent AI colony simulation | ⭐ 3 |
+| [📋 Kalen](https://github.com/mulkymalikuldhrs/kalen) | Smart scheduling & AI task management | ⭐ |
+| [🤖 ProxyGateLLM](https://github.com/mulkymalikuldhrs/ProxyGateLLM) | Multi-LLM gateway with priority fallback | ⭐ 36 |
+| [🧩 Mnemosyne](https://github.com/mulkymalikuldhrs/mnemosyne) | Knowledge management & note-taking | ⭐ |
+
+🚀 **[Visit our Contributor Hub](https://mulkymalikuldhrs.github.io/contribute-to-our-projects/)** — 28 open source projects seeking contributors!
+
+## License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+```
+MIT License
+
+Copyright (c) 2024-2026 Mulky Malikul Dhaher
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## Author
+
+**Mulky Malikul Dhaher**
+
+[![GitHub](https://img.shields.io/badge/GitHub-mulkymalikuldhrs-181717?style=for-the-badge&logo=github)](https://github.com/mulkymalikuldhrs)
+[![Email](https://img.shields.io/badge/Email-mulkymalikudhr%40mail.com-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:mulkymalikudhr@mail.com)
+
+---
+
+<div align="center">
+
+**Part of the [HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) Unified Project**
+
+</div>
+
+<a href="https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI">
+  <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=100:005c2a,50:003d1a,0:001a0a&height=100&section=footer" />
+</a>
+
+
+<!-- Schema.org Structured Data for Search Engines -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "Quant-Nanggroe-AI",
+  "author": {
+    "@type": "Person",
+    "name": "Mulky Malikul Adhr",
+    "url": "https://github.com/mulkymalikuldhrs"
+  },
+  "programmingLanguage": "TypeScript",
+  "license": "https://spdx.org/licenses/MIT",
+  "codeRepository": "https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI",
+  "contributor": {
+    "@type": "Organization",
+    "name": "Open Source Contributors",
+    "url": "https://mulkymalikuldhrs.github.io/contribute-to-our-projects/"
+  }
+}
+</script>
