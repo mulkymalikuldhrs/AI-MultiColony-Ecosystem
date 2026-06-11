@@ -15,6 +15,7 @@ import time
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+from cachetools import TTLCache
 from pydantic import BaseModel, Field, ConfigDict
 
 from .base import (
@@ -130,6 +131,10 @@ class MarketSource(SourceProvider):
             config=config,
         )
         self._segments = segments or ["equities", "crypto", "forex"]
+        # TTL caches for each segment
+        self._equity_cache: TTLCache = TTLCache(maxsize=64, ttl=300)   # 5 min
+        self._crypto_cache: TTLCache = TTLCache(maxsize=64, ttl=60)    # 1 min (crypto moves fast)
+        self._forex_cache: TTLCache = TTLCache(maxsize=64, ttl=300)    # 5 min
 
     async def fetch(self, query: str, max_items: int = 50, **kwargs: Any) -> SourceResult:
         """Fetch market data matching a query.
@@ -214,8 +219,15 @@ class MarketSource(SourceProvider):
 
     def _fetch_equities(self, query: str, max_items: int) -> List[SourceItem]:
         """Fetch equity quotes matching query."""
+        # Check TTL cache first
+        if "equities" in self._equity_cache:
+            logger.debug("equity_cache hit – using cached data")
+            data_source = self._equity_cache["equities"]
+        else:
+            data_source = EQUITY_DATA
+            self._equity_cache["equities"] = EQUITY_DATA
         items: List[SourceItem] = []
-        for symbol, data in EQUITY_DATA.items():
+        for symbol, data in data_source.items():
             text = f"{symbol} {data['name']}".lower()
             if not query or query in text:
                 quote = EquityQuote(symbol=symbol, **data)
@@ -226,8 +238,15 @@ class MarketSource(SourceProvider):
 
     def _fetch_crypto(self, query: str, max_items: int) -> List[SourceItem]:
         """Fetch crypto quotes matching query."""
+        # Check TTL cache first
+        if "crypto" in self._crypto_cache:
+            logger.debug("crypto_cache hit – using cached data")
+            data_source = self._crypto_cache["crypto"]
+        else:
+            data_source = CRYPTO_DATA
+            self._crypto_cache["crypto"] = CRYPTO_DATA
         items: List[SourceItem] = []
-        for symbol, data in CRYPTO_DATA.items():
+        for symbol, data in data_source.items():
             text = f"{symbol} {data['name']}".lower()
             if not query or query in text:
                 quote = CryptoQuote(symbol=symbol, **data)
@@ -238,8 +257,15 @@ class MarketSource(SourceProvider):
 
     def _fetch_forex(self, query: str, max_items: int) -> List[SourceItem]:
         """Fetch forex quotes matching query."""
+        # Check TTL cache first
+        if "forex" in self._forex_cache:
+            logger.debug("forex_cache hit – using cached data")
+            data_source = self._forex_cache["forex"]
+        else:
+            data_source = FOREX_DATA
+            self._forex_cache["forex"] = FOREX_DATA
         items: List[SourceItem] = []
-        for pair, data in FOREX_DATA.items():
+        for pair, data in data_source.items():
             text = pair.lower()
             if not query or query in text:
                 quote = ForexQuote(pair=pair, **data)
@@ -307,21 +333,24 @@ class MarketSource(SourceProvider):
 
     def get_equity_quote(self, symbol: str) -> Optional[EquityQuote]:
         """Get a quote for a specific equity symbol."""
-        data = EQUITY_DATA.get(symbol.upper())
+        data_source = self._equity_cache.get("equities", EQUITY_DATA)
+        data = data_source.get(symbol.upper())
         if data is None:
             return None
         return EquityQuote(symbol=symbol.upper(), **data)
 
     def get_crypto_quote(self, symbol: str) -> Optional[CryptoQuote]:
         """Get a quote for a specific crypto symbol."""
-        data = CRYPTO_DATA.get(symbol.upper())
+        data_source = self._crypto_cache.get("crypto", CRYPTO_DATA)
+        data = data_source.get(symbol.upper())
         if data is None:
             return None
         return CryptoQuote(symbol=symbol.upper(), **data)
 
     def get_forex_quote(self, pair: str) -> Optional[ForexQuote]:
         """Get a quote for a specific forex pair."""
-        data = FOREX_DATA.get(pair.upper())
+        data_source = self._forex_cache.get("forex", FOREX_DATA)
+        data = data_source.get(pair.upper())
         if data is None:
             return None
         return ForexQuote(pair=pair.upper(), **data)
@@ -330,7 +359,7 @@ class MarketSource(SourceProvider):
     def available_symbols(self) -> Dict[str, List[str]]:
         """Available symbols by segment."""
         return {
-            "equities": list(EQUITY_DATA.keys()),
-            "crypto": list(CRYPTO_DATA.keys()),
-            "forex": list(FOREX_DATA.keys()),
+            "equities": list(self._equity_cache.get("equities", EQUITY_DATA).keys()),
+            "crypto": list(self._crypto_cache.get("crypto", CRYPTO_DATA).keys()),
+            "forex": list(self._forex_cache.get("forex", FOREX_DATA).keys()),
         }

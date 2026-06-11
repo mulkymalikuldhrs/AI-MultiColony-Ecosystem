@@ -60,6 +60,32 @@ from quant_nanggroe.engine.risk.constants import (
 # ═══════════════════════════════════════════════════════════════════════
 
 
+@pytest.fixture(autouse=True)
+def _clean_kill_switch_state(tmp_path):
+    """Remove persisted kill switch and risk state before each test to prevent cross-test leakage.
+    
+    KillSwitch and RiskManager persist state to data/. Without cleanup,
+    a previous test's activation bleeds into subsequent tests, causing false failures.
+    """
+    from pathlib import Path
+    import shutil
+    data_dir = Path(__file__).resolve().parent.parent.parent / "data"
+    # Clean persistence directory (RiskManager state)
+    persistence_dir = data_dir / "persistence"
+    if persistence_dir.exists():
+        shutil.rmtree(persistence_dir, ignore_errors=True)
+    # Clean legacy kill switch state file
+    state_file = data_dir / "kill_switch_state.json"
+    if state_file.exists():
+        state_file.unlink()
+    yield
+    # Cleanup after test too
+    if persistence_dir.exists():
+        shutil.rmtree(persistence_dir, ignore_errors=True)
+    if state_file.exists():
+        state_file.unlink()
+
+
 @pytest.fixture
 def kelly() -> KellyCriterion:
     return KellyCriterion()
@@ -81,8 +107,10 @@ def drawdown_monitor() -> DrawdownMonitor:
 
 
 @pytest.fixture
-def kill_switch() -> KillSwitch:
-    return KillSwitch()
+def kill_switch(tmp_path) -> KillSwitch:
+    """KillSwitch with isolated temp state file — no cross-test persistence leakage."""
+    state_file = tmp_path / "kill_switch_test_state.json"
+    return KillSwitch(state_file=state_file)
 
 
 @pytest.fixture
@@ -972,9 +1000,9 @@ class TestKillSwitch:
         assert status["auto_triggers"] == 1
         assert status["manual_triggers"] == 0
 
-    def test_emergency_halt_cycle(self):
+    def test_emergency_halt_cycle(self, kill_switch):
         """Full cycle: activate → reset → activate → reset."""
-        ks = KillSwitch()
+        ks = kill_switch
         # First activation
         ks.activate("AUTO_DAILY_LIMIT")
         assert ks.is_active
