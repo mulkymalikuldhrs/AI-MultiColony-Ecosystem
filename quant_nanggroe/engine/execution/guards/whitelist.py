@@ -2,25 +2,42 @@
 
 Enforces a whitelist of approved trading symbols to prevent
 trading on unapproved or dangerous instruments.
+
+SECURITY: When no whitelist is configured, trading is DENIED by default.
+Set WHITELIST_STRICT=false to allow all when no whitelist is set
+(not recommended for production).
 """
 
 from __future__ import annotations
 
+import logging
+import os
 from dataclasses import dataclass, field
 from typing import List, Optional, Set
 
 from quant_nanggroe.engine.execution.base import Order
+
+logger = logging.getLogger(__name__)
 
 
 class WhitelistGuard:
     """Symbol Whitelist Guard.
 
     Only allows orders for symbols that are on the approved whitelist.
-    If no whitelist is set, all symbols are allowed.
+
+    Security Defaults:
+    - If no whitelist is configured, trading is DENIED by default
+      (WHITELIST_STRICT=true, the default).
+    - Set WHITELIST_STRICT=false env var to allow all symbols when
+      no whitelist is configured (NOT recommended for production).
 
     Usage:
         guard = WhitelistGuard(allowed_symbols=["AAPL", "GOOGL", "MSFT"])
         result = guard.check(order)
+
+        # Or configure whitelist after creation:
+        guard = WhitelistGuard()
+        guard.configure_whitelist(["AAPL", "GOOGL", "MSFT"])
     """
 
     def __init__(
@@ -40,6 +57,18 @@ class WhitelistGuard:
         self._blocked: Set[str] = (
             set(s.upper() for s in blocked_symbols) if blocked_symbols else set()
         )
+
+        # WHITELIST_STRICT env var: when True (default), no whitelist = no trading
+        self._whitelist_strict = os.environ.get("WHITELIST_STRICT", "true").lower() != "false"
+
+    def configure_whitelist(self, symbols: List[str]) -> None:
+        """Configure the allowed symbols whitelist.
+
+        Args:
+            symbols: List of symbols to allow for trading.
+        """
+        self._allowed = set(s.upper() for s in symbols)
+        logger.info("Whitelist configured with %d symbols: %s", len(self._allowed), sorted(self._allowed))
 
     def check(self, order: Order) -> dict:
         """Check if order passes whitelist guard.
@@ -66,6 +95,23 @@ class WhitelistGuard:
                 "reason": f"Symbol {order.symbol} is not on the approved whitelist",
             }
 
+        # No whitelist configured
+        if self._allowed is None:
+            if self._whitelist_strict:
+                # SECURE DEFAULT: no whitelist = no trading
+                return {
+                    "allowed": False,
+                    "reason": "No whitelist configured. Trading is denied by default. "
+                              "Configure a whitelist via configure_whitelist() or set "
+                              "WHITELIST_STRICT=false to allow all (not recommended).",
+                }
+            else:
+                # Permissive mode: no whitelist = allow all (NOT recommended)
+                logger.warning(
+                    "SECURITY: No whitelist configured but WHITELIST_STRICT=false. "
+                    "All symbols are allowed. This is NOT recommended for production."
+                )
+
         return {"allowed": True, "reason": ""}
 
     def add_symbol(self, symbol: str) -> None:
@@ -76,6 +122,9 @@ class WhitelistGuard:
         """
         if self._allowed is not None:
             self._allowed.add(symbol.upper())
+        else:
+            # Initialize whitelist with just this symbol
+            self._allowed = {symbol.upper()}
 
     def remove_symbol(self, symbol: str) -> None:
         """Remove a symbol from the whitelist.

@@ -40,7 +40,7 @@ def main() -> None:
 
 
 @main.command()
-@click.option("--host", default="0.0.0.0", help="API server host")
+@click.option("--host", default="127.0.0.1", help="API server host (use 0.0.0.0 for Docker)")
 @click.option("--port", default=8000, type=int, help="API server port")
 @click.option("--reload", is_flag=True, help="Enable auto-reload")
 @click.option("--workers", default=1, type=int, help="Number of workers")

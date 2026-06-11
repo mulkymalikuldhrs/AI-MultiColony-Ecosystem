@@ -2,11 +2,15 @@
 
 Standardizes on LiteLLM for multi-provider support with token counting,
 retry logic, and cost tracking. Patterns from OpenHands, Suna, and Nanobot.
+
+SECURITY: Cost thresholds are enforced by default ($10/day, $100/month).
+Override via LLM_MAX_DAILY_SPEND and LLM_MAX_MONTHLY_SPEND env vars.
 """
 
 from __future__ import annotations
 
 import asyncio
+import os
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -53,6 +57,7 @@ class CostTracker:
     """Track LLM API costs."""
 
     daily_costs: dict[str, float] = field(default_factory=lambda: defaultdict(float))
+    monthly_costs: dict[str, float] = field(default_factory=lambda: defaultdict(float))
     per_model_costs: dict[str, float] = field(default_factory=lambda: defaultdict(float))
     per_model_tokens: dict[str, LLMUsage] = field(default_factory=lambda: defaultdict(LLMUsage))
     total_cost: float = 0.0
@@ -104,7 +109,9 @@ class CostTracker:
             cost: The calculated cost.
         """
         today = time.strftime("%Y-%m-%d")
+        month = time.strftime("%Y-%m")
         self.daily_costs[today] += cost
+        self.monthly_costs[month] += cost
         self.per_model_costs[model] += cost
         self.per_model_tokens[model] = self.per_model_tokens.get(model, LLMUsage()) + usage
         self.total_cost += cost
@@ -114,6 +121,11 @@ class CostTracker:
         today = time.strftime("%Y-%m-%d")
         return self.daily_costs.get(today, 0.0)
 
+    def get_monthly_cost(self) -> float:
+        """Get this month's total cost."""
+        month = time.strftime("%Y-%m")
+        return self.monthly_costs.get(month, 0.0)
+
 
 class LLMProvider:
     """LLM provider with LiteLLM integration.
@@ -122,9 +134,16 @@ class LLMProvider:
     - Multi-provider support via LiteLLM
     - Token counting with tiktoken (falls back to heuristic)
     - Retry logic with exponential backoff
-    - Cost tracking per model and per day
+    - Cost tracking per model, per day, and per month
+    - Daily and monthly spend thresholds with enforcement
     - Streaming support
     - Graceful fallback when litellm is not installed
+
+    Security:
+    - Daily spend threshold: $10/day default (LLM_MAX_DAILY_SPEND env var)
+    - Monthly spend threshold: $100/month default (LLM_MAX_MONTHLY_SPEND env var)
+    - Calls are BLOCKED when threshold is exceeded
+    - WARNING logged at 80% of threshold
     """
 
     def __init__(
@@ -135,6 +154,8 @@ class LLMProvider:
         max_retries: int = 3,
         timeout: int = 120,
         cost_limit_daily: float = 100.0,
+        max_daily_spend: Optional[float] = None,
+        max_monthly_spend: Optional[float] = None,
     ) -> None:
         self.default_model = default_model
         self.temperature = temperature
@@ -145,8 +166,97 @@ class LLMProvider:
         self.cost_tracker = CostTracker()
         self._call_count = 0
 
+        # Spend thresholds — read from env vars with safe defaults
+        if max_daily_spend is not None:
+            self._max_daily_spend = max_daily_spend
+        else:
+            self._max_daily_spend = float(
+                os.environ.get("LLM_MAX_DAILY_SPEND", "10.0")
+            )
+
+        if max_monthly_spend is not None:
+            self._max_monthly_spend = max_monthly_spend
+        else:
+            self._max_monthly_spend = float(
+                os.environ.get("LLM_MAX_MONTHLY_SPEND", "100.0")
+            )
+
+        # Track daily and monthly spend for threshold enforcement
+        self._daily_spend: float = 0.0
+        self._daily_spend_date: str = time.strftime("%Y-%m-%d")
+        self._monthly_spend: float = 0.0
+        self._monthly_spend_month: str = time.strftime("%Y-%m")
+
+    def _check_spend_thresholds(self) -> None:
+        """Check if daily or monthly spend thresholds are exceeded.
+
+        Resets counters if the day/month has rolled over.
+        Logs WARNING at 80% of threshold.
+        Raises LLMTokensExceededError if threshold exceeded.
+        """
+        today = time.strftime("%Y-%m-%d")
+        month = time.strftime("%Y-%m")
+
+        # Reset daily spend if day changed
+        if today != self._daily_spend_date:
+            self._daily_spend = 0.0
+            self._daily_spend_date = today
+
+        # Reset monthly spend if month changed
+        if month != self._monthly_spend_month:
+            self._monthly_spend = 0.0
+            self._monthly_spend_month = month
+
+        # Check daily threshold
+        if self._max_daily_spend > 0:
+            if self._daily_spend >= self._max_daily_spend:
+                raise LLMTokensExceededError(
+                    f"Daily spend limit exceeded: ${self._daily_spend:.2f} >= "
+                    f"${self._max_daily_spend:.2f}. "
+                    f"Set LLM_MAX_DAILY_SPEND to increase the limit.",
+                    tokens_used=int(self._daily_spend * 1000),
+                    token_limit=int(self._max_daily_spend * 1000),
+                )
+            # Warning at 80%
+            if self._daily_spend >= self._max_daily_spend * 0.8:
+                logger.warning(
+                    "SECURITY: Daily spend at %.1f%% of threshold: "
+                    "$%.2f / $%.2f",
+                    (self._daily_spend / self._max_daily_spend) * 100,
+                    self._daily_spend,
+                    self._max_daily_spend,
+                )
+
+        # Check monthly threshold
+        if self._max_monthly_spend > 0:
+            if self._monthly_spend >= self._max_monthly_spend:
+                raise LLMTokensExceededError(
+                    f"Monthly spend limit exceeded: ${self._monthly_spend:.2f} >= "
+                    f"${self._max_monthly_spend:.2f}. "
+                    f"Set LLM_MAX_MONTHLY_SPEND to increase the limit.",
+                    tokens_used=int(self._monthly_spend * 1000),
+                    token_limit=int(self._max_monthly_spend * 1000),
+                )
+            # Warning at 80%
+            if self._monthly_spend >= self._max_monthly_spend * 0.8:
+                logger.warning(
+                    "SECURITY: Monthly spend at %.1f%% of threshold: "
+                    "$%.2f / $%.2f",
+                    (self._monthly_spend / self._max_monthly_spend) * 100,
+                    self._monthly_spend,
+                    self._max_monthly_spend,
+                )
+
+    def _record_spend(self, cost: float) -> None:
+        """Record spend and update daily/monthly counters."""
+        self._daily_spend += cost
+        self._monthly_spend += cost
+
     def _check_cost_limit(self) -> None:
         """Check if the daily cost limit has been exceeded."""
+        self._check_spend_thresholds()
+
+        # Legacy check (cost_limit_daily from old constructor)
         daily_cost = self.cost_tracker.get_daily_cost()
         if daily_cost >= self.cost_limit_daily:
             raise LLMTokensExceededError(
@@ -205,8 +315,9 @@ class LLMProvider:
         Raises:
             LLMError: If the LLM call fails after retries.
             LLMRateLimitError: If rate limited.
-            LLMTokensExceededError: If cost limit exceeded.
+            LLMTokensExceededError: If cost/spend limit exceeded.
         """
+        # Check spend thresholds before making the call
         self._check_cost_limit()
 
         use_model = model or self.default_model
@@ -258,6 +369,7 @@ class LLMProvider:
 
                 cost = self.cost_tracker.calculate_cost(use_model, usage)
                 self.cost_tracker.record(use_model, usage, cost)
+                self._record_spend(cost)
                 self._call_count += 1
 
                 return LLMResponse(
@@ -358,6 +470,9 @@ class LLMProvider:
         Yields:
             Chunks of the response content.
         """
+        # Check spend thresholds before streaming
+        self._check_cost_limit()
+
         use_model = model or self.default_model
         use_temperature = temperature if temperature is not None else self.temperature
 
@@ -388,6 +503,11 @@ class LLMProvider:
             "total_calls": self._call_count,
             "total_cost": self.cost_tracker.total_cost,
             "daily_cost": self.cost_tracker.get_daily_cost(),
+            "monthly_cost": self.cost_tracker.get_monthly_cost(),
+            "daily_spend": self._daily_spend,
+            "monthly_spend": self._monthly_spend,
+            "max_daily_spend": self._max_daily_spend,
+            "max_monthly_spend": self._max_monthly_spend,
             "per_model_costs": dict(self.cost_tracker.per_model_costs),
             "default_model": self.default_model,
         }
@@ -396,3 +516,5 @@ class LLMProvider:
         """Reset all statistics."""
         self.cost_tracker = CostTracker()
         self._call_count = 0
+        self._daily_spend = 0.0
+        self._monthly_spend = 0.0

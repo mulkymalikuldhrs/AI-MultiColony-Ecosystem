@@ -6,7 +6,7 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 
 from quant_nanggroe.api.schemas import (
     OHLCVCandle,
@@ -16,9 +16,10 @@ from quant_nanggroe.api.schemas import (
     MarketRegimeRequest,
     MarketRegimeResponse,
 )
+from quant_nanggroe.security.auth import get_current_user
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
 def _get_exchange_manager(http_request: Request):

@@ -1,7 +1,7 @@
-"""Longbridge REST Client — Stock & Options Trading.
+"""Longbridge Exchange Client — Stock & Options Trading.
 
 Supports Longbridge Securities API for stock and options trading
-on US, HK, and CN markets. Ported from OpenAlice IBKR patterns.
+on US, HK, and CN markets.
 
 API docs: https://open.longportapp.com/en/docs
 """
@@ -12,17 +12,20 @@ import hashlib
 import hmac
 import logging
 import time
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from quant_nanggroe.exchange.base import ExchangeConfig, ExchangeError, OrderError
 from quant_nanggroe.exchange.clients.base_rest_client import (
     BaseRestClient,
-    ClientCapabilities,
+    BalanceInfo,
+    ExchangeCapability,
+    KlineBar,
+    OrderbookData,
+    OrderbookEntry,
+    OrderRequest,
+    OrderResult,
+    PositionInfo,
+    RestClientConfig,
 )
-from quant_nanggroe.types.market import OrderBook, OrderBookLevel
-from quant_nanggroe.types.orders import Order, OrderSide, OrderStatus, OrderType
-from quant_nanggroe.types.positions import Position, PositionSide
 
 logger = logging.getLogger(__name__)
 
@@ -36,206 +39,165 @@ class LongbridgeClient(BaseRestClient):
     - X-Api-Signature = hex(hmac_sha256(secret, timestamp + method + path + body))
     - X-Api-Key: API key
     - X-Timestamp: Unix seconds
+
+    Capabilities: SPOT, MARGIN, WEBSOCKET.
     """
 
-    _default_base_url = "https://openapi.longportapp.com"
+    exchange_id = "longbridge"
+    capabilities = (
+        ExchangeCapability.SPOT
+        | ExchangeCapability.MARGIN
+        | ExchangeCapability.WEBSOCKET
+    )
 
-    def __init__(self, config: ExchangeConfig) -> None:
+    BASE_URL = "https://openapi.longportapp.com"
+
+    def __init__(self, config: RestClientConfig) -> None:
+        config.base_url = config.base_url or self.BASE_URL
         super().__init__(config)
-        self._default_base_url = config.options.get(
-            "base_url", "https://openapi.longportapp.com"
-        )
-        self._api_key = config.api_key or ""
-        self._api_secret = config.api_secret or ""
-        self._app_key = config.options.get("app_key", config.passphrase or "")
-
-    @property
-    def name(self) -> str:
-        return "longbridge"
-
-    @property
-    def capabilities(self) -> ClientCapabilities:
-        return ClientCapabilities(
-            spot=True,
-            futures=False,
-            perps=False,
-            margin=True,
-            websocket=True,
-            max_leverage=1.0,
-            requires_passphrase=False,
-        )
 
     # ----- Signing -----
 
-    def _sign_request(
-        self,
-        method: str,
-        path: str,
-        *,
-        params: Optional[Dict[str, Any]] = None,
-        body: Optional[str] = None,
-        headers: Optional[Dict[str, str]] = None,
-    ) -> Tuple[Dict[str, str], Optional[Dict[str, Any]], Optional[str]]:
+    def _sign_longbridge(self, method: str, path: str, body: str = "") -> Dict[str, str]:
+        """Sign request using Longbridge auth method."""
         ts = str(int(time.time()))
-        prehash = f"{ts}{method.upper()}{path}{body or ''}"
+        prehash = f"{ts}{method.upper()}{path}{body}"
         sign = hmac.new(
-            self._api_secret.encode("utf-8"),
+            self._config.api_secret.encode("utf-8"),
             prehash.encode("utf-8"),
             hashlib.sha256,
         ).hexdigest()
 
-        h = dict(headers or {})
-        h.update({
-            "X-Api-Key": self._api_key,
+        headers = {
+            "X-Api-Key": self._config.api_key,
             "X-Api-Signature": sign,
             "X-Timestamp": ts,
             "Content-Type": "application/json",
-        })
-        if self._app_key:
-            h["X-App-Key"] = self._app_key
-        return h, params, body
+        }
+        if self._config.passphrase:
+            headers["X-App-Key"] = self._config.passphrase
+        return headers
 
-    # ----- Order management -----
+    async def _longbridge_request(
+        self, method: str, endpoint: str, params: Optional[Dict] = None,
+        body: Optional[Dict] = None, signed: bool = False,
+    ) -> Any:
+        """Make a Longbridge API request."""
+        import httpx
+        import json
 
-    async def place_order(
-        self,
-        symbol: str,
-        side: OrderSide,
-        order_type: OrderType,
-        quantity: float,
-        price: Optional[float] = None,
-        stop_price: Optional[float] = None,
-        client_order_id: Optional[str] = None,
-        strategy_name: Optional[str] = None,
-        agent_name: Optional[str] = None,
-        notes: Optional[str] = None,
-    ) -> Order:
-        sd = side.value.upper()
-        quantity_int = int(quantity)
+        await self._rate_limit()
+        params = params or {}
+        url = f"{self._config.base_url}{endpoint}"
+
+        headers: Dict[str, str] = {"Content-Type": "application/json"}
+        request_body = ""
+
+        if method.upper() == "GET":
+            if signed and self._config.api_key:
+                headers = self._sign_longbridge("GET", endpoint)
+            async with httpx.AsyncClient(timeout=self._config.timeout) as client:
+                response = await client.get(url, params=params, headers=headers)
+        else:
+            request_body = json.dumps(body) if body else ""
+            if signed and self._config.api_key:
+                headers = self._sign_longbridge("POST", endpoint, request_body)
+            async with httpx.AsyncClient(timeout=self._config.timeout) as client:
+                response = await client.post(url, content=request_body, headers=headers)
+
+        response.raise_for_status()
+        data = response.json()
+        return data.get("data", data) if isinstance(data, dict) else data
+
+    # ----- Abstract method implementations -----
+
+    async def place_order(self, order: OrderRequest) -> OrderResult:
+        """Place order on Longbridge."""
+        sd = order.side.upper()
+        quantity_int = int(order.quantity)
 
         body: Dict[str, Any] = {
-            "symbol": symbol,
+            "symbol": order.symbol,
             "side": sd,
             "quantity": quantity_int,
         }
 
-        if order_type == OrderType.MARKET:
+        if order.order_type == "market":
             body["order_type"] = "MO"
-        elif order_type == OrderType.LIMIT:
+        elif order.order_type == "limit":
             body["order_type"] = "LO"
-            if price:
-                body["price"] = str(price)
-        elif order_type == OrderType.STOP:
+            if order.price:
+                body["price"] = str(order.price)
+        elif order.order_type == "stop":
             body["order_type"] = "STO"
-            if stop_price:
-                body["trigger_price"] = str(stop_price)
-        elif order_type == OrderType.STOP_LIMIT:
-            body["order_type"] = "STL"
-            if price:
-                body["price"] = str(price)
-            if stop_price:
-                body["trigger_price"] = str(stop_price)
+            if order.stop_price:
+                body["trigger_price"] = str(order.stop_price)
         else:
             body["order_type"] = "MO"
 
-        if client_order_id:
-            body["client_order_id"] = client_order_id
+        if order.client_order_id:
+            body["client_order_id"] = order.client_order_id
 
-        try:
-            raw = await self._request("POST", "/v1/trade/order", json_body=body, signed=True)
-        except ExchangeError as exc:
-            raise OrderError(str(exc), exchange=self.name, original=exc)
+        data = await self._longbridge_request("POST", "/v1/trade/order", body=body, signed=True)
 
-        data = raw.get("data", raw) if isinstance(raw, dict) else {}
         order_id = str(data.get("order_id", "")) if isinstance(data, dict) else ""
 
-        return Order(
-            id=order_id,
-            client_order_id=client_order_id,
-            symbol=symbol,
-            side=side,
-            order_type=order_type,
-            quantity=quantity,
-            price=price,
-            stop_price=stop_price,
-            status=OrderStatus.SUBMITTED,
-            broker_id="longbridge",
-            broker_order_id=order_id,
-            strategy_name=strategy_name,
-            agent_name=agent_name,
-            notes=notes,
+        return OrderResult(
+            order_id=order_id,
+            client_order_id=order.client_order_id or "",
+            symbol=order.symbol,
+            side=order.side,
+            order_type=order.order_type,
+            status="NEW",
+            price=order.price or 0.0,
+            quantity=order.quantity,
         )
 
-    async def cancel_order(self, order_id: str, symbol: Optional[str] = None) -> Order:
-        body: Dict[str, Any] = {"order_id": order_id}
-        await self._request("POST", "/v1/trade/order/cancel", json_body=body, signed=True)
-        return Order(
-            id=order_id, symbol=symbol or "",
-            side=OrderSide.BUY, order_type=OrderType.MARKET, quantity=0.0,
-            status=OrderStatus.CANCELED, broker_id="longbridge", broker_order_id=order_id,
-        )
+    async def cancel_order(self, symbol: str, order_id: str) -> bool:
+        """Cancel order on Longbridge."""
+        try:
+            await self._longbridge_request(
+                "POST", "/v1/trade/order/cancel",
+                body={"order_id": order_id},
+                signed=True,
+            )
+            return True
+        except Exception as exc:
+            logger.warning("Longbridge cancel failed: %s", exc)
+            return False
 
-    async def get_order(self, order_id: str, symbol: Optional[str] = None) -> Order:
-        params = {"order_id": order_id}
-        raw = await self._request("GET", "/v1/trade/order", params=params, signed=True)
-        data = raw.get("data", raw) if isinstance(raw, dict) else {}
-        od = data if isinstance(data, dict) else {}
+    async def get_balance(self, asset: Optional[str] = None) -> List[BalanceInfo]:
+        """Get account balance from Longbridge."""
+        data = await self._longbridge_request("GET", "/v1/asset/account", signed=True)
 
-        status_map = {
-            "NotReported": OrderStatus.SUBMITTED, "ReplacedNotReported": OrderStatus.SUBMITTED,
-            "ProtectedNotReported": OrderStatus.SUBMITTED, "VarietiesNotReported": OrderStatus.SUBMITTED,
-            "Filled": OrderStatus.FILLED, "WaitToNew": OrderStatus.SUBMITTED,
-            "New": OrderStatus.SUBMITTED, "WaitToReplace": OrderStatus.SUBMITTED,
-            "PendingReplace": OrderStatus.SUBMITTED, "Replaced": OrderStatus.SUBMITTED,
-            "PartialFilled": OrderStatus.PARTIALLY_FILLED,
-            "WaitToCancel": OrderStatus.SUBMITTED, "PendingCancel": OrderStatus.SUBMITTED,
-            "Rejected": OrderStatus.REJECTED, "Canceled": OrderStatus.CANCELED,
-            "Expired": OrderStatus.EXPIRED, "PartialWithdrawal": OrderStatus.CANCELED,
-        }
-        side_map = {"BUY": OrderSide.BUY, "SELL": OrderSide.SELL}
-
-        return Order(
-            id=str(od.get("order_id", order_id)),
-            symbol=str(od.get("symbol", symbol or "")),
-            side=side_map.get(str(od.get("side", "")).upper(), OrderSide.BUY),
-            order_type=OrderType.MARKET,
-            quantity=float(od.get("quantity", 0)),
-            price=float(od.get("price", 0)) or None,
-            status=status_map.get(str(od.get("status", "")), OrderStatus.SUBMITTED),
-            filled_quantity=float(od.get("executed_quantity", 0)),
-            broker_id="longbridge",
-            broker_order_id=str(od.get("order_id", order_id)),
-        )
-
-    # ----- Account -----
-
-    async def get_balance(self) -> Dict[str, float]:
-        raw = await self._request("GET", "/v1/asset/account", signed=True)
-        result: Dict[str, float] = {}
-        data = raw.get("data", raw) if isinstance(raw, dict) else {}
+        balances = []
         if isinstance(data, dict):
             cash = data.get("cash", {})
             if isinstance(cash, dict):
                 for ccy, val in cash.items():
+                    if asset and ccy.upper() != asset:
+                        continue
                     try:
-                        result[ccy.upper()] = float(val)
+                        v = float(val)
+                        if v > 0:
+                            balances.append(BalanceInfo(
+                                asset=ccy.upper(),
+                                free=v,
+                                used=0.0,
+                                total=v,
+                            ))
                     except (ValueError, TypeError):
                         pass
-            # Also check for total_assets
-            total = data.get("total_assets", 0)
-            if total and "USD" not in result:
-                try:
-                    result["USD"] = float(total)
-                except (ValueError, TypeError):
-                    pass
-        return result
+        return balances
 
-    async def get_positions(self) -> List[Position]:
-        raw = await self._request("GET", "/v1/asset/stock/positions", signed=True)
-        positions: List[Position] = []
-        data = raw.get("data", {}).get("channels", []) if isinstance(raw, dict) else []
-        if isinstance(data, list):
-            for channel in data:
+    async def get_positions(self, symbol: Optional[str] = None) -> List[PositionInfo]:
+        """Get positions from Longbridge."""
+        data = await self._longbridge_request("GET", "/v1/asset/stock/positions", signed=True)
+
+        positions = []
+        channels = data.get("channels", []) if isinstance(data, dict) else []
+        if isinstance(channels, list):
+            for channel in channels:
                 if not isinstance(channel, dict):
                     continue
                 for p in channel.get("positions", []):
@@ -244,89 +206,81 @@ class LongbridgeClient(BaseRestClient):
                     qty = float(p.get("quantity", 0))
                     if qty <= 0:
                         continue
+                    sym = str(p.get("symbol", ""))
+                    if symbol and sym != symbol:
+                        continue
                     entry = float(p.get("cost_price", 0))
-                    mark = float(p.get("market_price", 0))
-                    positions.append(Position(
-                        symbol=str(p.get("symbol", "")),
-                        side=PositionSide.LONG,
+                    positions.append(PositionInfo(
+                        symbol=sym,
+                        side="LONG",
                         quantity=qty,
                         entry_price=entry,
-                        current_price=mark,
-                        cost_basis=qty * entry,
                         unrealized_pnl=float(p.get("unrealized_pnl", 0)),
-                        broker_id="longbridge",
+                        leverage=1,
+                        liquidation_price=0.0,
                     ))
         return positions
 
-    # ----- Market data -----
+    async def get_orderbook(self, symbol: str, limit: int = 20) -> OrderbookData:
+        """Get order book from Longbridge."""
+        data = await self._longbridge_request(
+            "GET", "/v1/quote/depth",
+            params={"symbol": symbol, "limit": limit},
+            signed=False,
+        )
 
-    async def get_orderbook(self, symbol: str, limit: int = 20) -> OrderBook:
-        params = {"symbol": symbol, "limit": limit}
-        raw = await self._request("GET", "/v1/quote/depth", params=params, signed=False)
-
-        data = raw.get("data", raw) if isinstance(raw, dict) else {}
-        asks_list = data.get("asks", [])
-        bids_list = data.get("bids", [])
+        asks_list = data.get("asks", []) if isinstance(data, dict) else []
+        bids_list = data.get("bids", []) if isinstance(data, dict) else []
 
         bids = [
-            OrderBookLevel(price=float(b.get("price", 0)), quantity=float(b.get("volume", 0)))
+            OrderbookEntry(price=float(b.get("price", 0)), quantity=float(b.get("volume", 0)))
             for b in bids_list if isinstance(b, dict) and b.get("price")
         ]
         asks = [
-            OrderBookLevel(price=float(a.get("price", 0)), quantity=float(a.get("volume", 0)))
+            OrderbookEntry(price=float(a.get("price", 0)), quantity=float(a.get("volume", 0)))
             for a in asks_list if isinstance(a, dict) and a.get("price")
         ]
-        spread = (asks[0].price - bids[0].price) if bids and asks else None
-        mid = ((bids[0].price + asks[0].price) / 2) if bids and asks else None
 
-        return OrderBook(
-            symbol=symbol, timestamp=datetime.now(),
-            bids=bids, asks=asks, spread=spread, mid_price=mid,
+        return OrderbookData(
+            symbol=symbol,
+            bids=bids[:limit],
+            asks=asks[:limit],
+            timestamp=str(int(time.time() * 1000)),
         )
 
     async def get_klines(
-        self,
-        symbol: str,
-        interval: str = "1h",
-        limit: int = 100,
-        before_time: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
+        self, symbol: str, interval: str = "1h", limit: int = 100,
+    ) -> List[KlineBar]:
+        """Get klines from Longbridge."""
         period_map = {
             "1m": "1m", "5m": "5m", "15m": "15m", "30m": "30m",
             "1h": "60m", "4h": "60m", "1d": "1d", "1w": "1w", "1M": "1M",
         }
         period = period_map.get(interval, "60m")
 
-        params: Dict[str, Any] = {"symbol": symbol, "period": period, "count": limit}
-        if before_time:
-            params["to"] = before_time
+        data = await self._longbridge_request(
+            "GET", "/v1/quote/candlestick",
+            params={"symbol": symbol, "period": period, "count": limit},
+            signed=False,
+        )
 
-        raw = await self._request("GET", "/v1/quote/candlestick", params=params, signed=False)
-        data = raw.get("data", []) if isinstance(raw, dict) else []
-
-        klines: List[Dict[str, Any]] = []
+        bars = []
         if isinstance(data, list):
+            from datetime import datetime, timezone
             for candle in data:
                 if not isinstance(candle, dict):
                     continue
-                klines.append({
-                    "time": int(candle.get("timestamp", 0)),
-                    "open": float(candle.get("open", 0)),
-                    "high": float(candle.get("high", 0)),
-                    "low": float(candle.get("low", 0)),
-                    "close": float(candle.get("close", 0)),
-                    "volume": float(candle.get("volume", 0)),
-                })
-        klines.sort(key=lambda x: x["time"])
-        return klines[:limit]
+                ts = int(candle.get("timestamp", 0))
+                bars.append(KlineBar(
+                    timestamp=datetime.fromtimestamp(ts, tz=timezone.utc).isoformat() if ts > 0 else "",
+                    open=float(candle.get("open", 0)),
+                    high=float(candle.get("high", 0)),
+                    low=float(candle.get("low", 0)),
+                    close=float(candle.get("close", 0)),
+                    volume=float(candle.get("volume", 0)),
+                ))
+        bars.sort(key=lambda x: x.timestamp)
+        return bars[:limit]
 
-    async def health_check(self) -> bool:
-        try:
-            await self._request("GET", "/v1/quote/ping", signed=False)
-            return True
-        except Exception:
-            try:
-                balance = await self.get_balance()
-                return isinstance(balance, dict)
-            except Exception:
-                return False
+
+__all__ = ["LongbridgeClient"]

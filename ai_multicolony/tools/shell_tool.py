@@ -20,7 +20,7 @@ from ai_multicolony.types.tools import ToolCall, ToolDefinition, ToolParameter, 
 
 logger = get_logger(__name__)
 
-# Default list of dangerous command patterns to block
+# Default list of dangerous command patterns to block (used only in blocklist mode)
 _DEFAULT_BLOCKED_PATTERNS: list[str] = [
     r"\brm\s+-rf\s+/",
     r"\brm\s+-rf\s+~",
@@ -45,11 +45,17 @@ _DEFAULT_BLOCKED_PATTERNS: list[str] = [
     r"\bfsck\b",
     r"\bkill\s+-9\s+1\b",
     r"\bkillall\b",
-    r"\b:\(\)\{\s*:\|\:&\s*\}",  # fork bomb
+    r"\b:\(\)\{\s*:\|:&\s*\}",  # fork bomb
     r"\bcurl\b.*\|\s*\bsh\b",
     r"\bwget\b.*\|\s*\bsh\b",
     r"\bsudo\s+rm\b",
     r"\bsystemctl\s+(stop|disable|mask)\s+(ssh|sshd|docker|networkd)",
+]
+
+# Default allowlist of safe commands (used in allowlist mode, which is the default)
+_DEFAULT_ALLOWED_COMMANDS: list[str] = [
+    "ls", "cat", "head", "tail", "grep", "find", "wc", "echo",
+    "pwd", "whoami", "date", "python3", "pip", "git", "curl", "wget",
 ]
 
 
@@ -59,12 +65,18 @@ class ShellTool(BaseTool):
     Features:
     - Execute bash/shell commands with timeout
     - Capture stdout, stderr, and exit code
-    - Security filtering for dangerous commands (regex-based)
+    - Security filtering via allowlist (default) or blocklist mode
     - Working directory support
     - Environment variable management
     - Shell injection detection
     - Output size limiting
-    - Allowlist/blocklist mode
+
+    Security Modes:
+    - **allowlist** (default): Only commands whose base name is in the
+      allowed list are permitted. This is the secure default.
+    - **blocklist**: Dangerous patterns are rejected. Less secure because
+      new/obscure dangerous commands may not be blocked. Requires
+      ``SHELL_MODE=blocklist`` env var to activate.
     """
 
     def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
@@ -73,19 +85,29 @@ class ShellTool(BaseTool):
         self._max_output_size = self._config.get("max_output_bytes", 100_000)
         self._shell = self._config.get("shell", "/bin/bash")
 
-        # Security: blocked patterns (compiled for performance)
+        # Security: determine mode from env var (default=allowlist, require explicit blocklist)
+        shell_mode = os.environ.get("SHELL_MODE", "allowlist").lower()
+        self._use_allowlist = shell_mode != "blocklist"
+
+        if not self._use_allowlist:
+            logger.warning(
+                "SECURITY: Shell tool running in blocklist mode. "
+                "Allowlist mode is recommended for production. "
+                "Set SHELL_MODE=allowlist (or remove SHELL_MODE) to enable allowlist mode."
+            )
+
+        # Security: blocked patterns (compiled for performance, used only in blocklist mode)
         custom_blocked = self._config.get("blocked_commands", [])
         all_patterns = _DEFAULT_BLOCKED_PATTERNS + custom_blocked
         self._blocked_regexes: list[re.Pattern[str]] = [
             re.compile(p, re.IGNORECASE) for p in all_patterns
         ]
 
-        # Security: optional allowlist mode
-        self._allowed_commands = self._config.get("allowed_commands", None)
-        if self._allowed_commands:
-            self._allowed_set = set(self._allowed_commands)
-        else:
-            self._allowed_set = None
+        # Security: allowlist mode (default)
+        # Build allowed set from config override or default allowlist
+        config_allowed = self._config.get("allowed_commands", None)
+        allowed_list = config_allowed if config_allowed else _DEFAULT_ALLOWED_COMMANDS
+        self._allowed_set = set(allowed_list)
 
         # Track recent command history for rate limiting
         self._command_history: list[tuple[float, str]] = []
@@ -97,7 +119,8 @@ class ShellTool(BaseTool):
             name="shell",
             description=(
                 "Execute shell/bash commands with output capture, timeout, "
-                "working directory, and security checks. Blocks dangerous commands."
+                "working directory, and security checks. Uses allowlist mode "
+                "by default; only pre-approved commands are permitted."
             ),
             tool_type=ToolType.SHELL,
             parameters=[
@@ -153,8 +176,9 @@ class ShellTool(BaseTool):
     def _validate_command(self, command: str) -> None:
         """Validate a command against security rules.
 
-        Checks both the blocklist of dangerous patterns and, if configured,
-        the allowlist of permitted commands.
+        In allowlist mode (default), only explicitly allowed base commands
+        are permitted. In blocklist mode (requires SHELL_MODE=blocklist env
+        var), dangerous patterns are rejected.
 
         Args:
             command: The command to validate.
@@ -164,8 +188,8 @@ class ShellTool(BaseTool):
         """
         command_stripped = command.strip()
 
-        # Allowlist mode: only permit explicitly allowed commands
-        if self._allowed_set is not None:
+        # Allowlist mode (default): only permit explicitly allowed commands
+        if self._use_allowlist:
             # Extract the base command (first token)
             try:
                 base_cmd = shlex.split(command_stripped)[0] if command_stripped else ""
@@ -177,7 +201,9 @@ class ShellTool(BaseTool):
 
             if base_cmd not in self._allowed_set:
                 raise ToolPermissionError(
-                    f"Command '{base_cmd}' not in allowlist. Allowed: {sorted(self._allowed_set)}",
+                    f"Command '{base_cmd}' is not in the allowlist. "
+                    f"Allowed commands: {sorted(self._allowed_set)}. "
+                    f"To use blocklist mode instead, set SHELL_MODE=blocklist.",
                     tool_name="shell",
                     required_permission="shell.bypass_allowlist",
                 )

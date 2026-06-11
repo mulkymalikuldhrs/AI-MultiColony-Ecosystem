@@ -24,6 +24,10 @@ from fastapi.testclient import TestClient
 @pytest.fixture(scope="module")
 def client():
     """Create a TestClient with mocked service dependencies."""
+    import os
+    # Disable auth for testing — test routes, not auth middleware
+    os.environ["REQUIRE_AUTH"] = "false"
+
     # Mock the services module that the app imports at startup
     with patch("quant_nanggroe.api.app.init_all_services", create=True):
         with patch("quant_nanggroe.services", create=True):

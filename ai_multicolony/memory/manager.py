@@ -99,10 +99,21 @@ class MemoryManager:
         compaction_threshold: float = 0.8,
         page_size: int = 4096,
         context_capacity: int = 8192,
+        namespace: str = "default",
+        collection: str = "",
     ) -> None:
         self.compaction_threshold = compaction_threshold
         self.page_size = page_size
         self.context_capacity = context_capacity
+
+        # Per-colony namespace for vector store isolation (SEC-022)
+        self._namespace = namespace
+        self._collection = collection
+        # Actual collection name = namespace-collection for isolation
+        if self._collection:
+            self._effective_collection = f"{self._namespace}-{self._collection}"
+        else:
+            self._effective_collection = ""
 
         # T0 – context window
         self._context_window: List[Dict[str, Any]] = []
@@ -476,4 +487,6 @@ class MemoryManager:
             "sessions": len(self._sessions),
             "compaction_count": self._compaction_count,
             "compaction_threshold": self.compaction_threshold,
+            "namespace": self._namespace,
+            "effective_collection": self._effective_collection,
         }

@@ -1,4 +1,4 @@
-"""Gate.io REST Client — V4 API (Spot + USDT Futures).
+"""Gate.io Exchange Client — V4 API (Spot + USDT Futures).
 
 Supports Gate.io V4 API with HMAC-SHA512 request signing
 for both spot and USDT-margined perpetual markets.
@@ -12,19 +12,21 @@ import hashlib
 import hmac
 import logging
 import time
-from datetime import datetime
-from decimal import ROUND_DOWN, Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
 
-from quant_nanggroe.exchange.base import ExchangeConfig, ExchangeError, OrderError
 from quant_nanggroe.exchange.clients.base_rest_client import (
     BaseRestClient,
-    ClientCapabilities,
+    BalanceInfo,
+    ExchangeCapability,
+    KlineBar,
+    OrderbookData,
+    OrderbookEntry,
+    OrderRequest,
+    OrderResult,
+    PositionInfo,
+    RestClientConfig,
 )
-from quant_nanggroe.types.market import OrderBook, OrderBookLevel
-from quant_nanggroe.types.orders import Order, OrderSide, OrderStatus, OrderType
-from quant_nanggroe.types.positions import Position, PositionSide
 
 logger = logging.getLogger(__name__)
 
@@ -34,63 +36,74 @@ class GateClient(BaseRestClient):
 
     Signing (V4):
     SIGN = hex(hmac_sha512(secret, method + "\\n" + url + "\\n" + query + "\\n" + body + "\\n" + timestamp))
+
+    Capabilities: SPOT, FUTURES, PERPETUALS, MARGIN, WEBSOCKET.
     """
 
-    _default_base_url = "https://api.gateio.ws"
+    exchange_id = "gate"
+    capabilities = (
+        ExchangeCapability.SPOT
+        | ExchangeCapability.FUTURES
+        | ExchangeCapability.PERPETUALS
+        | ExchangeCapability.MARGIN
+        | ExchangeCapability.WEBSOCKET
+    )
 
-    def __init__(self, config: ExchangeConfig) -> None:
+    BASE_URL = "https://api.gateio.ws"
+
+    def __init__(self, config: RestClientConfig) -> None:
+        config.base_url = config.base_url or self.BASE_URL
         super().__init__(config)
-        self._api_key = config.api_key or ""
-        self._api_secret = config.api_secret or ""
-        self._market_type = config.options.get("market_type", "spot")
-
-    @property
-    def name(self) -> str:
-        return "gate"
-
-    @property
-    def capabilities(self) -> ClientCapabilities:
-        return ClientCapabilities(
-            spot=True,
-            futures=True,
-            perps=True,
-            margin=True,
-            websocket=True,
-            max_leverage=100.0,
-            requires_passphrase=False,
-        )
+        self._market_type = "spot"
 
     # ----- Signing -----
 
-    def _sign_request(
-        self,
-        method: str,
-        path: str,
-        *,
-        params: Optional[Dict[str, Any]] = None,
-        body: Optional[str] = None,
-        headers: Optional[Dict[str, str]] = None,
-    ) -> Tuple[Dict[str, str], Optional[Dict[str, Any]], Optional[str]]:
+    def _sign_gate(self, method: str, path: str, qs: str = "", body: str = "") -> Dict[str, str]:
+        """Sign request using Gate.io V4 auth method."""
         ts = str(int(time.time()))
-        qs = ""
-        if params:
-            norm = {str(k): "" if v is None else str(v) for k, v in params.items()}
-            qs = urlencode(sorted(norm.items()), doseq=True)
-        msg = f"{method.upper()}\n{path}\n{qs}\n{body or ''}\n{ts}"
+        msg = f"{method.upper()}\n{path}\n{qs}\n{body}\n{ts}"
         sign = hmac.new(
-            self._api_secret.encode("utf-8"),
+            self._config.api_secret.encode("utf-8"),
             msg.encode("utf-8"),
             hashlib.sha512,
         ).hexdigest()
 
-        h = dict(headers or {})
-        h.update({
-            "KEY": self._api_key,
+        return {
+            "KEY": self._config.api_key,
             "Timestamp": ts,
             "SIGN": sign,
             "Content-Type": "application/json",
-        })
-        return h, params, body
+        }
+
+    async def _gate_request(
+        self, method: str, endpoint: str, params: Optional[Dict] = None,
+        body: Optional[Dict] = None, signed: bool = False,
+    ) -> Any:
+        """Make a Gate.io V4 API request."""
+        import httpx
+        import json
+
+        await self._rate_limit()
+        params = params or {}
+        url = f"{self._config.base_url}{endpoint}"
+
+        headers: Dict[str, str] = {"Content-Type": "application/json"}
+        request_body = json.dumps(body) if body else ""
+
+        if method.upper() == "GET":
+            qs = urlencode(sorted(params.items())) if params else ""
+            if signed and self._config.api_key:
+                headers = self._sign_gate("GET", endpoint, qs=qs)
+            async with httpx.AsyncClient(timeout=self._config.timeout) as client:
+                response = await client.get(url, params=params, headers=headers)
+        else:
+            if signed and self._config.api_key:
+                headers = self._sign_gate("POST", endpoint, body=request_body)
+            async with httpx.AsyncClient(timeout=self._config.timeout) as client:
+                response = await client.post(url, content=request_body, headers=headers)
+
+        response.raise_for_status()
+        return response.json()
 
     # ----- Helpers -----
 
@@ -98,281 +111,150 @@ class GateClient(BaseRestClient):
     def _normalize_currency_pair(symbol: str) -> str:
         return symbol.replace("/", "_").replace("-", "_").upper()
 
-    def _is_futures(self) -> bool:
-        return self._market_type in ("futures", "perps", "swap")
+    # ----- Abstract method implementations -----
 
-    # ----- Order management -----
+    async def place_order(self, order: OrderRequest) -> OrderResult:
+        """Place order on Gate.io (spot)."""
+        pair = self._normalize_currency_pair(order.symbol)
 
-    async def place_order(
-        self,
-        symbol: str,
-        side: OrderSide,
-        order_type: OrderType,
-        quantity: float,
-        price: Optional[float] = None,
-        stop_price: Optional[float] = None,
-        client_order_id: Optional[str] = None,
-        strategy_name: Optional[str] = None,
-        agent_name: Optional[str] = None,
-        notes: Optional[str] = None,
-    ) -> Order:
-        if self._is_futures():
-            return await self._place_futures_order(
-                symbol, side, order_type, quantity, price, client_order_id,
-                strategy_name, agent_name, notes,
-            )
-        return await self._place_spot_order(
-            symbol, side, order_type, quantity, price, client_order_id,
-            strategy_name, agent_name, notes,
-        )
-
-    async def _place_spot_order(
-        self,
-        symbol: str,
-        side: OrderSide,
-        order_type: OrderType,
-        quantity: float,
-        price: Optional[float] = None,
-        client_order_id: Optional[str] = None,
-        strategy_name: Optional[str] = None,
-        agent_name: Optional[str] = None,
-        notes: Optional[str] = None,
-    ) -> Order:
-        pair = self._normalize_currency_pair(symbol)
-        sd = side.value.lower()
         body: Dict[str, Any] = {
             "currency_pair": pair,
-            "side": sd,
-            "type": "market" if order_type == OrderType.MARKET else "limit",
-            "amount": str(quantity),
+            "side": order.side.lower(),
+            "type": "market" if order.order_type == "market" else "limit",
+            "amount": str(order.quantity),
         }
-        if order_type == OrderType.LIMIT and price:
-            body["price"] = str(price)
+        if order.order_type == "limit" and order.price:
+            body["price"] = str(order.price)
             body["time_in_force"] = "gtc"
-        if client_order_id:
-            body["text"] = str(client_order_id)
+        if order.client_order_id:
+            body["text"] = str(order.client_order_id)
 
+        data = await self._gate_request("POST", "/api/v4/spot/orders", body=body, signed=True)
+
+        order_id = str(data.get("id", "")) if isinstance(data, dict) else ""
+
+        return OrderResult(
+            order_id=order_id,
+            client_order_id=order.client_order_id or "",
+            symbol=order.symbol,
+            side=order.side,
+            order_type=order.order_type,
+            status=str(data.get("status", "NEW")),
+            price=float(data.get("price", 0) or order.price or 0),
+            quantity=order.quantity,
+        )
+
+    async def cancel_order(self, symbol: str, order_id: str) -> bool:
+        """Cancel order on Gate.io."""
         try:
-            raw = await self._request("POST", "/api/v4/spot/orders", json_body=body, signed=True)
-        except ExchangeError as exc:
-            raise OrderError(str(exc), exchange=self.name, original=exc)
+            await self._gate_request("DELETE", f"/api/v4/spot/orders/{order_id}", signed=True)
+            return True
+        except Exception as exc:
+            logger.warning("Gate cancel failed: %s", exc)
+            return False
 
-        order_id = str(raw.get("id", "")) if isinstance(raw, dict) else ""
+    async def get_balance(self, asset: Optional[str] = None) -> List[BalanceInfo]:
+        """Get account balance from Gate.io."""
+        data = await self._gate_request("GET", "/api/v4/spot/accounts", signed=True)
 
-        return Order(
-            id=order_id, client_order_id=client_order_id,
-            symbol=symbol, side=side, order_type=order_type,
-            quantity=quantity, price=price,
-            status=OrderStatus.SUBMITTED,
-            broker_id="gate", broker_order_id=order_id,
-            strategy_name=strategy_name, agent_name=agent_name, notes=notes,
-        )
+        balances = []
+        if isinstance(data, list):
+            for acct in data:
+                if not isinstance(acct, dict):
+                    continue
+                ccy = str(acct.get("currency", ""))
+                if asset and ccy != asset:
+                    continue
+                free = float(acct.get("available", 0) or 0)
+                used = float(acct.get("locked", 0) or 0)
+                if free > 0 or used > 0:
+                    balances.append(BalanceInfo(
+                        asset=ccy,
+                        free=free,
+                        used=used,
+                        total=free + used,
+                    ))
+        return balances
 
-    async def _place_futures_order(
-        self,
-        symbol: str,
-        side: OrderSide,
-        order_type: OrderType,
-        quantity: float,
-        price: Optional[float] = None,
-        client_order_id: Optional[str] = None,
-        strategy_name: Optional[str] = None,
-        agent_name: Optional[str] = None,
-        notes: Optional[str] = None,
-    ) -> Order:
-        contract = self._normalize_currency_pair(symbol)
-        sd = side.value.lower()
-        signed_size = int(quantity) if sd == "buy" else -int(quantity)
-
-        body: Dict[str, Any] = {
-            "contract": contract,
-            "size": signed_size,
-            "price": "0" if order_type == OrderType.MARKET else str(price or 0),
-            "tif": "ioc" if order_type == OrderType.MARKET else "gtc",
-        }
-        if client_order_id:
-            body["text"] = str(client_order_id)
-
+    async def get_positions(self, symbol: Optional[str] = None) -> List[PositionInfo]:
+        """Get positions from Gate.io futures."""
         try:
-            raw = await self._request("POST", "/api/v4/futures/usdt/orders", json_body=body, signed=True)
-        except ExchangeError as exc:
-            raise OrderError(str(exc), exchange=self.name, original=exc)
+            data = await self._gate_request("GET", "/api/v4/futures/usdt/positions", signed=True)
 
-        order_id = str(raw.get("id", "")) if isinstance(raw, dict) else ""
-
-        return Order(
-            id=order_id, client_order_id=client_order_id,
-            symbol=symbol, side=side, order_type=order_type,
-            quantity=quantity, price=price,
-            status=OrderStatus.SUBMITTED,
-            broker_id="gate", broker_order_id=order_id,
-            strategy_name=strategy_name, agent_name=agent_name, notes=notes,
-        )
-
-    async def cancel_order(self, order_id: str, symbol: Optional[str] = None) -> Order:
-        if self._is_futures():
-            await self._request("DELETE", f"/api/v4/futures/usdt/orders/{order_id}", signed=True)
-        else:
-            await self._request("DELETE", f"/api/v4/spot/orders/{order_id}", signed=True)
-        return Order(
-            id=order_id, symbol=symbol or "",
-            side=OrderSide.BUY, order_type=OrderType.MARKET, quantity=0.0,
-            status=OrderStatus.CANCELED, broker_id="gate", broker_order_id=order_id,
-        )
-
-    async def get_order(self, order_id: str, symbol: Optional[str] = None) -> Order:
-        if self._is_futures():
-            raw = await self._request("GET", f"/api/v4/futures/usdt/orders/{order_id}", signed=True)
-        else:
-            raw = await self._request("GET", f"/api/v4/spot/orders/{order_id}", signed=True)
-
-        od = raw if isinstance(raw, dict) else {}
-        status_map = {
-            "open": OrderStatus.SUBMITTED, "finished": OrderStatus.FILLED,
-            "cancelled": OrderStatus.CANCELED, "canceled": OrderStatus.CANCELED,
-        }
-        side_map = {"buy": OrderSide.BUY, "sell": OrderSide.SELL}
-
-        return Order(
-            id=str(od.get("id", order_id)),
-            symbol=symbol or "",
-            side=side_map.get(str(od.get("side", "")).lower(), OrderSide.BUY),
-            order_type=OrderType.MARKET,
-            quantity=float(od.get("amount", od.get("size", 0))),
-            price=float(od.get("price", 0)) or None,
-            status=status_map.get(str(od.get("status", "")), OrderStatus.SUBMITTED),
-            filled_quantity=float(od.get("filled_amount", od.get("filled_size", 0))),
-            broker_id="gate",
-            broker_order_id=str(od.get("id", order_id)),
-        )
-
-    # ----- Account -----
-
-    async def get_balance(self) -> Dict[str, float]:
-        if self._is_futures():
-            raw = await self._request("GET", "/api/v4/futures/usdt/accounts", signed=True)
-            result: Dict[str, float] = {}
-            if isinstance(raw, dict):
-                avail = float(raw.get("available", 0))
-                total = float(raw.get("total", 0))
-                if total > 0:
-                    result["USDT"] = avail
-            return result
-
-        raw = await self._request("GET", "/api/v4/spot/accounts", signed=True)
-        result: Dict[str, float] = {}
-        if isinstance(raw, list):
-            for acct in raw:
-                if isinstance(acct, dict):
-                    ccy = str(acct.get("currency", ""))
-                    avail = float(acct.get("available", 0))
-                    if avail > 0:
-                        result[ccy] = avail
-        return result
-
-    async def get_positions(self) -> List[Position]:
-        if not self._is_futures():
+            positions = []
+            if isinstance(data, list):
+                for p in data:
+                    if not isinstance(p, dict):
+                        continue
+                    qty = float(p.get("size", 0))
+                    if qty == 0:
+                        continue
+                    positions.append(PositionInfo(
+                        symbol=str(p.get("contract", "")),
+                        side="LONG" if qty > 0 else "SHORT",
+                        quantity=abs(qty),
+                        entry_price=float(p.get("entry_price", 0)),
+                        unrealized_pnl=float(p.get("unrealised_pnl", 0)),
+                        leverage=1,
+                        liquidation_price=0.0,
+                    ))
+            return positions
+        except Exception:
             return []
-        raw = await self._request("GET", "/api/v4/futures/usdt/positions", signed=True)
-        positions: List[Position] = []
-        if isinstance(raw, list):
-            for p in raw:
-                if not isinstance(p, dict):
-                    continue
-                qty = float(p.get("size", 0))
-                if qty == 0:
-                    continue
-                side = PositionSide.LONG if qty > 0 else PositionSide.SHORT
-                entry = float(p.get("entry_price", 0))
-                mark = float(p.get("mark_price", 0))
-                positions.append(Position(
-                    symbol=str(p.get("contract", "")),
-                    side=side,
-                    quantity=abs(qty),
-                    entry_price=entry,
-                    current_price=mark,
-                    cost_basis=abs(qty) * entry,
-                    unrealized_pnl=float(p.get("unrealised_pnl", 0)),
-                    broker_id="gate",
-                ))
-        return positions
 
-    # ----- Market data -----
-
-    async def get_orderbook(self, symbol: str, limit: int = 20) -> OrderBook:
-        if self._is_futures():
-            contract = self._normalize_currency_pair(symbol)
-            params = {"contract": contract, "limit": limit}
-            raw = await self._request("GET", "/api/v4/futures/usdt/order_book", params=params, signed=False)
-        else:
-            pair = self._normalize_currency_pair(symbol)
-            params = {"currency_pair": pair, "limit": limit}
-            raw = await self._request("GET", "/api/v4/spot/order_book", params=params, signed=False)
+    async def get_orderbook(self, symbol: str, limit: int = 20) -> OrderbookData:
+        """Get order book from Gate.io."""
+        pair = self._normalize_currency_pair(symbol)
+        data = await self._gate_request(
+            "GET", "/api/v4/spot/order_book",
+            params={"currency_pair": pair, "limit": limit},
+            signed=False,
+        )
 
         bids = [
-            OrderBookLevel(price=float(b[0]), quantity=float(b[1]))
-            for b in raw.get("bids", raw.get("asks", [])) if len(b) >= 2
+            OrderbookEntry(price=float(b[0]), quantity=float(b[1]))
+            for b in data.get("bids", []) if len(b) >= 2
         ]
-        # Re-fetch asks properly
         asks = [
-            OrderBookLevel(price=float(a[0]), quantity=float(a[1]))
-            for a in raw.get("asks", []) if len(a) >= 2
+            OrderbookEntry(price=float(a[0]), quantity=float(a[1]))
+            for a in data.get("asks", []) if len(a) >= 2
         ]
-        # Fix bids - use 'bids' key
-        bids = [
-            OrderBookLevel(price=float(b[0]), quantity=float(b[1]))
-            for b in raw.get("bids", []) if len(b) >= 2
-        ]
-        spread = (asks[0].price - bids[0].price) if bids and asks else None
-        mid = ((bids[0].price + asks[0].price) / 2) if bids and asks else None
 
-        return OrderBook(
-            symbol=symbol, timestamp=datetime.now(),
-            bids=bids, asks=asks, spread=spread, mid_price=mid,
+        return OrderbookData(
+            symbol=symbol,
+            bids=bids[:limit],
+            asks=asks[:limit],
+            timestamp=str(int(time.time() * 1000)),
         )
 
     async def get_klines(
-        self,
-        symbol: str,
-        interval: str = "1h",
-        limit: int = 100,
-        before_time: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
-        if self._is_futures():
-            contract = self._normalize_currency_pair(symbol)
-            params: Dict[str, Any] = {"contract": contract, "interval": interval, "limit": limit}
-            if before_time:
-                params["to"] = before_time
-            raw = await self._request("GET", "/api/v4/futures/usdt/candlesticks", params=params, signed=False)
-        else:
-            pair = self._normalize_currency_pair(symbol)
-            params = {"currency_pair": pair, "interval": interval, "limit": limit}
-            if before_time:
-                params["to"] = before_time
-            raw = await self._request("GET", "/api/v4/spot/candlesticks", params=params, signed=False)
+        self, symbol: str, interval: str = "1h", limit: int = 100,
+    ) -> List[KlineBar]:
+        """Get klines from Gate.io."""
+        pair = self._normalize_currency_pair(symbol)
+        data = await self._gate_request(
+            "GET", "/api/v4/spot/candlesticks",
+            params={"currency_pair": pair, "interval": interval, "limit": limit},
+            signed=False,
+        )
 
-        klines: List[Dict[str, Any]] = []
-        if isinstance(raw, list):
-            for candle in raw:
+        bars = []
+        if isinstance(data, list):
+            from datetime import datetime, timezone
+            for candle in data:
                 if not isinstance(candle, dict):
                     continue
-                klines.append({
-                    "time": int(candle.get("t", candle.get("timestamp", 0))),
-                    "open": float(candle.get("o", candle.get("open", 0))),
-                    "high": float(candle.get("h", candle.get("high", 0))),
-                    "low": float(candle.get("l", candle.get("low", 0))),
-                    "close": float(candle.get("c", candle.get("close", 0))),
-                    "volume": float(candle.get("v", candle.get("volume", 0))),
-                })
-        klines.sort(key=lambda x: x["time"])
-        return klines[:limit]
+                ts = int(candle.get("t", candle.get("timestamp", 0)))
+                bars.append(KlineBar(
+                    timestamp=datetime.fromtimestamp(ts, tz=timezone.utc).isoformat() if ts > 0 else "",
+                    open=float(candle.get("o", candle.get("open", 0))),
+                    high=float(candle.get("h", candle.get("high", 0))),
+                    low=float(candle.get("l", candle.get("low", 0))),
+                    close=float(candle.get("c", candle.get("close", 0))),
+                    volume=float(candle.get("v", candle.get("volume", 0))),
+                ))
+        bars.sort(key=lambda x: x.timestamp)
+        return bars[:limit]
 
-    async def health_check(self) -> bool:
-        try:
-            if self._is_futures():
-                await self._request("GET", "/api/v4/futures/usdt/time", signed=False)
-            else:
-                await self._request("GET", "/api/v4/spot/time", signed=False)
-            return True
-        except Exception:
-            return False
+
+__all__ = ["GateClient"]

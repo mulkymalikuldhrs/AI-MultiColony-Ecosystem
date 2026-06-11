@@ -25,5 +25,5 @@ Constitutional Risk Limits (HARDCODED — no override):
     Max trades/day:        5
 """
 
-__version__ = "0.2.0"
+from ._version import __version__  # single source of truth
 __author__ = "Quant Nanggroe AI Team"

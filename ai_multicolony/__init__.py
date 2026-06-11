@@ -24,7 +24,7 @@ finance       – Financial intelligence (risk guard, kill switch, regime)
 integrations  – External framework adapters (CrewAI, AutoGen, LangGraph)
 """
 
-__version__ = "0.2.0"
+from ._version import __version__  # single source of truth
 
 from .types import (
     # Enums

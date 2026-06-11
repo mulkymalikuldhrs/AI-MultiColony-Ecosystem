@@ -2,11 +2,16 @@
 
 Provides safe Python code execution with output capture, timeout
 enforcement, resource limits, and return value capture.
+
+SECURITY: Sandbox mode is always enforced unless explicitly disabled
+via the REQUIRE_SANDBOX=false environment variable. User-controllable
+``sandbox=False`` in tool call arguments is ignored and logged.
 """
 
 from __future__ import annotations
 
 import asyncio
+import os
 import resource
 import sys
 import traceback
@@ -110,6 +115,12 @@ class CodeTool(BaseTool):
     - Return value capture (last expression)
     - Resource limits (memory, file descriptors)
     - Namespace reset option
+
+    Security:
+    - Sandbox mode is ALWAYS enforced by default (REQUIRE_SANDBOX=true).
+    - Setting ``sandbox=False`` in tool call arguments is ignored and logged
+      as a WARNING, preventing user-controllable sandbox escape.
+    - To disable sandbox globally (NOT recommended), set REQUIRE_SANDBOX=false.
     """
 
     def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
@@ -119,6 +130,9 @@ class CodeTool(BaseTool):
         self._max_output_bytes = self._config.get("max_output_bytes", 50000)
         self._max_memory_mb = self._config.get("max_memory_mb", 256)
         self._namespace: dict[str, Any] = {}
+
+        # REQUIRE_SANDBOX env var: when True (default), code execution ALWAYS uses sandbox
+        self._require_sandbox = os.environ.get("REQUIRE_SANDBOX", "true").lower() != "false"
 
     @property
     def definition(self) -> ToolDefinition:
@@ -158,7 +172,8 @@ class CodeTool(BaseTool):
                 ToolParameter(
                     name="sandbox",
                     type="boolean",
-                    description="Enable sandbox mode (restricted builtins/imports)",
+                    description="Enable sandbox mode (restricted builtins/imports). "
+                                "Note: sandbox is always enforced when REQUIRE_SANDBOX=true.",
                     required=False,
                     default=True,
                 ),
@@ -184,7 +199,23 @@ class CodeTool(BaseTool):
         code = tool_call.arguments.get("code", "")
         timeout = tool_call.arguments.get("timeout", self._default_timeout)
         reset_namespace = tool_call.arguments.get("reset_namespace", False)
-        use_sandbox = tool_call.arguments.get("sandbox", self._sandbox_mode)
+
+        # SECURITY: Determine sandbox mode — never allow user to disable sandbox
+        # when REQUIRE_SANDBOX=true (the default).
+        user_sandbox_arg = tool_call.arguments.get("sandbox", None)
+
+        if self._require_sandbox:
+            # Sandbox is mandatory; ignore any user attempt to disable it
+            use_sandbox = True
+            if user_sandbox_arg is False:
+                logger.warning(
+                    "SECURITY: Ignored sandbox=False in tool call arguments. "
+                    "Sandbox mode is mandatory (REQUIRE_SANDBOX=true). "
+                    "Code will execute in sandboxed environment."
+                )
+        else:
+            # REQUIRE_SANDBOX=false — allow user control (not recommended)
+            use_sandbox = user_sandbox_arg if user_sandbox_arg is not None else self._sandbox_mode
 
         if not code:
             return ToolResult(
@@ -262,6 +293,7 @@ class CodeTool(BaseTool):
         if return_value is not None:
             metadata["return_type"] = type(return_value).__name__
             metadata["return_value_repr"] = repr(return_value)[:500]
+        metadata["sandboxed"] = use_sandbox
 
         return ToolResult(
             tool_call_id=tool_call.id, tool_name="code",

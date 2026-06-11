@@ -8,16 +8,17 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from quant_nanggroe.api.schemas import (
     BacktestRequest,
     BacktestSubmissionResponse,
     BacktestResultResponse,
 )
+from quant_nanggroe.security.auth import get_current_user
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user)])
 
 # Backtest result storage keyed by backtest_id
 _backtests: dict[str, dict[str, Any]] = {}

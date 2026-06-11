@@ -1,10 +1,15 @@
 """PermissionEngine – L0-L4 autonomy levels with dynamic escalation,
 approval gate flow, time-bounded elevation, and audit trail.
+
+SECURITY: Auto-approve is DISABLED by default. All level escalations
+require explicit human approval. Set AUTO_APPROVE_SAFE=true env var
+to re-enable (not recommended for production).
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
@@ -161,18 +166,41 @@ class PermissionEngine:
     * Dynamic escalation with approval gate flow
     * Time-bounded elevation (auto-expiring grants)
     * Full audit trail
+
+    Security
+    --------
+    * Auto-approve is DISABLED by default. All level escalations
+      require explicit human approval.
+    * Set ``AUTO_APPROVE_SAFE=true`` env var to re-enable auto-approve
+      for safe levels (not recommended for production).
+    * There is NO auto-escalation to L2 or above — even with
+      ``auto_approve_safe=True``, escalation beyond L1 requires
+      human approval.
     """
 
     def __init__(
         self,
         default_level: int = 1,
-        auto_approve_safe: bool = True,
+        auto_approve_safe: Optional[bool] = None,
         max_escalation_duration_hours: int = 4,
     ) -> None:
         self._tool_permissions: Dict[str, int] = dict(TOOL_PERMISSIONS)
         self._default_level = default_level
-        self._auto_approve_safe = auto_approve_safe
         self._max_escalation_duration = max_escalation_duration_hours
+
+        # Determine auto_approve_safe: default False unless explicitly set via env or arg
+        if auto_approve_safe is not None:
+            self._auto_approve_safe = auto_approve_safe
+        else:
+            self._auto_approve_safe = os.environ.get("AUTO_APPROVE_SAFE", "false").lower() == "true"
+
+        if self._auto_approve_safe:
+            logger.warning(
+                "SECURITY: Auto-approve for safe escalations is ENABLED. "
+                "This allows automatic L0->L1 escalation without human approval. "
+                "Set AUTO_APPROVE_SAFE=false (or remove it) to require human "
+                "approval for ALL level escalations."
+            )
 
         # Active state
         self._escalation_requests: Dict[str, ApprovalRequest] = {}
@@ -301,8 +329,12 @@ class PermissionEngine:
     ) -> ApprovalRequest:
         """Request temporary autonomy escalation.
 
-        If ``auto_approve_safe`` is True and the escalation is from
-        L0→L1 or stays within safe levels, the request is auto-approved.
+        By default (auto_approve_safe=False), ALL escalation requests
+        require human approval — no automatic escalation to any level.
+
+        When auto_approve_safe=True (via AUTO_APPROVE_SAFE env var),
+        only L0->L1 safe escalations are auto-approved. Escalation
+        to L2 or above ALWAYS requires human approval.
         """
         # Cap duration
         duration_hours = min(duration_hours, self._max_escalation_duration)
@@ -324,11 +356,9 @@ class PermissionEngine:
 
         self._escalation_requests[request.request_id] = request
 
-        # Auto-approve safe escalations
+        # Auto-approve ONLY safe L0->L1 escalations when enabled
+        # NO auto-escalation to L2 or above — human approval required
         if self._auto_approve_safe and current_level <= 1 and requested_level <= 1:
-            self.grant_escalation(request.request_id, approved_by="auto")
-        elif self._auto_approve_safe and requested_level <= current_level + 1 and requested_level <= 2:
-            # Allow one-step escalation up to L2
             self.grant_escalation(request.request_id, approved_by="auto")
 
         self._audit(AuditRecord(
@@ -341,6 +371,7 @@ class PermissionEngine:
                 "current_level": current_level,
                 "requested_level": requested_level,
                 "justification": justification,
+                "auto_approve_safe": self._auto_approve_safe,
             },
         ))
 

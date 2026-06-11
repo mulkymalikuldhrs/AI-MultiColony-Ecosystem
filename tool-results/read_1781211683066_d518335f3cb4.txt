@@ -1,0 +1,832 @@
+     1→"""Memory manager with Letta-style paging and OpenHands condensers.
+     2→
+     3→Implements 8 condenser types from OpenHands and Letta-style memory paging
+     4→for efficient context window management. Also provides optional vector
+     5→search integration via Qdrant or ChromaDB.
+     6→"""
+     7→
+     8→from __future__ import annotations
+     9→
+    10→import time
+    11→import uuid
+    12→from abc import ABC, abstractmethod
+    13→from typing import Any, Optional
+    14→
+    15→from ai_multicolony.config.logging_config import get_logger
+    16→from ai_multicolony.exceptions import MemoryError
+    17→from ai_multicolony.types.events import Event, Observation, ObservationType
+    18→from ai_multicolony.types.memory import (
+    19→    CondenserType,
+    20→    MemoryCondenserType,
+    21→    MemoryEntry,
+    22→    MemoryPage,
+    23→    MemoryQuery,
+    24→    MemoryQueryResult,
+    25→    MemorySession,
+    26→    MemoryType,
+    27→    SessionState,
+    28→)
+    29→
+    30→logger = get_logger(__name__)
+    31→
+    32→
+    33→# === Condensers (from OpenHands) ===
+    34→
+    35→class BaseCondenser(ABC):
+    36→    """Abstract base class for memory condensers.
+    37→
+    38→    Condensers reduce memory content to fit within context windows.
+    39→    Ported from OpenHands condenser implementations.
+    40→    """
+    41→
+    42→    @abstractmethod
+    43→    def condense(self, events: list[Event], max_tokens: int = 4000) -> list[Event]:
+    44→        """Condense a list of events to fit within token limits.
+    45→
+    46→        Args:
+    47→            events: The events to condense.
+    48→            max_tokens: Maximum token budget.
+    49→
+    50→        Returns:
+    51→            Condensed list of events.
+    52→        """
+    53→        ...
+    54→
+    55→    @property
+    56→    @abstractmethod
+    57→    def condenser_type(self) -> CondenserType:
+    58→        """Get the condenser type."""
+    59→        ...
+    60→
+    61→
+    62→class NoOpCondenser(BaseCondenser):
+    63→    """No-op condenser that passes events through unchanged."""
+    64→
+    65→    def condense(self, events: list[Event], max_tokens: int = 4000) -> list[Event]:
+    66→        return list(events)
+    67→
+    68→    @property
+    69→    def condenser_type(self) -> CondenserType:
+    70→        return CondenserType.NOOP
+    71→
+    72→
+    73→class RecentCondenser(BaseCondenser):
+    74→    """Keep only the most recent N events."""
+    75→
+    76→    def __init__(self, max_events: int = 20) -> None:
+    77→        self.max_events = max_events
+    78→
+    79→    def condense(self, events: list[Event], max_tokens: int = 4000) -> list[Event]:
+    80→        return events[-self.max_events:]
+    81→
+    82→    @property
+    83→    def condenser_type(self) -> CondenserType:
+    84→        return CondenserType.RECENT
+    85→
+    86→
+    87→class ObservationCondenser(BaseCondenser):
+    88→    """Keep only observations, discard intermediate actions."""
+    89→
+    90→    def __init__(self, keep_recent_actions: int = 2) -> None:
+    91→        self.keep_recent_actions = keep_recent_actions
+    92→
+    93→    def condense(self, events: list[Event], max_tokens: int = 4000) -> list[Event]:
+    94→        observations = [e for e in events if e.observation is not None]
+    95→        recent_actions = [
+    96→            e for e in events if e.action is not None
+    97→        ][-self.keep_recent_actions:]
+    98→        combined = sorted(observations + recent_actions, key=lambda e: e.timestamp)
+    99→        return combined
+   100→
+   101→    @property
+   102→    def condenser_type(self) -> CondenserType:
+   103→        return CondenserType.OBSERVATION
+   104→
+   105→
+   106→class LLMCondenser(BaseCondenser):
+   107→    """LLM-based summarization condenser."""
+   108→
+   109→    def __init__(self, llm_provider: Optional[Any] = None) -> None:
+   110→        self._llm_provider = llm_provider
+   111→
+   112→    async def condense_async(self, events: list[Event], max_tokens: int = 4000) -> list[Event]:
+   113→        """Async version of condense that uses LLM for summarization."""
+   114→        if not self._llm_provider or not events:
+   115→            return events
+   116→
+   117→        event_texts = []
+   118→        for event in events:
+   119→            if event.observation:
+   120→                event_texts.append(f"[OBS] {event.observation.content[:200]}")
+   121→            elif event.action:
+   122→                thought = event.action.thought or ""
+   123→                event_texts.append(f"[ACT] {event.action.action_type.value}: {thought[:200]}")
+   124→
+   125→        summary_text = "\n".join(event_texts)
+   126→        if len(summary_text) <= max_tokens * 4:
+   127→            return events
+   128→
+   129→        try:
+   130→            response = await self._llm_provider.chat(
+   131→                messages=[
+   132→                    {"role": "system", "content": "Summarize the following agent events concisely, preserving key information."},
+   133→                    {"role": "user", "content": summary_text},
+   134→                ],
+   135→                max_tokens=max_tokens,
+   136→            )
+   137→            summary_event = Event(
+   138→                source="condenser",
+   139→                observation=Observation(
+   140→                    observation_type=ObservationType.MEMORY_CONDENSED,
+   141→                    agent_id="condenser",
+   142→                    action_id="condensed",
+   143→                    content=f"[Condensed Summary]\n{response.content}",
+   144→                ),
+   145→                data={"condensed": True, "original_count": len(events)},
+   146→            )
+   147→            return [summary_event]
+   148→        except Exception as e:
+   149→            logger.error("llm_condenser_error", error=str(e))
+   150→            return events[-10:]
+   151→
+   152→    def condense(self, events: list[Event], max_tokens: int = 4000) -> list[Event]:
+   153→        """Synchronous fallback - just use recent events."""
+   154→        return events[-10:]
+   155→
+   156→    @property
+   157→    def condenser_type(self) -> CondenserType:
+   158→        return CondenserType.LLM
+   159→
+   160→
+   161→class AmortizedCondenser(BaseCondenser):
+   162→    """Amortized forgetting - gradually reduce older event importance."""
+   163→
+   164→    def __init__(self, decay_factor: float = 0.9, min_importance: float = 0.1) -> None:
+   165→        self.decay_factor = decay_factor
+   166→        self.min_importance = min_importance
+   167→        self._importance: dict[str, float] = {}
+   168→
+   169→    def condense(self, events: list[Event], max_tokens: int = 4000) -> list[Event]:
+   170→        for event_id in list(self._importance.keys()):
+   171→            self._importance[event_id] *= self.decay_factor
+   172→
+   173→        for event in events:
+   174→            if event.id not in self._importance:
+   175→                self._importance[event.id] = 1.0
+   176→
+   177→        important_events = [
+   178→            e for e in events
+   179→            if self._importance.get(e.id, 0) >= self.min_importance
+   180→        ]
+   181→
+   182→        self._importance = {
+   183→            k: v for k, v in self._importance.items()
+   184→            if v >= self.min_importance * 0.1
+   185→        }
+   186→
+   187→        return important_events
+   188→
+   189→    @property
+   190→    def condenser_type(self) -> CondenserType:
+   191→        return CondenserType.AMORTIZED
+   192→
+   193→
+   194→class BrowserOutputCondenser(BaseCondenser):
+   195→    """Specialized condenser for browser output - truncates long HTML."""
+   196→
+   197→    def __init__(self, max_browser_output: int = 2000) -> None:
+   198→        self.max_browser_output = max_browser_output
+   199→
+   200→    def condense(self, events: list[Event], max_tokens: int = 4000) -> list[Event]:
+   201→        condensed = []
+   202→        for event in events:
+   203→            if event.observation and "browser" in event.data.get("observation_type", "").lower():
+   204→                content = event.observation.content
+   205→                if len(content) > self.max_browser_output:
+   206→                    new_obs = event.observation.model_copy(update={
+   207→                        "content": content[:self.max_browser_output] + "\n[...truncated...]",
+   208→                    })
+   209→                    new_event = event.model_copy(update={"observation": new_obs})
+   210→                    condensed.append(new_event)
+   211→                else:
+   212→                    condensed.append(event)
+   213→            else:
+   214→                condensed.append(event)
+   215→        return condensed
+   216→
+   217→    @property
+   218→    def condenser_type(self) -> CondenserType:
+   219→        return CondenserType.BROWSER_OUTPUT
+   220→
+   221→
+   222→class LLMLinguaCondenser(BaseCondenser):
+   223→    """LLMLingua-style token compression (simplified implementation)."""
+   224→
+   225→    def __init__(self, compression_rate: float = 0.5) -> None:
+   226→        self.compression_rate = compression_rate
+   227→
+   228→    def condense(self, events: list[Event], max_tokens: int = 4000) -> list[Event]:
+   229→        target_count = int(len(events) * self.compression_rate)
+   230→        if len(events) <= target_count:
+   231→            return events
+   232→        keep_start = target_count // 2
+   233→        keep_end = target_count - keep_start
+   234→        return events[:keep_start] + events[-keep_end:]
+   235→
+   236→    @property
+   237→    def condenser_type(self) -> CondenserType:
+   238→        return CondenserType.LLMLINGUA
+   239→
+   240→
+   241→class EventMaskCondenser(BaseCondenser):
+   242→    """Mask irrelevant events based on type filtering."""
+   243→
+   244→    def __init__(self, mask_types: Optional[list[str]] = None) -> None:
+   245→        self.mask_types = mask_types or ["agent_state_changed"]
+   246→
+   247→    def condense(self, events: list[Event], max_tokens: int = 4000) -> list[Event]:
+   248→        return [
+   249→            e for e in events
+   250→            if e.event_type not in self.mask_types
+   251→            and e.data.get("observation_type", "") not in self.mask_types
+   252→        ]
+   253→
+   254→    @property
+   255→    def condenser_type(self) -> CondenserType:
+   256→        return CondenserType.EVENT_MASK
+   257→
+   258→
+   259→# === Vector Store Integration (optional) ===
+   260→
+   261→class VectorStoreBackend(ABC):
+   262→    """Abstract interface for vector store backends."""
+   263→
+   264→    @abstractmethod
+   265→    async def upsert(self, id: str, embedding: list[float], metadata: dict[str, Any]) -> None:
+   266→        ...
+   267→
+   268→    @abstractmethod
+   269→    async def search(self, embedding: list[float], limit: int = 10) -> list[dict[str, Any]]:
+   270→        ...
+   271→
+   272→    @abstractmethod
+   273→    async def delete(self, id: str) -> None:
+   274→        ...
+   275→
+   276→
+   277→class QdrantBackend(VectorStoreBackend):
+   278→    """Qdrant vector store backend."""
+   279→
+   280→    def __init__(self, url: str = "http://localhost:6333", collection: str = "ai_multicolony",
+   281→                 api_key: Optional[str] = None, embedding_dimension: int = 1536) -> None:
+   282→        self._url = url
+   283→        self._collection = collection
+   284→        self._api_key = api_key
+   285→        self._embedding_dimension = embedding_dimension
+   286→        self._client: Optional[Any] = None
+   287→
+   288→    def _get_client(self) -> Any:
+   289→        """Lazy-initialize the Qdrant client."""
+   290→        if self._client is None:
+   291→            try:
+   292→                from qdrant_client import QdrantClient
+   293→                kwargs: dict[str, Any] = {"url": self._url}
+   294→                if self._api_key:
+   295→                    kwargs["api_key"] = self._api_key
+   296→                self._client = QdrantClient(**kwargs)
+   297→            except ImportError:
+   298→                raise MemoryError("qdrant-client not installed. Install with: pip install qdrant-client")
+   299→        return self._client
+   300→
+   301→    async def upsert(self, id: str, embedding: list[float], metadata: dict[str, Any]) -> None:
+   302→        try:
+   303→            client = self._get_client()
+   304→            from qdrant_client.models import PointStruct
+   305→            client.upsert(
+   306→                collection_name=self._collection,
+   307→                points=[PointStruct(id=id, vector=embedding, payload=metadata)],
+   308→            )
+   309→        except Exception as e:
+   310→            logger.warning("qdrant_upsert_error", error=str(e))
+   311→
+   312→    async def search(self, embedding: list[float], limit: int = 10) -> list[dict[str, Any]]:
+   313→        try:
+   314→            client = self._get_client()
+   315→            results = client.search(
+   316→                collection_name=self._collection,
+   317→                query_vector=embedding,
+   318→                limit=limit,
+   319→            )
+   320→            return [{"id": str(r.id), "score": r.score, "payload": r.payload} for r in results]
+   321→        except Exception as e:
+   322→            logger.warning("qdrant_search_error", error=str(e))
+   323→            return []
+   324→
+   325→    async def delete(self, id: str) -> None:
+   326→        try:
+   327→            client = self._get_client()
+   328→            client.delete(collection_name=self._collection, points_selector=[id])
+   329→        except Exception as e:
+   330→            logger.warning("qdrant_delete_error", error=str(e))
+   331→
+   332→
+   333→class ChromaBackend(VectorStoreBackend):
+   334→    """ChromaDB vector store backend."""
+   335→
+   336→    def __init__(self, persist_directory: str = "./data/chroma", collection: str = "ai_multicolony") -> None:
+   337→        self._persist_directory = persist_directory
+   338→        self._collection_name = collection
+   339→        self._client: Optional[Any] = None
+   340→        self._collection: Optional[Any] = None
+   341→
+   342→    def _get_collection(self) -> Any:
+   343→        """Lazy-initialize the ChromaDB client and collection."""
+   344→        if self._collection is None:
+   345→            try:
+   346→                import chromadb
+   347→                self._client = chromadb.PersistentClient(path=self._persist_directory)
+   348→                self._collection = self._client.get_or_create_collection(self._collection_name)
+   349→            except ImportError:
+   350→                raise MemoryError("chromadb not installed. Install with: pip install chromadb")
+   351→        return self._collection
+   352→
+   353→    async def upsert(self, id: str, embedding: list[float], metadata: dict[str, Any]) -> None:
+   354→        try:
+   355→            collection = self._get_collection()
+   356→            collection.upsert(
+   357→                ids=[id],
+   358→                embeddings=[embedding],
+   359→                metadatas=[metadata],
+   360→            )
+   361→        except Exception as e:
+   362→            logger.warning("chroma_upsert_error", error=str(e))
+   363→
+   364→    async def search(self, embedding: list[float], limit: int = 10) -> list[dict[str, Any]]:
+   365→        try:
+   366→            collection = self._get_collection()
+   367→            results = collection.query(query_embeddings=[embedding], n_results=limit)
+   368→            items = []
+   369→            for i in range(len(results["ids"][0])):
+   370→                items.append({
+   371→                    "id": results["ids"][0][i],
+   372→                    "score": results["distances"][0][i] if "distances" in results else 0,
+   373→                    "payload": results["metadatas"][0][i] if "metadatas" in results else {},
+   374→                })
+   375→            return items
+   376→        except Exception as e:
+   377→            logger.warning("chroma_search_error", error=str(e))
+   378→            return []
+   379→
+   380→    async def delete(self, id: str) -> None:
+   381→        try:
+   382→            collection = self._get_collection()
+   383→            collection.delete(ids=[id])
+   384→        except Exception as e:
+   385→            logger.warning("chroma_delete_error", error=str(e))
+   386→
+   387→
+   388→# === Memory Manager ===
+   389→
+   390→class MemoryManager:
+   391→    """Memory manager with Letta-style paging and OpenHands condensers.
+   392→
+   393→    Features:
+   394→    - 8 condenser implementations for context management
+   395→    - Letta-style memory paging (load/unload pages)
+   396→    - Session-based memory isolation
+   397→    - Vector search integration (optional, Qdrant or ChromaDB)
+   398→    """
+   399→
+   400→    def __init__(
+   401→        self,
+   402→        default_condenser: CondenserType = CondenserType.RECENT,
+   403→        max_pages: int = 100,
+   404→        page_size: int = 4000,
+   405→        llm_provider: Optional[Any] = None,
+   406→        vector_backend: Optional[VectorStoreBackend] = None,
+   407→    ) -> None:
+   408→        self._pages: dict[str, MemoryPage] = {}
+   409→        self._entries: dict[str, list[MemoryEntry]] = {}
+   410→        self._sessions: dict[str, MemorySession] = {}
+   411→        self._condensers: dict[CondenserType, BaseCondenser] = {
+   412→            CondenserType.NOOP: NoOpCondenser(),
+   413→            CondenserType.RECENT: RecentCondenser(),
+   414→            CondenserType.OBSERVATION: ObservationCondenser(),
+   415→            CondenserType.LLM: LLMCondenser(llm_provider),
+   416→            CondenserType.AMORTIZED: AmortizedCondenser(),
+   417→            CondenserType.BROWSER_OUTPUT: BrowserOutputCondenser(),
+   418→            CondenserType.LLMLINGUA: LLMLinguaCondenser(),
+   419→            CondenserType.EVENT_MASK: EventMaskCondenser(),
+   420→        }
+   421→        self._default_condenser = default_condenser
+   422→        self._max_pages = max_pages
+   423→        self._page_size = page_size
+   424→        self._llm_provider = llm_provider
+   425→        self._vector_backend = vector_backend
+   426→
+   427→    def get_condenser(self, condenser_type: Optional[CondenserType] = None) -> BaseCondenser:
+   428→        """Get a condenser by type.
+   429→
+   430→        Args:
+   431→            condenser_type: The condenser type to get. Defaults to the default.
+   432→
+   433→        Returns:
+   434→            The condenser instance.
+   435→        """
+   436→        ct = condenser_type or self._default_condenser
+   437→        return self._condensers.get(ct, self._condensers[CondenserType.NOOP])
+   438→
+   439→    # === Session Operations ===
+   440→
+   441→    def create_session(self, agent_id: str, metadata: Optional[dict[str, Any]] = None) -> MemorySession:
+   442→        """Create a new memory session for an agent.
+   443→
+   444→        Args:
+   445→            agent_id: The agent ID.
+   446→            metadata: Optional session metadata.
+   447→
+   448→        Returns:
+   449→            The created session.
+   450→        """
+   451→        session = MemorySession(
+   452→            agent_id=agent_id,
+   453→            metadata=metadata or {},
+   454→        )
+   455→        self._sessions[session.id] = session
+   456→        return session
+   457→
+   458→    def get_session(self, session_id: str) -> Optional[MemorySession]:
+   459→        """Get a session by ID."""
+   460→        return self._sessions.get(session_id)
+   461→
+   462→    def get_active_sessions(self, agent_id: Optional[str] = None) -> list[MemorySession]:
+   463→        """Get all active sessions, optionally filtered by agent.
+   464→
+   465→        Args:
+   466→            agent_id: Optional agent ID filter.
+   467→
+   468→        Returns:
+   469→            List of active sessions.
+   470→        """
+   471→        sessions = [s for s in self._sessions.values() if s.state == SessionState.ACTIVE]
+   472→        if agent_id:
+   473→            sessions = [s for s in sessions if s.agent_id == agent_id]
+   474→        return sessions
+   475→
+   476→    def close_session(self, session_id: str) -> None:
+   477→        """Close a session.
+   478→
+   479→        Args:
+   480→            session_id: The session ID.
+   481→        """
+   482→        session = self._sessions.get(session_id)
+   483→        if session:
+   484→            session.close()
+   485→
+   486→    # === Paging Operations (Letta-style) ===
+   487→
+   488→    def create_page(
+   489→        self,
+   490→        agent_id: str,
+   491→        memory_type: MemoryType = MemoryType.WORKING,
+   492→        title: str = "",
+   493→        content: str = "",
+   494→        tags: Optional[list[str]] = None,
+   495→        session_id: Optional[str] = None,
+   496→    ) -> MemoryPage:
+   497→        """Create a new memory page.
+   498→
+   499→        Args:
+   500→            agent_id: The agent this page belongs to.
+   501→            memory_type: Type of memory.
+   502→            title: Page title.
+   503→            content: Page content.
+   504→            tags: Optional tags.
+   505→            session_id: Optional session to associate with.
+   506→
+   507→        Returns:
+   508→            The created page.
+   509→        """
+   510→        if len(self._pages) >= self._max_pages:
+   511→            self._evict_page()
+   512→
+   513→        page_number = len([p for p in self._pages.values() if p.memory_type == memory_type])
+   514→        page = MemoryPage(
+   515→            page_number=page_number,
+   516→            memory_type=memory_type,
+   517→            title=title,
+   518→            content=content,
+   519→            token_count=len(content) // 4,
+   520→            tags=tags or [],
+   521→        )
+   522→        self._pages[page.id] = page
+   523→
+   524→        if agent_id not in self._entries:
+   525→            self._entries[agent_id] = []
+   526→        self._entries[agent_id].append(MemoryEntry(
+   527→            memory_type=memory_type,
+   528→            agent_id=agent_id,
+   529→            content=content,
+   530→            page_id=page.id,
+   531→            tags=tags or [],
+   532→        ))
+   533→
+   534→        # Associate with session if provided
+   535→        if session_id and session_id in self._sessions:
+   536→            self._sessions[session_id].add_page(page.id, page.token_count)
+   537→
+   538→        return page
+   539→
+   540→    def load_page(self, page_id: str) -> MemoryPage:
+   541→        """Load a memory page into active context.
+   542→
+   543→        Args:
+   544→            page_id: The page ID to load.
+   545→
+   546→        Returns:
+   547→            The loaded page.
+   548→
+   549→        Raises:
+   550→            MemoryError: If the page is not found.
+   551→        """
+   552→        if page_id not in self._pages:
+   553→            raise MemoryError(f"Page not found: {page_id}")
+   554→
+   555→        page = self._pages[page_id]
+   556→        page.is_active = True
+   557→        page.accessed_at = time.time()
+   558→        page.access_count += 1
+   559→        return page
+   560→
+   561→    def unload_page(self, page_id: str) -> None:
+   562→        """Unload a memory page from active context.
+   563→
+   564→        Args:
+   565→            page_id: The page ID to unload.
+   566→        """
+   567→        if page_id in self._pages:
+   568→            self._pages[page_id].is_active = False
+   569→
+   570→    def get_active_pages(self, agent_id: Optional[str] = None) -> list[MemoryPage]:
+   571→        """Get all currently active (loaded) pages.
+   572→
+   573→        Args:
+   574→            agent_id: Optional filter by agent.
+   575→
+   576→        Returns:
+   577→            List of active pages.
+   578→        """
+   579→        pages = [p for p in self._pages.values() if p.is_active]
+   580→        if agent_id:
+   581→            entry_page_ids = {e.page_id for e in self._entries.get(agent_id, [])}
+   582→            pages = [p for p in pages if p.id in entry_page_ids]
+   583→        return pages
+   584→
+   585→    def get_page(self, page_id: str) -> Optional[MemoryPage]:
+   586→        """Get a page by ID."""
+   587→        return self._pages.get(page_id)
+   588→
+   589→    def update_page(self, page_id: str, content: Optional[str] = None, title: Optional[str] = None) -> MemoryPage:
+   590→        """Update a page's content.
+   591→
+   592→        Args:
+   593→            page_id: The page ID.
+   594→            content: New content (if provided).
+   595→            title: New title (if provided).
+   596→
+   597→        Returns:
+   598→            The updated page.
+   599→        """
+   600→        if page_id not in self._pages:
+   601→            raise MemoryError(f"Page not found: {page_id}")
+   602→
+   603→        page = self._pages[page_id]
+   604→        if content is not None:
+   605→            page.content = content
+   606→            page.token_count = len(content) // 4
+   607→        if title is not None:
+   608→            page.title = title
+   609→        page.updated_at = time.time()
+   610→        return page
+   611→
+   612→    def delete_page(self, page_id: str) -> None:
+   613→        """Delete a memory page.
+   614→
+   615→        Args:
+   616→            page_id: The page ID to delete.
+   617→        """
+   618→        self._pages.pop(page_id, None)
+   619→
+   620→    def _evict_page(self) -> None:
+   621→        """Evict the least recently used inactive page."""
+   622→        inactive_pages = [p for p in self._pages.values() if not p.is_active]
+   623→        if inactive_pages:
+   624→            lru_page = min(inactive_pages, key=lambda p: p.accessed_at)
+   625→            self.delete_page(lru_page.id)
+   626→
+   627→    # === Entry Operations ===
+   628→
+   629→    def add_entry(
+   630→        self,
+   631→        agent_id: str,
+   632→        content: str,
+   633→        memory_type: MemoryType = MemoryType.EPISODIC,
+   634→        importance: float = 0.5,
+   635→        tags: Optional[list[str]] = None,
+   636→        source: Optional[str] = None,
+   637→        embedding: Optional[list[float]] = None,
+   638→    ) -> MemoryEntry:
+   639→        """Add a memory entry.
+   640→
+   641→        Args:
+   642→            agent_id: The agent ID.
+   643→            content: Memory content.
+   644→            memory_type: Type of memory.
+   645→            importance: Importance score (0-1).
+   646→            tags: Optional tags.
+   647→            source: Source of the memory.
+   648→            embedding: Optional embedding vector for search.
+   649→
+   650→        Returns:
+   651→            The created entry.
+   652→        """
+   653→        entry = MemoryEntry(
+   654→            memory_type=memory_type,
+   655→            agent_id=agent_id,
+   656→            content=content,
+   657→            importance=importance,
+   658→            tags=tags or [],
+   659→            source=source,
+   660→            embedding=embedding,
+   661→        )
+   662→        if agent_id not in self._entries:
+   663→            self._entries[agent_id] = []
+   664→        self._entries[agent_id].append(entry)
+   665→
+   666→        # Store in vector backend if available and embedding provided
+   667→        if self._vector_backend and embedding:
+   668→            try:
+   669→                import asyncio
+   670→                loop = asyncio.get_event_loop()
+   671→                if loop.is_running():
+   672→                    asyncio.ensure_future(
+   673→                        self._vector_backend.upsert(
+   674→                            id=entry.id,
+   675→                            embedding=embedding,
+   676→                            metadata={"agent_id": agent_id, "content": content[:500], "tags": tags or []},
+   677→                        )
+   678→                    )
+   679→                else:
+   680→                    loop.run_until_complete(
+   681→                        self._vector_backend.upsert(
+   682→                            id=entry.id,
+   683→                            embedding=embedding,
+   684→                            metadata={"agent_id": agent_id, "content": content[:500], "tags": tags or []},
+   685→                        )
+   686→                    )
+   687→            except Exception as e:
+   688→                logger.warning("vector_store_upsert_error", error=str(e))
+   689→
+   690→        return entry
+   691→
+   692→    def query(self, query: MemoryQuery) -> MemoryQueryResult:
+   693→        """Query memory entries.
+   694→
+   695→        Args:
+   696→            query: The memory query.
+   697→
+   698→        Returns:
+   699→            Query results.
+   700→        """
+   701→        start_time = time.time()
+   702→        entries = []
+   703→
+   704→        for agent_id, agent_entries in self._entries.items():
+   705→            if query.agent_id and agent_id != query.agent_id:
+   706→                continue
+   707→
+   708→            for entry in agent_entries:
+   709→                if query.memory_types and entry.memory_type not in query.memory_types:
+   710→                    continue
+   711→                if entry.importance < query.min_importance:
+   712→                    continue
+   713→                if query.tags and not any(t in entry.tags for t in query.tags):
+   714→                    continue
+   715→                if query.query.lower() in entry.content.lower():
+   716→                    entries.append(entry)
+   717→
+   718→        entries.sort(key=lambda e: (e.importance, e.created_at), reverse=True)
+   719→        entries = entries[:query.limit]
+   720→
+   721→        return MemoryQueryResult(
+   722→            entries=entries,
+   723→            total_count=len(entries),
+   724→            query=query,
+   725→            execution_time=time.time() - start_time,
+   726→        )
+   727→
+   728→    async def vector_search(self, embedding: list[float], limit: int = 10, agent_id: Optional[str] = None) -> list[MemoryEntry]:
+   729→        """Search memory entries using vector similarity.
+   730→
+   731→        Args:
+   732→            embedding: The query embedding vector.
+   733→            limit: Maximum results to return.
+   734→            agent_id: Optional agent filter.
+   735→
+   736→        Returns:
+   737→            List of matching memory entries.
+   738→        """
+   739→        if not self._vector_backend:
+   740→            logger.warning("vector_search_no_backend")
+   741→            return []
+   742→
+   743→        try:
+   744→            results = await self._vector_backend.search(embedding=embedding, limit=limit)
+   745→            entries = []
+   746→            for result in results:
+   747→                payload = result.get("payload", {})
+   748→                if agent_id and payload.get("agent_id") != agent_id:
+   749→                    continue
+   750→                entry = MemoryEntry(
+   751→                    agent_id=payload.get("agent_id", ""),
+   752→                    content=payload.get("content", ""),
+   753→                    tags=payload.get("tags", []),
+   754→                    relevance_score=result.get("score"),
+   755→                )
+   756→                entries.append(entry)
+   757→            return entries
+   758→        except Exception as e:
+   759→            logger.warning("vector_search_error", error=str(e))
+   760→            return []
+   761→
+   762→    def get_entries(self, agent_id: str, memory_type: Optional[MemoryType] = None, limit: int = 50) -> list[MemoryEntry]:
+   763→        """Get entries for an agent.
+   764→
+   765→        Args:
+   766→            agent_id: The agent ID.
+   767→            memory_type: Optional filter by type.
+   768→            limit: Maximum entries to return.
+   769→
+   770→        Returns:
+   771→            List of memory entries.
+   772→        """
+   773→        entries = self._entries.get(agent_id, [])
+   774→        if memory_type:
+   775→            entries = [e for e in entries if e.memory_type == memory_type]
+   776→        return entries[-limit:]
+   777→
+   778→    def clear_entries(self, agent_id: Optional[str] = None) -> int:
+   779→        """Clear memory entries.
+   780→
+   781→        Args:
+   782→            agent_id: Optional agent ID. If None, clears all.
+   783→
+   784→        Returns:
+   785→            Number of entries cleared.
+   786→        """
+   787→        if agent_id:
+   788→            count = len(self._entries.get(agent_id, []))
+   789→            self._entries.pop(agent_id, None)
+   790→            return count
+   791→        else:
+   792→            count = sum(len(v) for v in self._entries.values())
+   793→            self._entries.clear()
+   794→            return count
+   795→
+   796→    # === Condensation ===
+   797→
+   798→    def condense_events(
+   799→        self,
+   800→        events: list[Event],
+   801→        condenser_type: Optional[CondenserType] = None,
+   802→        max_tokens: int = 4000,
+   803→    ) -> list[Event]:
+   804→        """Condense a list of events using the specified condenser.
+   805→
+   806→        Args:
+   807→            events: The events to condense.
+   808→            condenser_type: The condenser type to use.
+   809→            max_tokens: Maximum token budget.
+   810→
+   811→        Returns:
+   812→            Condensed events.
+   813→        """
+   814→        condenser = self.get_condenser(condenser_type)
+   815→        return condenser.condense(events, max_tokens)
+   816→
+   817→    def get_stats(self) -> dict[str, Any]:
+   818→        """Get memory statistics."""
+   819→        total_entries = sum(len(v) for v in self._entries.values())
+   820→        active_pages = sum(1 for p in self._pages.values() if p.is_active)
+   821→        active_sessions = sum(1 for s in self._sessions.values() if s.state == SessionState.ACTIVE)
+   822→        return {
+   823→            "total_pages": len(self._pages),
+   824→            "active_pages": active_pages,
+   825→            "total_entries": total_entries,
+   826→            "total_sessions": len(self._sessions),
+   827→            "active_sessions": active_sessions,
+   828→            "agents_with_memory": len(self._entries),
+   829→            "max_pages": self._max_pages,
+   830→            "vector_backend": type(self._vector_backend).__name__ if self._vector_backend else None,
+   831→        }
+   832→

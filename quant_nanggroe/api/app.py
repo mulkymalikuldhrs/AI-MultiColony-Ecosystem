@@ -51,6 +51,8 @@ def create_app() -> FastAPI:
     Returns:
         Configured FastAPI instance
     """
+    import os
+
     settings = get_settings()
 
     app = FastAPI(
@@ -60,10 +62,21 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # ── CORS Middleware ──────────────────────────────────────────────
+    # ── CORS Middleware (SEC-016) ────────────────────────────────────
+    cors_env = os.environ.get("CORS_ORIGINS", "")
+    if cors_env:
+        allowed_origins = [o.strip() for o in cors_env.split(",") if o.strip()]
+        if allowed_origins == ["*"]:
+            logger.warning(
+                "CORS_ORIGINS=['*'] with credentials is insecure — "
+                "use specific origins in production"
+            )
+    else:
+        allowed_origins = ["http://localhost:3000", "http://localhost:8000"]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

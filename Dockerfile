@@ -76,4 +76,4 @@ USER qna
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]
 
 # Default command (can be overridden for worker service)
-CMD ["uvicorn", "quant_nanggroe_ai.api.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+CMD ["uvicorn", "quant_nanggroe.api.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

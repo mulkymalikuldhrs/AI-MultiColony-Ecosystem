@@ -597,7 +597,7 @@ def risk_check(symbol: str):
 
 
 @main.command()
-@click.option("--host", default="0.0.0.0", help="Server host")
+@click.option("--host", default="127.0.0.1", help="Server host (use 0.0.0.0 for Docker)")
 @click.option("--port", default=8000, help="Server port")
 @click.option("--reload", is_flag=True, default=False, help="Enable auto-reload")
 def serve(host: str, port: int, reload: bool):

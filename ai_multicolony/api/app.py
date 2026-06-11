@@ -6,6 +6,7 @@ handlers, lifespan events, and mounted route routers.
 
 from __future__ import annotations
 
+import os
 import time
 import logging
 from contextlib import asynccontextmanager
@@ -14,6 +15,12 @@ from typing import Any, Dict, Optional
 from ..config import get_settings
 
 logger = logging.getLogger(__name__)
+
+# ── Authentication toggle ─────────────────────────────────────────────────
+REQUIRE_AUTH: bool = os.environ.get("REQUIRE_AUTH", "true").lower() in ("true", "1", "yes")
+
+# Paths that skip authentication
+_AUTH_SKIP_PATHS = {"/health", "/", "/docs", "/openapi.json", "/redoc"}
 
 
 @asynccontextmanager
@@ -164,6 +171,26 @@ class FastAPIApp:
         """
         start = time.time()
         status_code = 200
+
+        # ── Authentication check (SEC-006) ────────────────────────────
+        if REQUIRE_AUTH:
+            # Skip auth for health/docs/root and WebSocket upgrade requests
+            is_ws_upgrade = (
+                kwargs.get("headers", {}).get("upgrade", "").lower() == "websocket"
+                or kwargs.get("headers", {}).get("Upgrade", "").lower() == "websocket"
+            )
+            if path not in _AUTH_SKIP_PATHS and not is_ws_upgrade:
+                headers = kwargs.get("headers", {})
+                if not self.auth.is_authenticated(headers):
+                    status_code = 401
+                    duration = (time.time() - start) * 1000
+                    self.request_logger.log_request(
+                        method=method, path=path,
+                        status_code=status_code, duration_ms=duration,
+                    )
+                    return {"error": "Unauthorized", "code": "AUTH_REQUIRED", "status_code": 401}
+        else:
+            logger.warning("REQUIRE_AUTH=false — authentication is DISABLED (not for production!)")
 
         try:
             result = await self._route_dispatch(method, path, **kwargs)

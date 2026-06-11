@@ -1,0 +1,763 @@
+     1→"""LLM Router — Multi-Provider Failover with Cost Tracking.
+     2→
+     3→Provides intelligent routing across multiple LLM providers with
+     4→automatic failover, health monitoring, cooldown on failure,
+     5→cost tracking, and model selection (deep thinking vs quick).
+     6→
+     7→Features
+     8→--------
+     9→* Multi-provider failover (OpenAI → Anthropic → Google → NVIDIA → local)
+    10→* Provider health monitoring with circuit breaker
+    11→* Cooldown on failure (exponential backoff)
+    12→* Cost tracking per provider and model
+    13→* Model selection (deep thinking vs quick response)
+    14→* Graceful fallback when providers are unavailable
+    15→
+    16→Dependencies
+    17→------------
+    18→Uses langchain-openai, langchain-anthropic, langchain-google-genai
+    19→(packages already in the project dependencies).
+    20→"""
+    21→
+    22→from __future__ import annotations
+    23→
+    24→import asyncio
+    25→import logging
+    26→import time
+    27→import uuid
+    28→from datetime import datetime, timezone
+    29→from enum import Enum
+    30→from typing import Any, Dict, List, Optional
+    31→
+    32→from pydantic import BaseModel, Field
+    33→
+    34→logger = logging.getLogger(__name__)
+    35→
+    36→
+    37→# ---------------------------------------------------------------------------
+    38→# Enums
+    39→# ---------------------------------------------------------------------------
+    40→
+    41→class LLMProvider(str, Enum):
+    42→    """Supported LLM providers."""
+    43→    OPENAI = "openai"
+    44→    ANTHROPIC = "anthropic"
+    45→    GOOGLE = "google"
+    46→    NVIDIA = "nvidia"
+    47→    LOCAL = "local"
+    48→    NVIDIA_NIM = "nvidia_nim"
+    49→
+    50→
+    51→class ModelTier(str, Enum):
+    52→    """Model tier for request routing."""
+    53→    DEEP_THINKING = "deep_thinking"  # Most capable, slower
+    54→    STANDARD = "standard"           # Balanced
+    55→    QUICK = "quick"                 # Fast, cheaper
+    56→
+    57→
+    58→class ProviderHealthStatus(str, Enum):
+    59→    """Provider health status."""
+    60→    HEALTHY = "HEALTHY"
+    61→    DEGRADED = "DEGRADED"
+    62→    UNHEALTHY = "UNHEALTHY"
+    63→    COOLDOWN = "COOLDOWN"
+    64→    UNKNOWN = "UNKNOWN"
+    65→
+    66→
+    67→# ---------------------------------------------------------------------------
+    68→# Models
+    69→# ---------------------------------------------------------------------------
+    70→
+    71→class ProviderConfig(BaseModel):
+    72→    """Configuration for an LLM provider."""
+    73→    provider: LLMProvider = Field(..., description="Provider identifier")
+    74→    api_key: Optional[str] = Field(None, description="API key")
+    75→    base_url: Optional[str] = Field(None, description="Custom base URL")
+    76→    models: Dict[ModelTier, str] = Field(default_factory=dict, description="Model per tier")
+    77→    max_tokens: Dict[ModelTier, int] = Field(default_factory=dict)
+    78→    priority: int = Field(0, description="Priority (lower = higher priority)")
+    79→    enabled: bool = Field(True, description="Whether provider is enabled")
+    80→    rate_limit_rpm: int = Field(60, description="Rate limit in requests per minute")
+    81→
+    82→
+    83→class ProviderHealth(BaseModel):
+    84→    """Health status of an LLM provider."""
+    85→    provider: LLMProvider = Field(..., description="Provider identifier")
+    86→    status: ProviderHealthStatus = Field(ProviderHealthStatus.UNKNOWN)
+    87→    consecutive_failures: int = Field(0, description="Consecutive failure count")
+    88→    last_success_at: Optional[str] = Field(None)
+    89→    last_failure_at: Optional[str] = Field(None)
+    90→    cooldown_until: Optional[str] = Field(None, description="Cooldown expiry time")
+    91→    total_requests: int = Field(0, description="Total request count")
+    92→    total_failures: int = Field(0, description="Total failure count")
+    93→    avg_latency_ms: float = Field(0.0, description="Average latency in ms")
+    94→    success_rate: float = Field(0.0, description="Success rate (0-1)")
+    95→
+    96→
+    97→class CostRecord(BaseModel):
+    98→    """Cost tracking record for an LLM call."""
+    99→    record_id: str = Field("", description="Record identifier")
+   100→    provider: LLMProvider = Field(..., description="LLM provider")
+   101→    model: str = Field("", description="Model used")
+   102→    tier: ModelTier = Field(ModelTier.STANDARD, description="Model tier")
+   103→    input_tokens: int = Field(0, description="Input token count")
+   104→    output_tokens: int = Field(0, description="Output token count")
+   105→    cost_usd: float = Field(0.0, description="Cost in USD")
+   106→    latency_ms: float = Field(0.0, description="Request latency in ms")
+   107→    success: bool = Field(True, description="Whether request succeeded")
+   108→    timestamp: str = Field("")
+   109→
+   110→
+   111→class LLMResponse(BaseModel):
+   112→    """Response from an LLM call."""
+   113→    content: str = Field("", description="Response text content")
+   114→    provider: LLMProvider = Field(..., description="Provider that generated the response")
+   115→    model: str = Field("", description="Model used")
+   116→    tier: ModelTier = Field(ModelTier.STANDARD, description="Model tier")
+   117→    input_tokens: int = Field(0, description="Input tokens used")
+   118→    output_tokens: int = Field(0, description="Output tokens generated")
+   119→    cost_usd: float = Field(0.0, description="Cost in USD")
+   120→    latency_ms: float = Field(0.0, description="Total latency in ms")
+   121→    fallback_used: bool = Field(False, description="Whether fallback was used")
+   122→    timestamp: str = Field("")
+   123→
+   124→
+   125→# ---------------------------------------------------------------------------
+   126→# Default provider configurations
+   127→# ---------------------------------------------------------------------------
+   128→
+   129→_DEFAULT_MODELS: Dict[LLMProvider, Dict[ModelTier, str]] = {
+   130→    LLMProvider.OPENAI: {
+   131→        ModelTier.DEEP_THINKING: "o3-mini",
+   132→        ModelTier.STANDARD: "gpt-4o",
+   133→        ModelTier.QUICK: "gpt-4o-mini",
+   134→    },
+   135→    LLMProvider.ANTHROPIC: {
+   136→        ModelTier.DEEP_THINKING: "claude-3-5-sonnet-20241022",
+   137→        ModelTier.STANDARD: "claude-3-5-sonnet-20241022",
+   138→        ModelTier.QUICK: "claude-3-haiku-20240307",
+   139→    },
+   140→    LLMProvider.GOOGLE: {
+   141→        ModelTier.DEEP_THINKING: "gemini-2.0-flash-thinking-exp",
+   142→        ModelTier.STANDARD: "gemini-2.0-flash",
+   143→        ModelTier.QUICK: "gemini-2.0-flash-lite",
+   144→    },
+   145→    LLMProvider.NVIDIA: {
+   146→        ModelTier.DEEP_THINKING: "meta/llama-3.1-405b-instruct",
+   147→        ModelTier.STANDARD: "meta/llama-3.1-70b-instruct",
+   148→        ModelTier.QUICK: "meta/llama-3.1-8b-instruct",
+   149→    },
+   150→    LLMProvider.LOCAL: {
+   151→        ModelTier.DEEP_THINKING: "llama3:70b",
+   152→        ModelTier.STANDARD: "llama3:8b",
+   153→        ModelTier.QUICK: "phi3:mini",
+   154→    },
+   155→    LLMProvider.NVIDIA_NIM: {
+   156→        ModelTier.DEEP_THINKING: "meta/llama-3.1-405b-instruct",
+   157→        ModelTier.STANDARD: "meta/llama-3.1-70b-instruct",
+   158→        ModelTier.QUICK: "google/gemma-2-27b-it",
+   159→    },
+   160→}
+   161→
+   162→_DEFAULT_MAX_TOKENS: Dict[ModelTier, int] = {
+   163→    ModelTier.DEEP_THINKING: 16000,
+   164→    ModelTier.STANDARD: 4096,
+   165→    ModelTier.QUICK: 1024,
+   166→}
+   167→
+   168→# Approximate cost per 1K tokens (USD)
+   169→_COST_PER_1K: Dict[str, Dict[str, float]] = {
+   170→    "openai": {"input": 0.005, "output": 0.015},
+   171→    "anthropic": {"input": 0.003, "output": 0.015},
+   172→    "google": {"input": 0.001, "output": 0.002},
+   173→    "nvidia": {"input": 0.002, "output": 0.006},
+   174→    "local": {"input": 0.0, "output": 0.0},
+   175→    "nvidia_nim": {"input": 0.003, "output": 0.008},
+   176→}
+   177→
+   178→
+   179→# ---------------------------------------------------------------------------
+   180→# LLM Router
+   181→# ---------------------------------------------------------------------------
+   182→
+   183→class LLMRouter:
+   184→    """Multi-provider LLM router with failover and cost tracking.
+   185→
+   186→    Routes LLM requests across multiple providers with automatic
+   187→    failover, health monitoring, cooldown on failure, and cost tracking.
+   188→
+   189→    Usage::
+   190→
+   191→        router = LLMRouter()
+   192→        router.add_provider(ProviderConfig(
+   193→            provider=LLMProvider.OPENAI,
+   194→            api_key="sk-...",
+   195→            priority=0,
+   196→        ))
+   197→        response = await router.chat("Explain market volatility", tier=ModelTier.QUICK)
+   198→        stats = router.get_cost_stats()
+   199→    """
+   200→
+   201→    def __init__(self) -> None:
+   202→        self._providers: Dict[LLMProvider, ProviderConfig] = {}
+   203→        self._health: Dict[LLMProvider, ProviderHealth] = {}
+   204→        self._cost_records: List[CostRecord] = []
+   205→        self._max_consecutive_failures = 5
+   206→        self._base_cooldown_seconds = 30.0
+   207→
+   208→    def add_provider(self, config: ProviderConfig) -> None:
+   209→        """Add an LLM provider configuration.
+   210→
+   211→        Args:
+   212→            config: ProviderConfig with provider details.
+   213→        """
+   214→        # Fill in default models if not specified
+   215→        if not config.models:
+   216→            config.models = _DEFAULT_MODELS.get(config.provider, {})
+   217→        if not config.max_tokens:
+   218→            config.max_tokens = _DEFAULT_MAX_TOKENS
+   219→
+   220→        self._providers[config.provider] = config
+   221→        self._health[config.provider] = ProviderHealth(provider=config.provider)
+   222→        logger.info("Added LLM provider: %s (priority=%d)", config.provider.value, config.priority)
+   223→
+   224→    def remove_provider(self, provider: LLMProvider) -> None:
+   225→        """Remove an LLM provider.
+   226→
+   227→        Args:
+   228→            provider: Provider to remove.
+   229→        """
+   230→        self._providers.pop(provider, None)
+   231→        self._health.pop(provider, None)
+   232→
+   233→    async def chat(
+   234→        self,
+   235→        prompt: str,
+   236→        system_prompt: Optional[str] = None,
+   237→        tier: ModelTier = ModelTier.STANDARD,
+   238→        max_tokens: Optional[int] = None,
+   239→        preferred_provider: Optional[LLMProvider] = None,
+   240→        temperature: float = 0.7,
+   241→    ) -> LLMResponse:
+   242→        """Send a chat request to the LLM with automatic failover.
+   243→
+   244→        Tries providers in priority order, falling back to the next
+   245→        provider on failure. Implements cooldown on repeated failures.
+   246→
+   247→        Args:
+   248→            prompt: User message/prompt.
+   249→            system_prompt: Optional system prompt.
+   250→            tier: Model tier (deep_thinking, standard, quick).
+   251→            max_tokens: Maximum output tokens.
+   252→            preferred_provider: Optional preferred provider to try first.
+   253→            temperature: Sampling temperature.
+   254→
+   255→        Returns:
+   256→            LLMResponse with the generated content and metadata.
+   257→
+   258→        Raises:
+   259→            ExchangeError: If all providers fail.
+   260→        """
+   261→        start_time = time.monotonic()
+   262→
+   263→        # Build provider order
+   264→        providers = self._get_provider_order(preferred_provider)
+   265→
+   266→        last_error = None
+   267→        for provider_enum in providers:
+   268→            config = self._providers.get(provider_enum)
+   269→            if not config or not config.enabled:
+   270→                continue
+   271→
+   272→            # Check cooldown
+   273→            health = self._health.get(provider_enum)
+   274→            if health and health.status == ProviderHealthStatus.COOLDOWN:
+   275→                if health.cooldown_until:
+   276→                    try:
+   277→                        cooldown_time = datetime.fromisoformat(health.cooldown_until)
+   278→                        if datetime.now(tz=timezone.utc) < cooldown_time:
+   279→                            logger.debug("Provider %s in cooldown, skipping", provider_enum.value)
+   280→                            continue
+   281→                        else:
+   282→                            health.status = ProviderHealthStatus.UNKNOWN
+   283→                    except (ValueError, TypeError):
+   284→                        pass
+   285→
+   286→            # Get model name
+   287→            model = config.models.get(tier, "")
+   288→            if not model:
+   289→                continue
+   290→
+   291→            # Try the request
+   292→            try:
+   293→                content, in_tokens, out_tokens = await self._call_provider(
+   294→                    config, prompt, system_prompt, model, max_tokens, temperature,
+   295→                )
+   296→
+   297→                latency = (time.monotonic() - start_time) * 1000
+   298→
+   299→                # Calculate cost
+   300→                cost = self._calculate_cost(provider_enum, in_tokens, out_tokens)
+   301→
+   302→                # Update health
+   303→                self._record_success(provider_enum, latency)
+   304→
+   305→                # Record cost
+   306→                cost_record = CostRecord(
+   307→                    record_id=str(uuid.uuid4())[:8],
+   308→                    provider=provider_enum,
+   309→                    model=model,
+   310→                    tier=tier,
+   311→                    input_tokens=in_tokens,
+   312→                    output_tokens=out_tokens,
+   313→                    cost_usd=cost,
+   314→                    latency_ms=round(latency, 2),
+   315→                    success=True,
+   316→                    timestamp=datetime.now(tz=timezone.utc).isoformat(),
+   317→                )
+   318→                self._cost_records.append(cost_record)
+   319→
+   320→                return LLMResponse(
+   321→                    content=content,
+   322→                    provider=provider_enum,
+   323→                    model=model,
+   324→                    tier=tier,
+   325→                    input_tokens=in_tokens,
+   326→                    output_tokens=out_tokens,
+   327→                    cost_usd=cost,
+   328→                    latency_ms=round(latency, 2),
+   329→                    fallback_used=provider_enum != (preferred_provider or providers[0] if providers else None),
+   330→                    timestamp=datetime.now(tz=timezone.utc).isoformat(),
+   331→                )
+   332→
+   333→            except Exception as exc:
+   334→                last_error = exc
+   335→                logger.warning(
+   336→                    "LLM provider %s failed: %s",
+   337→                    provider_enum.value, exc,
+   338→                )
+   339→                self._record_failure(provider_enum)
+   340→                continue
+   341→
+   342→        # All providers failed
+   343→        raise RuntimeError(
+   344→            f"All LLM providers failed. Last error: {last_error}"
+   345→        )
+   346→
+   347→    def get_provider_health(self) -> Dict[str, ProviderHealth]:
+   348→        """Get health status of all providers.
+   349→
+   350→        Returns:
+   351→            Dict mapping provider name to health status.
+   352→        """
+   353→        return {p.value: h for p, h in self._health.items()}
+   354→
+   355→    def get_cost_stats(self) -> Dict[str, Any]:
+   356→        """Get cost tracking statistics.
+   357→
+   358→        Returns:
+   359→            Dict with cost statistics per provider and total.
+   360→        """
+   361→        if not self._cost_records:
+   362→            return {"total_cost_usd": 0.0, "total_requests": 0, "by_provider": {}}
+   363→
+   364→        total_cost = sum(r.cost_usd for r in self._cost_records)
+   365→        by_provider: Dict[str, Dict[str, Any]] = {}
+   366→
+   367→        for provider in LLMProvider:
+   368→            records = [r for r in self._cost_records if r.provider == provider]
+   369→            if records:
+   370→                by_provider[provider.value] = {
+   371→                    "total_cost_usd": round(sum(r.cost_usd for r in records), 6),
+   372→                    "total_requests": len(records),
+   373→                    "total_input_tokens": sum(r.input_tokens for r in records),
+   374→                    "total_output_tokens": sum(r.output_tokens for r in records),
+   375→                    "success_rate": round(
+   376→                        sum(1 for r in records if r.success) / len(records), 4
+   377→                    ),
+   378→                    "avg_latency_ms": round(
+   379→                        sum(r.latency_ms for r in records) / len(records), 2
+   380→                    ),
+   381→                }
+   382→
+   383→        return {
+   384→            "total_cost_usd": round(total_cost, 6),
+   385→            "total_requests": len(self._cost_records),
+   386→            "by_provider": by_provider,
+   387→        }
+   388→
+   389→    # ----- Internal helpers -----
+   390→
+   391→    def _get_provider_order(
+   392→        self,
+   393→        preferred: Optional[LLMProvider] = None,
+   394→    ) -> List[LLMProvider]:
+   395→        """Get provider order for failover routing."""
+   396→        # Sort by priority (lower = higher priority)
+   397→        providers = sorted(
+   398→            [p for p in self._providers.keys() if self._providers[p].enabled],
+   399→            key=lambda p: self._providers[p].priority,
+   400→        )
+   401→
+   402→        # Move preferred to front if specified
+   403→        if preferred and preferred in providers:
+   404→            providers.remove(preferred)
+   405→            providers.insert(0, preferred)
+   406→
+   407→        return providers
+   408→
+   409→    async def _call_provider(
+   410→        self,
+   411→        config: ProviderConfig,
+   412→        prompt: str,
+   413→        system_prompt: Optional[str],
+   414→        model: str,
+   415→        max_tokens: Optional[int],
+   416→        temperature: float,
+   417→    ) -> tuple[str, int, int]:
+   418→        """Call a specific LLM provider.
+   419→
+   420→        Returns:
+   421→            Tuple of (content, input_tokens, output_tokens).
+   422→        """
+   423→        provider = config.provider
+   424→        messages = []
+   425→        if system_prompt:
+   426→            messages.append({"role": "system", "content": system_prompt})
+   427→        messages.append({"role": "user", "content": prompt})
+   428→
+   429→        if provider == LLMProvider.OPENAI:
+   430→            return await self._call_openai(config, messages, model, max_tokens, temperature)
+   431→        elif provider == LLMProvider.ANTHROPIC:
+   432→            return await self._call_anthropic(config, messages, model, max_tokens, temperature)
+   433→        elif provider == LLMProvider.GOOGLE:
+   434→            return await self._call_google(config, messages, model, max_tokens, temperature)
+   435→        elif provider == LLMProvider.NVIDIA:
+   436→            return await self._call_nvidia(config, messages, model, max_tokens, temperature)
+   437→        elif provider == LLMProvider.LOCAL:
+   438→            return await self._call_local(config, messages, model, max_tokens, temperature)
+   439→        elif provider == LLMProvider.NVIDIA_NIM:
+   440→            return await self._call_nvidia_nim(config, messages, model, max_tokens, temperature)
+   441→        else:
+   442→            raise ValueError(f"Unsupported provider: {provider}")
+   443→
+   444→    @staticmethod
+   445→    async def _call_openai(
+   446→        config: ProviderConfig,
+   447→        messages: List[Dict[str, str]],
+   448→        model: str,
+   449→        max_tokens: Optional[int],
+   450→        temperature: float,
+   451→    ) -> tuple[str, int, int]:
+   452→        """Call OpenAI API."""
+   453→        try:
+   454→            from langchain_openai import ChatOpenAI
+   455→
+   456→            llm = ChatOpenAI(
+   457→                model=model,
+   458→                api_key=config.api_key or "",
+   459→                base_url=config.base_url,
+   460→                max_tokens=max_tokens or 4096,
+   461→                temperature=temperature,
+   462→            )
+   463→            from langchain_core.messages import HumanMessage, SystemMessage
+   464→
+   465→            lc_messages = []
+   466→            for m in messages:
+   467→                if m["role"] == "system":
+   468→                    lc_messages.append(SystemMessage(content=m["content"]))
+   469→                else:
+   470→                    lc_messages.append(HumanMessage(content=m["content"]))
+   471→
+   472→            result = await llm.ainvoke(lc_messages)
+   473→            content = result.content if hasattr(result, "content") else str(result)
+   474→            in_tokens = result.response_metadata.get("token_usage", {}).get("prompt_tokens", 0) if hasattr(result, "response_metadata") else 0
+   475→            out_tokens = result.response_metadata.get("token_usage", {}).get("completion_tokens", 0) if hasattr(result, "response_metadata") else 0
+   476→            return content, in_tokens, out_tokens
+   477→        except ImportError:
+   478→            raise ImportError("langchain-openai is required for OpenAI provider")
+   479→
+   480→    @staticmethod
+   481→    async def _call_anthropic(
+   482→        config: ProviderConfig,
+   483→        messages: List[Dict[str, str]],
+   484→        model: str,
+   485→        max_tokens: Optional[int],
+   486→        temperature: float,
+   487→    ) -> tuple[str, int, int]:
+   488→        """Call Anthropic API."""
+   489→        try:
+   490→            from langchain_anthropic import ChatAnthropic
+   491→
+   492→            llm = ChatAnthropic(
+   493→                model=model,
+   494→                api_key=config.api_key or "",
+   495→                max_tokens=max_tokens or 4096,
+   496→                temperature=temperature,
+   497→            )
+   498→            from langchain_core.messages import HumanMessage, SystemMessage
+   499→
+   500→            lc_messages = []
+   501→            for m in messages:
+   502→                if m["role"] == "system":
+   503→                    lc_messages.append(SystemMessage(content=m["content"]))
+   504→                else:
+   505→                    lc_messages.append(HumanMessage(content=m["content"]))
+   506→
+   507→            result = await llm.ainvoke(lc_messages)
+   508→            content = result.content if hasattr(result, "content") else str(result)
+   509→            in_tokens = result.response_metadata.get("usage", {}).get("input_tokens", 0) if hasattr(result, "response_metadata") else 0
+   510→            out_tokens = result.response_metadata.get("usage", {}).get("output_tokens", 0) if hasattr(result, "response_metadata") else 0
+   511→            return content, in_tokens, out_tokens
+   512→        except ImportError:
+   513→            raise ImportError("langchain-anthropic is required for Anthropic provider")
+   514→
+   515→    @staticmethod
+   516→    async def _call_google(
+   517→        config: ProviderConfig,
+   518→        messages: List[Dict[str, str]],
+   519→        model: str,
+   520→        max_tokens: Optional[int],
+   521→        temperature: float,
+   522→    ) -> tuple[str, int, int]:
+   523→        """Call Google GenAI API."""
+   524→        try:
+   525→            from langchain_google_genai import ChatGoogleGenerativeAI
+   526→
+   527→            llm = ChatGoogleGenerativeAI(
+   528→                model=model,
+   529→                google_api_key=config.api_key or "",
+   530→                max_output_tokens=max_tokens or 4096,
+   531→                temperature=temperature,
+   532→            )
+   533→            from langchain_core.messages import HumanMessage, SystemMessage
+   534→
+   535→            lc_messages = []
+   536→            for m in messages:
+   537→                if m["role"] == "system":
+   538→                    lc_messages.append(SystemMessage(content=m["content"]))
+   539→                else:
+   540→                    lc_messages.append(HumanMessage(content=m["content"]))
+   541→
+   542→            result = await llm.ainvoke(lc_messages)
+   543→            content = result.content if hasattr(result, "content") else str(result)
+   544→            return content, 0, 0  # Google doesn't always provide token counts
+   545→        except ImportError:
+   546→            raise ImportError("langchain-google-genai is required for Google provider")
+   547→
+   548→    @staticmethod
+   549→    async def _call_nvidia(
+   550→        config: ProviderConfig,
+   551→        messages: List[Dict[str, str]],
+   552→        model: str,
+   553→        max_tokens: Optional[int],
+   554→        temperature: float,
+   555→    ) -> tuple[str, int, int]:
+   556→        """Call NVIDIA NIM API (OpenAI-compatible).
+   557→
+   558→        NVIDIA NIM provides OpenAI-compatible endpoints, so we reuse
+   559→        ChatOpenAI with a custom base_url pointing to the NIM API.
+   560→        """
+   561→        try:
+   562→            from langchain_openai import ChatOpenAI
+   563→
+   564→            base_url = config.base_url or "https://integrate.api.nvidia.com/v1"
+   565→            llm = ChatOpenAI(
+   566→                model=model,
+   567→                api_key=config.api_key or "",
+   568→                base_url=base_url,
+   569→                max_tokens=max_tokens or 4096,
+   570→                temperature=temperature,
+   571→            )
+   572→            from langchain_core.messages import HumanMessage, SystemMessage
+   573→
+   574→            lc_messages = []
+   575→            for m in messages:
+   576→                if m["role"] == "system":
+   577→                    lc_messages.append(SystemMessage(content=m["content"]))
+   578→                else:
+   579→                    lc_messages.append(HumanMessage(content=m["content"]))
+   580→
+   581→            result = await llm.ainvoke(lc_messages)
+   582→            content = result.content if hasattr(result, "content") else str(result)
+   583→            in_tokens = result.response_metadata.get("token_usage", {}).get("prompt_tokens", 0) if hasattr(result, "response_metadata") else 0
+   584→            out_tokens = result.response_metadata.get("token_usage", {}).get("completion_tokens", 0) if hasattr(result, "response_metadata") else 0
+   585→            return content, in_tokens, out_tokens
+   586→        except ImportError:
+   587→            raise ImportError("langchain-openai is required for NVIDIA NIM provider")
+   588→
+   589→    @staticmethod
+   590→    async def _call_local(
+   591→        config: ProviderConfig,
+   592→        messages: List[Dict[str, str]],
+   593→        model: str,
+   594→        max_tokens: Optional[int],
+   595→        temperature: float,
+   596→    ) -> tuple[str, int, int]:
+   597→        """Call local LLM via Ollama or similar."""
+   598→        try:
+   599→            import httpx
+   600→
+   601→            base_url = config.base_url or "http://localhost:11434"
+   602→            async with httpx.AsyncClient(timeout=120.0) as client:
+   603→                response = await client.post(
+   604→                    f"{base_url}/api/chat",
+   605→                    json={
+   606→                        "model": model,
+   607→                        "messages": messages,
+   608→                        "stream": False,
+   609→                        "options": {
+   610→                            "num_predict": max_tokens or 4096,
+   611→                            "temperature": temperature,
+   612→                        },
+   613→                    },
+   614→                )
+   615→                data = response.json()
+   616→                content = data.get("message", {}).get("content", "")
+   617→                eval_count = data.get("eval_count", 0)
+   618→                prompt_eval_count = data.get("prompt_eval_count", 0)
+   619→                return content, prompt_eval_count, eval_count
+   620→        except ImportError:
+   621→            raise ImportError("httpx is required for local LLM provider")
+   622→        except Exception as exc:
+   623→            raise RuntimeError(f"Local LLM call failed: {exc}") from exc
+   624→
+   625→    @staticmethod
+   626→    async def _call_nvidia_nim(
+   627→        config: ProviderConfig,
+   628→        messages: List[Dict[str, str]],
+   629→        model: str,
+   630→        max_tokens: Optional[int],
+   631→        temperature: float,
+   632→    ) -> tuple[str, int, int]:
+   633→        """Call NVIDIA NIM API using the NIMClient."""
+   634→        try:
+   635→            from quant_nanggroe.engine.nvidia_nim.client import NIMClient
+   636→            from quant_nanggroe.engine.nvidia_nim.models import NIMChatMessage, NIMRole
+   637→
+   638→            nim_messages: list[NIMChatMessage] = []
+   639→            for m in messages:
+   640→                try:
+   641→                    role = NIMRole(m["role"])
+   642→                except ValueError:
+   643→                    role = NIMRole.USER
+   644→                nim_messages.append(NIMChatMessage(role=role, content=m["content"]))
+   645→
+   646→            nim_config = None
+   647→            if config.api_key or config.base_url:
+   648→                from quant_nanggroe.engine.nvidia_nim.config import NIMConfig
+   649→                nim_config = NIMConfig(
+   650→                    nvidia_nim_api_key=config.api_key,
+   651→                    nvidia_nim_base_url=config.base_url or "https://integrate.api.nvidia.com/v1",
+   652→                )
+   653→
+   654→            client = NIMClient(config=nim_config)
+   655→            try:
+   656→                response = await client.chat_with_messages(
+   657→                    nim_messages,
+   658→                    model=model,
+   659→                    temperature=temperature,
+   660→                    max_tokens=max_tokens or 4096,
+   661→                )
+   662→                return (
+   663→                    response.content,
+   664→                    response.usage.prompt_tokens,
+   665→                    response.usage.completion_tokens,
+   666→                )
+   667→            finally:
+   668→                await client.close()
+   669→        except ImportError:
+   670→            raise ImportError(
+   671→                "quant_nanggroe.engine.nvidia_nim is required for NVIDIA NIM provider"
+   672→            )
+   673→
+   674→    def _record_success(self, provider: LLMProvider, latency_ms: float) -> None:
+   675→        """Record a successful provider call."""
+   676→        health = self._health.get(provider)
+   677→        if health:
+   678→            health.status = ProviderHealthStatus.HEALTHY
+   679→            health.consecutive_failures = 0
+   680→            health.last_success_at = datetime.now(tz=timezone.utc).isoformat()
+   681→            health.cooldown_until = None
+   682→            health.total_requests += 1
+   683→
+   684→            # Update average latency
+   685→            if health.avg_latency_ms == 0:
+   686→                health.avg_latency_ms = latency_ms
+   687→            else:
+   688→                health.avg_latency_ms = (health.avg_latency_ms * 0.8) + (latency_ms * 0.2)
+   689→
+   690→            health.success_rate = (
+   691→                (health.total_requests - health.total_failures) / health.total_requests
+   692→                if health.total_requests > 0 else 0.0
+   693→            )
+   694→
+   695→    def _record_failure(self, provider: LLMProvider) -> None:
+   696→        """Record a failed provider call."""
+   697→        health = self._health.get(provider)
+   698→        if health:
+   699→            health.consecutive_failures += 1
+   700→            health.total_requests += 1
+   701→            health.total_failures += 1
+   702→            health.last_failure_at = datetime.now(tz=timezone.utc).isoformat()
+   703→            health.success_rate = (
+   704→                (health.total_requests - health.total_failures) / health.total_requests
+   705→                if health.total_requests > 0 else 0.0
+   706→            )
+   707→
+   708→            # Update status
+   709→            if health.consecutive_failures >= self._max_consecutive_failures:
+   710→                health.status = ProviderHealthStatus.UNHEALTHY
+   711→            elif health.consecutive_failures >= 3:
+   712→                health.status = ProviderHealthStatus.DEGRADED
+   713→
+   714→            # Set cooldown
+   715→            if health.consecutive_failures >= 2:
+   716→                cooldown_seconds = self._base_cooldown_seconds * (2 ** (health.consecutive_failures - 2))
+   717→                cooldown_seconds = min(cooldown_seconds, 600)  # Max 10 minutes
+   718→                from datetime import timedelta
+   719→                health.cooldown_until = (
+   720→                    datetime.now(tz=timezone.utc) + timedelta(seconds=cooldown_seconds)
+   721→                ).isoformat()
+   722→                health.status = ProviderHealthStatus.COOLDOWN
+   723→
+   724→    @staticmethod
+   725→    def _calculate_cost(
+   726→        provider: LLMProvider,
+   727→        input_tokens: int,
+   728→        output_tokens: int,
+   729→    ) -> float:
+   730→        """Calculate approximate cost for an LLM call."""
+   731→        costs = _COST_PER_1K.get(provider.value, {"input": 0.0, "output": 0.0})
+   732→        input_cost = (input_tokens / 1000) * costs["input"]
+   733→        output_cost = (output_tokens / 1000) * costs["output"]
+   734→        return round(input_cost + output_cost, 6)
+   735→
+   736→
+   737→# ---------------------------------------------------------------------------
+   738→# Module-level convenience
+   739→# ---------------------------------------------------------------------------
+   740→
+   741→_default_router: LLMRouter | None = None
+   742→
+   743→
+   744→def get_llm_router() -> LLMRouter:
+   745→    """Get or create the default LLMRouter instance."""
+   746→    global _default_router
+   747→    if _default_router is None:
+   748→        _default_router = LLMRouter()
+   749→    return _default_router
+   750→
+   751→
+   752→__all__ = [
+   753→    "LLMRouter",
+   754→    "LLMProvider",
+   755→    "ModelTier",
+   756→    "ProviderHealthStatus",
+   757→    "ProviderConfig",
+   758→    "ProviderHealth",
+   759→    "CostRecord",
+   760→    "LLMResponse",
+   761→    "get_llm_router",
+   762→]
+   763→

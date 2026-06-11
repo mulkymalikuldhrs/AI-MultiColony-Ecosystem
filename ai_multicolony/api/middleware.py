@@ -26,12 +26,39 @@ class AuthMiddleware:
     Parameters
     ----------
     jwt_secret : str
-        Secret key for JWT validation.
+        Secret key for JWT validation.  Must be set via the
+        ``JWT_SECRET`` environment variable in production.
     api_key_enabled : bool
         Whether API key authentication is enabled.
     """
 
-    def __init__(self, jwt_secret: str = "change-me", api_key_enabled: bool = True):
+    def __init__(self, jwt_secret: str = "", api_key_enabled: bool = True):
+        import os
+
+        # Support JWT_SECRET env var override (SEC-001)
+        env_secret = os.environ.get("JWT_SECRET", "")
+        if env_secret:
+            jwt_secret = env_secret
+
+        if not jwt_secret or jwt_secret == "change-me":
+            logger.critical(
+                "SEC-001: JWT secret is not configured! "
+                "Set the JWT_SECRET environment variable before running in production. "
+                "Using insecure default is NOT allowed."
+            )
+            # Enforce secret in production when REQUIRE_AUTH is true
+            require_auth = os.environ.get("REQUIRE_AUTH", "true").lower() in ("true", "1", "yes")
+            if require_auth:
+                raise RuntimeError(
+                    "FATAL: JWT_SECRET is not set and REQUIRE_AUTH=true. "
+                    "Refusing to start without a secure secret. "
+                    "Set JWT_SECRET environment variable or set REQUIRE_AUTH=false for development."
+                )
+            # For development with auth disabled, use a random secret
+            import secrets
+            jwt_secret = secrets.token_urlsafe(32)
+            logger.warning("SEC-001: Using auto-generated JWT secret (development only)")
+
         self.jwt_secret = jwt_secret
         self.api_key_enabled = api_key_enabled
         self._api_keys: Dict[str, Dict[str, str]] = {}  # key → {agent_id, role}

@@ -19,8 +19,6 @@ Security
 - Secret keys are never logged or exposed
 """
 
-from __future__ import annotations
-
 import hashlib
 import hmac
 import json
@@ -31,6 +29,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from fastapi import Request, HTTPException
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -503,3 +502,98 @@ class JWTAuth:
 
     def __repr__(self) -> str:
         return f"JWTAuth(algorithm={self._algorithm}, revoked={len(self._revoked_tokens)})"
+
+
+# ---------------------------------------------------------------------------
+# FastAPI Dependency — get_current_user
+# ---------------------------------------------------------------------------
+
+async def get_current_user(request: Request) -> AuthResult:
+    """FastAPI dependency that enforces authentication on route handlers.
+
+    Checks the ``Authorization: Bearer <token>`` and ``X-API-Key`` headers.
+    Returns an :class:`AuthResult` on success; raises ``HTTPException(401)``
+    on failure.
+
+    This dependency should be added to every route that requires
+    authentication::
+
+        from quant_nanggroe.security.auth import get_current_user
+        from fastapi import Depends
+
+        @router.get("/protected", dependencies=[Depends(get_current_user)])
+        async def protected_route():
+            ...
+
+    Parameters
+    ----------
+    request :
+        The incoming FastAPI ``Request`` object.
+
+    Returns
+    -------
+    AuthResult
+        Authentication result with user info.
+
+    Raises
+    ------
+    HTTPException
+        401 if no valid credentials are provided.
+    """
+    import os
+
+    # Allow disabling auth for development (SEC-007)
+    require_auth = os.environ.get("REQUIRE_AUTH", "true").lower() in ("true", "1", "yes")
+    if not require_auth:
+        logging.getLogger(__name__).warning(
+            "REQUIRE_AUTH=false — authentication is DISABLED (not for production!)"
+        )
+        return AuthResult(success=True, user_id="anonymous", role=UserRole.ADMIN)
+
+    # Try Bearer token first
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+        try:
+            # Use settings to get the JWT secret
+            from quant_nanggroe.config.settings import get_settings
+            settings = get_settings()
+            jwt_auth = JWTAuth(secret_key=settings.openai_api_key or "dev-secret-key")
+            payload = jwt_auth.validate_token(token)
+            return AuthResult(
+                success=True,
+                user_id=payload.user_id,
+                role=payload.role,
+            )
+        except ValueError:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid or expired token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+    # Try API key
+    api_key = request.headers.get("x-api-key", "")
+    if api_key:
+        # Check against environment-configured API keys
+        _env_api_keys_str = os.environ.get("API_KEYS", "")
+        if _env_api_keys_str:
+            _env_api_keys = {
+                k.strip(): {"user_id": f"env-user-{i}", "role": UserRole.ADMIN}
+                for i, k in enumerate(_env_api_keys_str.split(","))
+                if k.strip()
+            }
+            api_key_auth = APIKeyAuth(api_keys=_env_api_keys)
+            result = api_key_auth.authenticate(api_key)
+            if result.success:
+                return result
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid API key",
+        )
+
+    raise HTTPException(
+        status_code=401,
+        detail="Authentication required. Provide Authorization: Bearer <token> or X-API-Key header.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )

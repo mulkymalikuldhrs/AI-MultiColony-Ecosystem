@@ -1,0 +1,713 @@
+     1→"""CLI entry point for Quant Nanggroe AI.
+     2→
+     3→Click-based CLI with Rich console output for the Agentic Trading Intelligence OS.
+     4→
+     5→Commands:
+     6→- qnai run --symbols AAPL,MSFT --provider openai  - Run trading pipeline
+     7→- qnai backtest --strategy momentum --period 1Y    - Run backtest
+     8→- qnai agents list                                   - List available agents
+     9→- qnai portfolio status                              - Show portfolio status
+    10→- qnai risk check BTC/USDT                           - Run risk assessment
+    11→- qnai serve                                         - Start API server
+    12→"""
+    13→
+    14→from __future__ import annotations
+    15→
+    16→import json
+    17→import sys
+    18→from datetime import datetime
+    19→from typing import Optional
+    20→
+    21→import click
+    22→from rich.console import Console
+    23→from rich.panel import Panel
+    24→from rich.table import Table
+    25→from rich.text import Text
+    26→from rich import box
+    27→
+    28→console = Console()
+    29→
+    30→# Banner
+    31→_BANNER = """
+    32→[bold cyan]╔══════════════════════════════════════════════╗[/bold cyan]
+    33→[bold cyan]║   [bold white]Quant Nanggroe AI[/bold white]                           [bold cyan]║[/bold cyan]
+    34→[bold cyan]║   [dim]Agentic Trading Intelligence OS[/dim]           [bold cyan]║[/bold cyan]
+    35→[bold cyan]║   [dim]v0.2.0 — Multi-Agent · LangGraph · Risk[/dim]   [bold cyan]║[/bold cyan]
+    36→[bold cyan]╚══════════════════════════════════════════════╝[/bold cyan]
+    37→"""
+    38→
+    39→
+    40→@click.group()
+    41→@click.version_option(version="0.2.0", prog_name="qnai")
+    42→def main():
+    43→    """Quant Nanggroe AI — Agentic Trading Intelligence OS."""
+    44→    pass
+    45→
+    46→
+    47→# =============================================================================
+    48→# Run Command
+    49→# =============================================================================
+    50→
+    51→
+    52→@main.command()
+    53→@click.option(
+    54→    "--symbols", "-s",
+    55→    default="BTC/USDT",
+    56→    help="Comma-separated trading symbols (e.g., AAPL,MSFT,BTC/USDT)",
+    57→)
+    58→@click.option(
+    59→    "--provider", "-p",
+    60→    default="openai",
+    61→    type=click.Choice(["openai", "anthropic", "google", "ollama", "openrouter"]),
+    62→    help="LLM provider",
+    63→)
+    64→@click.option("--deep-model", default="gpt-4o", help="Deep-thinking model")
+    65→@click.option("--quick-model", default="gpt-4o-mini", help="Quick-thinking model")
+    66→@click.option("--paper", is_flag=True, default=True, help="Use paper trading (default)")
+    67→@click.option("--live", is_flag=True, default=False, help="Use LIVE trading (dangerous!)")
+    68→@click.option("--trade-date", default=None, help="Trading date YYYY-MM-DD (default: today)")
+    69→def run(
+    70→    symbols: str,
+    71→    provider: str,
+    72→    deep_model: str,
+    73→    quick_model: str,
+    74→    paper: bool,
+    75→    live: bool,
+    76→    trade_date: Optional[str],
+    77→):
+    78→    """Run the trading pipeline with specified symbols and provider."""
+    79→    console.print(_BANNER)
+    80→
+    81→    symbol_list = [s.strip() for s in symbols.split(",")]
+    82→    mode = "LIVE" if live else "PAPER"
+    83→    trade_date = trade_date or datetime.now().strftime("%Y-%m-%d")
+    84→
+    85→    # Display run configuration
+    86→    config_table = Table(title="Pipeline Configuration", box=box.ROUNDED, show_header=False)
+    87→    config_table.add_column("Key", style="cyan")
+    88→    config_table.add_column("Value", style="white")
+    89→    config_table.add_row("Symbols", ", ".join(symbol_list))
+    90→    config_table.add_row("Provider", provider)
+    91→    config_table.add_row("Deep Model", deep_model)
+    92→    config_table.add_row("Quick Model", quick_model)
+    93→    config_table.add_row("Mode", f"[bold {'red' if live else 'green'}]{mode}")
+    94→    config_table.add_row("Trade Date", trade_date)
+    95→    console.print(config_table)
+    96→    console.print()
+    97→
+    98→    if live:
+    99→        console.print(
+   100→            Panel(
+   101→                "[bold red]⚠ LIVE TRADING MODE — Real money at risk![/bold red]\n"
+   102→                "Constitutional risk limits are enforced and cannot be overridden.",
+   103→                title="[bold red]WARNING[/bold red]",
+   104→                border_style="red",
+   105→            )
+   106→        )
+   107→
+   108→    # Execute pipeline
+   109→    console.print("[bold cyan]▶ Starting trading pipeline...[/bold cyan]")
+   110→    console.print()
+   111→
+   112→    try:
+   113→        from quant_nanggroe.agents.graph import TradingGraph
+   114→        from quant_nanggroe.config.settings import get_settings
+   115→
+   116→        settings = get_settings()
+   117→        api_key = (
+   118→            settings.openai_api_key
+   119→            or settings.anthropic_api_key
+   120→            or settings.google_api_key
+   121→        )
+   122→
+   123→        if not api_key:
+   124→            console.print(
+   125→                "[bold yellow]⚠ No LLM API keys configured. Set QNAI_OPENAI_API_KEY or similar.[/bold yellow]"
+   126→            )
+   127→            console.print("[dim]Showing simulated pipeline output...[/dim]")
+   128→            _show_simulated_pipeline(symbol_list, trade_date)
+   129→            return
+   130→
+   131→        graph = TradingGraph(
+   132→            llm_provider=provider,
+   133→            deep_think_model=deep_model,
+   134→            quick_think_model=quick_model,
+   135→            api_key=api_key,
+   136→        )
+   137→
+   138→        with console.status("[bold green]Running multi-agent pipeline...", spinner="dots"):
+   139→            result = graph.run(
+   140→                symbols=symbol_list,
+   141→                trade_date=trade_date,
+   142→            )
+   143→
+   144→        _display_pipeline_result(result, symbol_list)
+   145→
+   146→    except ImportError as e:
+   147→        console.print(f"[bold red]✗ Import error: {e}[/bold red]")
+   148→        console.print("[dim]Some dependencies may not be installed.[/dim]")
+   149→        _show_simulated_pipeline(symbol_list, trade_date)
+   150→    except Exception as e:
+   151→        console.print(f"[bold red]✗ Pipeline error: {e}[/bold red]")
+   152→        _show_simulated_pipeline(symbol_list, trade_date)
+   153→
+   154→
+   155→def _show_simulated_pipeline(symbols: list, trade_date: str) -> None:
+   156→    """Display simulated pipeline output when LLM is not available."""
+   157→    phases = [
+   158→        ("Market Analysis", ["researcher", "macro", "crypto", "forex"]),
+   159→        ("Signal Generation", ["strategist"]),
+   160→        ("Risk Assessment", ["risk"]),
+   161→        ("Portfolio Optimization", ["portfolio"]),
+   162→        ("Execution Decision", ["trader"]),
+   163→        ("Order Execution", ["execution"]),
+   164→    ]
+   165→
+   166→    for phase_name, agents in phases:
+   167→        console.print(f"  [bold cyan]▸ {phase_name}[/bold cyan]")
+   168→        for agent in agents:
+   169→            console.print(f"    [dim]→ {agent}: ready[/dim]")
+   170→
+   171→    console.print()
+   172→    console.print(
+   173→        Panel(
+   174→            f"[bold green]✓ Pipeline configured for {', '.join(symbols)}[/bold green]\n"
+   175→            f"[dim]Date: {trade_date} | Mode: SIMULATED[/dim]\n"
+   176→            f"[dim]Configure LLM API keys for live execution[/dim]",
+   177→            title="Pipeline Status",
+   178→            border_style="green",
+   179→        )
+   180→    )
+   181→
+   182→
+   183→def _display_pipeline_result(result: dict, symbols: list) -> None:
+   184→    """Display actual pipeline execution results."""
+   185→    # Status
+   186→    status = "success" if not result.get("error") else "error"
+   187→    status_color = "green" if status == "success" else "red"
+   188→    console.print(f"[bold {status_color}]✓ Pipeline {status}[/bold {status_color}]")
+   189→
+   190→    # Risk verdict
+   191→    verdict = result.get("risk_verdict", "VETOED")
+   192→    verdict_color = "green" if verdict == "APPROVED" else "red"
+   193→    console.print(f"  Risk Verdict: [bold {verdict_color}]{verdict}[/bold {verdict_color}]")
+   194→
+   195→    # Confidence
+   196→    confidence = result.get("confidence", 0.0)
+   197→    conf_color = "green" if confidence >= 0.65 else "yellow" if confidence >= 0.4 else "red"
+   198→    console.print(f"  Confidence: [bold {conf_color}]{confidence:.2%}[/bold {conf_color}]")
+   199→
+   200→    # Decisions
+   201→    decisions = result.get("decisions", [])
+   202→    if decisions:
+   203→        table = Table(title="Trading Decisions", box=box.ROUNDED)
+   204→        table.add_column("Symbol", style="cyan")
+   205→        table.add_column("Action", style="bold")
+   206→        table.add_column("Confidence", style="white")
+   207→        table.add_column("Reasoning", style="dim", max_width=50)
+   208→        for d in decisions:
+   209→            action = d.get("action", "HOLD")
+   210→            action_color = "green" if action == "BUY" else "red" if action == "SELL" else "yellow"
+   211→            table.add_row(
+   212→                d.get("symbol", ""),
+   213→                f"[{action_color}]{action}[/{action_color}]",
+   214→                f"{d.get('confidence', 0):.2%}",
+   215→                d.get("reasoning", "")[:50],
+   216→            )
+   217→        console.print(table)
+   218→
+   219→    # Error display
+   220→    if result.get("error"):
+   221→        console.print(f"  [bold red]Error: {result['error']}[/bold red]")
+   222→
+   223→
+   224→# =============================================================================
+   225→# Backtest Command
+   226→# =============================================================================
+   227→
+   228→
+   229→@main.command()
+   230→@click.option(
+   231→    "--strategy", "-st",
+   232→    required=True,
+   233→    type=click.Choice(["momentum", "mean_reversion", "breakout", "scalping", "swing", "all"]),
+   234→    help="Strategy to backtest",
+   235→)
+   236→@click.option(
+   237→    "--symbols", "-s",
+   238→    default="BTC/USDT",
+   239→    help="Comma-separated symbols",
+   240→)
+   241→@click.option(
+   242→    "--period",
+   243→    default="1Y",
+   244→    type=click.Choice(["1M", "3M", "6M", "1Y", "2Y"]),
+   245→    help="Backtest period",
+   246→)
+   247→@click.option("--capital", "-c", default=100000.0, help="Initial capital")
+   248→@click.option("--commission", default=0.001, help="Commission rate")
+   249→@click.option("--market", default="crypto", type=click.Choice(["equity", "crypto", "forex"]))
+   250→def backtest(
+   251→    strategy: str,
+   252→    symbols: str,
+   253→    period: str,
+   254→    capital: float,
+   255→    commission: float,
+   256→    market: str,
+   257→):
+   258→    """Run backtesting with a specified strategy."""
+   259→    console.print(_BANNER)
+   260→
+   261→    symbol_list = [s.strip() for s in symbols.split(",")]
+   262→
+   263→    console.print(
+   264→        Panel(
+   265→            f"[bold white]Strategy:[/bold white] {strategy}\n"
+   266→            f"[bold white]Symbols:[/bold white] {', '.join(symbol_list)}\n"
+   267→            f"[bold white]Period:[/bold white] {period}\n"
+   268→            f"[bold white]Capital:[/bold white] ${capital:,.0f}\n"
+   269→            f"[bold white]Market:[/bold white] {market}",
+   270→            title="Backtest Configuration",
+   271→            border_style="cyan",
+   272→        )
+   273→    )
+   274→
+   275→    try:
+   276→        from quant_nanggroe.engine.backtest.engine import (
+   277→            BacktestEngine,
+   278→            BacktestConfig,
+   279→            MarketType,
+   280→        )
+   281→
+   282→        market_type = MarketType.CRYPTO
+   283→        if market == "equity":
+   284→            market_type = MarketType.EQUITY
+   285→        elif market == "forex":
+   286→            market_type = MarketType.FOREX
+   287→
+   288→        config = BacktestConfig(
+   289→            initial_capital=capital,
+   290→            commission_rate=commission,
+   291→            market=market_type,
+   292→        )
+   293→
+   294→        console.print("[bold cyan]▶ Backtest engine initialized.[/bold cyan]")
+   295→        console.print("[dim]Note: Full backtest requires price data files. Use data connectors to load data.[/dim]")
+   296→
+   297→        # Show config summary
+   298→        summary_table = Table(title="Backtest Engine Status", box=box.ROUNDED, show_header=False)
+   299→        summary_table.add_column("Key", style="cyan")
+   300→        summary_table.add_column("Value", style="white")
+   301→        summary_table.add_row("Engine", "Initialized ✓")
+   302→        summary_table.add_row("Config", f"Capital=${capital:,.0f}, Commission={commission}")
+   303→        summary_table.add_row("Strategy", strategy)
+   304→        summary_table.add_row("Market Type", market_type.value)
+   305→        summary_table.add_row("Data Required", "Load price data via data connectors")
+   306→        console.print(summary_table)
+   307→
+   308→    except ImportError as e:
+   309→        console.print(f"[bold yellow]⚠ Backtest engine import error: {e}[/bold yellow]")
+   310→        console.print("[dim]Install full dependencies for backtest support.[/dim]")
+   311→    except Exception as e:
+   312→        console.print(f"[bold red]✗ Backtest error: {e}[/bold red]")
+   313→
+   314→
+   315→# =============================================================================
+   316→# Agents Command Group
+   317→# =============================================================================
+   318→
+   319→
+   320→@main.group()
+   321→def agents():
+   322→    """Agent management commands."""
+   323→    pass
+   324→
+   325→
+   326→@agents.command("list")
+   327→def agents_list():
+   328→    """List all available trading agents."""
+   329→    console.print(_BANNER)
+   330→
+   331→    agent_defs = [
+   332→        {"name": "researcher", "role": "research", "description": "Market research and data analysis", "phase": "Analysis"},
+   333→        {"name": "macro", "role": "macro_analysis", "description": "Macroeconomic analysis and regime detection", "phase": "Analysis"},
+   334→        {"name": "crypto", "role": "crypto_analysis", "description": "Cryptocurrency market analysis", "phase": "Analysis"},
+   335→        {"name": "forex", "role": "forex_analysis", "description": "Forex market analysis", "phase": "Analysis"},
+   336→        {"name": "strategist", "role": "strategy", "description": "Signal generation and strategy formulation", "phase": "Decision"},
+   337→        {"name": "risk", "role": "risk_management", "description": "9-checkpoint risk assessment with constitutional limits", "phase": "Decision"},
+   338→        {"name": "trader", "role": "trading", "description": "Trade execution decisions and order management", "phase": "Decision"},
+   339→        {"name": "portfolio", "role": "portfolio", "description": "Portfolio optimization and allocation", "phase": "Decision"},
+   340→        {"name": "execution", "role": "execution", "description": "Order execution and fill tracking", "phase": "Execution"},
+   341→    ]
+   342→
+   343→    table = Table(
+   344→        title="Available Agents",
+   345→        box=box.ROUNDED,
+   346→        show_lines=True,
+   347→    )
+   348→    table.add_column("Name", style="bold cyan", width=12)
+   349→    table.add_column("Role", style="white", width=18)
+   350→    table.add_column("Phase", style="magenta", width=10)
+   351→    table.add_column("Description", style="dim", width=55)
+   352→    table.add_column("Status", style="green", width=8)
+   353→
+   354→    for agent in agent_defs:
+   355→        phase_color = {
+   356→            "Analysis": "blue",
+   357→            "Decision": "yellow",
+   358→            "Execution": "green",
+   359→        }.get(agent["phase"], "white")
+   360→
+   361→        table.add_row(
+   362→            agent["name"],
+   363→            agent["role"],
+   364→            f"[{phase_color}]{agent['phase']}[/{phase_color}]",
+   365→            agent["description"],
+   366→            "[green]ready[/green]",
+   367→        )
+   368→
+   369→    console.print(table)
+   370→
+   371→    # Show graph flow
+   372→    console.print()
+   373→    console.print(
+   374→        Panel(
+   375→            "[bold cyan]Pipeline Flow:[/bold cyan]\n"
+   376→            "  [blue]Analysis[/blue] → [yellow]Decision[/yellow] → [green]Execution[/green]\n\n"
+   377→            "[dim]market_analysis → signal_generation → risk_assessment → "
+   378→            "portfolio_optimization → execution_decision → order_execution[/dim]",
+   379→            title="Agent Graph",
+   380→            border_style="dim",
+   381→        )
+   382→    )
+   383→
+   384→
+   385→# =============================================================================
+   386→# Portfolio Command Group
+   387→# =============================================================================
+   388→
+   389→
+   390→@main.group()
+   391→def portfolio():
+   392→    """Portfolio management commands."""
+   393→    pass
+   394→
+   395→
+   396→@portfolio.command("status")
+   397→def portfolio_status():
+   398→    """Show current portfolio status."""
+   399→    console.print(_BANNER)
+   400→
+   401→    try:
+   402→        import httpx
+   403→
+   404→        # Try to fetch from API
+   405→        try:
+   406→            response = httpx.get("http://localhost:8000/api/v1/portfolio", timeout=5.0)
+   407→            if response.status_code == 200:
+   408→                data = response.json()
+   409→                _display_portfolio(data)
+   410→                return
+   411→        except Exception:
+   412→            pass
+   413→
+   414→        # Fallback: show demo portfolio
+   415→        _display_portfolio({
+   416→            "total_value": 1000000.0,
+   417→            "cash": 500000.0,
+   418→            "positions": [],
+   419→            "unrealized_pnl": 0.0,
+   420→            "realized_pnl": 0.0,
+   421→            "daily_pnl": 0.0,
+   422→            "weekly_pnl": 0.0,
+   423→            "allocation": {},
+   424→            "risk_budget_used": 0.0,
+   425→        })
+   426→
+   427→    except ImportError:
+   428→        _display_portfolio({
+   429→            "total_value": 1000000.0,
+   430→            "cash": 500000.0,
+   431→            "positions": [],
+   432→            "unrealized_pnl": 0.0,
+   433→            "realized_pnl": 0.0,
+   434→            "daily_pnl": 0.0,
+   435→            "weekly_pnl": 0.0,
+   436→            "allocation": {},
+   437→            "risk_budget_used": 0.0,
+   438→        })
+   439→
+   440→
+   441→def _display_portfolio(data: dict) -> None:
+   442→    """Display portfolio information in a rich table."""
+   443→    total = data.get("total_value", 0)
+   444→    cash = data.get("cash", 0)
+   445→
+   446→    # Summary
+   447→    summary = Table(title="Portfolio Summary", box=box.ROUNDED, show_header=False)
+   448→    summary.add_column("Metric", style="cyan", width=25)
+   449→    summary.add_column("Value", style="white", width=20)
+   450→
+   451→    pnl_color = "green" if data.get("daily_pnl", 0) >= 0 else "red"
+   452→    weekly_color = "green" if data.get("weekly_pnl", 0) >= 0 else "red"
+   453→
+   454→    summary.add_row("Total Value", f"[bold]${total:,.2f}[/bold]")
+   455→    summary.add_row("Cash", f"${cash:,.2f}")
+   456→    summary.add_row("Unrealized P&L", f"${data.get('unrealized_pnl', 0):,.2f}")
+   457→    summary.add_row("Realized P&L", f"${data.get('realized_pnl', 0):,.2f}")
+   458→    summary.add_row("Daily P&L", f"[{pnl_color}]${data.get('daily_pnl', 0):,.2f}[/{pnl_color}]")
+   459→    summary.add_row("Weekly P&L", f"[{weekly_color}]${data.get('weekly_pnl', 0):,.2f}[/{weekly_color}]")
+   460→    summary.add_row("Risk Budget Used", f"{data.get('risk_budget_used', 0):.1%}")
+   461→    console.print(summary)
+   462→
+   463→    # Positions
+   464→    positions = data.get("positions", [])
+   465→    if positions:
+   466→        pos_table = Table(title="Open Positions", box=box.ROUNDED)
+   467→        pos_table.add_column("Symbol", style="cyan")
+   468→        pos_table.add_column("Direction", style="white")
+   469→        pos_table.add_column("Quantity", style="white")
+   470→        pos_table.add_column("Entry", style="white")
+   471→        pos_table.add_column("Current", style="white")
+   472→        pos_table.add_column("P&L", style="white")
+   473→
+   474→        for p in positions:
+   475→            pnl = p.get("unrealized_pnl", 0)
+   476→            pnl_style = "green" if pnl >= 0 else "red"
+   477→            pos_table.add_row(
+   478→                p.get("symbol", ""),
+   479→                p.get("direction", "LONG"),
+   480→                f"{p.get('quantity', 0):.4f}",
+   481→                f"${p.get('entry_price', 0):,.2f}",
+   482→                f"${p.get('current_price', 0):,.2f}",
+   483→                f"[{pnl_style}]${pnl:,.2f}[/{pnl_style}]",
+   484→            )
+   485→        console.print(pos_table)
+   486→    else:
+   487→        console.print("\n[dim]No open positions.[/dim]")
+   488→
+   489→
+   490→# =============================================================================
+   491→# Risk Command Group
+   492→# =============================================================================
+   493→
+   494→
+   495→@main.group()
+   496→def risk():
+   497→    """Risk management commands."""
+   498→    pass
+   499→
+   500→
+   501→@risk.command("check")
+   502→@click.argument("symbol")
+   503→def risk_check(symbol: str):
+   504→    """Run risk assessment for a symbol."""
+   505→    console.print(_BANNER)
+   506→
+   507→    console.print(f"[bold cyan]▶ Running risk assessment for {symbol}...[/bold cyan]\n")
+   508→
+   509→    try:
+   510→        from quant_nanggroe.engine.risk.manager import (
+   511→            RiskManager,
+   512→            MAX_RISK_PER_TRADE,
+   513→            MAX_DAILY_LOSS,
+   514→            MAX_WEEKLY_LOSS,
+   515→            MAX_DRAWDOWN,
+   516→            MIN_RISK_REWARD,
+   517→        )
+   518→
+   519→        rm = RiskManager()
+   520→        status = rm.status()
+   521→
+   522→        # Risk status
+   523→        overall = status["overall_status"]
+   524→        status_color = "green" if overall == "TRADING_ALLOWED" else "red"
+   525→        console.print(
+   526→            f"  Overall Status: [bold {status_color}]{overall}[/bold {status_color}]"
+   527→        )
+   528→
+   529→        # Constitutional limits table
+   530→        limits = Table(title="Constitutional Risk Limits (NO OVERRIDE)", box=box.ROUNDED, show_header=False)
+   531→        limits.add_column("Limit", style="cyan", width=30)
+   532→        limits.add_column("Value", style="bold yellow", width=15)
+   533→        limits.add_column("Override", style="red", width=10)
+   534→
+   535→        limits.add_row("Max Risk Per Trade", f"{MAX_RISK_PER_TRADE:.2%}", "[red]IMPOSSIBLE[/red]")
+   536→        limits.add_row("Max Daily Loss", f"{MAX_DAILY_LOSS:.2%}", "[red]IMPOSSIBLE[/red]")
+   537→        limits.add_row("Max Weekly Loss", f"{MAX_WEEKLY_LOSS:.2%}", "[red]IMPOSSIBLE[/red]")
+   538→        limits.add_row("Max Drawdown", f"{MAX_DRAWDOWN:.0%}", "[red]IMPOSSIBLE[/red]")
+   539→        limits.add_row("Min Risk:Reward", f"1:{MIN_RISK_REWARD:.1f}", "[red]IMPOSSIBLE[/red]")
+   540→        console.print(limits)
+   541→
+   542→        # Current risk metrics
+   543→        metrics = Table(title="Current Risk Metrics", box=box.ROUNDED, show_header=False)
+   544→        metrics.add_column("Metric", style="cyan", width=30)
+   545→        metrics.add_column("Value", style="white", width=20)
+   546→
+   547→        daily_status = status.get("daily_status", "OK")
+   548→        weekly_status = status.get("weekly_status", "OK")
+   549→        daily_color = "green" if daily_status == "OK" else "red"
+   550→        weekly_color = "green" if weekly_status == "OK" else "red"
+   551→
+   552→        metrics.add_row("Symbol", symbol)
+   553→        metrics.add_row("Daily P&L", f"${status.get('daily_pnl', 0):,.2f}")
+   554→        metrics.add_row("Weekly P&L", f"${status.get('weekly_pnl', 0):,.2f}")
+   555→        metrics.add_row("Daily Loss %", f"[{daily_color}]{status.get('daily_loss_pct', '0')}[/{daily_color}]")
+   556→        metrics.add_row("Weekly Loss %", f"[{weekly_color}]{status.get('weekly_loss_pct', '0')}[/{weekly_color}]")
+   557→        metrics.add_row("Trades Today", str(status.get("trades_today", 0)))
+   558→        metrics.add_row("Trades This Week", str(status.get("trades_week", 0)))
+   559→        metrics.add_row("Active Positions", str(status.get("active_positions", 0)))
+   560→        metrics.add_row("Veto Count", str(status.get("veto_count", 0)))
+   561→        metrics.add_row("Approval Count", str(status.get("approval_count", 0)))
+   562→
+   563→        # Drawdown info
+   564→        dd = status.get("drawdown", {})
+   565→        metrics.add_row("Current Drawdown", f"{dd.get('current_drawdown', 0):.2%}")
+   566→        metrics.add_row("Drawdown Breached", "[red]YES[/red]" if dd.get("drawdown_breached") else "[green]NO[/green]")
+   567→
+   568→        # Kill switch
+   569→        ks = status.get("kill_switch", {})
+   570→        ks_active = ks.get("is_active", False)
+   571→        ks_color = "red" if ks_active else "green"
+   572→        metrics.add_row("Kill Switch", f"[{ks_color}]{'ACTIVE' if ks_active else 'INACTIVE'}[/{ks_color}]")
+   573→
+   574→        console.print(metrics)
+   575→
+   576→    except ImportError as e:
+   577→        console.print(f"[bold yellow]⚠ Risk engine import error: {e}[/bold yellow]")
+   578→        console.print("[dim]Showing default risk configuration...[/dim]")
+   579→
+   580→        limits = Table(title="Constitutional Risk Limits", box=box.ROUNDED, show_header=False)
+   581→        limits.add_column("Limit", style="cyan")
+   582→        limits.add_column("Value", style="yellow")
+   583→        limits.add_row("Max Risk Per Trade", "0.50%")
+   584→        limits.add_row("Max Daily Loss", "1.00%")
+   585→        limits.add_row("Max Weekly Loss", "3.00%")
+   586→        limits.add_row("Max Drawdown", "10%")
+   587→        limits.add_row("Min Risk:Reward", "1:2.0")
+   588→        console.print(limits)
+   589→
+   590→    except Exception as e:
+   591→        console.print(f"[bold red]✗ Risk check error: {e}[/bold red]")
+   592→
+   593→
+   594→# =============================================================================
+   595→# Serve Command
+   596→# =============================================================================
+   597→
+   598→
+   599→@main.command()
+   600→@click.option("--host", default="0.0.0.0", help="Server host")
+   601→@click.option("--port", default=8000, help="Server port")
+   602→@click.option("--reload", is_flag=True, default=False, help="Enable auto-reload")
+   603→def serve(host: str, port: int, reload: bool):
+   604→    """Start the API server."""
+   605→    console.print(_BANNER)
+   606→    console.print(f"[bold cyan]▶ Starting API server on {host}:{port}...[/bold cyan]")
+   607→    console.print(f"[dim]Docs: http://{host}:{port}/docs[/dim]")
+   608→    console.print(f"[dim]ReDoc: http://{host}:{port}/redoc[/dim]")
+   609→    console.print()
+   610→
+   611→    import uvicorn
+   612→
+   613→    uvicorn.run(
+   614→        "quant_nanggroe.api:app",
+   615→        host=host,
+   616→        port=port,
+   617→        reload=reload,
+   618→    )
+   619→
+   620→
+   621→# =============================================================================
+   622→# Memory Command (bonus)
+   623→# =============================================================================
+   624→
+   625→
+   626→@main.group()
+   627→def memory():
+   628→    """Memory system commands."""
+   629→    pass
+   630→
+   631→
+   632→@memory.command("stats")
+   633→def memory_stats():
+   634→    """Show memory system statistics."""
+   635→    console.print(_BANNER)
+   636→
+   637→    try:
+   638→        from quant_nanggroe.memory.paging import MemoryPagingController
+   639→
+   640→        controller = MemoryPagingController()
+   641→        stats = controller.stats()
+   642→
+   643→        # Core memory
+   644→        core = stats["core"]
+   645→        core_table = Table(title="Core Memory (Working)", box=box.ROUNDED, show_header=False)
+   646→        core_table.add_column("Metric", style="cyan")
+   647→        core_table.add_column("Value", style="white")
+   648→        core_table.add_row("Block Count", f"{core['block_count']}/{core['max_blocks']}")
+   649→        core_table.add_row("Utilization", f"{core['utilization']:.1%}")
+   650→        core_table.add_row("Content Size", f"{core['total_content_chars']:,} chars")
+   651→        core_table.add_row("Eviction Policy", core["eviction_policy"])
+   652→        console.print(core_table)
+   653→
+   654→        # Archival memory
+   655→        archival = stats["archival"]
+   656→        arch_table = Table(title="Archival Memory (Long-term)", box=box.ROUNDED, show_header=False)
+   657→        arch_table.add_column("Metric", style="cyan")
+   658→        arch_table.add_column("Value", style="white")
+   659→        arch_table.add_row("Block Count", str(archival["block_count"]))
+   660→        arch_table.add_row("Content Index Size", str(archival["content_index_size"]))
+   661→        arch_table.add_row("Tag Index Size", str(archival["tag_index_size"]))
+   662→        console.print(arch_table)
+   663→
+   664→        # Page operations
+   665→        ops = stats["page_operations"]
+   666→        ops_table = Table(title="Page Operations", box=box.ROUNDED, show_header=False)
+   667→        ops_table.add_column("Metric", style="cyan")
+   668→        ops_table.add_column("Value", style="white")
+   669→        ops_table.add_row("Page-in Count", str(ops["page_in_count"]))
+   670→        ops_table.add_row("Page-out Count", str(ops["page_out_count"]))
+   671→        ops_table.add_row("Total Blocks Created", str(ops["total_blocks_created"]))
+   672→        console.print(ops_table)
+   673→
+   674→    except Exception as e:
+   675→        console.print(f"[bold red]✗ Memory stats error: {e}[/bold red]")
+   676→
+   677→
+   678→@memory.command("graph-stats")
+   679→def memory_graph_stats():
+   680→    """Show knowledge graph statistics."""
+   681→    console.print(_BANNER)
+   682→
+   683→    try:
+   684→        from quant_nanggroe.memory.knowledge_graph import KnowledgeGraph
+   685→
+   686→        kg = KnowledgeGraph()
+   687→        stats = kg.stats()
+   688→
+   689→        table = Table(title="Knowledge Graph", box=box.ROUNDED, show_header=False)
+   690→        table.add_column("Metric", style="cyan")
+   691→        table.add_column("Value", style="white")
+   692→        table.add_row("Entity Count", str(stats["entity_count"]))
+   693→        table.add_row("Relationship Count", str(stats["relationship_count"]))
+   694→
+   695→        if stats.get("entity_types"):
+   696→            table.add_row("── Entity Types ──", "───")
+   697→            for etype, count in stats["entity_types"].items():
+   698→                table.add_row(f"  {etype}", str(count))
+   699→
+   700→        if stats.get("relationship_types"):
+   701→            table.add_row("── Relationship Types ──", "───")
+   702→            for rtype, count in stats["relationship_types"].items():
+   703→                table.add_row(f"  {rtype}", str(count))
+   704→
+   705→        console.print(table)
+   706→
+   707→    except Exception as e:
+   708→        console.print(f"[bold red]✗ Knowledge graph stats error: {e}[/bold red]")
+   709→
+   710→
+   711→if __name__ == "__main__":
+   712→    main()
+   713→

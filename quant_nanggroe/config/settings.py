@@ -62,7 +62,7 @@ class Settings(BaseSettings):
 
     # Application
     app_name: str = "Quant Nanggroe AI"
-    version: str = "0.1.0"
+    version: str = ""  # Populated from quant_nanggroe._version at init
     debug: bool = False
 
     # Database
@@ -161,4 +161,9 @@ def get_settings() -> Settings:
     Returns:
         Cached Settings instance loaded from environment variables
     """
-    return Settings()
+    s = Settings()
+    # Populate version from single source of truth
+    if not s.version:
+        from quant_nanggroe._version import __version__
+        s.version = __version__
+    return s
