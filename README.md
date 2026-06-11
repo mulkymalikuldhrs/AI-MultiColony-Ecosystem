@@ -359,7 +359,7 @@ A comprehensive API gateway framework:
 <!-- AUTO-PACKAGE-BADGES:START -->
 <!-- Auto-generated package badges -->
 
-![npm version](https://img.shields.io/npm/v/agentic-ai-system?style=flat-square&logo=npm&color=blue) ![npm downloads](https://img.shields.io/npm/dw/agentic-ai-system?style=flat-square&color=brightgreen) ![npm license](https://img.shields.io/npm/l/agentic-ai-system?style=flat-square) [![Deployed](https://img.shields.io/badge/deployed-2.1.0-blue?style=flat-square)](https://www.npmjs.com/package/agentic-ai-system)
+![npm version](https://img.shields.io/npm/v/agentic-ai-system?style=flat-square&logo=npm&color=blue) ![npm downloads](https://img.shields.io/npm/dw/agentic-ai-system?style=flat-square&color=brightgreen) ![npm license](https://img.shields.io/npm/l/agentic-ai-system?style=flat-square) [![Deployed](https://img.shields.io/badge/deployed-0.4.0-blue?style=flat-square)](https://www.npmjs.com/package/agentic-ai-system)
 ![PyPI version](https://img.shields.io/pypi/v/ai-multicolony-ecosystem?style=flat-square&logo=pypi&color=green) ![PyPI downloads](https://img.shields.io/pypi/dm/ai-multicolony-ecosystem?style=flat-square&color=brightgreen) ![PyPI license](https://img.shields.io/pypi/l/ai-multicolony-ecosystem?style=flat-square) [![Deployed](https://img.shields.io/badge/deployed-0.4.0-blue?style=flat-square)](https://pypi.org/project/ai-multicolony-ecosystem)
 
 <!-- AUTO-PACKAGE-BADGES:END -->
