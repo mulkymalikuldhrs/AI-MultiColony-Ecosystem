@@ -24,6 +24,11 @@ from ..schemas import (
 logger = logging.getLogger(__name__)
 
 
+class ServiceUnavailableError(Exception):
+    """Raised when a required service (colony manager) is not injected."""
+    pass
+
+
 class ColonyRoutes:
     """Route handlers for colony operations."""
 
@@ -68,7 +73,17 @@ class ColonyRoutes:
                 scale=scale.value,
             ).model_dump(mode="json")
 
-        return ColonyCreateResponse(colony_id="stub", name=request.name).model_dump(mode="json")
+        logger.error(
+            "colony_create_stub - ColonyManager not injected, returning 503. "
+            "Colony creation is unavailable without a ColonyManager."
+        )
+        result = ColonyCreateResponse(colony_id="stub", name=request.name).model_dump(mode="json")
+        result.update({
+            "error": "Colony service unavailable - ColonyManager not configured",
+            "code": "SERVICE_UNAVAILABLE",
+            "status_code": 503,
+        })
+        return result
 
     async def list_colonies(self, **kwargs: Any) -> Dict[str, Any]:
         """GET /api/v1/colonies – list all colonies."""
@@ -91,7 +106,11 @@ class ColonyRoutes:
                 ).model_dump(mode="json"))
             return ColonyListResponse(colonies=colonies, total=len(colonies)).model_dump(mode="json")
 
-        return ColonyListResponse().model_dump(mode="json")
+        logger.warning("colony_list_stub - ColonyManager not injected, returning empty list with 503 indicator")
+        result = ColonyListResponse().model_dump(mode="json")
+        result["warning"] = "ColonyManager not configured - data may be incomplete"
+        result["status_code"] = 503
+        return result
 
     async def get_colony(self, colony_id: str, **kwargs: Any) -> Dict[str, Any]:
         """GET /api/v1/colonies/{id} – get colony status."""

@@ -22,7 +22,7 @@ from .base import (
     SourceResult,
     SourceStatus,
 )
-from .osint import OSINTSource, OSINT_CATEGORIES
+from .osint import OSINTSource, OSINT_CATEGORIES, SAMPLE_OSINT_DATABASE, OSINT_DATABASE
 from .economic import (
     EconomicSource,
     EconomicIndicator,
@@ -30,12 +30,19 @@ from .economic import (
     InflationData,
     InterestRateData,
     ECONOMIC_PROFILES,
+    SAMPLE_ECONOMIC_PROFILES,
 )
 from .market import (
     MarketSource,
     EquityQuote,
     CryptoQuote,
     ForexQuote,
+    SAMPLE_EQUITY_DATA,
+    SAMPLE_CRYPTO_DATA,
+    SAMPLE_FOREX_DATA,
+    EQUITY_DATA,
+    CRYPTO_DATA,
+    FOREX_DATA,
 )
 from .manager import (
     SourceManager,
@@ -55,6 +62,8 @@ __all__ = [
     # OSINT
     "OSINTSource",
     "OSINT_CATEGORIES",
+    "SAMPLE_OSINT_DATABASE",
+    "OSINT_DATABASE",
     # Economic
     "EconomicSource",
     "EconomicIndicator",
@@ -62,11 +71,18 @@ __all__ = [
     "InflationData",
     "InterestRateData",
     "ECONOMIC_PROFILES",
+    "SAMPLE_ECONOMIC_PROFILES",
     # Market
     "MarketSource",
     "EquityQuote",
     "CryptoQuote",
     "ForexQuote",
+    "SAMPLE_EQUITY_DATA",
+    "SAMPLE_CRYPTO_DATA",
+    "SAMPLE_FOREX_DATA",
+    "EQUITY_DATA",
+    "CRYPTO_DATA",
+    "FOREX_DATA",
     # Manager
     "SourceManager",
     "SweepResult",

@@ -16,34 +16,64 @@ Provider priority order (lower = higher priority):
 35. SEC EDGAR (priority=35) — US public company filings and financials
 """
 
-from quant_nanggroe.data.providers.binance import BinanceProvider
-from quant_nanggroe.data.providers.coin_gecko import CoinGeckoProvider
+# BinanceProvider requires the ``ccxt`` package (optional)
+try:
+    from quant_nanggroe.data.providers.binance import BinanceProvider
+except ImportError:
+    BinanceProvider = None  # type: ignore[assignment,misc]
+
+from quant_nanggroe.data.providers.coingecko import CoinGeckoProvider
 from quant_nanggroe.data.providers.yahoo import YahooFinanceProvider
 from quant_nanggroe.data.providers.twelvedata import TwelveDataProvider
-from quant_nanggroe.data.providers.finnhub import FinnhubProvider
+
+# FinnhubProvider module not yet implemented (optional)
+try:
+    from quant_nanggroe.data.providers.finnhub import FinnhubProvider
+except ImportError:
+    FinnhubProvider = None  # type: ignore[assignment,misc]
+
 from quant_nanggroe.data.providers.alpha_vantage import AlphaVantageProvider
 from quant_nanggroe.data.providers.alpaca import AlpacaProvider
 from quant_nanggroe.data.providers.polygon import PolygonProvider
 from quant_nanggroe.data.providers.fred import FREDProvider
-from quant_nanggroe.data.providers.ecb import ECBProvider
-from quant_nanggroe.data.providers.world_bank import WorldBankProvider
+
+# ECBProvider module not yet implemented (optional)
+try:
+    from quant_nanggroe.data.providers.ecb import ECBProvider
+except ImportError:
+    ECBProvider = None  # type: ignore[assignment,misc]
+
+# WorldBankProvider module not yet implemented (optional)
+try:
+    from quant_nanggroe.data.providers.world_bank import WorldBankProvider
+except ImportError:
+    WorldBankProvider = None  # type: ignore[assignment,misc]
+
 from quant_nanggroe.data.providers.sec_edgar import SECEdgarProvider
 
 # Provider registry: maps name -> provider class
-PROVIDER_REGISTRY: dict[str, type] = {
-    "binance": BinanceProvider,
+# Only include providers whose optional dependencies are satisfied
+PROVIDER_REGISTRY: dict[str, type] = {}
+if BinanceProvider is not None:
+    PROVIDER_REGISTRY["binance"] = BinanceProvider
+PROVIDER_REGISTRY.update({
     "coingecko": CoinGeckoProvider,
     "yahoo": YahooFinanceProvider,
     "twelvedata": TwelveDataProvider,
-    "finnhub": FinnhubProvider,
+})
+if FinnhubProvider is not None:
+    PROVIDER_REGISTRY["finnhub"] = FinnhubProvider
+PROVIDER_REGISTRY.update({
     "alpha_vantage": AlphaVantageProvider,
     "alpaca": AlpacaProvider,
     "polygon": PolygonProvider,
     "fred": FREDProvider,
-    "ecb": ECBProvider,
-    "world_bank": WorldBankProvider,
-    "sec_edgar": SECEdgarProvider,
-}
+})
+if ECBProvider is not None:
+    PROVIDER_REGISTRY["ecb"] = ECBProvider
+if WorldBankProvider is not None:
+    PROVIDER_REGISTRY["world_bank"] = WorldBankProvider
+PROVIDER_REGISTRY["sec_edgar"] = SECEdgarProvider
 
 __all__ = [
     "BinanceProvider",

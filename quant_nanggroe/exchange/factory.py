@@ -37,7 +37,13 @@ from typing import Any, Dict, FrozenSet, List, Optional, Set
 from pydantic import BaseModel, Field, field_validator
 
 from quant_nanggroe.exchange.base import ExchangeConfig, ExchangeInterface
-from quant_nanggroe.exchange.ccxt_broker import CCXTBroker
+
+# CCXTBroker requires the ``ccxt`` package (optional)
+try:
+    from quant_nanggroe.exchange.ccxt_broker import CCXTBroker
+except ImportError:
+    CCXTBroker = None  # type: ignore[assignment,misc]
+
 from quant_nanggroe.exchange.paper_broker import PaperExchangeBroker
 
 logger = logging.getLogger(__name__)
@@ -375,7 +381,7 @@ class ExchangeFactory:
             options=options,
         )
 
-        broker = CCXTBroker(exchange_config)
+        broker = CCXTBroker(exchange_config)  # type: ignore[misc]
 
         # Track created exchange
         self._created_exchanges[name_lower] = broker

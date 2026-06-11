@@ -12,10 +12,22 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Optional
 
+import logging
+
 from ai_multicolony.config.logging_config import get_logger
 from ai_multicolony.exceptions import LLMError, LLMRateLimitError, LLMTokensExceededError
 
 logger = get_logger(__name__)
+
+# Module-level flag: True when mock fallback is active (litellm not installed)
+MOCK_MODE_ACTIVE: bool = True
+
+# Detect if litellm is available at import time
+try:
+    import litellm as _litellm  # noqa: F401
+    MOCK_MODE_ACTIVE = False
+except ImportError:
+    MOCK_MODE_ACTIVE = True
 
 
 @dataclass
@@ -313,8 +325,19 @@ class LLMProvider:
             return await self._mock_completion(kwargs)
 
     async def _mock_completion(self, kwargs: dict[str, Any]) -> Any:
-        """Mock completion for testing without a real LLM."""
+        """Mock completion for testing without a real LLM.
+
+        WARNING: This is a fallback when litellm is not installed.
+        All responses are simulated and carry no real intelligence.
+        """
         from types import SimpleNamespace
+
+        logging.critical(
+            "LLM PROVIDER IN MOCK MODE - All responses are simulated. "
+            "Install litellm for production use. "
+            "Model requested: %s",
+            kwargs.get("model", "unknown"),
+        )
 
         messages = kwargs.get("messages", [])
         last_content = ""
@@ -327,7 +350,7 @@ class LLMProvider:
             choices=[
                 SimpleNamespace(
                     message=SimpleNamespace(
-                        content=f"Mock response to: {last_content[:100]}",
+                        content=f"[MOCK] Mock response to: {last_content[:100]}",
                         tool_calls=None,
                     ),
                     finish_reason="stop",
@@ -376,7 +399,12 @@ class LLMProvider:
                 if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
         except ImportError:
-            yield "Mock streaming response"
+            logging.critical(
+                "LLM PROVIDER IN MOCK MODE (streaming) - All responses are simulated. "
+                "Install litellm for production use. Model requested: %s",
+                use_model,
+            )
+            yield "[MOCK] Mock streaming response"
 
     def get_stats(self) -> dict[str, Any]:
         """Get provider statistics.

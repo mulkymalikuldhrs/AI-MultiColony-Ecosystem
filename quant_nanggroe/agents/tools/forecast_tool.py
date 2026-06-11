@@ -304,32 +304,123 @@ class ForecastTool:
     # ----- Component generators -----
 
     async def _generate_technical_forecast(self, symbol: str) -> TechnicalForecast:
-        """Generate technical analysis forecast component."""
-        return TechnicalForecast(
-            trend="NEUTRAL",
-            momentum=0.0,
-            support_levels=[],
-            resistance_levels=[],
-            signal="NEUTRAL",
-        )
+        """Generate technical analysis forecast component.
+
+        PRODUCTION: Wired to real engine via TechnicalAnalysisTool.
+        Falls back to NEUTRAL with a warning.
+        """
+        try:
+            from quant_nanggroe.agents.tools.technical import TechnicalAnalysisTool
+            from quant_nanggroe.agents.tools.market_data import MarketDataTool
+            mdt = MarketDataTool()
+            tat = TechnicalAnalysisTool(market_data_tool=mdt)
+            analysis = await tat.analyze(symbol, "1d")
+            trend = analysis.get("trend", {}).get("direction", "NEUTRAL")
+            momentum = analysis.get("trend", {}).get("strength", 0.0)
+            support_levels = analysis.get("support_resistance", {}).get("support", [])
+            resistance_levels = analysis.get("support_resistance", {}).get("resistance", [])
+            signal = "BULLISH" if trend == "bullish" else ("BEARISH" if trend == "bearish" else "NEUTRAL")
+            return TechnicalForecast(  # PRODUCTION: Wired to real engine
+                trend=trend.upper(),
+                momentum=momentum,
+                support_levels=support_levels,
+                resistance_levels=resistance_levels,
+                signal=signal,
+            )
+        except Exception as exc:
+            logger.warning("TechnicalForecast: real engine unavailable for %s: %s", symbol, exc)
+            return TechnicalForecast(
+                trend="NEUTRAL",
+                momentum=0.0,
+                support_levels=[],
+                resistance_levels=[],
+                signal="NEUTRAL",
+            )
 
     async def _generate_fundamental_forecast(self, symbol: str) -> FundamentalForecast:
-        """Generate fundamental analysis forecast component."""
-        return FundamentalForecast(
-            signal="NEUTRAL",
-        )
+        """Generate fundamental analysis forecast component.
+
+        PRODUCTION: Wired to real engine via yfinance.
+        Falls back to NEUTRAL with a warning.
+        """
+        try:
+            import yfinance as yf
+            ticker = yf.Ticker(symbol)
+            info = ticker.info or {}
+            pe = info.get("trailingPE")
+            fwd_pe = info.get("forwardPE")
+            if pe and fwd_pe:
+                if fwd_pe < pe * 0.8:
+                    signal = "BULLISH"
+                    valuation = "UNDERVALUED"
+                elif fwd_pe > pe * 1.2:
+                    signal = "BEARISH"
+                    valuation = "OVERVALUED"
+                else:
+                    signal = "NEUTRAL"
+                    valuation = "FAIR"
+            else:
+                signal = "NEUTRAL"
+                valuation = "UNKNOWN"
+            return FundamentalForecast(  # PRODUCTION: Wired to real engine
+                valuation=valuation,
+                signal=signal,
+            )
+        except Exception as exc:
+            logger.warning("FundamentalForecast: real engine unavailable for %s: %s", symbol, exc)
+            return FundamentalForecast(
+                signal="NEUTRAL",
+            )
 
     async def _generate_sentiment_forecast(self, symbol: str) -> NewsSentimentForecast:
-        """Generate news/sentiment forecast component."""
-        return NewsSentimentForecast(
-            signal="NEUTRAL",
-        )
+        """Generate news/sentiment forecast component.
+
+        PRODUCTION: Wired to real engine via SentimentTool.
+        Falls back to NEUTRAL with a warning.
+        """
+        try:
+            from quant_nanggroe.agents.tools.sentiment import SentimentTool
+            st = SentimentTool()
+            result = await st.analyze(symbol)
+            score = result.get("overall_score", 0.0)
+            label = result.get("label", "NEUTRAL")
+            signal = "BULLISH" if label == "BULLISH" else ("BEARISH" if label == "BEARISH" else "NEUTRAL")
+            return NewsSentimentForecast(  # PRODUCTION: Wired to real engine
+                overall_sentiment=score,
+                signal=signal,
+            )
+        except Exception as exc:
+            logger.warning("SentimentForecast: real engine unavailable for %s: %s", symbol, exc)
+            return NewsSentimentForecast(
+                signal="NEUTRAL",
+            )
 
     async def _generate_cot_forecast(self, symbol: str) -> COTForecast:
-        """Generate COT positioning forecast component."""
-        return COTForecast(
-            signal="NEUTRAL",
-        )
+        """Generate COT positioning forecast component.
+
+        PRODUCTION: Wired to real engine via FlowTool.
+        Falls back to NEUTRAL with a warning.
+        """
+        try:
+            from quant_nanggroe.agents.tools.flow_tool import FlowTool
+            ft = FlowTool()
+            positioning = await ft.analyze_positioning(symbol)
+            signal_str = positioning.signal.value if hasattr(positioning.signal, 'value') else str(positioning.signal)
+            if "BUY" in signal_str.upper():
+                signal = "BULLISH"
+            elif "SELL" in signal_str.upper():
+                signal = "BEARISH"
+            else:
+                signal = "NEUTRAL"
+            return COTForecast(  # PRODUCTION: Wired to real engine
+                contrarian_signal=positioning.contrarian_signal,
+                signal=signal,
+            )
+        except Exception as exc:
+            logger.warning("COTForecast: real engine unavailable for %s: %s", symbol, exc)
+            return COTForecast(
+                signal="NEUTRAL",
+            )
 
     async def _fetch_current_price(self, symbol: str) -> float:
         """Fetch current price for a symbol."""

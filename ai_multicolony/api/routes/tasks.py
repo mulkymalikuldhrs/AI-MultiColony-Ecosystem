@@ -82,7 +82,8 @@ class TaskRoutes:
                 "scheduler_stats": stats,
             })
 
-        return {"tasks": tasks, "total": len(tasks)}
+        logger.warning("task_list_stub - TaskScheduler not injected, returning empty task list with 503 indicator")
+        return {"tasks": tasks, "total": len(tasks), "warning": "TaskScheduler not configured - data may be incomplete", "status_code": 503}
 
     async def get_task(self, task_id: str, **kwargs: Any) -> Dict[str, Any]:
         """GET /api/v1/tasks/{id} – get task status."""
