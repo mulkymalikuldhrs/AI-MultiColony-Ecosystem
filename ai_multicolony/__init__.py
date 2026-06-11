@@ -6,20 +6,25 @@ inter-colony communication.
 
 Packages
 --------
-agents      – Agent types, registry, and lifecycle
-colony      – Colony management, hands, scheduling, A2A
-security    – Security analysis, audit trail, permissions
-api         – FastAPI application, routes, schemas, WebSocket
-channels    – Telegram, WhatsApp, Discord, Slack integrations
-types       – All Pydantic v2 models and enums
-config      – Settings and configuration
-tools       – Built-in tool implementations
-memory      – Multi-tier memory management
-mcp         – Model Context Protocol server and client
-browser     – Browser automation with stealth patterns
+agents        – Agent types, registry, and lifecycle
+colony        – Colony management, hands, scheduling, A2A
+security      – Security analysis, audit trail, permissions
+api           – FastAPI application, routes, schemas, WebSocket
+channels      – Telegram, WhatsApp, Discord, Slack integrations
+types         – All Pydantic v2 models and enums
+config        – Settings and configuration
+tools         – Built-in tool implementations
+memory        – Multi-tier memory management
+mcp           – Model Context Protocol server and client
+browser       – Browser automation with stealth patterns
+sources       – Intelligence sources (OSINT, economic, market)
+harness       – Agent orchestration (graph, skills, sandbox, memory)
+organism      – Self-evolution (sense, decision, factory, immune, growth)
+finance       – Financial intelligence (risk guard, kill switch, regime)
+integrations  – External framework adapters (CrewAI, AutoGen, LangGraph)
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from .types import (
     # Enums
@@ -407,3 +412,90 @@ __all__ = [
     "SecurityError",
     "PermissionDeniedError",
 ]
+
+# ── New subpackages (v0.2.0) ────────────────────────────────────────────────
+
+from .sources import (
+    SourceProvider,
+    SourceCategory,
+    SourceConfig,
+    SourceItem,
+    SourceReliability,
+    SourceResult,
+    SourceStatus,
+    OSINTSource,
+    EconomicSource,
+    MarketSource,
+    SourceManager,
+)
+
+from .harness import (
+    HarnessGraph,
+    SkillRegistry,
+    SkillDefinition,
+    SandboxManager,
+    SandboxConfig,
+    HarnessMemory,
+)
+
+from .organism import (
+    SenseEngine,
+    DecisionEngine,
+    SolutionFactory,
+    ImmuneSystem,
+    GrowthEngine,
+    LifecycleOrchestrator,
+)
+
+from .finance import (
+    ConstitutionalRiskGuard,
+    KillSwitch,
+    MarketRegimeDetector,
+    PressureEngine,
+    AutoSwitcher,
+)
+
+from .integrations import (
+    CrewAIAdapter,
+    AutoGenAdapter,
+    LangGraphAdapter,
+)
+
+__all__.extend([
+    # Sources
+    "SourceProvider",
+    "SourceCategory",
+    "SourceConfig",
+    "SourceItem",
+    "SourceReliability",
+    "SourceResult",
+    "SourceStatus",
+    "OSINTSource",
+    "EconomicSource",
+    "MarketSource",
+    "SourceManager",
+    # Harness
+    "HarnessGraph",
+    "SkillRegistry",
+    "SkillDefinition",
+    "SandboxManager",
+    "SandboxConfig",
+    "HarnessMemory",
+    # Organism
+    "SenseEngine",
+    "DecisionEngine",
+    "SolutionFactory",
+    "ImmuneSystem",
+    "GrowthEngine",
+    "LifecycleOrchestrator",
+    # Finance
+    "ConstitutionalRiskGuard",
+    "KillSwitch",
+    "MarketRegimeDetector",
+    "PressureEngine",
+    "AutoSwitcher",
+    # Integrations
+    "CrewAIAdapter",
+    "AutoGenAdapter",
+    "LangGraphAdapter",
+])
