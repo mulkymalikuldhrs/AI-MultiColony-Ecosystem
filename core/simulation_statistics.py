@@ -9,7 +9,7 @@ for future dashboard and reporting features.
 import csv
 import json
 from dataclasses import dataclass, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -38,7 +38,7 @@ class SimulationSnapshot:
 
     def __post_init__(self):
         if not self.timestamp:
-            self.timestamp = datetime.utcnow().isoformat()
+            self.timestamp = datetime.now(timezone.utc).isoformat()
 
 
 class SimulationStatisticsCollector:
