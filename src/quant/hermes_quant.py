@@ -23,7 +23,6 @@ Based on: Hermes Agent (Nous Research) + AGENTS.md Constitutional Framework
 
 import os
 import re
-import sys
 import json
 import signal
 import logging
@@ -35,30 +34,29 @@ from typing import Optional, Dict, List
 from dotenv import load_dotenv
 
 # Import Trading Tools
-sys.path.insert(0, str(Path(__file__).parent))
 try:
-    from tools.shared_state import get_shared_state
-    from tools.market_data_tool import MarketDataTool
-    from tools.technical_analysis_tool import TechnicalAnalysisTool
-    from tools.risk_officer_tool import RiskOfficerTool
-    from tools.execution_tool import ExecutionTool
-    from tools.kill_switch_tool import KillSwitchTool
-    from tools.journal_tool import JournalTool
-    from tools.strategy_tool import StrategyTool
-    from tools.macro_sentiment_tool import MacroSentimentTool
-    from tools.portfolio_tool import PortfolioTool
-    from tools.auditor_research_tool import AuditorResearchTool
-    from tools.chart_vision_tool import ChartVisionTool
-    from tools.pressure_engine import PressureNormalizationEngine
-    from tools.decision_engine import DecisionSynthesisEngine
-    from tools.market_state_engine import MarketStateEngine
-    from tools.news_sentinel import NewsSentinelTool
-    from tools.strategy_lifecycle import StrategyLifecycleManager
-    from tools.math_engine import MathEngine
-    from tools.backtest_engine import BacktestEngine
-    from tools.autoswitch_engine import AutoSwitchEngine
-    from tools.smc_agent_enhanced import SMCAgentEnhanced
-    from tools.audit_logger import AuditLogger
+    from .shared_state import get_shared_state
+    from .market_data_tool import MarketDataTool
+    from .technical_analysis_tool import TechnicalAnalysisTool
+    from .risk_officer import RiskOfficerTool
+    from .execution_tool import ExecutionTool
+    from .kill_switch import KillSwitchTool
+    from .journal_tool import JournalTool
+    from .strategy_tool import StrategyTool
+    from .macro_sentiment import MacroSentimentTool
+    from .portfolio_tool import PortfolioTool
+    from .auditor_research_tool import AuditorResearchTool
+    from .chart_vision_tool import ChartVisionTool
+    from .pressure_engine import PressureNormalizationEngine
+    from .decision_engine import DecisionSynthesisEngine
+    from .market_state import MarketStateEngine
+    from .news_sentinel import NewsSentinelTool
+    from .strategy_lifecycle import StrategyLifecycleManager
+    from .math_engine import MathEngine
+    from .backtest_engine import BacktestEngine
+    from .autoswitch import AutoSwitchEngine
+    from .smc_agent import SMCAgentEnhanced
+    from .audit_logger import AuditLogger
     TOOLS_AVAILABLE = True
 except ImportError as e:
     TOOLS_AVAILABLE = False

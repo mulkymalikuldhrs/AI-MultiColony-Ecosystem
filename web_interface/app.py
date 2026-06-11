@@ -31,6 +31,29 @@ if not _secret_key:
     print("  For production, set SECRET_KEY env var to a persistent value.")
 app.config['SECRET_KEY'] = _secret_key
 
+
+# ============================================================
+# Security Headers
+# ============================================================
+
+@app.after_request
+def set_security_headers(response):
+    """Apply security headers to every HTTP response.
+
+    These headers protect against common web vulnerabilities:
+    - X-Content-Type-Options: Prevents MIME-type sniffing
+    - X-Frame-Options: Prevents clickjacking via iframe embedding
+    - X-XSS-Protection: Enables browser XSS filter
+    - Content-Security-Policy: Restricts resource loading to same origin
+    - Strict-Transport-Security: Enforces HTTPS for 1 year
+    """
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Content-Security-Policy'] = "default-src 'self'"
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000'
+    return response
+
 # SocketIO with proper CORS settings - use gevent for better WebSocket support
 try:
     import gevent

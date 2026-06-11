@@ -89,6 +89,7 @@ credentials.local.json
 *.crt
 *.p12
 *.jks
+*.secret
 
 # =============================================================================
 # RUNTIME ARTIFACTS
