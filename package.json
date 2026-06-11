@@ -1,49 +1,51 @@
 {
-  "name": "agentic-ai-system",
-  "version": "2.1.0",
-  "description": "Autonomous Multi-Agent Intelligence System with Voice Interaction and PWA Support",
-  "main": "main.py",
-  "author": "Mulky Malikul Dhaher <mulkymalikuldhr@mail.com>",
+  "name": "ai-multicolony-ecosystem",
+  "version": "3.0.0",
+  "description": "Unified multi-colony AI ecosystem — OSINT intelligence, agent orchestration, autonomous organisms, quantitative trading, and legacy AI systems in one monorepo",
+  "private": true,
   "license": "MIT",
+  "author": "Mulky Malikul Dhaher <mulkymalikuldhr@mail.com>",
   "homepage": "https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem",
   "repository": {
     "type": "git",
     "url": "https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git"
   },
-  "keywords": [
-    "ai",
-    "agents",
-    "autonomous",
-    "voice-interaction",
-    "pwa",
-    "multi-agent",
-    "indonesia",
-    "artificial-intelligence"
+  "workspaces": [
+    "dashboard",
+    "packages/crucix",
+    "packages/deer-flow/frontend",
+    "packages/autonomous-organism"
   ],
   "scripts": {
-    "start": "python main.py",
-    "dev": "python main.py",
-    "web": "python web_interface/app.py",
-    "build": "python build_static.py",
-    "test": "python -m pytest tests/",
-    "setup": "pip install -r requirements.txt",
-    "deploy": "python deploy.py"
+    "dev": "make dev",
+    "dev:web": "make dev-web",
+    "dev:api": "make dev-api",
+    "dev:crucix": "make dev-crucix",
+    "build": "make build",
+    "test": "make test",
+    "test:python": "make test-python",
+    "test:js": "make test-js",
+    "lint": "make lint",
+    "clean": "make clean",
+    "setup": "bash scripts/setup.sh",
+    "docker:up": "make docker-up",
+    "docker:down": "make docker-down"
   },
-  "dependencies": {},
-  "devDependencies": {},
   "engines": {
-    "node": ">=18.0.0",
-    "python": ">=3.8.0"
+    "node": ">=22.0.0",
+    "python": ">=3.11.0"
   },
-  "pwa": {
-    "name": "Agentic AI System",
-    "short_name": "AgenticAI",
-    "description": "Autonomous Multi-Agent Intelligence System",
-    "theme_color": "#2563eb",
-    "background_color": "#ffffff",
-    "display": "standalone",
-    "orientation": "any",
-    "scope": "/",
-    "start_url": "/"
-  }
+  "keywords": [
+    "ai",
+    "multi-agent",
+    "colony",
+    "osint",
+    "trading",
+    "autonomous",
+    "ecosystem",
+    "monorepo",
+    "langgraph",
+    "fastapi",
+    "nextjs"
+  ]
 }

@@ -1,10 +1,47 @@
+# =============================================================================
+# AI MultiColony Ecosystem — Docker Compose Orchestration
+# Version 3.0.0
+# =============================================================================
+# Starts ALL services: API, Web Dashboard, Crucix OSINT, Hermes Trading Bot,
+# PostgreSQL, Redis, and Nginx reverse proxy.
+#
+# Usage:
+#   docker compose up -d          # Start all services
+#   docker compose up api web     # Start only API + Dashboard
+#   docker compose logs -f api    # Follow API logs
+#   docker compose down           # Stop all services
+# =============================================================================
+
 version: "3.9"
 
 services:
-  # === Infrastructure ===
+  # ===========================================================================
+  # Infrastructure
+  # ===========================================================================
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: multicolony-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-multicolony}
+      POSTGRES_USER: ${POSTGRES_USER:-multicolony}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-multicolony_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-multicolony}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - multicolony-net
 
   redis:
     image: redis:7-alpine
+    container_name: multicolony-redis
     ports:
       - "6379:6379"
     volumes:
@@ -15,87 +52,157 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - multicolony-net
 
-  qdrant:
-    image: qdrant/qdrant:latest
-    ports:
-      - "6333:6333"
-      - "6334:6334"
-    volumes:
-      - qdrant_data:/qdrant/storage
-    environment:
-      QDRANT__SERVICE__GRPC_PORT: 6334
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
-  # === Application ===
+  # ===========================================================================
+  # Application Services
+  # ===========================================================================
 
   api:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: multicolony-api
     ports:
       - "8000:8000"
     environment:
-      - APP_ENV=production
-      - DATABASE_URL=sqlite:///./data/ecosystem.db
+      - APP_ENV=${APP_ENV:-production}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-multicolony}:${POSTGRES_PASSWORD:-multicolony_dev}@postgres:5432/${POSTGRES_DB:-multicolony}
       - REDIS_URL=redis://redis:6379/0
-      - QDRANT_URL=http://qdrant:6333
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - CREDENTIAL_MASTER_PASSWORD=${CREDENTIAL_MASTER_PASSWORD:-change-me-in-production}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY:-}
     volumes:
       - ./data:/app/data
     depends_on:
-      redis:
+      postgres:
         condition: service_healthy
-      qdrant:
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 30s
     restart: unless-stopped
+    networks:
+      - multicolony-net
 
-  worker:
+  web:
     build:
-      context: .
+      context: ./dashboard
       dockerfile: Dockerfile
-    command: celery -A ai_multicolony.worker worker --loglevel=info --concurrency=4
-    environment:
-      - APP_ENV=production
-      - DATABASE_URL=sqlite:///./data/ecosystem.db
-      - REDIS_URL=redis://redis:6379/0
-      - QDRANT_URL=http://qdrant:6333
-    volumes:
-      - ./data:/app/data
-    depends_on:
-      redis:
-        condition: service_healthy
-      qdrant:
-        condition: service_healthy
-    restart: unless-stopped
-
-  mcp:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: python -m ai_multicolony.mcp.server
+    container_name: multicolony-web
     ports:
-      - "5000:5000"
+      - "3000:3000"
     environment:
-      - APP_ENV=production
-      - MCP_SERVER_HOST=0.0.0.0
-      - MCP_SERVER_PORT=5000
-      - REDIS_URL=redis://redis:6379/0
-      - QDRANT_URL=http://qdrant:6333
+      - NEXT_PUBLIC_API_URL=http://api:8000
+      - NEXT_PUBLIC_CRUCIX_URL=http://crucix:3117
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - multicolony-net
+
+  crucix:
+    build:
+      context: ./packages/crucix
+      dockerfile: Dockerfile
+    container_name: multicolony-crucix
+    ports:
+      - "3117:3117"
+    environment:
+      - CRUCIX_PORT=3117
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
+      - GROK_API_KEY=${GROK_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - MINIMAX_API_KEY=${MINIMAX_API_KEY:-}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    restart: unless-stopped
+    networks:
+      - multicolony-net
+
+  hermes-quant:
+    build:
+      context: ./packages/hermes-quant
+      dockerfile: Dockerfile
+    container_name: multicolony-hermes-quant
+    environment:
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-https://integrate.api.nvidia.com/v1}
+      - MODEL_NAME=${MODEL_NAME:-meta/llama-3.1-nemotron-70b-instruct}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - LOG_DIR=/app/logs
+      - DATA_DIR=/app/data
+    volumes:
+      - hermes_data:/app/data
+      - hermes_logs:/app/logs
     depends_on:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - multicolony-net
+
+  # ===========================================================================
+  # Reverse Proxy
+  # ===========================================================================
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: multicolony-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+      - web
+      - crucix
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - multicolony-net
+
+# =============================================================================
+# Volumes
+# =============================================================================
 
 volumes:
+  postgres_data:
+    driver: local
   redis_data:
-  qdrant_data:
+    driver: local
+  hermes_data:
+    driver: local
+  hermes_logs:
+    driver: local
+
+# =============================================================================
+# Networks
+# =============================================================================
+
+networks:
+  multicolony-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

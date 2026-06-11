@@ -1,805 +1,836 @@
-# AI-MultiColony-Ecosystem — System Architecture
+# AI MultiColony Ecosystem — Architecture Document
 
-> Autonomous Agent Operating System
-> Version 2.0.0 | Author: Mulky Malikul Dhaher | Indonesia
+> Unified Multi-Colony AI Platform v3.0.0
+> Author: Mulky Malikul Dhaher | Indonesia
 
 ---
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [High-Level Architecture](#high-level-architecture)
-3. [LangGraph-Style Colony Orchestration](#langgraph-style-colony-orchestration)
-4. [Multi-Agent Coordination Protocol](#multi-agent-coordination-protocol)
-5. [Tool and Skill Registry System](#tool-and-skill-registry-system)
-6. [Memory Architecture](#memory-architecture)
-7. [Web Interface and API Layer](#web-interface-and-api-layer)
-8. [Deployment Architecture](#deployment-architecture)
-9. [Data Flow](#data-flow)
-10. [Configuration System](#configuration-system)
-11. [Security Architecture](#security-architecture)
-12. [Monitoring and Observability](#monitoring-and-observability)
+1. [Monorepo Structure](#1-monorepo-structure)
+2. [Package Communication](#2-package-communication)
+3. [Data Flow Between Services](#3-data-flow-between-services)
+4. [Database Schema Overview](#4-database-schema-overview)
+5. [API Gateway Design](#5-api-gateway-design)
+6. [Technology Stack](#6-technology-stack)
 
 ---
 
-## Overview
+## 1. Monorepo Structure
 
-The AI-MultiColony-Ecosystem is an **Autonomous Agent Operating System** built around a colony metaphor where specialized AI agents collaborate to accomplish complex tasks. The system integrates 21 repositories and 25+ benchmark frameworks into a unified platform for multi-agent intelligence.
+The AI MultiColony Ecosystem is organized as a monorepo with npm workspaces, bringing together 5 previously independent repositories under a single codebase. This enables shared dependencies, unified builds, and cross-package coordination.
 
-### Core Principles
+### Directory Layout
 
-| Principle | Description |
-|-----------|-------------|
-| **Colony Model** | Agents function as specialized workers in a colony, each with distinct roles |
-| **LangGraph Orchestration** | Graph-based workflow execution inspired by LangGraph patterns |
-| **Multi-Layer Memory** | Working, episodic, and semantic memory for persistent intelligence |
-| **Skill Composition** | Complex capabilities built by composing simple tools and skills |
-| **Self-Improvement** | Meta-agents that create and optimize other agents |
-
-### System Stats
-
-| Metric | Value |
-|--------|-------|
-| Specialized Agents | 36+ |
-| Integrated Repos | 21 |
-| Benchmark Frameworks | 25+ |
-| LLM Providers | 4 (LLM7, OpenRouter, Camel, OpenAI) |
-| Deployment Platforms | 7 (Netlify, Vercel, Railway, Heroku, AWS, GCP, Docker) |
-| Memory Layers | 3 (Working, Episodic, Semantic) |
-
----
-
-## High-Level Architecture
-
-```mermaid
-graph TB
-    subgraph "User Layer"
-        WEB[Web Interface<br/>Flask + PWA]
-        CLI[CLI Interface]
-        API[REST API]
-        VOICE[Voice Interface<br/>Web Speech API]
-    end
-
-    subgraph "Orchestration Layer"
-        PM[Prompt Master<br/>Central Coordinator]
-        AM[Agent Manager<br/>Registration & Routing]
-        LG[LangGraph Adapter<br/>Graph Workflows]
-        CA[CrewAI Adapter<br/>Crew Missions]
-        AG[AutoGen Adapter<br/>Conversations]
-        SCH[Agent Scheduler<br/>Cron & Events]
-    end
-
-    subgraph "Agent Colony"
-        AB[Agent Base<br/>Task Coordinator]
-        A2[Agent 02<br/>Meta-Spawner]
-        A3[Agent 03<br/>Planner]
-        A4[Agent 04<br/>Executor]
-        A5[Agent 05<br/>Designer]
-        A6[Agent 06<br/>Specialist]
-        OH[Output Handler]
-        CS[CyberShell<br/>Shell Execution]
-        DM[Deploy Manager]
-        MAC[Meta Agent Creator]
-        CAG[Commander AGI<br/>Security]
-        AI[AI Research Agent]
-        MK[Marketing Agent]
-        FS[Fullstack Dev]
-        BH[Bug Hunter Bot]
-    end
-
-    subgraph "Core Services"
-        MB[Memory Bus<br/>SQLite + Redis]
-        MM[Memory Manager<br/>Knowledge Base]
-        AIS[AI Selector<br/>Agent Selection]
-        LLM[LLM Client<br/>Multi-Provider]
-        SE[Sync Engine<br/>WebSocket]
-        CM[Credential Manager]
-    end
-
-    subgraph "Data Layer"
-        DB[(SQLite<br/>agent_memory.db)]
-        RDB[(Redis Cache)]
-        KB[(Knowledge Base)]
-        FS2[(File Storage)]
-    end
-
-    WEB --> PM
-    CLI --> PM
-    API --> PM
-    VOICE --> PM
-
-    PM --> AM
-    PM --> LG
-    PM --> CA
-    PM --> AG
-    PM --> SCH
-
-    AM --> AB
-    AM --> A2
-    AM --> A3
-    AM --> A4
-    AM --> A5
-    AM --> A6
-    AM --> OH
-
-    AB --> CS
-    AB --> DM
-    AB --> MAC
-    AB --> CAG
-    AB --> AI
-    AB --> MK
-    AB --> FS
-    AB --> BH
-
-    AB --> MB
-    AB --> MM
-    AB --> AIS
-    AB --> LLM
-    AB --> SE
-
-    MB --> DB
-    MB --> RDB
-    MM --> KB
-    CS --> FS2
+```
+AI-MultiColony-Ecosystem/                  # Root monorepo
+│
+├── package.json                            # npm workspaces orchestrator (v3.0.0)
+├── docker-compose.yml                      # 7-service Docker orchestration
+├── Makefile                                # Unified build/dev/test commands
+├── .env.example                            # Consolidated environment variables
+├── pyproject.toml                          # Python package configuration
+├── requirements.txt                        # Python production dependencies
+│
+├── ai_multicolony/                         # Core Python package (FastAPI backend)
+│   ├── agents/                             # 9 specialized agent types
+│   │   ├── coder/                          # Code generation & review
+│   │   ├── manus/                          # General-purpose assistant
+│   │   ├── planner/                        # Task decomposition
+│   │   ├── executor/                       # Action execution
+│   │   ├── browser/                        # Web automation
+│   │   ├── voice/                          # Speech I/O
+│   │   ├── security/                       # Security analysis
+│   │   ├── researcher/                     # Information gathering
+│   │   └── colony/                         # Colony-level orchestration
+│   ├── api/                                # FastAPI routes + WebSocket
+│   ├── browser/                            # Stealth browser (Playwright)
+│   ├── channels/                           # 5 channel integrations
+│   │   ├── telegram.py                     # Telegram Bot API
+│   │   ├── discord.py                      # Discord.js bridge
+│   │   ├── slack.py                        # Slack Bolt
+│   │   ├── whatsapp.py                     # WhatsApp Web
+│   │   └── base.py                         # Channel abstraction
+│   ├── colony/                             # Colony coordination
+│   │   ├── coordinator.py                  # Task routing
+│   │   ├── scheduler.py                    # Cron + event scheduling
+│   │   ├── manager.py                      # Colony lifecycle
+│   │   └── hands.py                        # Agent handoff protocol
+│   ├── core/                               # Core framework
+│   │   ├── base_agent.py                   # Agent base class
+│   │   ├── agent_loop.py                   # Agent execution loop
+│   │   ├── event_bus.py                    # Pub/sub event system
+│   │   ├── tool_registry.py                # Tool discovery & execution
+│   │   ├── llm_provider.py                 # Multi-LLM gateway
+│   │   ├── memory_manager.py               # Memory orchestration
+│   │   ├── tool_base.py                    # Tool abstract class
+│   │   └── channel.py                      # Channel base class
+│   ├── mcp/                                # Model Context Protocol
+│   ├── memory/                             # Multi-layer memory
+│   │   ├── vector.py                       # Vector store (Chroma/Qdrant)
+│   │   ├── session.py                      # Session memory
+│   │   ├── paging.py                       # Context window management
+│   │   ├── condenser.py                    # Memory summarization
+│   │   └── knowledge.py                    # Knowledge base
+│   ├── sandbox/                            # Code execution
+│   ├── security/                           # Security analysis
+│   ├── tools/                              # 10 tool implementations
+│   └── types/                              # Pydantic type definitions
+│
+├── dashboard/                              # Unified Next.js 16 Dashboard
+│   ├── src/
+│   │   ├── app/                            # App Router pages
+│   │   │   ├── page.tsx                    # Home / overview
+│   │   │   ├── agents/page.tsx             # Agent management
+│   │   │   ├── colony/page.tsx             # Colony status
+│   │   │   ├── memory/page.tsx             # Memory inspector
+│   │   │   ├── channels/page.tsx           # Channel status
+│   │   │   ├── tools/page.tsx              # Tool registry
+│   │   │   ├── security/page.tsx           # Security dashboard
+│   │   │   └── settings/page.tsx           # Configuration
+│   │   ├── components/                     # Shared UI components
+│   │   └── lib/                            # API client + utilities
+│   └── package.json                        # Next.js 16 + Zustand
+│
+├── packages/
+│   ├── crucix/                             # OSINT Intelligence Platform
+│   │   ├── server.mjs                      # Express 5 server
+│   │   ├── apis/sources/                   # 29 OSINT source modules
+│   │   ├── apis/briefing.mjs               # LLM-powered briefing engine
+│   │   ├── lib/llm/                        # 9 LLM provider adapters
+│   │   ├── lib/alerts/                     # Telegram + Discord alerts
+│   │   ├── lib/delta/                      # Change detection engine
+│   │   ├── dashboard/                      # Static intelligence dashboard
+│   │   ├── Dockerfile                      # Container build
+│   │   └── package.json                    # Express 5 + Node 22
+│   │
+│   ├── deer-flow/                          # AI Agent Platform
+│   │   ├── frontend/                       # Next.js 16 + React 19
+│   │   │   ├── src/app/                    # App Router pages
+│   │   │   ├── src/components/             # Agent UI, chat, workflow editor
+│   │   │   └── package.json                # pnpm workspace
+│   │   └── backend/                        # Python FastAPI
+│   │       ├── app/gateway/                # API gateway + auth
+│   │       ├── app/channels/               # 8 channel integrations
+│   │       ├── packages/harness/           # LangGraph + agent harness
+│   │       ├── Dockerfile                  # Multi-stage build
+│   │       └── langgraph.json              # LangGraph configuration
+│   │
+│   ├── autonomous-organism/                # Autonomous Organism Engine
+│   │   ├── src/                            # React 18 + Vite
+│   │   │   ├── components/                 # Organism UI components
+│   │   │   ├── hooks/                      # Real-time organism hooks
+│   │   │   ├── pages/                      # Login, Index, NotFound
+│   │   │   └── integrations/               # Supabase client
+│   │   ├── supabase/                       # Edge functions + migrations
+│   │   │   ├── functions/                  # ingest-sense, run-decision,
+│   │   │   │                               # run-factory, run-growth, bootstrap
+│   │   │   └── migrations/                 # Database migrations
+│   │   ├── sense/                          # Sensory input processing
+│   │   ├── decision/                       # Decision engine
+│   │   ├── factory/                        # Organism factory
+│   │   ├── memory/                         # Memory subsystem
+│   │   ├── scheduler/                      # Task scheduling
+│   │   ├── immune/                         # Immune system
+│   │   └── package.json                    # React 18 + Vite
+│   │
+│   ├── hermes-quant/                       # Quantitative Trading Bot
+│   │   ├── src/
+│   │   │   ├── hermes_quant.py             # Main entry point
+│   │   │   ├── watchdog.py                 # Process watchdog
+│   │   │   └── tools/                      # 21 agent tools
+│   │   │       ├── technical_analysis_tool.py
+│   │   │       ├── risk_officer_tool.py
+│   │   │       ├── kill_switch_tool.py
+│   │   │       ├── portfolio_tool.py
+│   │   │       ├── market_data_tool.py
+│   │   │       ├── chart_vision_tool.py
+│   │   │       ├── news_sentinel.py
+│   │   │       ├── backtest_engine.py
+│   │   │       ├── smc_agent_enhanced.py
+│   │   │       ├── strategy_lifecycle.py
+│   │   │       ├── decision_engine.py
+│   │   │       ├── execution_tool.py
+│   │   │       ├── autoswitch_engine.py
+│   │   │       ├── pressure_engine.py
+│   │   │       ├── market_state_engine.py
+│   │   │       ├── math_engine.py
+│   │   │       ├── macro_sentiment_tool.py
+│   │   │       ├── auditor_research_tool.py
+│   │   │       ├── audit_logger.py
+│   │   │       ├── strategy_tool.py
+│   │   │       └── journal_tool.py
+│   │   ├── config/                         # System prompt + YAML config
+│   │   ├── schemas/                        # Trading journal SQL
+│   │   └── requirements.txt                # Python dependencies
+│   │
+│   └── agentic-legacy/                     # Legacy AI System (reference only)
+│       ├── src/                            # Original agent framework
+│       ├── web_interface/                  # Flask templates
+│       └── requirements.txt                # Python dependencies
+│
+├── scripts/
+│   ├── setup.sh                            # Full environment setup
+│   ├── test-all.sh                         # Cross-package test runner
+│   ├── setup_dev.sh                        # Legacy dev setup
+│   └── entrypoint.sh                       # Docker entrypoint
+│
+├── docs/                                   # Documentation
+│   ├── ARCHITECTURE.md                     # This document
+│   ├── AGENT_ARCHITECTURE.md               # Agent system details
+│   ├── MEMORY_ARCHITECTURE.md              # Memory system details
+│   ├── TOOL_REGISTRY.md                    # Tool documentation
+│   ├── SKILL_REGISTRY.md                   # Skill documentation
+│   ├── ROADMAP.md                          # Development roadmap
+│   └── DECISION_LOG.md                     # Architecture decisions
+│
+├── config/                                 # Shared configuration
+│   ├── system_config.yaml                  # System configuration
+│   └── prompts.yaml                        # Prompt templates
+│
+├── monitoring/                             # Observability stack
+│   ├── prometheus.yml                      # Prometheus config
+│   └── grafana/                            # Grafana dashboards
+│
+├── nginx/                                  # Reverse proxy config
+│   └── nginx.conf                          # Production nginx config
+│
+├── database/                               # Database management
+│   ├── models.py                           # SQLAlchemy models
+│   ├── migrations.py                       # Migration runner
+│   ├── init_db.py                          # Database initialization
+│   └── init.sql                            # SQL initialization
+│
+└── tests/                                  # Python test suite
+    ├── test_core/                          # Core system tests
+    ├── test_agents/                        # Agent tests
+    ├── test_mcp/                           # MCP protocol tests
+    ├── test_memory/                        # Memory system tests
+    ├── test_channels/                      # Channel integration tests
+    ├── test_browser/                       # Browser automation tests
+    ├── test_sandbox/                       # Sandbox execution tests
+    ├── test_security/                      # Security tests
+    ├── test_tools/                         # Tool tests
+    └── test_api/                           # API endpoint tests
 ```
 
----
+### npm Workspaces Configuration
 
-## LangGraph-Style Colony Orchestration
+The root `package.json` defines npm workspaces that manage JavaScript/TypeScript dependencies across packages:
 
-The system uses a LangGraph-inspired graph execution model where agents are nodes and transitions are edges in a directed graph. The `LangGraphAdapter` class (in `src/integrations/langgraph_integration.py`) provides the bridge between our agent system and LangGraph's graph execution engine.
-
-### Workflow Graph Model
-
-```mermaid
-graph LR
-    START([START]) --> AB[Agent Base<br/>Task Coordinator]
-    AB --> |analyze| A3[Agent 03<br/>Planner]
-    A3 --> |design_path| A5[Agent 05<br/>Designer]
-    A3 --> |analysis_path| A6[Agent 06<br/>Specialist]
-    A3 --> |standard_path| A4[Agent 04<br/>Executor]
-    A5 --> OH[Output Handler]
-    A6 --> OH
-    A4 --> OH
-    OH --> END([END])
-```
-
-### Standard Workflow Templates
-
-| Template | Flow | Use Case |
-|----------|------|----------|
-| `standard_process` | Base → Planner → Executor → Output | General task execution |
-| `design_process` | Base → Planner → Designer → Specialist → Output | Visual/UI creation |
-| `analysis_process` | Base → Specialist → Executor → Output | Data analysis & research |
-
-### Workflow Execution Flow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant PM as Prompt Master
-    participant LG as LangGraph Adapter
-    participant AB as Agent Base
-    participant AP as Agent Planner
-    participant AE as Agent Executor
-    participant OH as Output Handler
-
-    User->>PM: Submit Task
-    PM->>LG: Create Workflow Graph
-    LG->>AB: Execute Node (analyze)
-    AB->>AB: Analyze Request
-    AB-->>LG: Analysis Result
-    LG->>AP: Execute Node (plan)
-    AP->>AP: Create Execution Plan
-    AP-->>LG: Plan Created
-    LG->>AE: Execute Node (implement)
-    AE->>AE: Execute Actions
-    AE-->>LG: Execution Result
-    LG->>OH: Execute Node (compile)
-    OH->>OH: Format Deliverable
-    OH-->>LG: Final Output
-    LG-->>PM: Workflow Complete
-    PM-->>User: Deliver Result
-```
-
-### Conditional Workflow Routing
-
-The `LangGraphWorkflowBuilder` supports conditional routing based on task analysis:
-
-| Decision Path | Trigger Keywords | Target Agent |
-|---------------|------------------|-------------|
-| `design_path` | design, visual, ui | Agent 05 (Designer) |
-| `analysis_path` | analyze, data, report | Agent 06 (Specialist) |
-| `standard_path` | (default) | Agent 04 (Executor) |
-
-### Parallel Workflow Execution
-
-The system supports parallel agent execution through the `build_parallel_workflow` method, where multiple agents work simultaneously and an aggregation node combines their results.
-
----
-
-## Multi-Agent Coordination Protocol
-
-### Agent Manager Architecture
-
-The `AgentManager` (in `src/core/agent_manager.py`) is the central coordination hub:
-
-```mermaid
-graph TB
-    subgraph "Agent Manager"
-        REG[Agent Registry]
-        WF[Workflow Templates]
-        COM[Communication Log]
-        WFM[Workflow Execution Engine]
-    end
-
-    subgraph "Registered Agents"
-        A1[Agent Base]
-        A2[Agent 02]
-        A3[Agent 03]
-        AN[Agent N...]
-    end
-
-    REQ[Incoming Request] --> REG
-    REG --> WFM
-    WFM --> A1
-    WFM --> A2
-    WFM --> A3
-    WFM --> AN
-    A1 --> COM
-    A2 --> COM
-    A3 --> COM
-    AN --> COM
-    COM --> RES[Response]
-```
-
-### Inter-Agent Communication
-
-Agents communicate through the AgentManager's `send_message_between_agents` method:
-
-```python
-# Communication format
-communication_task = {
-    'task_id': f"comm_{timestamp}",
-    'request': message_content,
-    'context': {
-        'from_agent': sender_id,
-        'communication_type': 'inter_agent',
-        'original_message': message
-    }
+```json
+{
+  "workspaces": [
+    "dashboard",
+    "packages/crucix",
+    "packages/deer-flow/frontend",
+    "packages/autonomous-organism"
+  ]
 }
 ```
 
-| Communication Type | Description | Example |
-|-------------------|-------------|---------|
-| `delegation` | Task handoff between agents | Planner → Executor |
-| `query` | Information request | Executor → Knowledge Base |
-| `result` | Task completion notification | Executor → Output Handler |
-| `error` | Error propagation | Any Agent → Agent Base |
-| `broadcast` | System-wide notification | Commander AGI → All Agents |
-
-### AI-Based Agent Selection
-
-The `AISelector` (in `core/ai_selector.py`) selects the best agent for each task using a multi-factor scoring system:
-
-| Factor | Weight | Description |
-|--------|--------|-------------|
-| Base Priority | 10% | Agent's configured priority level |
-| Capability Match | 50% | How well agent capabilities match requirements |
-| Performance History | 30% | Historical success rate and speed |
-| Load Balance | 20% | Current agent workload |
-| Specialization | 40% | Domain-specific expertise match |
-
-### Agent Selection Scoring
-
-```
-score = (base_priority * 10) + 
-        (capability_match * 50) + 
-        (performance_score * 30) + 
-        (load_balance_score * 20) + 
-        (specialization_score * 40)
-```
-
-The selector maintains a `capability_weights` dictionary that self-optimizes based on historical performance data.
+- **Deer Flow Frontend** uses `pnpm` with its own `pnpm-workspace.yaml` — it is included in the npm workspaces for discovery but installs separately.
+- **Hermes Quant** and **Agentic Legacy** are Python-only packages — not included in npm workspaces.
+- **Crucix** uses Express 5 with native ES modules (`"type": "module"`).
 
 ---
 
-## Tool and Skill Registry System
+## 2. Package Communication
 
-### Tool Registry Architecture
+### Communication Topology
 
-```mermaid
-graph TB
-    TR[Tool Registry] --> BT[Browser Tools]
-    TR --> CT[Code Tools]
-    TR --> DT[Deploy Tools]
-    TR --> FT[File Tools]
-    TR --> NT[Network Tools]
-    TR --> MT[Memory Tools]
-    TR --> ST[System Tools]
-
-    BT --> PB[Playwright Browser]
-    BT --> WK[Web Scraping]
-
-    CT --> CE[Code Executor]
-    CT --> PY[Python Runner]
-    CT --> SH[Shell Execution]
-
-    DT --> NF[Netlify Deploy]
-    DT --> VC[Vercel Deploy]
-    DT --> RW[Railway Deploy]
-    DT --> DK[Docker Deploy]
-    DT --> AW[AWS Deploy]
-    DT --> GC[GCP Deploy]
+```
+                    ┌─────────────────────────────────────┐
+                    │          Nginx (port 80)             │
+                    │     TLS termination + routing        │
+                    └──────┬──────────┬──────────┬────────┘
+                           │          │          │
+              ┌────────────▼──┐  ┌────▼──────┐  ┌▼──────────────┐
+              │  Dashboard    │  │  Crucix   │  │  Deer Flow FE  │
+              │  :3000        │  │  :3117    │  │  (standalone)  │
+              └──────┬────────┘  └────┬──────┘  └──────┬─────────┘
+                     │                │                 │
+                     │   HTTP/REST    │  HTTP/REST      │ HTTP/REST
+                     │                │                 │
+              ┌──────▼────────────────▼─────────────────▼─────────┐
+              │              FastAPI Gateway (:8000)               │
+              │                                                    │
+              │  ┌──────────────┐  ┌──────────────┐               │
+              │  │ Colony       │  │ Agent        │               │
+              │  │ Coordinator  │──│ Registry     │               │
+              │  └──────┬───────┘  └──────┬───────┘               │
+              │         │                 │                        │
+              │  ┌──────▼───────┐  ┌──────▼───────┐               │
+              │  │ LLM Gateway  │  │ Tool Registry │               │
+              │  │ (9 providers)│  │ (10 tools)    │               │
+              │  └──────────────┘  └──────────────┘               │
+              └──────────┬──────────────────────────────────────────┘
+                         │
+           ┌─────────────┼─────────────┐
+           │             │             │
+    ┌──────▼──────┐ ┌────▼──────┐ ┌───▼────────────┐
+    │ PostgreSQL  │ │  Redis 7  │ │ Hermes Quant   │
+    │ :5432       │ │  :6379    │ │ (no HTTP port) │
+    │             │ │           │ │                 │
+    │ - agents    │ │ - cache   │ │ Python process  │
+    │ - tasks     │ │ - pub/sub │ │ Telegram bot    │
+    │ - memory    │ │ - sessions│ │ 21 agent tools  │
+    │ - colonies  │ │ - queues  │ │                 │
+    └─────────────┘ └───────────┘ └─────────────────┘
+           │
+    ┌──────▼──────────────┐
+    │ Autonomous Organism │
+    │ Supabase (managed)  │
+    │                     │
+    │ - organisms table   │
+    │ - sense_data        │
+    │ - decisions         │
+    │ - edge functions    │
+    └─────────────────────┘
 ```
 
-### Tool Interface Specification
+### Communication Protocols
 
-Every tool implements this interface:
+| From | To | Protocol | Purpose |
+|------|----|----------|---------|
+| Dashboard | FastAPI | HTTP/REST | Agent management, task dispatch |
+| Dashboard | FastAPI | WebSocket | Real-time event streaming |
+| Dashboard | Crucix | HTTP/REST | OSINT data, briefings |
+| Crucix | FastAPI | HTTP/REST (optional) | Shared LLM gateway |
+| Deer Flow FE | Deer Flow BE | HTTP/REST | Agent runs, threads, skills |
+| Deer Flow BE | FastAPI | HTTP/REST (internal) | Colony coordination |
+| Hermes Quant | Redis | Redis Protocol | Cache, state sharing |
+| Hermes Quant | Telegram | HTTPS | User interaction |
+| FastAPI | PostgreSQL | PostgreSQL Wire | Persistent data |
+| FastAPI | Redis | Redis Protocol | Caching, sessions, pub/sub |
+| FastAPI | Qdrant/Chroma | HTTP/gRPC | Vector similarity search |
+| Nginx | All services | HTTP proxy | Routing + TLS |
 
-```python
-class ToolInterface:
-    name: str           # Unique tool identifier
-    description: str    # Human-readable description
-    inputs: Dict        # Input schema with types
-    outputs: Dict       # Output schema with types
-    capabilities: List  # List of capabilities provided
-    
-    async def execute(self, params: Dict) -> Dict:
-        """Execute the tool with given parameters"""
-        pass
-    
-    def validate_inputs(self, params: Dict) -> bool:
-        """Validate input parameters"""
-        pass
+### Inter-Service Event Bus
+
+The Redis pub/sub system serves as the cross-service event bus:
+
 ```
-
-### Tool Discovery Mechanism
-
-Tools are discovered and registered through:
-
-1. **Configuration-based** — Tools defined in `config/system_config.yaml`
-2. **Agent-wrapped** — Tools that wrap agent capabilities (e.g., CrewAI's `AgenticTool`)
-3. **Dynamic** — Tools created by the Meta Agent Creator at runtime
-
----
-
-## Memory Architecture
-
-The system implements a three-layer memory architecture:
-
-```mermaid
-graph TB
-    subgraph "Working Memory"
-        WM_CTX[Current Task Context]
-        WM_STATE[Agent States]
-        WM_CACHE[In-Memory Cache]
-    end
-
-    subgraph "Episodic Memory"
-        EM_INT[Agent Interactions]
-        EM_WF[Workflow History]
-        EM_RES[Task Results]
-    end
-
-    subgraph "Semantic Memory"
-        SM_KB[Knowledge Base]
-        SM_EXT[External APIs<br/>Wikipedia, News, etc.]
-        SM_MET[Agent Metrics]
-    end
-
-    WM_CTX --> EM_INT
-    WM_STATE --> EM_WF
-    WM_CACHE --> EM_RES
-    
-    EM_INT --> SM_KB
-    EM_WF --> SM_KB
-    EM_RES --> SM_MET
-```
-
-See [MEMORY_ARCHITECTURE.md](./MEMORY_ARCHITECTURE.md) for full details.
-
----
-
-## Web Interface and API Layer
-
-### Web Interface Stack
-
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| Backend | Flask (Python) | HTTP server, API routing |
-| Frontend | HTML + Tailwind CSS | Responsive UI |
-| Voice | Web Speech API | Voice input/output |
-| PWA | Service Worker + Manifest | Offline support |
-| WebSocket | Flask-SocketIO | Real-time updates |
-| Static | Jinja2 Templates | Server-side rendering |
-
-### API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Main dashboard |
-| `/agents` | GET | Agent management |
-| `/workflows` | GET | Workflow builder |
-| `/monitoring` | GET | System monitoring |
-| `/credentials` | GET | API key management |
-| `/llm-providers` | GET | LLM provider settings |
-| `/platform-integrations` | GET | Platform config |
-| `/api/system/status` | GET | System status JSON |
-| `/api/agents/list` | GET | Agent list JSON |
-| `/api/chat` | POST | Chat endpoint |
-
-### PWA Architecture
-
-The web interface functions as a Progressive Web App with:
-- **Service Worker** (`sw.js`) for offline caching
-- **Manifest** (`manifest.json`) for installability
-- **Responsive CSS** (`responsive.css`) for mobile-first design
-- **Voice interface** (`voice.js`) for hands-free operation
-
----
-
-## Deployment Architecture
-
-### Multi-Platform Deployment
-
-The `DeployManagerAgent` supports deploying to 7 platforms:
-
-```mermaid
-graph LR
-    APP[Application] --> DM[Deploy Manager]
-    DM --> |static| NF[Netlify]
-    DM --> |serverless| VC[Vercel]
-    DM --> |container| RW[Railway]
-    DM --> |paas| HK[Heroku]
-    DM --> |cloud| AWS[Amazon AWS]
-    DM --> |cloud| GCP[Google Cloud]
-    DM --> |container| DK[Docker]
-```
-
-### Container Architecture
-
-```yaml
-# docker-compose.yml structure
-services:
-  frontend:
-    build: ./frontend
-    ports: ["3000:3000"]
-  backend:
-    build: ./backend
-    ports: ["8000:8000"]
-  db:
-    image: postgres:15
-    ports: ["5432:5432"]
-  redis:
-    image: redis:7
-    ports: ["6379:6379"]
-```
-
-### Kubernetes Deployment
-
-The system includes `k8s-deployment.yaml` for Kubernetes orchestration with:
-- Horizontal Pod Autoscaling
-- Health check probes
-- ConfigMap and Secret management
-- Ingress configuration
-
-### Infrastructure as Code
-
-| Platform | Config File | Type |
-|----------|------------|------|
-| Netlify | `netlify.toml` | Static/SPA |
-| Vercel | `vercel.json` | Serverless |
-| Railway | `railway.json` | Container |
-| AWS | `template.yaml` | CloudFormation/SAM |
-| Docker | `Dockerfile` | Container |
-| Kubernetes | `k8s-deployment.yaml` | Orchestration |
-
----
-
-## Data Flow
-
-### Complete Task Execution Flow
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant W as Web Interface
-    participant PM as Prompt Master
-    participant AM as Agent Manager
-    participant AS as AI Selector
-    participant AG as Selected Agent
-    participant MB as Memory Bus
-    participant LLM as LLM Client
-    participant DB as SQLite Database
-
-    U->>W: Submit Request
-    W->>PM: Route to coordinator
-    PM->>AM: Register task
-    AM->>AS: Select best agent
-    AS->>AS: Score agents
-    AS-->>AM: Selected agent ID
-    AM->>AG: Execute task
-    AG->>MB: Retrieve context
-    MB->>DB: Query memories
-    DB-->>MB: Return memories
-    MB-->>AG: Context provided
-    AG->>LLM: Generate response
-    LLM->>LLM: Try primary provider
-    alt Primary succeeds
-        LLM-->>AG: LLM Response
-    else Primary fails
-        LLM->>LLM: Try fallback providers
-        LLM-->>AG: Fallback response
-    end
-    AG->>MB: Store result
-    MB->>DB: Persist result
-    AG-->>AM: Task result
-    AM-->>PM: Compiled result
-    PM-->>W: Formatted response
-    W-->>U: Display result
+Channel: colony:events       → Colony lifecycle events (agent spawn, task complete)
+Channel: crucix:alerts       → OSINT alerts forwarded to colony coordinator
+Channel: hermes:trades       → Trade execution events for audit/monitoring
+Channel: organism:evolution  → Organism state changes for dashboard display
+Channel: system:health       → Health check broadcasts from all services
 ```
 
 ---
 
-## Configuration System
+## 3. Data Flow Between Services
 
-The configuration is managed through `config/system_config.yaml` with the following sections:
-
-| Section | Purpose | Key Settings |
-|---------|---------|-------------|
-| `system` | System metadata | Name, version, author |
-| `core` | Core services | Prompt master, memory bus, sync engine, scheduler, AI selector |
-| `agents` | Agent settings | Defaults, per-agent config |
-| `llm` | LLM providers | Provider configs, failover settings |
-| `database` | Database config | Primary (SQLite), cache (Redis), backup |
-| `web_interface` | Web server | Host, port, security, WebSocket |
-| `logging` | Logging config | Level, format, file/console |
-| `monitoring` | Observability | Metrics, health checks, performance |
-| `security` | Security settings | API rate limiting, auth, CORS, encryption |
-| `development` | Dev settings | Debug, hot reload, testing |
-| `production` | Prod settings | Optimization, scaling, deployment |
-| `features` | Feature flags | Experimental, beta, stable |
-| `regional` | Regional config | Timezone (Asia/Jakarta), locale, language |
-
-### Environment Variable Overrides
-
-| Variable | Config Path |
-|----------|------------|
-| `DATABASE_URL` | `database.primary.url` |
-| `REDIS_URL` | `database.cache.url` |
-| `SECRET_KEY` | `web_interface.security.secret_key` |
-| `LLM7_API_KEY` | `llm.providers.llm7.api_key` |
-| `OPENROUTER_API_KEY` | `llm.providers.openrouter.api_key` |
-| `WEB_INTERFACE_PORT` | `web_interface.port` |
-| `LOG_LEVEL` | `logging.level` |
-
----
-
-## Security Architecture
-
-### Multi-Layer Security Model
-
-```mermaid
-graph TB
-    subgraph "Layer 1: API Security"
-        RL[Rate Limiting<br/>100 req/min]
-        AUTH[JWT Authentication]
-        CORS[CORS Protection]
-    end
-
-    subgraph "Layer 2: Input Security"
-        IV[Input Validation]
-        SI[Input Sanitization]
-        MS[Max Size: 10MB]
-    end
-
-    subgraph "Layer 3: Agent Security"
-        CW[Command Whitelist<br/>CyberShell]
-        BP[Blocked Patterns<br/>rm -rf, fork bombs]
-        SE2[Sensitive File<br/>Access Denial]
-    end
-
-    subgraph "Layer 4: Data Security"
-        ENC[AES-256 Encryption]
-        CM2[Credential Manager]
-        BK[Database Backup]
-    end
-
-    REQ[Request] --> RL
-    RL --> AUTH
-    AUTH --> CORS
-    CORS --> IV
-    IV --> SI
-    SI --> CW
-    CW --> ENC
-```
-
-### CyberShell Command Security
-
-The CyberShell agent enforces strict command security:
-
-**Allowed Commands** (whitelist):
-- File ops: `ls`, `cat`, `grep`, `find`, `cp`, `mv`, `mkdir`
-- System info: `ps`, `top`, `free`, `df`, `uname`, `whoami`
-- Network: `ping`, `curl`, `wget`, `netstat`
-- Development: `git`, `python`, `pip`, `node`, `npm`, `docker`
-- Text: `awk`, `sed`, `sort`, `uniq`, `wc`
-
-**Blocked Patterns**:
-- `rm -rf /`, fork bombs, `dd if=/dev/zero`
-- `mkfs`, `fdisk`, `parted`, `shutdown`, `reboot`
-- Dangerous flags: `-rf`, `--force`, `--delete` with `rm`
-
-### Commander AGI Security Monitoring
-
-The `CommanderAGI` agent provides real-time security monitoring:
-
-| Rule | Pattern | Threshold | Action |
-|------|---------|-----------|--------|
-| Suspicious Network | `high_connection_count` | 100 connections | Investigate |
-| CPU Spike | `cpu_usage` | 95% | Analyze processes |
-| Unauthorized Access | `failed_login_attempts` | 5 attempts | Security lockdown |
-| Malware Signature | `file_hash_match` | 1 match | Quarantine & alert |
-
----
-
-## Monitoring and Observability
-
-### System Monitoring Stack
-
-| Component | Metric | Alert Threshold |
-|-----------|--------|-----------------|
-| CPU Usage | `cpu_percent` | > 90% |
-| Memory Usage | `memory.percent` | > 80% |
-| Disk Usage | `disk.percent` | > 95% |
-| Response Time | `response_time_ms` | > 5000ms |
-| Agent Health | `agent.status` | != active |
-| Queue Length | `queue_length` | > 5 |
-
-### Agent 02 Performance Monitoring
-
-The `Agent02MetaSpawner` continuously monitors:
-
-| Metric | Threshold | Severity |
-|--------|-----------|----------|
-| Response Time | > 30s | High |
-| Error Rate | > 10% | Medium |
-| Queue Length | > 5 | High |
-| Resource Usage | > 80% | Medium |
-
-### Health Status Scoring
+### Request Flow: User Task Dispatch
 
 ```
-health_score = 100
-- 20 points per slow agent (response > 30s)
-- 15 points per high-error agent (success < 90%)
-- 10 points per high-resource agent (usage > 80%)
-- 25 points if queue is backed up
+ 1. User submits task via Dashboard (Next.js)
+    │
+ 2. Dashboard → POST /api/colony/dispatch → FastAPI Gateway
+    │
+ 3. Colony Coordinator receives task
+    │
+ 4. AI Selector scores agents based on:
+    │   - Capability match (50%)
+    │   - Specialization (40%)
+    │   - Performance history (30%)
+    │   - Load balance (20%)
+    │   - Base priority (10%)
+    │
+ 5. Selected Agent executes via AgentLoop
+    │
+ 6. Agent calls LLM Gateway (with failover chain):
+    │   LLM7 → OpenRouter → DeepSeek → OpenAI → Anthropic → Google AI
+    │
+ 7. Agent invokes Tools via ToolRegistry
+    │   - Shell execution (sandboxed)
+    │   - File operations
+    │   - Browser automation
+    │   - Code execution
+    │   - Memory storage/retrieval
+    │
+ 8. Results stored in:
+    │   - PostgreSQL (persistent task results, agent state)
+    │   - Redis (session cache, real-time data)
+    │   - Vector Store (embeddings for semantic search)
+    │
+ 9. Event published to Redis pub/sub
+    │
+10. Dashboard receives event via WebSocket
+    │
+11. User sees result in real-time
 ```
 
-| Score Range | Status |
-|-------------|--------|
-| 90-100 | Excellent |
-| 70-89 | Good |
-| 50-69 | Degraded |
-| 0-49 | Critical |
-
-### Scheduled Monitoring Tasks
-
-| Task | Agent | Schedule | Purpose |
-|------|-------|----------|---------|
-| Health Check | agent_watcher | Every 5 minutes | System health |
-| Memory Cleanup | data_sync | Daily at 2 AM | Free storage |
-| Performance Report | prompt_master | Weekly Monday 9 AM | Analysis |
-| Auto Backup | data_sync | Weekly Sunday midnight | Data safety |
-
----
-
-## Directory Structure
+### Data Flow: Crucix OSINT Intelligence
 
 ```
-ai-multicolony-ecosystem/
-├── agents/                    # Specialized agent implementations
-│   ├── agent_maker.py         # Dynamic agent creation
-│   ├── ai_research_agent.py   # AI research & monitoring
-│   ├── authentication_agent.py
-│   ├── backup_colony_system.py
-│   ├── bug_hunter_bot.py      # Ethical hacking
-│   ├── commander_agi.py       # Security & monitoring
-│   ├── credential_manager.py
-│   ├── cybershell.py          # Shell execution
-│   ├── data_sync.py           # Database sync
-│   ├── deploy_manager.py      # Multi-platform deploy
-│   ├── deployment_specialist.py
-│   ├── dev_engine.py          # Development engine
-│   ├── fullstack_dev.py       # Full-stack development
-│   ├── knowledge_management_agent.py
-│   ├── llm_provider_manager.py
-│   ├── marketing_agent.py     # Marketing automation
-│   ├── meta_agent_creator.py  # Meta agent creation
-│   ├── money_making_agent.py  # Revenue generation
-│   ├── prompt_generator.py
-│   ├── quality_control_specialist.py
-│   ├── system_optimizer.py
-│   └── ui_designer.py        # UI generation
-├── config/
-│   ├── prompts.yaml           # Agent prompt templates
-│   └── system_config.yaml     # System configuration
-├── connectors/
-│   └── llm_gateway.py         # LLM provider gateway
-├── core/
-│   ├── ai_selector.py         # Agent selection AI
-│   ├── error_recovery.py      # Error handling
-│   ├── llm_client.py          # Multi-provider LLM client
-│   ├── memory_bus.py          # Shared memory bus
-│   ├── prompt_master.py       # Central coordinator
-│   ├── scheduler.py           # Task scheduling
-│   └── sync_engine.py         # WebSocket sync
-├── database/
-│   ├── init_db.py             # Database initialization
-│   ├── migrations.py          # Schema migrations
-│   └── models.py              # Data models
-├── docs/                      # Documentation
-├── examples/
-│   └── basic_usage.py         # Usage examples
-├── src/
-│   ├── agents/                # Core agent framework
-│   │   ├── agent_base.py      # Master controller
-│   │   ├── agent_02_meta_spawner.py
-│   │   ├── agent_03_planner.py
-│   │   ├── agent_04_executor.py
-│   │   ├── agent_05_designer.py
-│   │   ├── agent_06_specialist.py
-│   │   ├── advanced_agent_creator.py
-│   │   ├── deployment_agent.py
-│   │   ├── dynamic_agent_factory.py
-│   │   ├── launcher_agent.py
-│   │   ├── output_handler.py
-│   │   └── web_automation_agent.py
-│   ├── core/
-│   │   ├── agent_manager.py   # Agent orchestration
-│   │   ├── base_agent.py      # Base agent class
-│   │   ├── credential_manager.py
-│   │   ├── knowledge_enrichment.py
-│   │   ├── memory_manager.py  # Memory system
-│   │   └── platform_integrator.py
-│   └── integrations/
-│       ├── autogen_integration.py
-│       ├── crewai_integration.py
-│       ├── langgraph_integration.py
-│       ├── netlify_integration.py
-│       └── supabase_integration.py
-├── tests/
-│   └── test_agents.py
-├── web_interface/
-│   ├── app.py                 # Flask application
-│   ├── static/                # CSS, JS, icons
-│   └── templates/             # HTML templates
-├── main.py                    # Entry point
-├── Dockerfile                 # Container config
-├── docker-compose.yml         # Multi-container
-├── k8s-deployment.yaml        # Kubernetes config
-└── requirements.txt           # Python dependencies
+ 1. Cron triggers intelligence sweep
+    │
+ 2. Crucix fetches from 29 OSINT sources:
+    │   - Geopolitical: ACLED, GDELT, ReliefWeb, OpenSanctions, OFAC
+    │   - Economic: BLS, FRED, Treasury, Comtrade, EIA
+    │   - Environmental: FIRMS, NOAA, Safecast, EPA
+    │   - Cyber: CISA KEV
+    │   - Infrastructure: Ships, ADS-B, OpenSky, Space Track
+    │   - Social: Reddit, Bluesky, Telegram
+    │   - Health: WHO
+    │   - Innovation: Patents
+    │   - Financial: yfinance, GSCPI
+    │
+ 3. Delta Engine detects changes from previous sweep
+    │
+ 4. Data pushed to Dashboard (static HTML injection)
+    │
+ 5. (Optional) LLM synthesizes briefing from collected data
+    │
+ 6. Alerts dispatched via Telegram / Discord
+    │
+ 7. Briefing saved for historical reference
+```
+
+### Data Flow: Hermes Quant Trading
+
+```
+ 1. Hermes main loop starts (Python process)
+    │
+ 2. Market Data Tool fetches real-time data (yfinance)
+    │
+ 3. Technical Analysis Tool computes indicators
+    │
+ 4. Market State Engine classifies market regime
+    │
+ 5. Decision Engine evaluates entry/exit signals
+    │
+ 6. Risk Officer Tool validates trade parameters
+    │
+ 7. Kill Switch Tool monitors for emergency stops
+    │
+ 8. Execution Tool places order (if enabled)
+    │
+ 9. Audit Logger records all decisions
+    │
+10. Journal Tool maintains trading diary
+    │
+11. Telegram bot sends trade notifications
+    │
+12. Strategy Lifecycle manages strategy rotation
+    │
+13. Autoswitch Engine adapts to market conditions
+```
+
+### Data Flow: Autonomous Organism
+
+```
+ 1. Sense subsystem ingests environmental data
+    │
+ 2. Supabase Edge Function: ingest-sense
+    │
+ 3. Memory subsystem stores sensory input
+    │
+ 4. Decision subsystem evaluates actions
+    │
+ 5. Supabase Edge Function: run-decision
+    │
+ 6. Factory subsystem creates new components
+    │
+ 7. Supabase Edge Function: run-factory
+    │
+ 8. Growth subsystem evolves organism
+    │
+ 9. Supabase Edge Function: run-growth
+    │
+10. Immune subsystem defends against threats
+    │
+11. Bootstrap initializes new organisms
+    │
+12. Supabase Edge Function: bootstrap
+    │
+13. React frontend displays organism state in real-time
 ```
 
 ---
 
-## Technology Stack Summary
+## 4. Database Schema Overview
 
-| Layer | Technologies |
-|-------|-------------|
-| **Language** | Python 3.11+, JavaScript, TypeScript |
-| **Backend** | Flask, FastAPI, Uvicorn |
-| **Frontend** | HTML5, Tailwind CSS, Web Speech API |
-| **Database** | SQLite (primary), Redis (cache), PostgreSQL (prod) |
-| **LLM** | LLM7, OpenRouter, Camel AI, OpenAI |
-| **Frameworks** | LangGraph, CrewAI, AutoGen |
-| **Deployment** | Docker, Netlify, Vercel, Railway, AWS, GCP |
-| **Monitoring** | psutil, custom metrics, health checks |
-| **Security** | AES-256, JWT, CORS, command whitelisting |
-| **Scheduling** | croniter, threading, asyncio |
+### PostgreSQL (Primary Database)
+
+The PostgreSQL database serves as the shared persistent store for the FastAPI gateway, colony coordination, and agent state.
+
+```sql
+-- === Core Tables ===
+
+-- Agents registered in the colony
+CREATE TABLE agents (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name            VARCHAR(100) NOT NULL UNIQUE,
+    type            VARCHAR(50) NOT NULL,          -- manus, coder, planner, executor, etc.
+    status          VARCHAR(20) DEFAULT 'idle',     -- idle, running, error, stopped
+    capabilities    JSONB DEFAULT '[]',
+    config          JSONB DEFAULT '{}',
+    priority        INTEGER DEFAULT 5,
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ DEFAULT NOW(),
+    last_heartbeat  TIMESTAMPTZ
+);
+
+-- Colonies (groups of agents)
+CREATE TABLE colonies (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name            VARCHAR(100) NOT NULL UNIQUE,
+    description     TEXT,
+    strategy        VARCHAR(50) DEFAULT 'round-robin',  -- round-robin, least-loaded, capability
+    agent_ids       UUID[] DEFAULT '{}',
+    status          VARCHAR(20) DEFAULT 'active',
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Tasks dispatched to agents
+CREATE TABLE tasks (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    agent_id        UUID REFERENCES agents(id),
+    colony_id       UUID REFERENCES colonies(id),
+    parent_task_id  UUID REFERENCES tasks(id),
+    type            VARCHAR(50) NOT NULL,
+    input           JSONB DEFAULT '{}',
+    output          JSONB,
+    status          VARCHAR(20) DEFAULT 'pending',  -- pending, running, completed, failed
+    priority        INTEGER DEFAULT 5,
+    error           TEXT,
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    started_at      TIMESTAMPTZ,
+    completed_at    TIMESTAMPTZ,
+    tokens_used     INTEGER DEFAULT 0,
+    llm_provider    VARCHAR(50),
+    llm_model       VARCHAR(100)
+);
+
+-- === Memory System ===
+
+-- Session memory (short-term, per conversation)
+CREATE TABLE memory_sessions (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_key     VARCHAR(255) NOT NULL UNIQUE,
+    agent_id        UUID REFERENCES agents(id),
+    context         JSONB DEFAULT '{}',
+    summary         TEXT,
+    token_count     INTEGER DEFAULT 0,
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    expires_at      TIMESTAMPTZ,
+    updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Episodic memory (task history)
+CREATE TABLE memory_episodes (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    agent_id        UUID REFERENCES agents(id),
+    task_id         UUID REFERENCES tasks(id),
+    event_type      VARCHAR(50) NOT NULL,
+    content         JSONB NOT NULL,
+    embedding_id    VARCHAR(255),               -- Reference to vector store
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Knowledge base (semantic memory)
+CREATE TABLE knowledge_entries (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    domain          VARCHAR(100) NOT NULL,
+    topic           VARCHAR(255) NOT NULL,
+    content         TEXT NOT NULL,
+    source          VARCHAR(100),                -- agent, user, external
+    confidence      FLOAT DEFAULT 1.0,
+    embedding_id    VARCHAR(255),
+    tags            VARCHAR(100)[],
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- === Security ===
+
+-- Encrypted credentials vault
+CREATE TABLE credentials (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name            VARCHAR(255) NOT NULL UNIQUE,
+    encrypted_value BYTEA NOT NULL,               -- AES-256 encrypted
+    category        VARCHAR(50),                   -- api_key, token, password, secret
+    salt            BYTEA NOT NULL,
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ DEFAULT NOW(),
+    accessed_at     TIMESTAMPTZ
+);
+
+-- Audit log
+CREATE TABLE audit_log (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    actor           VARCHAR(100) NOT NULL,         -- agent_id or user_id
+    action          VARCHAR(100) NOT NULL,
+    resource_type   VARCHAR(50),
+    resource_id     VARCHAR(255),
+    details         JSONB DEFAULT '{}',
+    ip_address      INET,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- === Channels ===
+
+-- Channel configurations
+CREATE TABLE channels (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    type            VARCHAR(50) NOT NULL,          -- telegram, discord, slack, whatsapp
+    name            VARCHAR(100) NOT NULL,
+    config          JSONB DEFAULT '{}',             -- Channel-specific config (encrypted)
+    status          VARCHAR(20) DEFAULT 'disconnected',
+    last_message_at TIMESTAMPTZ,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- === Tools ===
+
+-- Registered tools
+CREATE TABLE tools (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name            VARCHAR(100) NOT NULL UNIQUE,
+    description     TEXT,
+    input_schema    JSONB DEFAULT '{}',
+    output_schema   JSONB DEFAULT '{}',
+    capabilities    JSONB DEFAULT '[]',
+    is_active       BOOLEAN DEFAULT TRUE,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- === Indexes ===
+CREATE INDEX idx_tasks_agent_id ON tasks(agent_id);
+CREATE INDEX idx_tasks_status ON tasks(status);
+CREATE INDEX idx_tasks_created_at ON tasks(created_at);
+CREATE INDEX idx_memory_sessions_key ON memory_sessions(session_key);
+CREATE INDEX idx_memory_episodes_agent ON memory_episodes(agent_id);
+CREATE INDEX idx_knowledge_domain ON knowledge_entries(domain);
+CREATE INDEX idx_audit_log_actor ON audit_log(actor);
+CREATE INDEX idx_audit_log_created ON audit_log(created_at);
+```
+
+### Redis Key Schema
+
+```
+# Sessions
+session:{session_id}               → JSON (agent context, conversation state)
+                                    TTL: 3600s
+
+# Agent State
+agent:{agent_id}:state             → JSON (status, current task, metrics)
+agent:{agent_id}:heartbeat         → TIMESTAMP
+                                    TTL: 60s (auto-expire on failure)
+
+# Colony State
+colony:{colony_id}:agents          → SET of agent_ids
+colony:{colony_id}:queue           → LIST of pending task_ids
+
+# LLM Cache
+llm:cache:{hash(prompt)}           → JSON (cached LLM response)
+                                    TTL: 3600s
+
+# Rate Limiting
+ratelimit:{ip_address}             → COUNTER
+                                    TTL: 60s
+
+# Event Bus (pub/sub channels)
+colony:events                      → PUBSUB
+crucix:alerts                      → PUBSUB
+hermes:trades                      → PUBSUB
+organism:evolution                 → PUBSUB
+system:health                      → PUBSUB
+
+# Hermes Quant State
+hermes:portfolio                   → JSON (current positions)
+hermes:strategy                    → STRING (active strategy name)
+hermes:pressure                    → FLOAT (market pressure score)
+```
+
+### Vector Store (Qdrant/ChromaDB)
+
+```json
+{
+  "collection": "ai_multicolony_embeddings",
+  "vectors": {
+    "size": 1536,
+    "distance": "cosine"
+  },
+  "payload_schema": {
+    "agent_id": "keyword",
+    "memory_type": "keyword",      // episodic, knowledge, session
+    "domain": "keyword",
+    "timestamp": "datetime",
+    "content_summary": "text"
+  }
+}
+```
 
 ---
 
-*This architecture document is maintained as part of the AI-MultiColony-Ecosystem project. Last updated: 2025-07-13.*
+## 5. API Gateway Design
+
+### FastAPI Gateway Architecture
+
+The FastAPI gateway at port 8000 is the central API entry point for the entire ecosystem. It provides unified access to agent management, colony coordination, memory, tools, LLM providers, and credentials.
+
+```
+                    ┌──────────────────────────────────────┐
+                    │         FastAPI Gateway (:8000)       │
+                    │                                       │
+  Incoming  ──────► │  ┌─────────────────────────────┐     │
+  Requests          │  │      Middleware Stack         │     │
+                    │  │  ┌────────┐ ┌────────────┐  │     │
+                    │  │  │  CORS  │ │ Rate Limit  │  │     │
+                    │  │  └────────┘ └────────────┘  │     │
+                    │  │  ┌────────┐ ┌────────────┐  │     │
+                    │  │  │  Auth  │ │  Logging   │  │     │
+                    │  │  └────────┘ └────────────┘  │     │
+                    │  │  ┌────────┐ ┌────────────┐  │     │
+                    │  │  │ Error  │ │  Request   │  │     │
+                    │  │  │ Handler│ │  Tracing    │  │     │
+                    │  │  └────────┘ └────────────┘  │     │
+                    │  └──────────────┬──────────────┘     │
+                    │                 │                     │
+                    │  ┌──────────────▼──────────────┐     │
+                    │  │        Router Layer           │     │
+                    │  │                               │     │
+                    │  │  /api/agents/*    Agents      │     │
+                    │  │  /api/colony/*    Colony      │     │
+                    │  │  /api/memory/*    Memory      │     │
+                    │  │  /api/tools/*     Tools       │     │
+                    │  │  /api/llm/*       LLM         │     │
+                    │  │  /api/credentials Security    │     │
+                    │  │  /api/code/*      Sandbox     │     │
+                    │  │  /ws/events       WebSocket   │     │
+                    │  └──────────────┬──────────────┘     │
+                    │                 │                     │
+                    │  ┌──────────────▼──────────────┐     │
+                    │  │       Service Layer           │     │
+                    │  │                               │     │
+                    │  │  ColonyCoordinator            │     │
+                    │  │  AgentRegistry                │     │
+                    │  │  ToolRegistry                 │     │
+                    │  │  LLMProvider (failover)       │     │
+                    │  │  MemoryManager                │     │
+                    │  │  CredentialManager            │     │
+                    │  └──────────────┬──────────────┘     │
+                    │                 │                     │
+                    │  ┌──────────────▼──────────────┐     │
+                    │  │       Data Layer              │     │
+                    │  │                               │     │
+                    │  │  PostgreSQL   Redis   Qdrant  │     │
+                    │  └──────────────────────────────┘     │
+                    └──────────────────────────────────────┘
+```
+
+### LLM Gateway Failover Chain
+
+```
+Request → LLM7 (free tier)
+           ↓ (if failed)
+         OpenRouter
+           ↓ (if failed)
+         DeepSeek
+           ↓ (if failed)
+         OpenAI
+           ↓ (if failed)
+         Anthropic
+           ↓ (if failed)
+         Google AI
+           ↓ (if failed)
+         Groq
+           ↓ (if failed)
+         Hugging Face
+           ↓ (if failed)
+         Ollama (local fallback)
+           ↓ (if all failed)
+         Return error with provider status report
+```
+
+### Deer Flow Gateway (port 8001)
+
+The Deer Flow backend has its own FastAPI gateway with a focus on LangGraph-based agent orchestration:
+
+```
+/api/threads          → Conversation thread management
+/api/threads/{id}/runs → Agent execution within threads
+/api/models           → Available model listing
+/api/auth/*           → JWT-based authentication
+/api/skills           → Skill registry
+/api/mcp/*            → Model Context Protocol tools
+/api/channels/*       → Multi-channel message routing
+/api/artifacts/*      → Generated artifact management
+/api/feedback/*       → User feedback collection
+```
+
+### Nginx Routing Rules
+
+```
+/              → Web Dashboard (port 3000)
+/api/*         → FastAPI Gateway (port 8000)
+/osint/*       → Crucix OSINT (port 3117)
+/deer-flow/*   → Deer Flow Frontend (served by its own Next.js)
+/socket.io/*   → WebSocket upgrade → FastAPI
+/health        → API health check
+/metrics       → Prometheus metrics (internal only)
+```
+
+---
+
+## 6. Technology Stack
+
+### Full Stack Overview
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Reverse Proxy** | Nginx 1.27 | TLS, routing, rate limiting, static caching |
+| **Frontend (Dashboard)** | Next.js 16 + React 19 + Tailwind CSS 4 | Unified management UI |
+| **Frontend (Deer Flow)** | Next.js 16 + React 19 + pnpm | Agent chat interface |
+| **Frontend (Organism)** | React 18 + Vite + Supabase | Organism visualization |
+| **API Gateway** | FastAPI + Uvicorn | Central API entry point |
+| **Agent Backend** | Python 3.11+ + LangGraph | Multi-agent orchestration |
+| **OSINT Service** | Node.js 22 + Express 5 | Intelligence gathering |
+| **Trading Bot** | Python 3.11+ | Quantitative trading |
+| **Primary Database** | PostgreSQL 16 | Persistent storage |
+| **Cache / Message Bus** | Redis 7 | Caching, sessions, pub/sub |
+| **Vector Store** | Qdrant / ChromaDB | Semantic search |
+| **Edge Functions** | Supabase | Organism computation |
+| **Containerization** | Docker + Docker Compose | Service orchestration |
+| **Monitoring** | Prometheus + Grafana | Observability |
+| **CI/CD** | GitHub Actions | Automated testing + deployment |
+
+### Language Distribution
+
+| Language | Percentage | Primary Use |
+|----------|-----------|-------------|
+| Python | ~55% | Backend, agents, trading, ML |
+| TypeScript/JavaScript | ~35% | Frontend, OSINT service |
+| SQL | ~5% | Database schemas |
+| YAML/Config | ~5% | Docker, CI/CD, Nginx |
+
+### Key Dependencies
+
+**Python (Backend)**:
+- `fastapi` — API framework
+- `uvicorn` — ASGI server
+- `litellm` — Multi-LLM abstraction
+- `pydantic` — Data validation
+- `redis` — Cache + pub/sub
+- `qdrant-client` / `chromadb` — Vector search
+- `playwright` — Browser automation
+- `sqlalchemy` — ORM
+- `celery` — Async task queue
+
+**Node.js (Frontend + OSINT)**:
+- `next` 16 — React framework
+- `express` 5 — OSINT API server
+- `react` 18/19 — UI rendering
+- `tailwindcss` 4 — Styling
+- `@langchain/langgraph-sdk` — Agent client
+- `@radix-ui/*` — UI primitives
+- `zustand` — State management
+- `recharts` — Data visualization
+
+---
+
+*This architecture document is maintained as part of the AI-MultiColony-Ecosystem project. Last updated: 2026-03-05.*

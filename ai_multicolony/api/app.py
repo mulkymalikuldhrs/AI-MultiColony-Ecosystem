@@ -35,7 +35,7 @@ def create_app() -> Any:
     app = FastAPI(
         title=settings.app_name,
         description="AI MultiColony Ecosystem - Colony-based Agent Operating System",
-        version="0.1.0",
+        version="3.0.0",
         docs_url="/docs",
         redoc_url="/redoc",
     )
@@ -72,12 +72,14 @@ def create_app() -> Any:
     from ai_multicolony.api.routes.tools import create_router as tools_router
     from ai_multicolony.api.routes.memory import create_router as memory_router
     from ai_multicolony.api.routes.ws import create_router as ws_router
+    from ai_multicolony.api.routes.ecosystem import create_router as ecosystem_router
 
     app.include_router(agents_router(), prefix="/api/agents", tags=["agents"])
     app.include_router(colony_router(), prefix="/api/colony", tags=["colony"])
     app.include_router(tools_router(), prefix="/api/tools", tags=["tools"])
     app.include_router(memory_router(), prefix="/api/memory", tags=["memory"])
     app.include_router(ws_router(), prefix="/api/ws", tags=["websocket"])
+    app.include_router(ecosystem_router(), prefix="/api/ecosystem", tags=["ecosystem"])
 
     @app.on_event("startup")
     async def startup() -> None:
@@ -100,14 +102,14 @@ def create_app() -> Any:
     @app.get("/health")
     async def health() -> dict[str, str]:
         """Health check endpoint."""
-        return {"status": "ok", "version": "0.1.0"}
+        return {"status": "ok", "version": "3.0.0"}
 
     @app.get("/")
     async def root() -> dict[str, str]:
         """Root endpoint with API info."""
         return {
             "name": settings.app_name,
-            "version": "0.1.0",
+            "version": "3.0.0",
             "environment": settings.app_env,
             "docs": "/docs",
         }

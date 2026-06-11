@@ -8,7 +8,7 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, JSON, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 Base = declarative_base()
@@ -23,8 +23,8 @@ class Agent(Base):
     status = Column(String(50), default='ready')
     capabilities = Column(JSON, default=list)
     config = Column(JSON, default=dict)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Relationships
     tasks = relationship("Task", back_populates="agent")
@@ -43,7 +43,7 @@ class Task(Base):
     context = Column(JSON, default=dict)
     result = Column(JSON, default=dict)
     error_message = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
     
@@ -62,8 +62,8 @@ class Memory(Base):
     metadata = Column(JSON, default=dict)
     importance = Column(Float, default=0.5)
     accessed_count = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    last_accessed = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    last_accessed = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     agent = relationship("Agent", back_populates="memories")
@@ -79,8 +79,8 @@ class Workflow(Base):
     definition = Column(JSON, nullable=False)
     status = Column(String(50), default='draft')
     created_by = Column(String(100), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Relationships
     executions = relationship("WorkflowExecution", back_populates="workflow")
@@ -98,7 +98,7 @@ class WorkflowExecution(Base):
     current_step = Column(Integer, default=0)
     total_steps = Column(Integer, default=0)
     error_message = Column(Text, nullable=True)
-    started_at = Column(DateTime, default=datetime.utcnow)
+    started_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     completed_at = Column(DateTime, nullable=True)
     
     # Relationships
@@ -137,7 +137,7 @@ class Deployment(Base):
     url = Column(String(500), nullable=True)
     config = Column(JSON, default=dict)
     logs = Column(JSON, default=list)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     completed_at = Column(DateTime, nullable=True)
 
 class SystemMetric(Base):
@@ -150,7 +150,7 @@ class SystemMetric(Base):
     value = Column(Float, nullable=False)
     unit = Column(String(20), nullable=True)
     metadata = Column(JSON, default=dict)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class KnowledgeEntry(Base):
     """Knowledge base entries for RAG and context injection"""
@@ -166,8 +166,8 @@ class KnowledgeEntry(Base):
     source = Column(String(500), nullable=True)
     relevance_score = Column(Float, default=0.0)
     access_count = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
 class UserSession(Base):
     """User session model for web interface"""
@@ -179,8 +179,8 @@ class UserSession(Base):
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(String(500), nullable=True)
     data = Column(JSON, default=dict)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    last_activity = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    last_activity = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     expires_at = Column(DateTime, nullable=True)
 
 class APILog(Base):
@@ -197,7 +197,7 @@ class APILog(Base):
     ip_address = Column(String(45), nullable=True)
     request_data = Column(JSON, default=dict)
     response_data = Column(JSON, default=dict)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///data/agentic.db')
