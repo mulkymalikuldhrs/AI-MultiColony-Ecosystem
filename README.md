@@ -1,3 +1,5 @@
+<img src="docs/banner.png" width="100%">
+
 <a href="https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem">
   <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:0a0a1a,50:1a1a3e,100:2d1b69&height=220&section=header&text=AI%20MultiColony%20Ecosystem&fontSize=42&fontColor=7c3aed&animation=fadeIn&fontAlignY=30&desc=5-Package%20Monorepo%20%7C%20Multi-LLM%20%7C%20OSINT%20%2B%20Trading%20%2B%20Autonomous%20Agents&descSize=16&descColor=a78bfa&descAlignY=50" />
 </a>
@@ -53,38 +55,34 @@
 
 ## Visual Architecture
 
-### 1. Ecosystem Architecture — How All 5 Packages Interconnect
+### 1. Ecosystem Architecture — All 5 Packages as Equal Peers
 
 ```mermaid
 graph TB
-    subgraph "AI MultiColony Ecosystem"
-        direction TB
+    subgraph Frontend["Frontend Layer"]
+        Dashboard["Next.js 16 Dashboard<br/>Real-time Monitoring"]
+        CrucixUI["Crucix Dashboard<br/>OSINT Visualization"]
+        DeerUI["deer-flow Frontend<br/>Agent Chat and Skills"]
+        OrganismUI["Organism UI<br/>Live Evolution View"]
+    end
 
-        subgraph "Frontend Layer"
-            Dashboard["Next.js 16 Dashboard<br/>Real-time Monitoring"]
-            CrucixUI["Crucix Dashboard<br/>OSINT Visualization"]
-            DeerUI["deer-flow Frontend<br/>Agent Chat & Skills"]
-            OrganismUI["Organism UI<br/>Live Evolution View"]
-        end
+    subgraph Gateway["API Gateway"]
+        Nginx["Nginx Reverse Proxy<br/>:80 / :443"]
+        FastAPI["FastAPI Backend<br/>ai_multicolony/"]
+    end
 
-        subgraph "API Gateway"
-            Nginx["Nginx Reverse Proxy<br/>:80/:443"]
-            FastAPI["FastAPI Backend<br/>ai_multicolony/"]
-        end
+    subgraph Packages["Core Packages — Equal Peers"]
+        Crucix["Crucix<br/>OSINT Engine<br/>25+ Data Sources"]
+        DeerFlow["deer-flow<br/>AI Agent Platform<br/>Skill Orchestration"]
+        Organism["autonomous-organism<br/>Self-Evolving Engine<br/>Sense/Decide/Act"]
+        Hermes["HermesQuantOS<br/>Trading Engine<br/>5-Layer Decision Stack"]
+        Legacy["Agentic-AI-System_OLD<br/>Legacy Reference<br/>Archived"]
+    end
 
-        subgraph "Core Packages"
-            Crucix["Crucix<br/>OSINT Engine<br/>25+ Data Sources"]
-            DeerFlow["deer-flow<br/>AI Agent Platform<br/>Skill Orchestration"]
-            Organism["autonomous-organism<br/>Self-Evolving Engine<br/>Sense/Decide/Act"]
-            Hermes["HermesQuantOS<br/>Trading Engine<br/>5-Layer Decision Stack"]
-            Legacy["Agentic-AI-System_OLD<br/>Legacy Reference<br/>Archived"]
-        end
-
-        subgraph "Infrastructure"
-            Docker["Docker Compose<br/>Orchestration"]
-            DB["PostgreSQL + Redis<br/>State & Cache"]
-            Monitoring["Prometheus + Grafana<br/>Observability"]
-        end
+    subgraph Infra["Infrastructure"]
+        Docker["Docker Compose<br/>Orchestration"]
+        DB["PostgreSQL + Redis<br/>State and Cache"]
+        Monitoring["Prometheus + Grafana<br/>Observability"]
     end
 
     Dashboard --> Nginx
@@ -119,7 +117,7 @@ graph TB
     style Nginx fill:#1e293b,stroke:#475569,color:#fff
 ```
 
-### 2. Agent Communication Flow — How Agents Talk Between Packages
+### 2. Agent Communication Flow — Sequence Diagram
 
 ```mermaid
 sequenceDiagram
@@ -142,7 +140,7 @@ sequenceDiagram
     end
 
     DeerFlow->>Organism: Delegate to Autonomous Agent
-    Organism->>Organism: Sense → Decide → Act Loop
+    Organism->>Organism: Sense - Decide - Act Loop
 
     alt Trading Decision Needed
         Organism->>Hermes: Market Analysis Request
@@ -156,30 +154,30 @@ sequenceDiagram
     Dashboard-->>User: Real-time Notification
 ```
 
-### 3. Data Pipeline — From Data Ingestion to Decision Output
+### 3. Data Pipeline — From Ingestion to Decision
 
 ```mermaid
 flowchart LR
-    subgraph "Ingestion"
+    subgraph Ingestion["Ingestion"]
         OSINT["OSINT Sources<br/>25+ APIs"]
         Market["Market Feeds<br/>Binance/Alpaca/IBKR"]
         Social["Social Signals<br/>Telegram/Discord/Reddit"]
-        News["News & Research<br/>GDELT/FRED/SEC"]
+        News["News and Research<br/>GDELT/FRED/SEC"]
     end
 
-    subgraph "Processing"
+    subgraph Processing["Processing"]
         Normalize["Normalization<br/>Canonical Schema"]
         Enrich["Enrichment<br/>LLM Classification"]
         Validate["Validation<br/>Schema Checks"]
     end
 
-    subgraph "Storage"
+    subgraph Storage["Storage"]
         PgDB[("PostgreSQL<br/>Persistent State")]
-        Redis[("Redis<br/>Cache & Queues")]
+        Redis[("Redis<br/>Cache and Queues")]
         Vector[("Vector Store<br/>Embeddings")]
     end
 
-    subgraph "Agent Analysis"
+    subgraph Agents["Agent Analysis"]
         Tech["Technical<br/>Sensor"]
         Sent["Sentiment<br/>Sensor"]
         Macro["Macro<br/>Sensor"]
@@ -187,10 +185,10 @@ flowchart LR
         OnChain["On-Chain<br/>Sensor"]
     end
 
-    subgraph "Decision"
+    subgraph Decision["Decision"]
         Pressure["Pressure<br/>Normalization"]
         Guardian["Risk<br/>Guardian"]
-        Decision["Decision<br/>Artifact"]
+        Output["Decision<br/>Artifact"]
     end
 
     OSINT --> Normalize
@@ -219,43 +217,43 @@ flowchart LR
     Liquidity --> Pressure
     OnChain --> Pressure
 
-    Pressure --> Guardian --> Decision
+    Pressure --> Guardian --> Output
 
-    style Decision fill:#15803d,stroke:#22c55e,color:#fff
+    style Output fill:#15803d,stroke:#22c55e,color:#fff
     style Guardian fill:#b91c1c,stroke:#ef4444,color:#fff
     style Normalize fill:#1e40af,stroke:#3b82f6,color:#fff
 ```
 
-### 4. Tech Stack Visualization — Full Stack Diagram
+### 4. Tech Stack — Full Layered Diagram
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
+    subgraph Client["Client Layer"]
         Browser["Browser<br/>React 19 / Next.js 16"]
         PWA["PWA<br/>Offline Support"]
         Mobile["Mobile<br/>Responsive"]
     end
 
-    subgraph "Web Server"
+    subgraph WebServer["Web Server"]
         Nginx["Nginx<br/>Reverse Proxy + SSL"]
         Static["Static Assets<br/>CSS/JS/Icons"]
     end
 
-    subgraph "Application Layer"
+    subgraph AppLayer["Application Layer"]
         FastAPI["FastAPI<br/>Python 3.11+"]
         WS["WebSocket<br/>Real-time Events"]
         Workers["Background Workers<br/>Task Queue"]
     end
 
-    subgraph "Agent Framework"
+    subgraph AgentFW["Agent Framework"]
         Colony["Colony Manager<br/>Agent Orchestration"]
         Registry["Agent Registry<br/>Capability Discovery"]
-        Memory["Memory Manager<br/>Context & Recall"]
+        Memory["Memory Manager<br/>Context and Recall"]
         MCP["MCP Server<br/>Tool Protocol"]
         Skills["Skill Engine<br/>Plugin Architecture"]
     end
 
-    subgraph "LLM Router"
+    subgraph LLMRouter["LLM Router"]
         Gateway["LLM Gateway<br/>Priority Fallback"]
         LLM7["LLM7<br/>Primary"]
         OpenRouter["OpenRouter<br/>Secondary"]
@@ -265,13 +263,13 @@ graph TB
         Local["Local Models<br/>Ollama"]
     end
 
-    subgraph "Data Layer"
+    subgraph DataLayer["Data Layer"]
         Postgres[("PostgreSQL<br/>Alembic Migrations")]
-        Redis[("Redis<br/>Cache & Pub/Sub")]
+        Redis[("Redis<br/>Cache and Pub/Sub")]
         Vector[("Vector DB<br/>Embeddings")]
     end
 
-    subgraph "Infrastructure"
+    subgraph InfraStack["Infrastructure"]
         Docker["Docker Compose<br/>Multi-Container"]
         Prometheus["Prometheus<br/>Metrics"]
         Grafana["Grafana<br/>Dashboards"]
@@ -314,7 +312,7 @@ graph TB
     style FastAPI fill:#134e4a,stroke:#14b8a6,color:#fff
 ```
 
-### 5. Multi-LLM Router — Provider Fallback Chain
+### 5. Multi-LLM Router — Provider Fallback Decision Flow
 
 ```mermaid
 flowchart TD
@@ -559,12 +557,6 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 [![Email](https://img.shields.io/badge/Email-mulkymalikudhr%40mail.com-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:mulkymalikudhr@mail.com)
 
 ---
-
-<div align="center">
-
-**Part of the [HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) Unified Project**
-
-</div>
 
 <a href="https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem">
   <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:2d1b69,50:1a1a3e,100:0a0a1a&height=100&section=footer" />
