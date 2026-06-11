@@ -33,6 +33,8 @@
 
 ---
 
+<a href="https://www.producthunt.com/products/quant-nanggroe-ai?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-quant-nanggroe-ai" target="_blank" rel="noopener noreferrer"><img alt="Quant Nanggroe AI - trading, quantitative, stocks, ai, ai agent, swarm | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1169196&amp;theme=dark&amp;t=1781170069213"></a>
+
 ## Overview
 
 Quant Nanggroe AI is a **Multi-Agent Decision Intelligence Operating System** for quantitative research and systematic trading in financial markets. It is part of the [HermesQuantOS](https://github.com/mulkymalikuldhrs/HermesQuantOS) unified project ecosystem.
