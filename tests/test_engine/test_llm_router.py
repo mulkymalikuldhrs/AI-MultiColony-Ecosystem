@@ -103,7 +103,7 @@ class TestLLMProvider:
         assert LLMProvider.NVIDIA_NIM == "nvidia_nim"
 
     def test_provider_count(self):
-        assert len(LLMProvider) == 5
+        assert len(LLMProvider) == 6
 
     def test_is_string_enum(self):
         assert isinstance(LLMProvider.OPENAI, str)
