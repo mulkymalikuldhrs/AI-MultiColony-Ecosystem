@@ -51,7 +51,7 @@ def print_info(text: str):
     print(f"{Colors.BLUE}ℹ️  {text}{Colors.ENDC}")
 
 @click.group()
-@click.version_option(version="2.0.0", prog_name="Agentic AI System")
+@click.version_option(version="0.3.0", prog_name="Agentic AI System")
 def cli():
     """
     🧠 Agentic AI System - Autonomous Multi-Agent Intelligence
@@ -130,7 +130,7 @@ def status():
                 print_success("System is running")
                 print(f"  Status: {status_info.get('system_status', 'unknown')}")
                 print(f"  Agents: {status_info.get('agents_active', 0)}/{status_info.get('total_agents', 0)}")
-                print(f"  Version: {status_info.get('version', '2.0.0')}")
+                print(f"  Version: {status_info.get('version', '0.3.0')}")
                 print(f"  Uptime: {status_info.get('uptime', 'unknown')}")
             else:
                 print_error("System error detected")

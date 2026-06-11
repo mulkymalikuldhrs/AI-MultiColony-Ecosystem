@@ -28,7 +28,7 @@ class LLMProviderManager:
     def __init__(self):
         self.agent_id = "llm_provider_manager"
         self.name = "LLM Provider Manager"
-        self.version = "2.0.0"
+        self.version = "0.3.0"
         self.status = "ready"
         self.capabilities = [
             "multi_provider_management",

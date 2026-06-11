@@ -1,6 +1,11 @@
 """
 CrewAI Integration for Agentic AI System
 Provides seamless integration with CrewAI framework
+
+DEPRECATED / EXPERIMENTAL — This integration is a standalone adapter.
+It is NOT imported by any main entry point (main.py or web_interface/app.py).
+To use it, you must manually instantiate CrewAIAdapter with an AgentManager.
+Requires: pip install crewai
 """
 
 from typing import Dict, List, Any, Optional

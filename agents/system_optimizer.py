@@ -30,7 +30,7 @@ class SystemOptimizerAgent:
     def __init__(self):
         self.agent_id = "system_optimizer"
         self.name = "System Optimizer"
-        self.version = "2.0.0"
+        self.version = "0.3.0"
         self.status = "ready"
         self.capabilities = [
             "performance_monitoring",

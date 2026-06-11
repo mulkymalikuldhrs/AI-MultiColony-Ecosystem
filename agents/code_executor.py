@@ -33,7 +33,7 @@ class CodeExecutorAgent:
     def __init__(self):
         self.agent_id = "code_executor"
         self.name = "Code Executor"
-        self.version = "2.0.0"
+        self.version = "0.3.0"
         self.status = "ready"
         self.capabilities = [
             "multi_language_execution",

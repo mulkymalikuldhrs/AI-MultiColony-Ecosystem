@@ -1,6 +1,12 @@
 """
 LangGraph Integration for Agentic AI System
 Provides seamless integration with LangGraph framework
+
+DEPRECATED / EXPERIMENTAL — This integration is a standalone adapter.
+It is NOT imported by any main entry point (main.py or web_interface/app.py).
+Note: main.py partially imports this as a "sync engine" but it is not functionally wired.
+To use it, you must manually instantiate LangGraphAdapter with an AgentManager.
+Requires: pip install langgraph
 """
 
 from typing import Dict, List, Any, Optional

@@ -5,7 +5,7 @@
     "description": "data_scientist agent",
     "capabilities": [],
     "template": "basic_agent",
-    "created_at": "2026-06-11T19:04:33.891474",
+    "created_at": "2026-06-11T19:19:44.540555",
     "status": "tested",
     "requirements": {
       "specialization": "machine_learning",
@@ -20,7 +20,7 @@
         "name": "data_scientist",
         "status": "ready",
         "capabilities": [],
-        "timestamp": "2026-06-11T19:04:33.892471"
+        "timestamp": "2026-06-11T19:19:44.541516"
       },
       "test_result": {
         "success": true,
@@ -28,7 +28,7 @@
         "agent": "data_scientist",
         "capabilities": [],
         "status": "ready",
-        "timestamp": "2026-06-11T19:04:33.892481"
+        "timestamp": "2026-06-11T19:19:44.541525"
       },
       "message": "Agent tested successfully"
     }
@@ -39,7 +39,7 @@
     "description": "test_agent agent",
     "capabilities": [],
     "template": "basic_agent",
-    "created_at": "2026-06-11T19:04:40.556474",
+    "created_at": "2026-06-11T19:19:51.968179",
     "status": "created",
     "requirements": {},
     "file_path": "agents/test_agent.py",

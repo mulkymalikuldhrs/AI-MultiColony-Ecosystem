@@ -1,6 +1,11 @@
 """
 AutoGen Integration for Agentic AI System
 Provides seamless integration with Microsoft AutoGen framework
+
+DEPRECATED / EXPERIMENTAL — This integration is a standalone adapter.
+It is NOT imported by any main entry point (main.py or web_interface/app.py).
+To use it, you must manually instantiate AutoGenAdapter with an AgentManager.
+Requires: pip install pyautogen
 """
 
 from typing import Dict, List, Any, Optional

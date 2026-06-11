@@ -201,7 +201,7 @@ class IntelligenceBriefing(BaseModel):
     """
 
     # Metadata
-    version: str = "2.0.0"
+    version: str = "0.3.0"
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     total_duration_ms: int = 0
     sources_queried: int = 0
@@ -231,7 +231,7 @@ class IntelligenceBriefing(BaseModel):
 class SweepResult(BaseModel):
     """Result of a full intelligence sweep (before briefing synthesis)."""
 
-    crucix_version: str = "2.0.0"
+    crucix_version: str = "0.3.0"
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     total_duration_ms: int = 0
     sources_queried: int = 0

@@ -4,7 +4,7 @@
 
 <div align="center">
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&duration=3000&pause=1000&color=f59e0b&center=true&vCenter=true&width=700&lines=36%2B+Specialized+AI+Agents;Multi-LLM+Gateway+%2B+Automatic+Failover;AES-256+Encrypted+Credential+Vault;PWA+%2B+Docker+%2B+Kubernetes+Ready)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&duration=3000&pause=1000&color=f59e0b&center=true&vCenter=true&width=700&lines=25+Implemented+AI+Agents;Multi-LLM+Gateway+%2B+Automatic+Failover;AES-256+Encrypted+Credential+Vault;PWA+%2B+Docker+%2B+Kubernetes+Ready)](https://git.io/typing-svg)
 
 <br/>
 
@@ -13,7 +13,7 @@
 [![SQLite](https://img.shields.io/badge/SQLite-DB-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![AES-256](https://img.shields.io/badge/AES-256-Encryption-e74c3c?style=for-the-badge&logo=lock&logoColor=white)](https://cryptography.io/)
 [![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
-[![Version](https://img.shields.io/badge/Version-2.0.0-brightgreen?style=for-the-badge&logo=semanticrelease&logoColor=white)](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem/releases)
+[![Version](https://img.shields.io/badge/Version-0.3.0-orange?style=for-the-badge&logo=semanticrelease&logoColor=white)](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem/releases)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
 
 <br/>
@@ -32,6 +32,7 @@
 - [Overview](#overview)
 - [Features](#features)
 - [Agent Ecosystem](#agent-ecosystem)
+- [Core Libraries](#core-libraries)
 - [Architecture](#architecture)
 - [Known Limitations](#known-limitations)
 - [Honest Notes](#honest-notes)
@@ -49,185 +50,276 @@
 
 ## Overview
 
-AI MultiColony Ecosystem is a **multi-agent AI platform** built with Python and Flask that orchestrates 36+ specialized AI agents across a unified web interface. It features a multi-LLM gateway with automatic failover, AES-256 encrypted credential management, and Progressive Web App support.
+AI MultiColony Ecosystem is a **multi-agent AI platform** built with Python and Flask that orchestrates 25 implemented AI agents across a unified web interface. It features a multi-LLM gateway with automatic failover (5 providers), AES-256 encrypted credential management, and Progressive Web App support.
 
-The platform organizes agents into colony-style categories — **Core**, **Security**, **Infrastructure**, **Development**, **Data & Knowledge**, **Business & Marketing**, and **Quality** — enabling coordinated multi-agent workflows through a central dispatcher.
+The platform organizes agents into colony-style categories and includes substantial core libraries for quantitative trading (HermesQuantOS), autonomous organism systems, intelligence briefing (Crucix), and 8 IM channel integrations.
 
-> **Transparency Notice**: This is an **early-stage project** under active development. Some agent modules contain `TODO` placeholders and are not fully implemented. The "Money Making Agent" provides workflow scaffolding for revenue-generating tasks but does **not** autonomously generate income. No built-in user authentication exists — a reverse proxy is required for production deployments. See [Known Limitations](#known-limitations) and [Honest Notes](#honest-notes) for full details.
+> **Transparency Notice**: This is a **v0.3.0 early-stage project** under active development. Some agent modules contain `TODO` placeholders and are not fully implemented. The "Money Making Agent" provides workflow scaffolding for revenue-generating tasks but does **not** autonomously generate income. No built-in user authentication in the Flask web app — a reverse proxy is required for production deployments. See [Known Limitations](#known-limitations) and [Honest Notes](#honest-notes) for full details.
 
 ---
 
 ## Features
 
-### 🤖 36+ Specialized AI Agents
-A diverse colony of agents spanning core orchestration, security auditing, infrastructure management, code generation, knowledge curation, and business operations — each designed for a focused domain.
+### Implemented Features
 
-### 🔀 Multi-LLM Gateway with Failover
-Route requests through **7 LLM providers** with automatic failover: LLM7 (free tier), OpenRouter, DeepSeek, OpenAI, Anthropic, Google AI, and Hugging Face. If one provider is unavailable, the gateway transparently falls back to the next.
+- **25 Implemented AI Agents** — CyberShell, Agent Maker, Dev Engine, UI Designer, FullStack Dev, Bug Hunter, and more. See [Agent Ecosystem](#agent-ecosystem) for the complete list.
+- **Multi-LLM Gateway with Failover** — 5 providers: LLM7 (free tier), OpenRouter, CAMEL, OpenAI, and Local models. Automatic failover when a provider is unavailable.
+- **AES-256 Encrypted Credential Vault** — All stored credentials encrypted at rest using AES-256 via Fernet, with keys derived through PBKDF2HMAC at 100,000 iterations.
+- **HermesQuantOS** — Full quantitative trading engine with 23 tool modules: math engine, risk officer, kill switch, decision engine, portfolio tool, and more.
+- **Autonomous Organism System** — Self-organizing agent scheduler with sense, immune, decision, factory, and memory subsystems.
+- **Crucix Intelligence Engine** — Python port with 27+ data sources, delta computation, briefing generator, and localization (i18n).
+- **8 IM Channel Integrations** — Slack, Telegram, Discord, Feishu, WeChat, WeCom, DingTalk, plus a message bus.
+- **API Gateway Framework** — Routing, middleware (18 modules), JWT auth, CSRF protection, localization, and pagination.
+- **Progressive Web App** — Installable as a native-like app on desktop and mobile with offline caching.
+- **Code Execution** — Multi-language code execution agent with optional Docker sandboxing.
+- **Container-Ready** — Full Docker, Docker Compose, and Kubernetes deployment support.
 
-### 🔐 AES-256 Encrypted Credential Vault
-All stored credentials (API keys, tokens, secrets) are encrypted at rest using **AES-256 via Fernet**, with keys derived through **PBKDF2HMAC** at 100,000 iterations. The master password never leaves the server.
+### Not Yet Implemented
 
-### 📱 Progressive Web App (PWA)
-Installable as a native-like app on desktop and mobile. Includes a service worker for offline caching and a web app manifest for home screen installation.
-
-### 💻 Multi-Language Code Execution
-Execute code in **8+ programming languages** with optional Docker sandboxing for secure, isolated execution environments.
-
-### 🌐 Web Dashboard
-A Flask-based management interface for agent configuration, credential storage, LLM provider management, and real-time agent status monitoring.
-
-### 🔄 Colony Coordination
-Agents communicate through a central dispatch system, enabling multi-step workflows where the output of one agent feeds into the next — forming coordinated colony behaviors.
-
-### 🐳 Container-Ready
-Full Docker, Docker Compose, and Kubernetes deployment support with health checks, volume mounts, and scalable configurations.
+The following features are documented for planning purposes but do **not** have implementations yet:
+- Built-in user authentication in the Flask web app (JWT auth library exists in `src/gateway/auth/` but is not wired into the Flask app)
+- REST API endpoints for credential CRUD, code execution, and LLM queries
+- Enterprise SSO, Global CDN, Auto-scaling
+- SSL/TLS termination (relies on external reverse proxy)
 
 ---
 
 ## Agent Ecosystem
 
-### 🧠 Core Agents
-| Agent | Description |
-|-------|-------------|
-| **CyberShell** | Primary orchestration agent and system coordinator |
-| **Agent Maker** | Dynamically creates and configures new agents |
-| **Dev Engine** | Development workflow automation and code generation |
-| **Colony Coordinator** | Manages inter-agent communication and task routing |
-| **System Monitor** | Tracks system health, resource usage, and agent status |
+### Implemented Agents
 
-### 🛡️ Security Agents
-| Agent | Description |
-|-------|-------------|
-| **Bug Hunter** | Scans code and infrastructure for vulnerabilities |
-| **Credential Manager** | Securely stores and retrieves encrypted credentials |
-| **Security Scanner** | Performs security audits and penetration testing |
-| **Vulnerability Analyzer** | Classifies and prioritizes discovered vulnerabilities |
-| **Auth Guardian** | Monitors and enforces access control policies |
+The following agents have actual implementation files in the codebase:
 
-### ⚙️ Infrastructure Agents
-| Agent | Description |
-|-------|-------------|
-| **Deploy Manager** | Handles application deployment pipelines |
-| **LLM Provider Manager** | Configures and manages LLM provider connections |
-| **Infrastructure Monitor** | Tracks server health, uptime, and performance metrics |
-| **Backup Manager** | Schedules and manages data backups |
-| **Network Manager** | Network configuration and connectivity monitoring |
-| **Resource Optimizer** | Allocates and optimizes compute resources |
+#### Core Agents
+| Agent | File | Description |
+|-------|------|-------------|
+| **CyberShell** | `agents/cybershell.py` | Shell execution, process management, and system monitoring |
+| **Agent Maker** | `agents/agent_maker.py` | Dynamically creates and configures new agents |
+| **Dev Engine** | `agents/dev_engine.py` | Project scaffolding, boilerplate generation, and CI/CD setup |
+| **Meta Agent Creator** | `agents/meta_agent_creator.py` | Creates specialized agents dynamically based on requirements |
+| **Commander AGI** | `agents/commander_agi.py` | Security monitoring and robotics coordination |
 
-### 💻 Development Agents
-| Agent | Description |
-|-------|-------------|
-| **Code Generator** | Generates code from natural language specifications |
-| **Code Reviewer** | Reviews code for quality, style, and correctness |
-| **Test Runner** | Executes test suites and reports coverage |
-| **Documentation Generator** | Creates and maintains project documentation |
-| **Refactoring Agent** | Suggests and applies code refactoring improvements |
-| **Version Control Agent** | Manages Git operations and branch strategies |
+#### Development Agents
+| Agent | File | Description |
+|-------|------|-------------|
+| **UI Designer** | `agents/ui_designer.py` | Generates React/NextJS components and responsive layouts |
+| **FullStack Dev** | `agents/fullstack_dev.py` | End-to-end web application development (frontend + backend) |
+| **Code Executor** | `agents/code_executor.py` | Multi-language code execution with Docker sandboxing |
+| **Prompt Generator** | `agents/prompt_generator.py` | AI prompt engineering and optimization |
 
-### 📊 Data & Knowledge Agents
-| Agent | Description |
-|-------|-------------|
-| **Knowledge Manager** | Curates and retrieves organizational knowledge |
-| **Data Analyzer** | Processes and analyzes datasets |
-| **Research Agent** | Conducts automated research and information gathering |
-| **Data Pipeline Agent** | Manages ETL workflows and data transformations |
-| **Search Agent** | Performs intelligent search across indexed content |
-| **Memory Agent** | Manages conversation history and context persistence |
+#### Infrastructure Agents
+| Agent | File | Description |
+|-------|------|-------------|
+| **Deploy Manager** | `agents/deploy_manager.py` | Multi-platform deployment automation |
+| **LLM Provider Manager** | `agents/llm_provider_manager.py` | Multi-LLM gateway with automatic failover |
+| **System Optimizer** | `agents/system_optimizer.py` | System performance monitoring and optimization |
+| **Data Sync** | `agents/data_sync.py` | Database and storage synchronization |
+| **Backup Colony System** | `agents/backup_colony_system.py` | Distributed backup and redundancy management |
 
-### 💼 Business & Marketing Agents
-| Agent | Description |
-|-------|-------------|
-| **Marketing Agent** | Creates and manages marketing content strategies |
-| **SEO Agent** | Optimizes content for search engine visibility |
-| **Content Writer** | Generates blog posts, copy, and marketing materials |
-| **Social Media Agent** | Manages social media posting and engagement |
-| **Money Making Agent** | ⚠️ Workflow scaffolding for revenue tasks — **not** autonomous income generation |
-| **Analytics Agent** | Tracks and reports on business metrics |
+#### Security Agents
+| Agent | File | Description |
+|-------|------|-------------|
+| **Bug Hunter Bot** | `agents/bug_hunter_bot.py` | Vulnerability discovery and ethical hacking |
+| **Credential Manager** | `agents/credential_manager.py` | Secure credential storage with AES-256/Fernet encryption |
+| **Authentication Agent** | `agents/authentication_agent.py` | Auto-login and registration (Selenium-based) |
 
-### ✅ Quality Agents
-| Agent | Description |
-|-------|-------------|
-| **Quality Controller** | Ensures output meets quality standards |
-| **Compliance Checker** | Validates outputs against compliance requirements |
-| **Performance Tester** | Runs performance benchmarks and load tests |
-| **Integration Tester** | Tests integration points between agents and services |
+#### Business & Research Agents
+| Agent | File | Description |
+|-------|------|-------------|
+| **Marketing Agent** | `agents/marketing_agent.py` | Marketing automation and outreach |
+| **Money Making Agent** | `agents/money_making_agent.py` | Workflow scaffolding for revenue tasks — **not** autonomous income generation |
+| **AI Research** | `agents/ai_research_agent.py` | AI research monitoring and development |
+| **Knowledge Management** | `agents/knowledge_management_agent.py` | Knowledge curation and retrieval |
+| **Quality Control Specialist** | `agents/quality_control_specialist.py` | Visual and analytical quality assessment |
+| **Deployment Specialist** | `agents/deployment_specialist.py` | Colony deployment automation |
+| **AGIColony Connector** | `agents/agi_colony_connector.py` | Inter-colony communication |
 
-> **Note**: Some agents listed above contain `TODO` placeholders and are under active development. Agent availability and functionality may vary. See [Known Limitations](#known-limitations) for details.
+#### Deer-Flow Agents (`src/agents/`)
+| Agent | File | Description |
+|-------|------|-------------|
+| **Lead Agent** | `src/agents/lead_agent/agent.py` | LangGraph-based lead agent with tracing callbacks |
+| **Web Automation** | `src/agents/web_automation_agent.py` | Web automation using Selenium |
+| **Deployment Agent** | `src/agents/deployment_agent.py` | Platform deployment (Netlify, Supabase) |
+| **Dynamic Agent Factory** | `src/agents/dynamic_agent_factory.py` | Runtime agent creation and management |
+| **Agent 02-06** | `src/agents/agent_0[2-6]_*.py` | Specialized pipeline agents (meta spawner, planner, executor, designer, specialist) |
+
+#### Thin Stub Agents
+| Agent | File | Notes |
+|-------|------|-------|
+| **Data Scientist** | `agents/data_scientist.py` | Auto-generated stub (94 lines) — needs implementation |
+| **Test Agent** | `agents/test_agent.py` | Auto-generated stub (94 lines) — needs implementation |
+
+### Planned Agents (Not Yet Implemented)
+
+The following agents are listed for future development. They do **not** have implementation files:
+
+| Category | Planned Agents |
+|----------|---------------|
+| **Core** | Colony Coordinator, System Monitor |
+| **Security** | Security Scanner, Vulnerability Analyzer, Auth Guardian |
+| **Infrastructure** | Infrastructure Monitor, Network Manager, Resource Optimizer |
+| **Development** | Code Generator, Code Reviewer, Test Runner, Documentation Generator, Refactoring Agent, Version Control Agent |
+| **Data & Knowledge** | Data Pipeline Agent, Search Agent |
+| **Business & Marketing** | SEO Agent, Content Writer, Social Media Agent, Analytics Agent |
+| **Quality** | Compliance Checker, Performance Tester, Integration Tester |
+
+> If you'd like to implement one of these planned agents, see [Contributing](#contributing) for how to get started.
+
+---
+
+## Core Libraries
+
+Beyond the agents listed above, the project contains substantial Python libraries that form the backbone of the system:
+
+### HermesQuantOS (`src/quant/`)
+A full quantitative trading engine with 23 tool modules:
+- **MathEngine** — Numerical computation for trading indicators
+- **RiskOfficer** — Risk assessment and position sizing
+- **KillSwitch** — Emergency circuit breaker for trading
+- **DecisionEngine** — Trade decision logic with multi-factor analysis
+- **PortfolioTool** — Portfolio management and rebalancing
+- **MarketState** — Market regime detection
+- **AutoSwitch** — Automatic strategy switching based on conditions
+- **PressureEngine** — Market pressure analysis
+- **NewsSentinel** — News monitoring and sentiment analysis
+- **SMCAgent** — Smart money concept analysis
+- **TechnicalAnalysis** — Technical indicator computation
+- **MacroSentiment** — Macroeconomic sentiment tracking
+- **StrategyLifecycle** — Strategy creation, backtesting, and lifecycle management
+- **AuditLogger** — Comprehensive audit trail logging
+- **Watchdog** — System health monitoring for the quant subsystem
+- Plus: BacktestEngine, ChartVisionTool, ExecutionTool, JournalTool, MarketDataTool, AuditorResearchTool, StrategyTool, SharedState
+
+### Autonomous Organism (`src/organism/`)
+A self-organizing system inspired by biological organisms:
+- **Scheduler** — Agent scheduling with configurable intervals
+- **Sense** — Environmental perception and data ingestion
+- **Immune** — Threat detection and system defense
+- **Decision** — Autonomous decision-making based on sensory input
+- **Factory** — Dynamic agent creation and configuration
+- **Memory** — Persistent state management across cycles
+
+### Crucix Intelligence Engine (`src/crucix/`)
+A Python port of the Crucix intelligence briefing system:
+- **Config** — Configuration management for data sources and alerts
+- **Localization** — Multi-language support (i18n)
+- **Briefing** — Intelligence briefing generation from multiple data sources
+- **DataSources** — 27+ data source integrations (NOAA, FRED, BLS, WHO, ACLED, GDELT, etc.)
+- **Gateway** — API gateway for the Crucix subsystem
+
+### IM Channels (`src/channels/`)
+Eight instant messaging channel integrations:
+- **Slack** — Slack workspace integration
+- **Telegram** — Telegram bot integration
+- **Discord** — Discord bot integration
+- **Feishu** — Feishu/Lark integration
+- **WeChat** — WeChat integration
+- **WeCom** — WeCom (enterprise WeChat) integration
+- **DingTalk** — DingTalk integration
+- **MessageBus** — Internal message routing between channels
+- **Base** — Abstract base class for channel implementations
+- **Manager** — Channel lifecycle and configuration management
+- **Service** — Service layer for channel operations
+- **Commands** — Command routing across channels
+- **Store** — Channel state persistence
+
+### API Gateway (`src/gateway/`)
+A comprehensive API gateway framework:
+- **Router** — Request routing and dispatch
+- **Auth** — JWT authentication, providers, password hashing, SQLite repository
+- **Middleware** — 18 middleware modules for request processing
+- **CSRF** — Cross-site request forgery protection
+- **Localization** — Request/response localization
+- **Pagination** — API response pagination
+- **Routers** — Sub-routers for agents, channels, skills, memory, MCP, models, feedback, threads, uploads, runs, auth, and more
+
+### Additional Libraries
+
+| Module | Path | Description |
+|--------|------|-------------|
+| **MCP** | `src/mcp/` | Model Context Protocol client, tools, session pooling, OAuth, caching |
+| **Guardrails** | `src/guardrails/` | Pre-tool-call authorization middleware and providers |
+| **Skills** | `src/skills/` | Dynamic skill system with installer, parser, validation, security scanner, permissions |
+| **Persistence** | `src/persistence/` | SQLAlchemy 2.0 async ORM for runs, threads, users, feedback; Alembic migrations |
+| **Runtime** | `src/runtime/` | Agent runtime: checkpointer, events, runs, serialization, stream bridge |
+| **Middlewares** | `src/middlewares/` | 18 middleware modules (safety, summarization, loop detection, tool error handling, etc.) |
+| **LLM Models** | `src/llm_models/` | LLM provider abstractions (OpenAI, Claude, vLLM, DeepSeek, MindIE, etc.) |
+| **Community** | `src/community/` | Community integrations (DuckDuckGo search, Exa, Firecrawl, Tavily, Jina AI, etc.) |
+| **Sandbox** | `src/sandbox/` | Local sandbox for code execution with security constraints |
+| **Subagents** | `src/subagents/` | Sub-agent orchestration (bash agent, general-purpose agent) |
+| **DF Tools** | `src/df_tools/` | Deer-flow built-in tools (clarification, task, tool search, etc.) |
+| **Config** | `src/config/` | 25+ configuration modules (model, memory, skills, guardrails, etc.) |
+| **Memory** | `src/memory/` | Conversation memory with LLM summarization, storage, and queue management |
+| **Tracing** | `src/tracing/` | OpenTelemetry tracing factory and metadata |
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        AI MultiColony Ecosystem                     │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌──────────────────────┐    ┌──────────────────────────────────┐  │
-│  │   PWA Frontend       │    │   Web Dashboard (Flask/Jinja2)   │  │
-│  │  ┌────────────────┐  │    │  ┌────────┐ ┌────────┐ ┌──────┐ │  │
-│  │  │ Service Worker │  │    │  │ Agents │ │ Creds  │ │ LLM  │ │  │
-│  │  │ Web Manifest  │  │    │  │ Panel  │ │ Vault  │ │ Config│ │  │
-│  │  └────────────────┘  │    │  └────────┘ └────────┘ └──────┘ │  │
-│  └──────────┬───────────┘    └──────────────┬───────────────────┘  │
-│             │                               │                      │
-│             └──────────────┬────────────────┘                      │
-│                            │                                       │
-│                   ┌────────▼────────┐                              │
-│                   │  Colony         │                              │
-│                   │  Coordinator    │                              │
-│                   │  (Dispatcher)   │                              │
-│                   └────────┬────────┘                              │
-│                            │                                       │
-│          ┌─────────────────┼─────────────────┐                    │
-│          │                 │                  │                    │
-│  ┌───────▼──────┐ ┌───────▼──────┐ ┌────────▼─────┐             │
-│  │  Core Colony │ │ Sec Colony   │ │ Infra Colony │  ...         │
-│  │ ┌──────────┐ │ │ ┌──────────┐ │ │ ┌──────────┐ │             │
-│  │ │CyberShell│ │ │ │BugHunter │ │ │ │DeployMgr │ │             │
-│  │ │AgentMaker│ │ │ │CredMgmt  │ │ │ │LLMProvMgr│ │             │
-│  │ │DevEngine │ │ │ │SecScanner│ │ │ │InfraMon  │ │             │
-│  │ └──────────┘ │ │ └──────────┘ │ │ └──────────┘ │             │
-│  └───────┬──────┘ └───────┬──────┘ └────────┬─────┘             │
-│          │                │                  │                    │
-│          └─────────────────┼─────────────────┘                    │
-│                            │                                       │
-│                   ┌────────▼────────┐                              │
-│                   │  Multi-LLM      │                              │
-│                   │  Gateway        │                              │
-│                   │  (Failover)     │                              │
-│                   └────────┬────────┘                              │
-│                            │                                       │
-│     ┌──────┬──────┬───────┼───────┬──────┬──────┬──────┐         │
-│     │LLM7  │Open  │Deep   │OpenAI │Anthro│Google│Hugg  │         │
-│     │(Free)│Routr │Seek   │       │pic   │ AI   │Face  │         │
-│     └──────┴──────┴───────┴───────┴──────┴──────┴──────┘         │
-│                                                                     │
-│  ┌──────────────────────┐    ┌──────────────────────────────────┐  │
-│  │  Credential Vault    │    │   SQLite Database               │  │
-│  │  AES-256 / Fernet   │    │   (Agents, Config, Logs)        │  │
-│  │  PBKDF2HMAC 100k    │    │                                  │  │
-│  └──────────────────────┘    └──────────────────────────────────┘  │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
++---------------------------------------------------------------------+
+|                     AI MultiColony Ecosystem                         |
++---------------------------------------------------------------------+
+|                                                                     |
+|  +----------------------+    +----------------------------------+  |
+|  |   PWA Frontend       |    |   Web Dashboard (Flask/Jinja2)   |  |
+|  |  +----------------+  |    |  +--------+ +--------+ +------+ |  |
+|  |  | Service Worker |  |    |  | Agents | | Creds  | | LLM  | |  |
+|  |  | Web Manifest   |  |    |  | Panel  | | Vault  | | Config| |  |
+|  |  +----------------+  |    |  +--------+ +--------+ +------+ |  |
+|  +----------+-----------+    +--------------+-------------------+  |
+|             |                              |                       |
+|             +---------------+--------------+                       |
+|                             |                                      |
+|                  +----------v----------+                           |
+|                  |  Flask App          |                           |
+|                  |  (app.py)           |                           |
+|                  +----------+----------+                           |
+|                             |                                      |
+|          +------------------+------------------+                   |
+|          |                  |                  |                   |
+|  +-------v------+  +-------v------+  +--------v------+           |
+|  | Agent System |  | Core Libs    |  | LLM Gateway   |           |
+|  | +----------+ |  | +----------+ |  | (Failover)    |           |
+|  | |CyberShell| |  | |Quant     | |  +---+--+---+---+           |
+|  | |AgentMaker| |  | |Organism  | |  |   |  |   |               |
+|  | |DevEngine | |  | |Crucix    | |  +---+--+---+---+           |
+|  | |...25 more| |  | |Channels  | |  |   |  |   |               |
+|  | +----------+ |  | |Gateway   | |  LLM7 Open    CAMEL         |
+|  +------+-------+  | |MCP       | |  OpenRouter  Local          |
+|         |          | |...       | |                              |
+|         |          | +----------+ |                              |
+|         |          +------+-------+                              |
+|         |                 |                                      |
+|         +--------+--------+                                      |
+|                  |                                                 |
+|       +----------v-----------+                                    |
+|       |  Credential Vault    |    +---------------------------+   |
+|       |  AES-256 / Fernet   |    |   SQLite Database         |   |
+|       |  PBKDF2HMAC 100k    |    |   (Agents, Config, Logs)  |   |
+|       +----------------------+    +---------------------------+   |
+|                                                                     |
++---------------------------------------------------------------------+
 ```
 
 ---
 
 ## Known Limitations
 
-> These are important constraints inherited from the original project. Please review before deploying.
+> These are important constraints. Please review before deploying.
 
 | Limitation | Impact | Workaround |
 |-----------|--------|------------|
-| **No built-in authentication** | Anyone with network access can use the platform | Use a reverse proxy (Nginx/Apache) with HTTP Basic Auth or OAuth |
+| **No built-in authentication in Flask app** | Anyone with network access can use the platform | Use a reverse proxy (Nginx/Apache) with HTTP Basic Auth or OAuth |
+| **Auth library exists but not wired in** | `src/gateway/auth/` has JWT auth but it's not connected to the Flask app | Wire it in or use proxy-level auth |
+| **Many API endpoints documented but not implemented** | `/api/agents/{id}/execute`, `/api/llm/query`, `/api/credentials` CRUD, `/api/code/execute` don't exist | Use the existing endpoints; see [API Documentation](#api-documentation) |
 | **Duplicate credential managers** | Two implementations exist — potential confusion | Use the `src/core/` version which is the more secure implementation |
-| **Incomplete agent implementations** | Some agents contain `TODO` placeholders | Check agent source before relying on functionality |
-| **Missing imports in requirements.txt** | Some third-party imports are not listed | Agents fail gracefully; install missing packages as needed |
+| **Incomplete agent implementations** | Some agents contain `TODO` placeholders; 2 agents are auto-generated stubs | Check agent source before relying on functionality |
+| **Integrations are standalone adapters** | AutoGen, CrewAI, LangGraph integrations exist but are not wired into main entry points | Must be manually instantiated; see deprecation notices in source |
 | **"Money Making Agent" is scaffolding only** | Does not autonomously generate income | Use it as a template for building custom revenue workflows |
 | **SQLite for production** | Not ideal for high-concurrency workloads | Consider PostgreSQL for production deployments |
 | **Single-process Flask** | Not suitable for high-traffic production | Use Gunicorn/uWSGI with multiple workers |
+| **Missing imports in requirements.txt** | Some third-party imports are not listed | Agents fail gracefully; install missing packages as needed |
 
 ---
 
@@ -235,15 +327,19 @@ Full Docker, Docker Compose, and Kubernetes deployment support with health check
 
 > We believe in radical transparency. Here are important clarifications about this project.
 
-1. **Early-stage project** — Some agents contain `TODO` placeholders and are not fully implemented. The agent list represents the intended architecture, not necessarily the current state of every module.
+1. **Early-stage project (v0.3.0)** — Some agents contain `TODO` placeholders and are not fully implemented. The agent list in this README reflects only agents that have actual implementation files. See [Planned Agents](#planned-agents-not-yet-implemented) for aspirational ones.
 
-2. **No built-in user authentication** — The platform does not include user login, session management, or role-based access control. For production deployments, use a reverse proxy (e.g., Nginx with `auth_basic`, Traefik with forward auth, or Cloudflare Access).
+2. **No built-in user authentication in the Flask web app** — While `src/gateway/auth/` contains a JWT auth system, it is NOT wired into the Flask web app. For production deployments, use a reverse proxy (e.g., Nginx with `auth_basic`, Traefik with forward auth, or Cloudflare Access).
 
-3. **"Money Making Agent" is workflow scaffolding** — This agent provides templates and workflow structures for revenue-related tasks. It does **not** autonomously generate income, trade assets, or make financial decisions. Any revenue generation requires significant human configuration and oversight.
+3. **LLM providers** — The gateway supports 5 providers: LLM7, OpenRouter, CAMEL, OpenAI, and Local models. DeepSeek, Anthropic, Google AI, and Hugging Face are **not** in the gateway code (though `src/llm_models/` has provider abstractions for Claude and DeepSeek).
 
-4. **Missing third-party imports** — Some agents import optional packages that are not listed in `requirements.txt`. These agents fail gracefully (catching `ImportError`) but will not function until the missing dependency is installed.
+4. **API documentation accuracy** — Only the endpoints listed in the [API Documentation](#api-documentation) section below actually exist. Previously documented endpoints like `/api/agents/{id}/execute`, `/api/llm/query`, credentials CRUD, and `/api/code/execute` do NOT exist.
 
-5. **Duplicate credential managers** — Two credential manager implementations exist in the codebase. The version in `src/core/` uses the more secure AES-256/Fernet implementation with PBKDF2HMAC key derivation. Prefer this version for production use.
+5. **"Money Making Agent" is workflow scaffolding** — This agent provides templates and workflow structures for revenue-related tasks. It does **not** autonomously generate income, trade assets, or make financial decisions.
+
+6. **Duplicate credential managers** — Two credential manager implementations exist in the codebase. The version in `src/core/` uses the more secure AES-256/Fernet implementation with PBKDF2HMAC key derivation. Prefer this version for production use.
+
+7. **Integrations (AutoGen, CrewAI, LangGraph)** — These are standalone adapter files that are never imported by any main entry point. They require manual instantiation and are marked with deprecation notices. See source files for details.
 
 ---
 
@@ -259,13 +355,6 @@ Full Docker, Docker Compose, and Kubernetes deployment support with health check
 
 ```bash
 # Clone the repository
-
-<!-- AUTO-PACKAGE-BADGES:START -->
-<!-- Auto-generated package badges -->
-
-![npm version](https://img.shields.io/npm/v/agentic-ai-system?style=flat-square&logo=npm&color=blue) ![npm downloads](https://img.shields.io/npm/dw/agentic-ai-system?style=flat-square&color=brightgreen) ![npm license](https://img.shields.io/npm/l/agentic-ai-system?style=flat-square) [![Deployed](https://img.shields.io/badge/deployed-2.1.0-blue?style=flat-square)](https://www.npmjs.com/package/agentic-ai-system)
-
-<!-- AUTO-PACKAGE-BADGES:END -->
 git clone https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem.git
 cd AI-MultiColony-Ecosystem
 
@@ -319,14 +408,13 @@ DATABASE_PATH=data/multicolony.db
 # --- LLM Provider API Keys ---
 # Only configure the providers you intend to use.
 # The gateway will skip unconfigured providers and failover to the next.
+# Supported providers: LLM7, OpenRouter, CAMEL, OpenAI, Local
 
 LLM7_API_KEY=                    # Free tier — no key required
 OPENROUTER_API_KEY=              # https://openrouter.ai/
-DEEPSEEK_API_KEY=                # https://platform.deepseek.com/
+CAMEL_API_KEY=                   # https://camel-ai.org/
 OPENAI_API_KEY=                  # https://platform.openai.com/
-ANTHROPIC_API_KEY=               # https://console.anthropic.com/
-GOOGLE_AI_API_KEY=               # https://makersuite.google.com/
-HUGGINGFACE_API_KEY=             # https://huggingface.co/settings/tokens
+# Local models run on localhost:11434 (Ollama)
 
 # --- Default LLM Settings ---
 DEFAULT_LLM_PROVIDER=llm7
@@ -352,16 +440,19 @@ SESSION_TIMEOUT=3600
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `SECRET_KEY` | ✅ | Flask session signing key — use a strong random string |
-| `CREDENTIAL_MASTER_PASSWORD` | ✅ | Master password for AES-256 credential encryption |
-| `LLM7_API_KEY` | ❌ | Free-tier LLM provider (no key required for basic use) |
-| `OPENAI_API_KEY` | ❌ | OpenAI GPT models |
-| `ANTHROPIC_API_KEY` | ❌ | Claude models |
-| `DOCKER_SANDBOX_ENABLED` | ❌ | Enable Docker isolation for code execution (default: `false`) |
+| `SECRET_KEY` | Yes | Flask session signing key — use a strong random string |
+| `CREDENTIAL_MASTER_PASSWORD` | Yes | Master password for AES-256 credential encryption |
+| `LLM7_API_KEY` | No | Free-tier LLM provider (no key required for basic use) |
+| `OPENAI_API_KEY` | No | OpenAI GPT models |
+| `OPENROUTER_API_KEY` | No | OpenRouter multi-model hub |
+| `CAMEL_API_KEY` | No | CAMEL AI provider |
+| `DOCKER_SANDBOX_ENABLED` | No | Enable Docker isolation for code execution (default: `false`) |
 
 ---
 
 ## API Documentation
+
+> **Note**: Only the endpoints listed below actually exist in the Flask application. Endpoints previously documented (such as `/api/agents/{id}/execute`, `/api/llm/query`, `/api/credentials` CRUD, and `/api/code/execute`) do **not** exist.
 
 ### Base URL
 
@@ -369,145 +460,182 @@ SESSION_TIMEOUT=3600
 http://localhost:5000/api
 ```
 
+### System Status
+
+#### Get System Status
+
+```http
+GET /api/system/status
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "system_status": "running",
+    "agents_active": 10,
+    "total_agents": 14,
+    "loaded_agents": ["cybershell", "agent_maker", "..."],
+    "version": "0.3.0",
+    "components": {
+      "memory_bus": true,
+      "llm_gateway": true
+    }
+  }
+}
+```
+
 ### Agent Management
 
 #### List All Agents
 
 ```http
-GET /api/agents
+GET /api/agents/list
 ```
 
 **Response:**
 ```json
 {
-  "agents": [
+  "success": true,
+  "data": [
     {
       "id": "cybershell",
       "name": "CyberShell",
-      "category": "core",
-      "status": "active",
-      "description": "Primary orchestration agent"
+      "status": "ready",
+      "capabilities": ["shell_execution", "process_management"]
     }
   ]
 }
 ```
 
-#### Get Agent Details
+#### Get Agent Status
 
 ```http
-GET /api/agents/{agent_id}
+GET /api/agents/<agent_id>/status
 ```
 
-#### Execute Agent Task
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "agent_id": "cybershell",
+    "name": "CyberShell",
+    "status": "ready",
+    "capabilities": ["shell_execution", "process_management"]
+  }
+}
+```
+
+### Task Execution
+
+#### Submit Task to Agent
 
 ```http
-POST /api/agents/{agent_id}/execute
+POST /api/task/submit
 Content-Type: application/json
 
 {
-  "task": "Scan the codebase for security vulnerabilities",
-  "parameters": {
-    "severity": "high",
-    "language": "python"
-  }
+  "agent_id": "cybershell",
+  "task": "List all running processes"
 }
 ```
 
 **Response:**
 ```json
 {
-  "task_id": "task_abc123",
-  "agent_id": "bug_hunter",
-  "status": "running",
-  "created_at": "2025-01-15T10:30:00Z"
+  "success": true,
+  "data": {
+    "success": true,
+    "output": "..."
+  }
+}
+```
+
+### Prompt Processing
+
+#### Process a Prompt
+
+```http
+POST /api/prompt/process
+Content-Type: application/json
+
+{
+  "prompt": "Create a web application for task management",
+  "input_type": "text"
 }
 ```
 
 ### LLM Gateway
 
-#### List Available Providers
+#### Get LLM Provider Status
 
 ```http
 GET /api/llm/providers
 ```
 
-#### Query LLM
-
-```http
-POST /api/llm/query
-Content-Type: application/json
-
-{
-  "prompt": "Explain multi-agent systems",
-  "provider": "openai",
-  "model": "gpt-4",
-  "temperature": 0.7,
-  "max_tokens": 1024
-}
-```
-
 **Response:**
 ```json
 {
-  "response": "Multi-agent systems are...",
-  "provider": "openai",
-  "model": "gpt-4",
-  "tokens_used": 856,
-  "failover": false
+  "success": true,
+  "data": {
+    "providers": {
+      "llm7": {"status": "active", "priority": 1, "models": ["gpt-3.5-turbo", "gpt-4", "claude-3-sonnet"]},
+      "openrouter": {"status": "available", "priority": 2},
+      "camel": {"status": "available", "priority": 3},
+      "openai": {"status": "fallback", "priority": 4},
+      "local": {"status": "optional", "priority": 5}
+    }
+  }
 }
 ```
 
-### Credential Management
-
-#### Store Credential
+#### Test All LLM Providers
 
 ```http
-POST /api/credentials
+POST /api/llm/test
+```
+
+### Memory & Performance
+
+#### Get Memory Stats
+
+```http
+GET /api/memory/stats
+```
+
+#### Get Performance Metrics
+
+```http
+GET /api/performance/metrics
+```
+
+### Workflows
+
+#### Execute a Workflow
+
+```http
+POST /api/workflows/execute
 Content-Type: application/json
 
 {
-  "name": "my_api_key",
-  "value": "sk-xxxxxxxxxxxx",
-  "category": "api_keys"
+  "workflow_id": "custom",
+  "steps": [
+    {"agent_id": "cybershell", "task": {"description": "Check system status"}},
+    {"agent_id": "bug_hunter", "task": {"description": "Scan for vulnerabilities"}}
+  ]
 }
 ```
 
-#### Retrieve Credential
+### WebSocket Events
 
-```http
-GET /api/credentials/{name}
-```
+The system supports real-time updates via SocketIO:
 
-#### Delete Credential
-
-```http
-DELETE /api/credentials/{name}
-```
-
-### Code Execution
-
-#### Execute Code
-
-```http
-POST /api/code/execute
-Content-Type: application/json
-
-{
-  "language": "python",
-  "code": "print('Hello from MultiColony!')",
-  "timeout": 30
-}
-```
-
-**Response:**
-```json
-{
-  "stdout": "Hello from MultiColony!\n",
-  "stderr": "",
-  "exit_code": 0,
-  "execution_time": 0.12
-}
-```
+- `connect` — Client connection
+- `subscribe_updates` — Subscribe to system status updates
+- `request_status_update` — Request current status
+- `system_update` — Periodic system status broadcasts
 
 ---
 
@@ -684,6 +812,7 @@ kubectl get pods -l app=multicolony
 - [ ] Enable Docker sandboxing for code execution
 - [ ] Configure regular database backups
 - [ ] Set up monitoring and alerting
+- [ ] Wire `src/gateway/auth/` into the Flask app for built-in authentication
 
 ---
 
@@ -719,13 +848,14 @@ encrypted = fernet.encrypt(credential_value.encode())
 
 | Area | Status | Recommendation |
 |------|--------|---------------|
-| Encryption at rest | ✅ AES-256 | Ensure `CREDENTIAL_MASTER_PASSWORD` is strong |
-| TLS/HTTPS | ❌ Not built-in | Use reverse proxy with TLS termination |
-| Authentication | ❌ Not built-in | Use reverse proxy with HTTP Basic Auth / OAuth |
-| Code execution sandboxing | ⚠️ Optional | Enable `DOCKER_SANDBOX_ENABLED=true` in production |
-| Rate limiting | ❌ Not built-in | Add Flask-Limiter or proxy-level rate limiting |
-| Input validation | ⚠️ Partial | Review agent inputs before production use |
-| CORS | ⚠️ Default open | Restrict `CORS_ORIGINS` in production |
+| Encryption at rest | AES-256 via Fernet | Ensure `CREDENTIAL_MASTER_PASSWORD` is strong |
+| TLS/HTTPS | Not built-in | Use reverse proxy with TLS termination |
+| Authentication | JWT library exists but not wired into Flask app | Use reverse proxy auth OR wire `src/gateway/auth/` into Flask |
+| Code execution sandboxing | Optional | Enable `DOCKER_SANDBOX_ENABLED=true` in production |
+| Rate limiting | Not built-in | Add Flask-Limiter or proxy-level rate limiting |
+| Input validation | Partial | Review agent inputs before production use |
+| CORS | Default open | Restrict `CORS_ORIGINS` in production |
+| Audit logging | Quant-only | General audit logging not yet implemented |
 
 ---
 
@@ -737,13 +867,15 @@ Contributions are welcome! This project has specific areas where help is most ne
 
 | Priority | Area | Description |
 |----------|------|-------------|
-| 🔴 High | **Agent implementations** | Complete `TODO` placeholders in partially implemented agents |
-| 🔴 High | **Missing requirements.txt entries** | Identify and add missing third-party dependencies |
-| 🟡 Medium | **Authentication** | Add optional built-in user authentication module |
-| 🟡 Medium | **Deduplicate credential managers** | Consolidate into a single, well-tested implementation |
-| 🟡 Medium | **Test coverage** | Add unit and integration tests |
-| 🟢 Low | **Documentation** | Improve agent documentation and usage examples |
-| 🟢 Low | **PostgreSQL support** | Add database backend option beyond SQLite |
+| High | **Planned agent implementations** | Implement agents from the [Planned Agents](#planned-agents-not-yet-implemented) list |
+| High | **Wire auth into Flask** | Connect `src/gateway/auth/` JWT system to the Flask web app |
+| High | **Missing API endpoints** | Implement `/api/credentials` CRUD, `/api/code/execute`, `/api/llm/query` |
+| High | **Missing requirements.txt entries** | Identify and add missing third-party dependencies |
+| Medium | **Deduplicate credential managers** | Consolidate into a single, well-tested implementation |
+| Medium | **Test coverage** | Add tests for untested modules (channels, mcp, guardrails, skills, etc.) |
+| Medium | **Integration wiring** | Wire AutoGen/CrewAI/LangGraph into main entry points |
+| Low | **Documentation** | Improve agent documentation and usage examples |
+| Low | **PostgreSQL support** | Add database backend option beyond SQLite |
 
 ### How to Contribute
 
@@ -764,6 +896,9 @@ pip install -r requirements-dev.txt  # If available
 
 # Run in debug mode
 FLASK_ENV=development FLASK_DEBUG=1 python web_interface/app.py
+
+# Run existing tests
+python -m pytest tests/
 ```
 
 ### Code Style
@@ -782,7 +917,7 @@ FLASK_ENV=development FLASK_DEBUG=1 python web_interface/app.py
 This project is provided strictly for educational and research purposes. The authors and contributors assume **no responsibility or liability** for any damages, losses, or risks arising from the use of this software.
 
 **Important:**
-- **We do not guarantee** that any agent will function as described, especially those marked with `TODO` placeholders.
+- **We do not guarantee** that any agent will function as described, especially those marked with `TODO` placeholders or listed as auto-generated stubs.
 - **We do not bear any responsibility or risk** for how this software is used.
 - **The "Money Making Agent"** is workflow scaffolding only — it does not generate income autonomously and should not be relied upon for financial decisions.
 - **No warranty** is provided, express or implied. Use at your own risk.
@@ -790,20 +925,6 @@ This project is provided strictly for educational and research purposes. The aut
 ---
 
 
-
-## 🔗 Related Projects
-
-We're building a family of open source tools! Check out our other projects:
-
-| Project | Description | Stars |
-|---------|-------------|-------|
-| [📈 Quant-Nanggroe-AI](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI) | AI-powered quantitative analysis for Nanggroe market | ⭐ |
-| [🧠 AI-MultiColony-Ecosystem](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem) | Multi-agent AI colony simulation | ⭐ 3 |
-| [📋 Kalen](https://github.com/mulkymalikuldhrs/kalen) | Smart scheduling & AI task management | ⭐ |
-| [🤖 ProxyGateLLM](https://github.com/mulkymalikuldhrs/ProxyGateLLM) | Multi-LLM gateway with priority fallback | ⭐ 36 |
-| [🧩 Mnemosyne](https://github.com/mulkymalikuldhrs/mnemosyne) | Knowledge management & note-taking | ⭐ |
-
-🚀 **[Visit our Contributor Hub](https://mulkymalikuldhrs.github.io/contribute-to-our-projects/)** — 28 open source projects seeking contributors!
 
 ## License
 
@@ -847,26 +968,3 @@ SOFTWARE.
 <a href="https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem">
   <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=100:5c3000,50:3d1f00,0:1a0a00&height=100&section=footer" />
 </a>
-
-
-<!-- Schema.org Structured Data for Search Engines -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareSourceCode",
-  "name": "AI-MultiColony-Ecosystem",
-  "author": {
-    "@type": "Person",
-    "name": "Mulky Malikul Adhr",
-    "url": "https://github.com/mulkymalikuldhrs"
-  },
-  "programmingLanguage": "TypeScript",
-  "license": "https://spdx.org/licenses/MIT",
-  "codeRepository": "https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem",
-  "contributor": {
-    "@type": "Organization",
-    "name": "Open Source Contributors",
-    "url": "https://mulkymalikuldhrs.github.io/contribute-to-our-projects/"
-  }
-}
-</script>

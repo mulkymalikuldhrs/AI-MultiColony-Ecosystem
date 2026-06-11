@@ -28,7 +28,7 @@ class AIResearchAgent:
     def __init__(self):
         self.agent_id = "ai_research_agent"
         self.name = "AI Research Agent"
-        self.version = "2.0.0"
+        self.version = "0.3.0"
         self.status = "ready"
         self.capabilities = [
             "paper_analysis",

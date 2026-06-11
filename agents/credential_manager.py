@@ -35,7 +35,7 @@ class CredentialManagerAgent:
     def __init__(self):
         self.agent_id = "credential_manager"
         self.name = "Credential Manager"
-        self.version = "2.0.0"
+        self.version = "0.3.0"
         self.status = "ready" if HAS_CRYPTO else "degraded"
         self.capabilities = [
             "credential_storage",

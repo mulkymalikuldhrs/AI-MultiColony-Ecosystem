@@ -7,7 +7,7 @@ from 27+ public APIs, computes deltas between sweeps, and generates
 actionable intelligence briefings.
 
 Ported from the original JavaScript/TypeScript implementation at
-contrib/crucix/ (Crucix v2.0.0).
+contrib/crucix/ (Crucix v0.3.0).
 
 Modules:
     briefing: Intelligence briefing generator — the core value of Crucix
@@ -19,5 +19,5 @@ Modules:
     memory: Hot/cold memory manager for sweep history
 """
 
-__version__ = "2.0.0"
+__version__ = "0.3.0"
 __original__ = "JavaScript/TypeScript — contrib/crucix/"

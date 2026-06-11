@@ -2,6 +2,10 @@
 Netlify Integration for Agentic AI System
 Automated deployment and site management
 
+EXPERIMENTAL / NOT WIRED — This integration is a standalone module.
+It is NOT imported by any main entry point. Used only by src/agents/deployment_agent.py.
+Requires: pip install netlify-python
+
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 

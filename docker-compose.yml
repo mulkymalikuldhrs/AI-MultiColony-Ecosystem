@@ -13,7 +13,7 @@ services:
       target: production
       args:
         BUILD_DATE: ${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
-        VERSION: ${VERSION:-2.0.0}
+        VERSION: ${VERSION:-0.3.0}
         COMMIT_SHA: ${COMMIT_SHA:-unknown}
     container_name: agentic-ai-system
     restart: unless-stopped

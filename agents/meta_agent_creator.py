@@ -20,7 +20,7 @@ class MetaAgentCreator:
     def __init__(self):
         self.agent_id = "meta_agent_creator"
         self.name = "Meta Agent Creator"
-        self.version = "2.0.0"
+        self.version = "0.3.0"
         self.capabilities = [
             "agent_creation",
             "code_generation", 

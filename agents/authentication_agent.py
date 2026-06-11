@@ -31,7 +31,7 @@ class AuthenticationAgent:
     def __init__(self):
         self.agent_id = "authentication_agent"
         self.name = "Authentication Agent"
-        self.version = "2.0.0"
+        self.version = "0.3.0"
         self.status = "ready"
         self.capabilities = [
             "auto_login",
