@@ -68,10 +68,23 @@ from quant_nanggroe.exchange.paper_broker import PaperExchangeBroker
 from quant_nanggroe.exchange.manager import ExchangeManager
 from quant_nanggroe.exchange.alpaca_broker import AlpacaBroker
 
-# New broker modules (optional dependencies)
-from quant_nanggroe.exchange.polymarket_broker import PolymarketBroker, PolymarketCLOBClient
-from quant_nanggroe.exchange.mt5_broker import MT5Broker
-from quant_nanggroe.exchange.ibkr_broker import IBKRBroker
+# New broker modules (optional dependencies — gracefully degrade if not installed)
+try:
+    from quant_nanggroe.exchange.polymarket_broker import PolymarketBroker, PolymarketCLOBClient
+except ImportError:
+    PolymarketBroker = None  # type: ignore[misc,assignment]
+    PolymarketCLOBClient = None  # type: ignore[misc,assignment]
+
+try:
+    from quant_nanggroe.exchange.mt5_broker import MT5Broker
+except ImportError:
+    MT5Broker = None  # type: ignore[misc,assignment]
+
+try:
+    from quant_nanggroe.exchange.ibkr_broker import IBKRBroker
+except ImportError:
+    IBKRBroker = None  # type: ignore[misc,assignment]
+
 from quant_nanggroe.exchange.quantdinger_factory import QuantDingerFactory
 
 # Solana/Jupiter V6 integration

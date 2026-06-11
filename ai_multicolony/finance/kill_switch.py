@@ -187,7 +187,9 @@ class KillSwitch:
 
         return event
 
-    def deactivate(self, reason: str = "Manual deactivation") -> Optional[KillSwitchEvent]:
+    LEVEL_3_APPROVAL_CODE = "CONFIRM_LEVEL3_DEACTIVATION_AFTER_REVIEW"
+
+    def deactivate(self, reason: str = "Manual deactivation", approval_code: str = "") -> Optional[KillSwitchEvent]:
         """Deactivate the kill switch.
 
         Returns
@@ -213,9 +215,15 @@ class KillSwitch:
                 )
                 return None
 
-        # Level 3 requires approval
+        # Level 3 requires explicit approval — BLOCK deactivation without it
         if self._current_level == KillSwitchLevel.LEVEL_3 and self._config.level_3_requires_approval:
-            logger.warning("Level 3 deactivation requires explicit approval")
+            if approval_code != self.LEVEL_3_APPROVAL_CODE:
+                logger.critical(
+                    "BLOCKED: Level 3 kill switch deactivation requires explicit approval. "
+                    "Provide approval_code='%s' to override.",
+                    self.LEVEL_3_APPROVAL_CODE,
+                )
+                return None
 
         previous_level = self._current_level
         self._current_level = KillSwitchLevel.NONE
