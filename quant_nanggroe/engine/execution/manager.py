@@ -124,7 +124,7 @@ class ExecutionManager:
                 "quantity": order.quantity,
             })
 
-            return Fill(
+            fill = Fill(
                 id=str(uuid.uuid4()),
                 order_id=order.id,
                 symbol=order.symbol,
@@ -132,6 +132,21 @@ class ExecutionManager:
                 quantity=order.quantity,
                 price=order.price or 0.0,
             )
+
+            # Record fill in tracker for audit trail
+            self._fill_tracker.record(fill)
+
+            # Update guards post-fill so they operate on current state
+            self._cooldown_guard.record_trade(order.symbol)
+
+            fill_notional = fill.quantity * fill.price
+            if order.side == OrderSide.BUY:
+                new_notional = self._max_position_guard._current_positions.get(order.symbol, 0.0) + fill_notional
+            else:
+                new_notional = max(0.0, self._max_position_guard._current_positions.get(order.symbol, 0.0) - fill_notional)
+            self._max_position_guard.update_position(order.symbol, new_notional)
+
+            return fill
 
         except Exception as exc:
             logger.error("Order execution failed: %s", exc)

@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://arxiv.org/abs/2509.17395",
+    "name": "Multi-Agent Collaborative Intelligence for Financial Analysis - arXiv",
+    "snippet": "FinDebate, a multi-agent framework for financial analysis, integrating collaborative debate with domain-specific Retrieval-Augmented Generation ...",
+    "host_name": "arxiv.org",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/html/2509.17395v1",
+    "name": "FinDebate: Multi-Agent Collaborative Intelligence for Financial",
+    "snippet": "FinDebate, a multi-agent framework for financial analysis, integrating collaborative debate with domain-specific Retrieval-Augmented Generation ...",
+    "host_name": "arxiv.org",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.researchgate.net/publication/396360100_FinDebate_A_Retrieval-Augmented_Multi-Agent_LLM_for_Financial_Advisory_Consensus_with_Explainable_Reasoning",
+    "name": "FinDebate: A Retrieval-Augmented Multi-Agent LLM for Financial",
+    "snippet": "FinDebate outperforms robust baselines in decision accuracy and factual fidelity, slashing error rates by up to 18%. FinDebate: a retrieval- ...",
+    "host_name": "www.researchgate.net",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/pdf/2509.17395",
+    "name": "[PDF] FinDebate: Multi-Agent Collaborative Intelligence for Financial",
+    "snippet": "We introduce FinDebate, a multi-agent frame- work for financial analysis, integrating collab- orative debate with domain-specific Retrieval-.",
+    "host_name": "arxiv.org",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/html/2410.21741v1",
+    "name": "Enhancing Financial Question Answering with a Multi-Agent  - arXiv",
+    "snippet": "In this study, we propose a multi-agent framework incorporating a critic agent that reflects on the reasoning steps and final answers for each question.",
+    "host_name": "arxiv.org",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

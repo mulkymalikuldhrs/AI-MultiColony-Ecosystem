@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://github.com/microsoft/qlib",
+    "name": "microsoft/qlib: Qlib is an AI-oriented Quant investment  - GitHub",
+    "snippet": "Qlib provides a tool named qrun to run the whole workflow automatically (including building dataset, training models, backtest and evaluation). You can ...",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/coding-nexus/qlib-an-open-source-ai-platform-by-microsoft-for-quant-investment-6479f8d11447",
+    "name": "Qlib: An Open-Source AI Platform by Microsoft for Quant Investment",
+    "snippet": "Dataset building; Model training; Backtesting; Evaluation. All from a single config file. Example using LightGBM with Alpha158 features: cd ...",
+    "host_name": "medium.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/microsoft/qlib/issues/1930",
+    "name": "Backtest results stay the same regardless of model used · Issue #1930",
+    "snippet": "Bug Report I noticed that when I switch between different models (e.g., LGBModel, XGBModel, DNNModel), the backtest results remain exactly ...",
+    "host_name": "github.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://qlib.readthedocs.io/en/stable/introduction/quick.html",
+    "name": "Quick Start — QLib 0.9.7 documentation",
+    "snippet": "Qlib provides a tool named qrun to run the whole workflow automatically (including building dataset, training models, backtest and evaluation). Users can ...",
+    "host_name": "qlib.readthedocs.io",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "http://tianpan.co/forum/t/microsoft-qlib-a-panoramic-assessment-for-quantitative-trading-infrastructure/167",
+    "name": "Microsoft Qlib: A panoramic assessment for quantitative trading",
+    "snippet": "A properly configured Qlib environment enables rapid experimentation—data processing, feature engineering, model training, and backtesting in a ...",
+    "host_name": "tianpan.co",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://forum.numer.ai/t/microsoft-qlib-ai-quant-workflow-and-backtesting/1315",
+    "name": "Microsoft Qlib: AI Quant workflow and backtesting - Numerai Forum",
+    "snippet": "Qlib is an AI-oriented quantitative investment platform that aims to realize the potential, empower research, and create value using AI technologies.",
+    "host_name": "forum.numer.ai",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://gitee.com/gapyanpeng/qlib",
+    "name": "高艳鹏/qlib - Gitee",
+    "snippet": "Qlib provides a tool named qrun to run the whole workflow automatically (including building dataset, training models, backtest and evaluation). You can ...",
+    "host_name": "gitee.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://vadim.blog/qlib-hft-ai",
+    "name": "Qlib's Nested Execution for High-Frequency Trading with AI",
+    "snippet": "In Qlib, the Nested Decision Execution Framework simplifies building multi-level HFT strategies, allowing a high-level (daily or weekly) ...",
+    "host_name": "vadim.blog",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "http://codesandbox.io/p/github/microsoft/qlib",
+    "name": "qlib - Codesandbox",
+    "snippet": "Qlib provides a tool named qrun to run the whole workflow automatically (including building dataset, training models, backtest and evaluation). You can ...",
+    "host_name": "codesandbox.io",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/microsoft/qlib/blob/main/examples/workflow_by_code.py",
+    "name": "qlib/examples/workflow_by_code.py at main · microsoft/qlib - GitHub",
+    "snippet": "Qlib is an AI-oriented Quant investment platform that aims to use AI tech to empower Quant Research, from exploring ideas to implementing productions.",
+    "host_name": "github.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

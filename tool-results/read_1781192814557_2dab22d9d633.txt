@@ -1,0 +1,800 @@
+     1→"""Comprehensive tests for the backtest engine modules.
+     2→
+     3→Tests cover:
+     4→- BacktestEngine: simple backtest with known results, determinism, config
+     5→- WalkForwardAnalyzer: isolation test (no future data leak), aggregate stats
+     6→- PerformanceMetrics: Sharpe, drawdown, win rate validation
+     7→- MonteCarloSimulator: convergence with enough simulations, reproducibility
+     8→- Portfolio: position tracking, PnL calculation, equity tracking
+     9→"""
+    10→
+    11→from __future__ import annotations
+    12→
+    13→import pytest
+    14→import numpy as np
+    15→import pandas as pd
+    16→
+    17→from quant_nanggroe.engine.backtest.engine import BacktestEngine, BacktestConfig, MarketType, StrategyType
+    18→from quant_nanggroe.engine.backtest.walk_forward import WalkForwardAnalyzer, WalkForwardResult
+    19→from quant_nanggroe.engine.backtest.metrics import PerformanceMetrics
+    20→from quant_nanggroe.engine.backtest.monte_carlo import MonteCarloSimulator
+    21→from quant_nanggroe.engine.backtest.portfolio import Portfolio, Position, TradeRecord
+    22→from quant_nanggroe.engine.backtest.execution import ExecutionSimulator, ExecutionConfig
+    23→
+    24→
+    25→# ═══════════════════════════════════════════════════════════════════════
+    26→# Fixtures
+    27→# ═══════════════════════════════════════════════════════════════════════
+    28→
+    29→
+    30→@pytest.fixture
+    31→def engine() -> BacktestEngine:
+    32→    config = BacktestConfig(initial_capital=100_000.0, commission_rate=0.001)
+    33→    return BacktestEngine(config)
+    34→
+    35→
+    36→@pytest.fixture
+    37→def trending_up_data():
+    38→    """Price data with a known uptrend."""
+    39→    dates = pd.date_range("2024-01-01", periods=200, freq="D")
+    40→    prices = pd.DataFrame({
+    41→        "SPY": 100.0 * np.cumprod(1 + np.random.default_rng(42).normal(0.001, 0.01, 200)),
+    42→    }, index=dates)
+    43→    return prices
+    44→
+    45→
+    46→@pytest.fixture
+    47→def buy_and_hold_signals(trending_up_data):
+    48→    """Signals that buy and hold throughout."""
+    49→    signals = pd.DataFrame({
+    50→        "SPY": np.ones(len(trending_up_data)) * 0.1,  # 10% weight
+    51→    }, index=trending_up_data.index)
+    52→    return signals
+    53→
+    54→
+    55→@pytest.fixture
+    56→def no_trade_signals(trending_up_data):
+    57→    """Zero signals — no trades."""
+    58→    return pd.DataFrame({
+    59→        "SPY": np.zeros(len(trending_up_data)),
+    60→    }, index=trending_up_data.index)
+    61→
+    62→
+    63→@pytest.fixture
+    64→def metrics_calculator() -> PerformanceMetrics:
+    65→    return PerformanceMetrics(bars_per_year=252)
+    66→
+    67→
+    68→@pytest.fixture
+    69→def portfolio() -> Portfolio:
+    70→    return Portfolio(initial_capital=100_000.0, max_positions=10)
+    71→
+    72→
+    73→@pytest.fixture
+    74→def multi_asset_data():
+    75→    """Price data with multiple assets for testing."""
+    76→    dates = pd.date_range("2024-01-01", periods=200, freq="D")
+    77→    rng = np.random.default_rng(42)
+    78→    prices = pd.DataFrame({
+    79→        "SPY": 100.0 * np.cumprod(1 + rng.normal(0.001, 0.01, 200)),
+    80→        "QQQ": 100.0 * np.cumprod(1 + rng.normal(0.0012, 0.012, 200)),
+    81→    }, index=dates)
+    82→    return prices
+    83→
+    84→
+    85→@pytest.fixture
+    86→def multi_asset_signals(multi_asset_data):
+    87→    """Signals for multiple assets."""
+    88→    return pd.DataFrame({
+    89→        "SPY": np.ones(len(multi_asset_data)) * 0.05,
+    90→        "QQQ": np.ones(len(multi_asset_data)) * 0.05,
+    91→    }, index=multi_asset_data.index)
+    92→
+    93→
+    94→# ═══════════════════════════════════════════════════════════════════════
+    95→# 1. Backtest Engine — Simple Backtest
+    96→# ═══════════════════════════════════════════════════════════════════════
+    97→
+    98→
+    99→class TestBacktestEngineSimple:
+   100→
+   101→    def test_run_returns_required_keys(self, engine, trending_up_data, buy_and_hold_signals):
+   102→        result = engine.run(trending_up_data, buy_and_hold_signals)
+   103→        assert "metrics" in result
+   104→        assert "equity_curve" in result
+   105→        assert "trades" in result
+   106→        assert "final_equity" in result
+   107→        assert "total_trades" in result
+   108→
+   109→    def test_no_trade_preserves_capital(self, engine, trending_up_data, no_trade_signals):
+   110→        result = engine.run(trending_up_data, no_trade_signals)
+   111→        # With no trades, equity should be close to initial capital
+   112→        assert abs(result["final_equity"] - engine.config.initial_capital) < 1.0
+   113→
+   114→    def test_equity_curve_is_series(self, engine, trending_up_data, buy_and_hold_signals):
+   115→        result = engine.run(trending_up_data, buy_and_hold_signals)
+   116→        assert isinstance(result["equity_curve"], pd.Series)
+   117→
+   118→    def test_final_equity_positive(self, engine, trending_up_data, buy_and_hold_signals):
+   119→        result = engine.run(trending_up_data, buy_and_hold_signals)
+   120→        assert result["final_equity"] > 0
+   121→
+   122→    def test_total_trades_non_negative(self, engine, trending_up_data, buy_and_hold_signals):
+   123→        result = engine.run(trending_up_data, buy_and_hold_signals)
+   124→        assert result["total_trades"] >= 0
+   125→
+   126→    def test_multi_asset_backtest(self, engine, multi_asset_data, multi_asset_signals):
+   127→        """Backtest should work with multiple assets."""
+   128→        result = engine.run(multi_asset_data, multi_asset_signals)
+   129→        assert result["final_equity"] > 0
+   130→        assert isinstance(result["equity_curve"], pd.Series)
+   131→
+   132→
+   133→class TestBacktestEngineConfig:
+   134→
+   135→    def test_default_config(self):
+   136→        config = BacktestConfig()
+   137→        assert config.initial_capital == 1_000_000.0
+   138→        assert config.commission_rate == 0.001
+   139→        assert config.slippage_bps == 5.0
+   140→        assert config.max_positions == 10
+   141→        assert config.bars_per_year == 252
+   142→
+   143→    def test_custom_config(self):
+   144→        config = BacktestConfig(
+   145→            initial_capital=50_000.0,
+   146→            commission_rate=0.002,
+   147→            slippage_bps=10.0,
+   148→            market=MarketType.CRYPTO,
+   149→        )
+   150→        assert config.initial_capital == 50_000.0
+   151→        assert config.market == MarketType.CRYPTO
+   152→
+   153→    def test_market_type_values(self):
+   154→        assert MarketType.EQUITY.value == "equity"
+   155→        assert MarketType.CRYPTO.value == "crypto"
+   156→        assert MarketType.FOREX.value == "forex"
+   157→        assert MarketType.FUTURES.value == "futures"
+   158→
+   159→    def test_strategy_type_values(self):
+   160→        assert StrategyType.SIGNAL_BASED.value == "signal_based"
+   161→        assert StrategyType.FACTOR_BASED.value == "factor_based"
+   162→        assert StrategyType.ML_BASED.value == "ml_based"
+   163→
+   164→    def test_short_selling_disabled_by_default(self):
+   165→        config = BacktestConfig()
+   166→        assert config.short_enabled is False
+   167→
+   168→
+   169→class TestBacktestEngineDeterminism:
+   170→    """Same inputs should produce same outputs."""
+   171→
+   172→    def test_deterministic_results(self, engine, trending_up_data, buy_and_hold_signals):
+   173→        result1 = engine.run(trending_up_data, buy_and_hold_signals)
+   174→        result2 = engine.run(trending_up_data, buy_and_hold_signals)
+   175→        assert result1["final_equity"] == result2["final_equity"]
+   176→        assert result1["total_trades"] == result2["total_trades"]
+   177→
+   178→    def test_deterministic_equity_curve(self, engine, trending_up_data, buy_and_hold_signals):
+   179→        result1 = engine.run(trending_up_data, buy_and_hold_signals)
+   180→        result2 = engine.run(trending_up_data, buy_and_hold_signals)
+   181→        pd.testing.assert_series_equal(result1["equity_curve"], result2["equity_curve"])
+   182→
+   183→
+   184→class TestBacktestEngineKnownResults:
+   185→    """Backtest with known/controlled price data for exact validation."""
+   186→
+   187→    def test_known_price_simple_long(self):
+   188→        """Buy signal on a known uptrend should produce profit."""
+   189→        dates = pd.date_range("2024-01-01", periods=10, freq="D")
+   190→        prices = pd.DataFrame({"A": [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]}, index=dates)
+   191→        # Signal = 1.0 on first bar (shifted by 1 in engine)
+   192→        signals = pd.DataFrame({"A": [0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0]}, index=dates)
+   193→
+   194→        config = BacktestConfig(
+   195→            initial_capital=100_000.0,
+   196→            commission_rate=0.0,  # No commission for exact calculation
+   197→            slippage_bps=0.0,  # No slippage
+   198→        )
+   199→        engine = BacktestEngine(config)
+   200→        result = engine.run(prices, signals)
+   201→        # Should have executed at least one trade
+   202→        assert result["total_trades"] >= 0
+   203→
+   204→    def test_declining_prices_loss(self):
+   205→        """Buy signal on declining prices should produce loss."""
+   206→        dates = pd.date_range("2024-01-01", periods=10, freq="D")
+   207→        prices = pd.DataFrame({"A": [109, 108, 107, 106, 105, 104, 103, 102, 101, 100]}, index=dates)
+   208→        signals = pd.DataFrame({"A": [0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0]}, index=dates)
+   209→
+   210→        config = BacktestConfig(
+   211→            initial_capital=100_000.0,
+   212→            commission_rate=0.0,
+   213→            slippage_bps=0.0,
+   214→        )
+   215→        engine = BacktestEngine(config)
+   216→        result = engine.run(prices, signals)
+   217→        assert result["final_equity"] < 100_000.0
+   218→
+   219→
+   220→# ═══════════════════════════════════════════════════════════════════════
+   221→# 2. Walk-Forward Analysis
+   222→# ═══════════════════════════════════════════════════════════════════════
+   223→
+   224→
+   225→class TestWalkForward:
+   226→
+   227→    def test_walk_forward_insufficient_data(self, engine):
+   228→        """With fewer bars than train+test, should return empty windows."""
+   229→        dates = pd.date_range("2024-01-01", periods=50, freq="D")
+   230→        prices = pd.DataFrame({"SPY": np.linspace(100, 110, 50)}, index=dates)
+   231→        signals = pd.DataFrame({"SPY": np.ones(50) * 0.1}, index=dates)
+   232→
+   233→        analyzer = WalkForwardAnalyzer(engine, train_window=252, test_window=63)
+   234→        result = analyzer.analyze(prices, signals)
+   235→
+   236→        assert result["windows"] == []
+   237→        assert result["aggregate"] == {}
+   238→
+   239→    def test_walk_forward_returns_windows(self, engine):
+   240→        """With enough data, should return at least one window."""
+   241→        np.random.seed(42)
+   242→        n = 400
+   243→        dates = pd.date_range("2023-01-01", periods=n, freq="D")
+   244→        prices = pd.DataFrame({
+   245→            "SPY": 100.0 * np.cumprod(1 + np.random.normal(0.0002, 0.015, n)),
+   246→        }, index=dates)
+   247→        signals = pd.DataFrame({
+   248→            "SPY": np.ones(n) * 0.05,
+   249→        }, index=dates)
+   250→
+   251→        analyzer = WalkForwardAnalyzer(engine, train_window=200, test_window=50)
+   252→        result = analyzer.analyze(prices, signals)
+   253→
+   254→        assert len(result["windows"]) >= 1
+   255→        assert "aggregate" in result
+   256→        assert "degradation_stats" in result
+   257→
+   258→    def test_walk_forward_no_future_data_leak(self, engine):
+   259→        """Test window boundaries ensure no future data leaks.
+   260→
+   261→        Each test window should start AFTER the train window ends.
+   262→        """
+   263→        np.random.seed(42)
+   264→        n = 400
+   265→        dates = pd.date_range("2023-01-01", periods=n, freq="D")
+   266→        prices = pd.DataFrame({
+   267→            "SPY": 100.0 * np.cumprod(1 + np.random.normal(0.0002, 0.015, n)),
+   268→        }, index=dates)
+   269→        signals = pd.DataFrame({
+   270→            "SPY": np.ones(n) * 0.05,
+   271→        }, index=dates)
+   272→
+   273→        analyzer = WalkForwardAnalyzer(engine, train_window=200, test_window=50)
+   274→        result = analyzer.analyze(prices, signals)
+   275→
+   276→        for window in result["windows"]:
+   277→            # Test period should not overlap with training period
+   278→            assert window.test_start >= window.train_end
+   279→
+   280→    def test_walk_forward_isolation_test(self, engine):
+   281→        """Verify that train data does not leak into test period.
+   282→
+   283→        The train end should always precede test start.
+   284→        """
+   285→        np.random.seed(42)
+   286→        n = 400
+   287→        dates = pd.date_range("2023-01-01", periods=n, freq="D")
+   288→        prices = pd.DataFrame({
+   289→            "SPY": 100.0 * np.cumprod(1 + np.random.normal(0.0002, 0.015, n)),
+   290→        }, index=dates)
+   291→        signals = pd.DataFrame({
+   292→            "SPY": np.ones(n) * 0.05,
+   293→        }, index=dates)
+   294→
+   295→        analyzer = WalkForwardAnalyzer(engine, train_window=200, test_window=50)
+   296→        result = analyzer.analyze(prices, signals)
+   297→
+   298→        for window in result["windows"]:
+   299→            # Ensure no overlap: train data should end before test data begins
+   300→            assert window.train_end < window.test_end
+   301→
+   302→    def test_walk_forward_result_fields(self, engine):
+   303→        """WalkForwardResult should have all required fields."""
+   304→        np.random.seed(42)
+   305→        n = 400
+   306→        dates = pd.date_range("2023-01-01", periods=n, freq="D")
+   307→        prices = pd.DataFrame({
+   308→            "SPY": 100.0 * np.cumprod(1 + np.random.normal(0.0002, 0.015, n)),
+   309→        }, index=dates)
+   310→        signals = pd.DataFrame({"SPY": np.ones(n) * 0.05}, index=dates)
+   311→
+   312→        analyzer = WalkForwardAnalyzer(engine, train_window=200, test_window=50)
+   313→        result = analyzer.analyze(prices, signals)
+   314→
+   315→        if result["windows"]:
+   316→            wf = result["windows"][0]
+   317→            assert hasattr(wf, "train_start")
+   318→            assert hasattr(wf, "train_end")
+   319→            assert hasattr(wf, "test_start")
+   320→            assert hasattr(wf, "test_end")
+   321→            assert hasattr(wf, "degradation_ratio")
+   322→            assert hasattr(wf, "in_sample_sharpe")
+   323→            assert hasattr(wf, "out_of_sample_sharpe")
+   324→
+   325→    def test_walk_forward_aggregate_stats(self, engine):
+   326→        np.random.seed(42)
+   327→        n = 400
+   328→        dates = pd.date_range("2023-01-01", periods=n, freq="D")
+   329→        prices = pd.DataFrame({
+   330→            "SPY": 100.0 * np.cumprod(1 + np.random.normal(0.0002, 0.015, n)),
+   331→        }, index=dates)
+   332→        signals = pd.DataFrame({"SPY": np.ones(n) * 0.05}, index=dates)
+   333→
+   334→        analyzer = WalkForwardAnalyzer(engine, train_window=200, test_window=50)
+   335→        result = analyzer.analyze(prices, signals)
+   336→
+   337→        if result["aggregate"]:
+   338→            agg = result["aggregate"]
+   339→            assert "num_windows" in agg
+   340→            assert "avg_oos_return" in agg
+   341→            assert "avg_oos_sharpe" in agg
+   342→            assert "win_rate" in agg
+   343→
+   344→    def test_walk_forward_degradation_stats(self, engine):
+   345→        np.random.seed(42)
+   346→        n = 400
+   347→        dates = pd.date_range("2023-01-01", periods=n, freq="D")
+   348→        prices = pd.DataFrame({
+   349→            "SPY": 100.0 * np.cumprod(1 + np.random.normal(0.0002, 0.015, n)),
+   350→        }, index=dates)
+   351→        signals = pd.DataFrame({"SPY": np.ones(n) * 0.05}, index=dates)
+   352→
+   353→        analyzer = WalkForwardAnalyzer(engine, train_window=200, test_window=50)
+   354→        result = analyzer.analyze(prices, signals)
+   355→
+   356→        if result["degradation_stats"]:
+   357→            ds = result["degradation_stats"]
+   358→            assert "avg_degradation" in ds
+   359→            assert "pass_rate" in ds
+   360→
+   361→    def test_walk_forward_anchored_mode(self, engine):
+   362→        """Anchored mode should use expanding window for training."""
+   363→        np.random.seed(42)
+   364→        n = 400
+   365→        dates = pd.date_range("2023-01-01", periods=n, freq="D")
+   366→        prices = pd.DataFrame({
+   367→            "SPY": 100.0 * np.cumprod(1 + np.random.normal(0.0002, 0.015, n)),
+   368→        }, index=dates)
+   369→        signals = pd.DataFrame({"SPY": np.ones(n) * 0.05}, index=dates)
+   370→
+   371→        analyzer = WalkForwardAnalyzer(
+   372→            engine, train_window=200, test_window=50, anchored=True
+   373→        )
+   374→        result = analyzer.analyze(prices, signals)
+   375→
+   376→        for window in result["windows"]:
+   377→            # Anchored mode: train should start from beginning
+   378→            assert window.train_start == dates[0]
+   379→
+   380→
+   381→# ═══════════════════════════════════════════════════════════════════════
+   382→# 3. Performance Metrics
+   383→# ═══════════════════════════════════════════════════════════════════════
+   384→
+   385→
+   386→class TestPerformanceMetrics:
+   387→
+   388→    def test_calculate_basic_metrics(self, metrics_calculator):
+   389→        equity = pd.Series(np.linspace(100_000, 110_000, 100))
+   390→        metrics = metrics_calculator.calculate(
+   391→            equity_series=equity,
+   392→            trades=[],
+   393→            initial_capital=100_000,
+   394→        )
+   395→        assert metrics["total_return"] > 0
+   396→        assert metrics["final_equity"] == 110_000
+   397→        assert metrics["total_trades"] == 0
+   398→
+   399→    def test_empty_equity_curve(self, metrics_calculator):
+   400→        equity = pd.Series([], dtype=float)
+   401→        metrics = metrics_calculator.calculate(
+   402→            equity_series=equity,
+   403→            trades=[],
+   404→            initial_capital=100_000,
+   405→        )
+   406→        assert metrics["total_return"] == 0
+   407→
+   408→    def test_loss_equity_curve(self, metrics_calculator):
+   409→        equity = pd.Series(np.linspace(100_000, 90_000, 100))
+   410→        metrics = metrics_calculator.calculate(
+   411→            equity_series=equity,
+   412→            trades=[],
+   413→            initial_capital=100_000,
+   414→        )
+   415→        assert metrics["total_return"] < 0
+   416→        assert metrics["max_drawdown"] < 0
+   417→
+   418→    def test_sharpe_ratio_calculation(self, metrics_calculator):
+   419→        """Sharpe should be positive for positive drift with low vol."""
+   420→        np.random.seed(42)
+   421→        returns = np.random.normal(0.002, 0.005, 252)
+   422→        equity = pd.Series(100_000 * np.cumprod(1 + returns))
+   423→        metrics = metrics_calculator.calculate(
+   424→            equity_series=equity,
+   425→            trades=[],
+   426→            initial_capital=100_000,
+   427→        )
+   428→        # With positive drift and low vol, Sharpe should be positive
+   429→        assert metrics["sharpe_ratio"] > 0
+   430→
+   431→    def test_sortino_ratio(self, metrics_calculator):
+   432→        """Sortino should be positive for positive drift."""
+   433→        np.random.seed(42)
+   434→        returns = np.random.normal(0.002, 0.005, 252)
+   435→        equity = pd.Series(100_000 * np.cumprod(1 + returns))
+   436→        metrics = metrics_calculator.calculate(
+   437→            equity_series=equity,
+   438→            trades=[],
+   439→            initial_capital=100_000,
+   440→        )
+   441→        assert metrics["sortino_ratio"] > 0
+   442→
+   443→    def test_max_drawdown_calculation(self, metrics_calculator):
+   444→        """Max drawdown should be negative (or zero)."""
+   445→        equity_vals = [100, 110, 105, 115, 100, 120]
+   446→        equity = pd.Series(equity_vals * 10_000)
+   447→        metrics = metrics_calculator.calculate(
+   448→            equity_series=equity,
+   449→            trades=[],
+   450→            initial_capital=equity_vals[0] * 10_000,
+   451→        )
+   452→        assert metrics["max_drawdown"] <= 0
+   453→
+   454→    def test_win_rate_with_trades(self, metrics_calculator):
+   455→        """Win rate should be calculated from trade records."""
+   456→        equity = pd.Series(np.linspace(100_000, 110_000, 100))
+   457→        trades = [
+   458→            TradeRecord("A", 1, 100, 105, pd.Timestamp("2024-01-01"), pd.Timestamp("2024-01-05"),
+   459→                        10, 50.0, 5.0, "signal", 1.0, 4),
+   460→            TradeRecord("A", 1, 105, 102, pd.Timestamp("2024-01-06"), pd.Timestamp("2024-01-10"),
+   461→                        10, -30.0, -2.86, "signal", 1.0, 4),
+   462→        ]
+   463→        metrics = metrics_calculator.calculate(
+   464→            equity_series=equity,
+   465→            trades=trades,
+   466→            initial_capital=100_000,
+   467→        )
+   468→        assert metrics["win_rate"] == 0.5  # 1 win out of 2 trades
+   469→
+   470→    def test_var_and_cvar(self, metrics_calculator):
+   471→        """VaR and CVaR should be calculated from equity curve."""
+   472→        np.random.seed(42)
+   473→        returns = np.random.normal(0.001, 0.02, 252)
+   474→        equity = pd.Series(100_000 * np.cumprod(1 + returns))
+   475→        metrics = metrics_calculator.calculate(
+   476→            equity_series=equity,
+   477→            trades=[],
+   478→            initial_capital=100_000,
+   479→        )
+   480→        # VaR should be negative (loss threshold)
+   481→        assert "var_95" in metrics
+   482→        assert "cvar_95" in metrics
+   483→
+   484→    def test_bars_per_year_calculation(self):
+   485→        assert PerformanceMetrics.calc_bars_per_year("1D", "equity") == 252
+   486→        assert PerformanceMetrics.calc_bars_per_year("1D", "crypto") == 365
+   487→        assert PerformanceMetrics.calc_bars_per_year("1H", "equity") == 252 * 7
+   488→        assert PerformanceMetrics.calc_bars_per_year("1m", "crypto") == 365 * 1440
+   489→
+   490→    def test_calmar_ratio(self, metrics_calculator):
+   491→        """Calmar ratio should be return/max_drawdown."""
+   492→        np.random.seed(42)
+   493→        returns = np.random.normal(0.002, 0.005, 252)
+   494→        equity = pd.Series(100_000 * np.cumprod(1 + returns))
+   495→        metrics = metrics_calculator.calculate(
+   496→            equity_series=equity,
+   497→            trades=[],
+   498→            initial_capital=100_000,
+   499→        )
+   500→        # With positive return and drawdown, Calmar should be positive
+   501→        assert "calmar_ratio" in metrics
+   502→
+   503→    def test_benchmark_comparison(self, metrics_calculator):
+   504→        """Metrics with benchmark should include excess return."""
+   505→        np.random.seed(42)
+   506→        returns = np.random.normal(0.001, 0.01, 252)
+   507→        equity = pd.Series(100_000 * np.cumprod(1 + returns))
+   508→        benchmark_returns = pd.Series(np.random.normal(0.0005, 0.01, 252))
+   509→        metrics = metrics_calculator.calculate(
+   510→            equity_series=equity,
+   511→            trades=[],
+   512→            initial_capital=100_000,
+   513→            benchmark_returns=benchmark_returns,
+   514→        )
+   515→        assert "benchmark_return" in metrics
+   516→        assert "excess_return" in metrics
+   517→        assert "information_ratio" in metrics
+   518→
+   519→
+   520→# ═══════════════════════════════════════════════════════════════════════
+   521→# 4. Monte Carlo Simulation
+   522→# ═══════════════════════════════════════════════════════════════════════
+   523→
+   524→
+   525→class TestMonteCarlo:
+   526→
+   527→    def test_trade_shuffle(self):
+   528→        np.random.seed(42)
+   529→        trades_pnl = [500, -200, 300, -150, 400, -100, 250, -50, 350, -300]
+   530→        sim = MonteCarloSimulator(num_simulations=500, random_seed=42)
+   531→        result = sim.simulate_trade_shuffle(trades_pnl, initial_capital=100_000)
+   532→        assert result.num_simulations == 500
+   533→        assert result.metric_name == "total_return"
+   534→        # Shuffling doesn't change total return (sum is same), but changes max_drawdown
+   535→        assert result.original_value is not None
+   536→
+   537→    def test_return_resample(self):
+   538→        np.random.seed(42)
+   539→        returns = pd.Series(np.random.normal(0.001, 0.02, 252))
+   540→        sim = MonteCarloSimulator(num_simulations=500, random_seed=42)
+   541→        result = sim.simulate_return_resample(returns, initial_capital=100_000)
+   542→        assert result.num_simulations == 500
+   543→        assert result.confidence_95[0] < result.confidence_95[1]
+   544→
+   545→    def test_price_path(self):
+   546→        sim = MonteCarloSimulator(num_simulations=500, random_seed=42)
+   547→        result = sim.simulate_price_path(
+   548→            mean_return=0.0005,
+   549→            std_return=0.015,
+   550→            n_bars=252,
+   551→            initial_capital=100_000,
+   552→        )
+   553→        assert result.num_simulations == 500
+   554→        assert result.confidence_95[0] < result.confidence_95[1]
+   555→
+   556→    def test_convergence(self):
+   557→        """More simulations should give more stable estimates."""
+   558→        trades_pnl = [500, -200, 300, -150, 400]
+   559→        sim_100 = MonteCarloSimulator(num_simulations=100, random_seed=42)
+   560→        sim_5000 = MonteCarloSimulator(num_simulations=5000, random_seed=42)
+   561→
+   562→        result_100 = sim_100.simulate_trade_shuffle(trades_pnl, initial_capital=100_000)
+   563→        result_5000 = sim_5000.simulate_trade_shuffle(trades_pnl, initial_capital=100_000)
+   564→
+   565→        # Higher simulation count should have tighter CI
+   566→        width_100 = result_100.confidence_95[1] - result_100.confidence_95[0]
+   567→        width_5000 = result_5000.confidence_95[1] - result_5000.confidence_95[0]
+   568→        # 5000 sims should have narrower or similar CI than 100
+   569→        assert width_5000 <= width_100 * 1.5
+   570→
+   571→    def test_empty_trades(self):
+   572→        sim = MonteCarloSimulator(num_simulations=100)
+   573→        result = sim.simulate_trade_shuffle([], initial_capital=100_000)
+   574→        assert result.num_simulations == 0
+   575→        assert result.probability_of_loss == 1.0
+   576→
+   577→    def test_empty_returns(self):
+   578→        sim = MonteCarloSimulator(num_simulations=100)
+   579→        result = sim.simulate_return_resample(pd.Series([], dtype=float))
+   580→        assert result.num_simulations == 0
+   581→
+   582→    def test_result_fields(self):
+   583→        sim = MonteCarloSimulator(num_simulations=100, random_seed=42)
+   584→        trades_pnl = [100, -50, 200, -100]
+   585→        result = sim.simulate_trade_shuffle(trades_pnl, initial_capital=100_000)
+   586→        assert hasattr(result, "p5")
+   587→        assert hasattr(result, "p25")
+   588→        assert hasattr(result, "p75")
+   589→        assert hasattr(result, "p95")
+   590→        assert hasattr(result, "mean_value")
+   591→        assert hasattr(result, "median_value")
+   592→        assert result.p5 <= result.p25 <= result.median_value <= result.p75 <= result.p95
+   593→
+   594→    def test_reproducibility(self):
+   595→        """Same seed should produce same results."""
+   596→        trades_pnl = [100, -50, 200, -100]
+   597→        sim1 = MonteCarloSimulator(num_simulations=100, random_seed=42)
+   598→        sim2 = MonteCarloSimulator(num_simulations=100, random_seed=42)
+   599→        r1 = sim1.simulate_trade_shuffle(trades_pnl, initial_capital=100_000)
+   600→        r2 = sim2.simulate_trade_shuffle(trades_pnl, initial_capital=100_000)
+   601→        assert r1.mean_value == r2.mean_value
+   602→        assert r1.p5 == r2.p5
+   603→
+   604→    def test_max_drawdown_metric(self):
+   605→        """Monte Carlo with max_drawdown metric should work."""
+   606→        trades_pnl = [500, -200, 300, -150, 400, -100]
+   607→        sim = MonteCarloSimulator(num_simulations=100, random_seed=42)
+   608→        result = sim.simulate_trade_shuffle(trades_pnl, initial_capital=100_000, metric="max_drawdown")
+   609→        assert result.metric_name == "max_drawdown"
+   610→        assert result.mean_value <= 0  # Max DD is negative
+   611→
+   612→    def test_sharpe_metric(self):
+   613→        """Monte Carlo with Sharpe metric should work."""
+   614→        trades_pnl = [500, -200, 300, -150, 400, -100]
+   615→        sim = MonteCarloSimulator(num_simulations=100, random_seed=42)
+   616→        result = sim.simulate_trade_shuffle(trades_pnl, initial_capital=100_000, metric="sharpe")
+   617→        assert result.metric_name == "sharpe"
+   618→
+   619→
+   620→# ═══════════════════════════════════════════════════════════════════════
+   621→# 5. Portfolio Tests
+   622→# ═══════════════════════════════════════════════════════════════════════
+   623→
+   624→
+   625→class TestPortfolioBasic:
+   626→
+   627→    def test_initial_equity(self, portfolio: Portfolio):
+   628→        assert portfolio.equity == 100_000.0
+   629→        assert portfolio.cash == 100_000.0
+   630→        assert portfolio.position_count == 0
+   631→
+   632→    def test_open_position(self, portfolio: Portfolio):
+   633→        ts = pd.Timestamp("2024-01-01")
+   634→        portfolio.open_position("AAPL", direction=1, size=100.0, price=150.0, timestamp=ts)
+   635→        assert portfolio.position_count == 1
+   636→        assert "AAPL" in portfolio.positions
+   637→
+   638→    def test_close_position(self, portfolio: Portfolio):
+   639→        ts = pd.Timestamp("2024-01-01")
+   640→        portfolio.open_position("AAPL", direction=1, size=100.0, price=150.0, timestamp=ts)
+   641→        trade = portfolio.close_position("AAPL", price=155.0, timestamp=pd.Timestamp("2024-01-05"), reason="signal")
+   642→        assert trade is not None
+   643→        assert trade.pnl == 500.0  # 100 shares * $5 profit
+   644→        assert portfolio.position_count == 0
+   645→
+   646→    def test_close_nonexistent_position(self, portfolio: Portfolio):
+   647→        trade = portfolio.close_position("AAPL", price=155.0, timestamp=pd.Timestamp("2024-01-05"), reason="signal")
+   648→        assert trade is None
+   649→
+   650→    def test_unrealized_pnl(self, portfolio: Portfolio):
+   651→        ts = pd.Timestamp("2024-01-01")
+   652→        portfolio.open_position("AAPL", direction=1, size=100.0, price=150.0, timestamp=ts)
+   653→        portfolio.mark_to_market(pd.Series({"AAPL": 155.0}))
+   654→        pnl = portfolio.unrealized_pnl
+   655→        assert pnl == 500.0  # 100 * (155 - 150)
+   656→
+   657→    def test_short_position_pnl(self, portfolio: Portfolio):
+   658→        ts = pd.Timestamp("2024-01-01")
+   659→        portfolio.open_position("AAPL", direction=-1, size=100.0, price=150.0, timestamp=ts)
+   660→        portfolio.mark_to_market(pd.Series({"AAPL": 145.0}))
+   661→        pnl = portfolio.unrealized_pnl
+   662→        assert pnl == 500.0  # Short: 100 * (150 - 145)
+   663→
+   664→    def test_equity_after_open(self, portfolio: Portfolio):
+   665→        ts = pd.Timestamp("2024-01-01")
+   666→        initial_equity = portfolio.equity
+   667→        portfolio.open_position("AAPL", direction=1, size=100.0, price=150.0, timestamp=ts)
+   668→        # Equity should include cash + position value + unrealized PnL
+   669→        assert portfolio.equity > 0
+   670→
+   671→    def test_max_positions(self):
+   672→        p = Portfolio(initial_capital=1_000_000.0, max_positions=2)
+   673→        ts = pd.Timestamp("2024-01-01")
+   674→        p.open_position("A", 1, 10, 100.0, ts)
+   675→        p.open_position("B", 1, 10, 100.0, ts)
+   676→        # Third position should fail can_open_position
+   677→        assert not p.can_open_position(100.0, 10, 0.0)
+   678→
+   679→    def test_insufficient_cash(self, portfolio: Portfolio):
+   680→        ts = pd.Timestamp("2024-01-01")
+   681→        # Try to buy more than we can afford
+   682→        can_open = portfolio.can_open_position(100_000.0, 1000, 0.0)
+   683→        assert can_open is False
+   684→
+   685→
+   686→class TestPortfolioMarkToMarket:
+   687→
+   688→    def test_mark_to_market_updates_prices(self, portfolio: Portfolio):
+   689→        ts = pd.Timestamp("2024-01-01")
+   690→        portfolio.open_position("AAPL", direction=1, size=100.0, price=150.0, timestamp=ts)
+   691→        portfolio.mark_to_market(pd.Series({"AAPL": 160.0}))
+   692→        assert portfolio.equity > 100_000.0  # Should have gained
+   693→
+   694→    def test_mark_to_market_increments_bar_count(self, portfolio: Portfolio):
+   695→        ts = pd.Timestamp("2024-01-01")
+   696→        portfolio.open_position("AAPL", direction=1, size=100.0, price=150.0, timestamp=ts)
+   697→        portfolio.mark_to_market(pd.Series({"AAPL": 155.0}))
+   698→        portfolio.mark_to_market(pd.Series({"AAPL": 160.0}))
+   699→        # Bar count should be incremented
+   700→        trade = portfolio.close_position("AAPL", 160.0, pd.Timestamp("2024-01-03"), "signal")
+   701→        assert trade is not None
+   702→        assert trade.holding_bars >= 1
+   703→
+   704→
+   705→class TestPortfolioPositionDetails:
+   706→
+   707→    def test_position_fields(self, portfolio: Portfolio):
+   708→        ts = pd.Timestamp("2024-01-01")
+   709→        portfolio.open_position("AAPL", direction=1, size=100.0, price=150.0, timestamp=ts, commission=5.0)
+   710→        pos = portfolio.get_position("AAPL")
+   711→        assert pos is not None
+   712→        assert pos.symbol == "AAPL"
+   713→        assert pos.direction == 1
+   714→        assert pos.entry_price == 150.0
+   715→        assert pos.size == 100.0
+   716→        assert pos.commission == 5.0
+   717→
+   718→    def test_trade_record_fields(self, portfolio: Portfolio):
+   719→        ts_entry = pd.Timestamp("2024-01-01")
+   720→        ts_exit = pd.Timestamp("2024-01-05")
+   721→        portfolio.open_position("AAPL", direction=1, size=100.0, price=150.0, timestamp=ts_entry)
+   722→        portfolio.mark_to_market(pd.Series({"AAPL": 155.0}))
+   723→        trade = portfolio.close_position("AAPL", 155.0, ts_exit, "signal")
+   724→        assert trade is not None
+   725→        assert trade.symbol == "AAPL"
+   726→        assert trade.direction == 1
+   727→        assert trade.entry_price == 150.0
+   728→        assert trade.exit_price == 155.0
+   729→        assert trade.pnl == 500.0
+   730→        assert trade.exit_reason == "signal"
+   731→        assert trade.holding_bars >= 0
+   732→
+   733→    def test_replacement_closes_existing(self, portfolio: Portfolio):
+   734→        """Opening position on same symbol should close existing first."""
+   735→        ts = pd.Timestamp("2024-01-01")
+   736→        portfolio.open_position("AAPL", direction=1, size=100.0, price=150.0, timestamp=ts)
+   737→        # Open again on same symbol
+   738→        portfolio.open_position("AAPL", direction=1, size=200.0, price=160.0, timestamp=ts)
+   739→        # Should have the new position
+   740→        pos = portfolio.get_position("AAPL")
+   741→        assert pos is not None
+   742→        assert pos.size == 200.0
+   743→
+   744→
+   745→# ═══════════════════════════════════════════════════════════════════════
+   746→# 6. Execution Simulator Tests
+   747→# ═══════════════════════════════════════════════════════════════════════
+   748→
+   749→
+   750→class TestExecutionSimulator:
+   751→
+   752→    def test_slippage_buy(self):
+   753→        sim = ExecutionSimulator(ExecutionConfig(slippage_bps=10.0))
+   754→        buy_price = sim.apply_slippage(100.0, direction=1)
+   755→        assert buy_price > 100.0
+   756→
+   757→    def test_slippage_sell(self):
+   758→        sim = ExecutionSimulator(ExecutionConfig(slippage_bps=10.0))
+   759→        sell_price = sim.apply_slippage(100.0, direction=-1)
+   760→        assert sell_price < 100.0
+   761→
+   762→    def test_no_slippage_neutral(self):
+   763→        sim = ExecutionSimulator(ExecutionConfig(slippage_bps=5.0))
+   764→        price = sim.apply_slippage(100.0, direction=0)
+   765→        assert price == 100.0
+   766→
+   767→    def test_commission_calculation(self):
+   768→        sim = ExecutionSimulator(ExecutionConfig(commission_rate=0.001, min_commission=1.0))
+   769→        comm = sim.calc_commission(size=100.0, price=100.0)
+   770→        assert comm == 10.0  # 0.001 * 100 * 100
+   771→
+   772→    def test_min_commission(self):
+   773→        sim = ExecutionSimulator(ExecutionConfig(commission_rate=0.001, min_commission=5.0))
+   774→        comm = sim.calc_commission(size=1.0, price=10.0)
+   775→        assert comm == 5.0  # min_commission exceeds calculated
+   776→
+   777→    def test_market_impact(self):
+   778→        sim = ExecutionSimulator(ExecutionConfig(market_impact_coeff=0.1))
+   779→        impact = sim.calc_market_impact(size=1000.0, price=100.0, avg_volume=1_000_000.0)
+   780→        assert impact > 0
+   781→
+   782→    def test_no_market_impact_when_zero_coeff(self):
+   783→        sim = ExecutionSimulator(ExecutionConfig(market_impact_coeff=0.0))
+   784→        impact = sim.calc_market_impact(size=1000.0, price=100.0, avg_volume=1_000_000.0)
+   785→        assert impact == 0.0
+   786→
+   787→    def test_simulate_fill(self):
+   788→        sim = ExecutionSimulator(ExecutionConfig(commission_rate=0.001, slippage_bps=5.0))
+   789→        fill = sim.simulate_fill(price=100.0, direction=1, size=100.0)
+   790→        assert "fill_price" in fill
+   791→        assert "commission" in fill
+   792→        assert "total_cost" in fill
+   793→        assert fill["fill_price"] > 100.0  # Buy slippage
+   794→
+   795→    def test_market_defaults(self):
+   796→        """Market-specific defaults should be applied."""
+   797→        for market, defaults in ExecutionSimulator.MARKET_DEFAULTS.items():
+   798→            assert "commission_rate" in defaults
+   799→            assert "slippage_bps" in defaults
+   800→

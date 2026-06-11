@@ -1,0 +1,2002 @@
+     1→"""WorldQuant 101 Alphas (Kakushadze 2015).
+     2→
+     3→Implements ALL 101 alphas from:
+     4→"101 Formulaic Alphas" by Zura Kakushadze, arXiv:1601.00991
+     5→
+     6→Each alpha uses the __alpha_meta__ + compute(panel) pattern.
+     7→Adapted to use Quant-Nanggroe-AI base.py operators.
+     8→
+     9→Reference: https://arxiv.org/abs/1601.00991
+    10→"""
+    11→
+    12→from __future__ import annotations
+    13→
+    14→import numpy as np
+    15→import pandas as pd
+    16→
+    17→from quant_nanggroe.engine.factors.base import (
+    18→    decay_linear,
+    19→    delta,
+    20→    rank,
+    21→    safe_div,
+    22→    scale,
+    23→    signed_power,
+    24→    ts_argmax,
+    25→    ts_argmin,
+    26→    ts_corr,
+    27→    ts_cov,
+    28→    ts_max,
+    29→    ts_mean,
+    30→    ts_min,
+    31→    ts_rank,
+    32→    ts_std,
+    33→    vwap,
+    34→)
+    35→
+    36→# ─── Shared Helper Functions ────────────────────────────────────────────
+    37→
+    38→def _delay(df: pd.DataFrame, n: int) -> pd.DataFrame:
+    39→    """Backward shift by n (lookahead-safe; n>=1 required)."""
+    40→    if n < 1:
+    41→        raise ValueError("delay requires n >= 1 (lookahead ban)")
+    42→    return df.shift(n)
+    43→
+    44→
+    45→def _ind_neutralize(x: pd.DataFrame, panel: dict) -> pd.DataFrame:
+    46→    """Industry/sector neutralize: subtract the row-wise sector group mean.
+    47→
+    48→    If panel has a 'sector' DataFrame (same shape as close), subtract the
+    49→    per-sector cross-sectional mean per row. If absent, degrade to global
+    50→    cross-sectional demean (subtract row mean). This is a degraded fallback
+    51→    relative to the paper's industry/subindustry neutralization; see notes.
+    52→    """
+    53→    sector_df = panel.get("sector")
+    54→    if sector_df is None:
+    55→        row_mean = x.mean(axis=1, skipna=True)
+    56→        return x.sub(row_mean, axis=0)
+    57→    # Per-row group demean. Iterate rows; numpy-fast enough for small panels.
+    58→    arr = x.to_numpy(dtype=np.float64, na_value=np.nan).copy()
+    59→    sec_arr = sector_df.to_numpy()
+    60→    n_rows = arr.shape[0]
+    61→    for i in range(n_rows):
+    62→        row = arr[i]
+    63→        sec_row = sec_arr[i]
+    64→        for tag in pd.unique(sec_row):
+    65→            mask = sec_row == tag
+    66→            vals = row[mask]
+    67→            finite = vals[~np.isnan(vals)]
+    68→            if finite.size == 0:
+    69→                continue
+    70→            mean = finite.mean()
+    71→            row[mask] = vals - mean
+    72→        arr[i] = row
+    73→    return pd.DataFrame(arr, index=x.index, columns=x.columns)
+    74→
+    75→
+    76→def _make_one(ref: pd.DataFrame) -> pd.DataFrame:
+    77→    """A DataFrame of 1.0 with the same shape/index/columns as ``ref``."""
+    78→    return pd.DataFrame(1.0, index=ref.index, columns=ref.columns)
+    79→
+    80→
+    81→def _rolling_prod(df: pd.DataFrame, n: int) -> pd.DataFrame:
+    82→    """Rolling window product; warmup -> NaN."""
+    83→    return df.rolling(window=n, min_periods=n).apply(np.prod, raw=True)
+    84→
+    85→
+    86→def _rolling_sum(df: pd.DataFrame, n: int) -> pd.DataFrame:
+    87→    """Rolling window sum; warmup -> NaN."""
+    88→    return df.rolling(window=n, min_periods=n).sum()
+    89→
+    90→
+    91→def _where_ternary(cond, a, b):
+    92→    """Vectorised ternary `(cond ? a : b)` returning a DataFrame.
+    93→
+    94→    ``cond`` is a boolean DataFrame; ``a`` / ``b`` may be DataFrame or scalar.
+    95→    """
+    96→    if isinstance(a, (int, float)):
+    97→        a_arr = np.full_like(cond.to_numpy(dtype=np.float64), float(a))
+    98→    else:
+    99→        a_arr = a.to_numpy(dtype=np.float64, na_value=np.nan)
+   100→    if isinstance(b, (int, float)):
+   101→        b_arr = np.full_like(cond.to_numpy(dtype=np.float64), float(b))
+   102→    else:
+   103→        b_arr = b.to_numpy(dtype=np.float64, na_value=np.nan)
+   104→    cond_arr = cond.to_numpy(dtype=bool, na_value=False) if hasattr(cond, "to_numpy") else np.asarray(cond, dtype=bool)
+   105→    out = np.where(cond_arr, a_arr, b_arr)
+   106→    out = np.where(np.isfinite(out), out, np.nan)
+   107→    idx = cond.index if hasattr(cond, "index") else a.index
+   108→    cols = cond.columns if hasattr(cond, "columns") else a.columns
+   109→    return pd.DataFrame(out, index=idx, columns=cols)
+   110→
+   111→
+   112→__alpha_meta_alpha_001 = {
+   113→    'id': 'alpha101_001',
+   114→    'nickname': 'Kakushadze Alpha #1',
+   115→    'theme': ['reversal', 'volatility'],
+   116→    'formula_latex': 'rank(ts_argmax(SignedPower((returns<0)?stddev(returns,20):close, 2.), 5)) - 0.5',
+   117→    'columns_required': ['close'],
+   118→    'extras_required': [],
+   119→    'requires_sector': False,
+   120→    'universe': ['equity_us'],
+   121→    'frequency': ['1D'],
+   122→    'decay_horizon': 5,
+   123→    'min_warmup_bars': 25,
+   124→    'notes': '',
+   125→}
+   126→
+   127→
+   128→def compute_alpha_001(panel: dict) -> pd.DataFrame:
+   129→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   130→    close = panel["close"]
+   131→
+   132→
+   133→    returns = close.pct_change()
+   134→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   135→    cond = (returns < 0).astype(float)
+   136→    x = ts_std(returns, 20) * cond + close * (1.0 - cond)
+   137→    out = rank(ts_argmax(signed_power(x, 2.0), 5)) - 0.5
+   138→    return out
+   139→
+   140→
+   141→__alpha_meta_alpha_002 = {
+   142→    'id': 'alpha101_002',
+   143→    'nickname': 'Kakushadze Alpha #2',
+   144→    'theme': ['volume', 'reversal'],
+   145→    'formula_latex': '-1 * correlation(rank(delta(log(volume), 2)), rank(((close-open)/open)), 6)',
+   146→    'columns_required': ['open', 'close', 'volume'],
+   147→    'extras_required': [],
+   148→    'requires_sector': False,
+   149→    'universe': ['equity_us'],
+   150→    'frequency': ['1D'],
+   151→    'decay_horizon': 5,
+   152→    'min_warmup_bars': 10,
+   153→    'notes': '',
+   154→}
+   155→
+   156→
+   157→def compute_alpha_002(panel: dict) -> pd.DataFrame:
+   158→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   159→    close = panel["close"]
+   160→    open_ = panel["open"]
+   161→    volume = panel["volume"]
+   162→
+   163→
+   164→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   165→    out = -1.0 * ts_corr(rank(delta(np.log(volume), 2)), rank((close - open_) / open_), 6)
+   166→    return out
+   167→
+   168→
+   169→__alpha_meta_alpha_003 = {
+   170→    'id': 'alpha101_003',
+   171→    'nickname': 'Kakushadze Alpha #3',
+   172→    'theme': ['volume', 'reversal'],
+   173→    'formula_latex': '-1 * correlation(rank(open), rank(volume), 10)',
+   174→    'columns_required': ['open', 'volume', 'close'],
+   175→    'extras_required': [],
+   176→    'requires_sector': False,
+   177→    'universe': ['equity_us'],
+   178→    'frequency': ['1D'],
+   179→    'decay_horizon': 5,
+   180→    'min_warmup_bars': 10,
+   181→    'notes': '',
+   182→}
+   183→
+   184→
+   185→def compute_alpha_003(panel: dict) -> pd.DataFrame:
+   186→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   187→    open_ = panel["open"]
+   188→    volume = panel["volume"]
+   189→
+   190→
+   191→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   192→    out = -1.0 * ts_corr(rank(open_), rank(volume), 10)
+   193→    return out
+   194→
+   195→
+   196→__alpha_meta_alpha_004 = {
+   197→    'id': 'alpha101_004',
+   198→    'nickname': 'Kakushadze Alpha #4',
+   199→    'theme': ['reversal'],
+   200→    'formula_latex': '-1 * Ts_Rank(rank(low), 9)',
+   201→    'columns_required': ['low', 'close'],
+   202→    'extras_required': [],
+   203→    'requires_sector': False,
+   204→    'universe': ['equity_us'],
+   205→    'frequency': ['1D'],
+   206→    'decay_horizon': 5,
+   207→    'min_warmup_bars': 9,
+   208→    'notes': '',
+   209→}
+   210→
+   211→
+   212→def compute_alpha_004(panel: dict) -> pd.DataFrame:
+   213→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   214→    low = panel["low"]
+   215→
+   216→
+   217→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   218→    out = -1.0 * ts_rank(rank(low), 9)
+   219→    return out
+   220→
+   221→
+   222→__alpha_meta_alpha_005 = {
+   223→    'id': 'alpha101_005',
+   224→    'nickname': 'Kakushadze Alpha #5',
+   225→    'theme': ['reversal'],
+   226→    'formula_latex': 'rank((open - sum(vwap,10)/10)) * (-1 * abs(rank((close - vwap))))',
+   227→    'columns_required': ['open', 'close', 'vwap'],
+   228→    'extras_required': [],
+   229→    'requires_sector': False,
+   230→    'universe': ['equity_us'],
+   231→    'frequency': ['1D'],
+   232→    'decay_horizon': 5,
+   233→    'min_warmup_bars': 10,
+   234→    'notes': '',
+   235→}
+   236→
+   237→
+   238→def compute_alpha_005(panel: dict) -> pd.DataFrame:
+   239→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   240→    close = panel["close"]
+   241→    open_ = panel["open"]
+   242→    vwap = panel["vwap"]
+   243→
+   244→
+   245→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   246→    rolling_sum = _rolling_sum
+   247→    out = rank(open_ - rolling_sum(vwap, 10) / 10.0) * (-1.0 * rank(close - vwap).abs())
+   248→    return out
+   249→
+   250→
+   251→__alpha_meta_alpha_006 = {
+   252→    'id': 'alpha101_006',
+   253→    'nickname': 'Kakushadze Alpha #6',
+   254→    'theme': ['volume', 'reversal'],
+   255→    'formula_latex': '-1 * correlation(open, volume, 10)',
+   256→    'columns_required': ['open', 'volume', 'close'],
+   257→    'extras_required': [],
+   258→    'requires_sector': False,
+   259→    'universe': ['equity_us'],
+   260→    'frequency': ['1D'],
+   261→    'decay_horizon': 5,
+   262→    'min_warmup_bars': 10,
+   263→    'notes': '',
+   264→}
+   265→
+   266→
+   267→def compute_alpha_006(panel: dict) -> pd.DataFrame:
+   268→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   269→    open_ = panel["open"]
+   270→    volume = panel["volume"]
+   271→
+   272→
+   273→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   274→    out = -1.0 * ts_corr(open_, volume, 10)
+   275→    return out
+   276→
+   277→
+   278→__alpha_meta_alpha_007 = {
+   279→    'id': 'alpha101_007',
+   280→    'nickname': 'Kakushadze Alpha #7',
+   281→    'theme': ['momentum', 'volume'],
+   282→    'formula_latex': '(adv20<volume)?((-1*ts_rank(abs(delta(close,7)),60))*sign(delta(close,7))):(-1)',
+   283→    'columns_required': ['close', 'volume'],
+   284→    'extras_required': [],
+   285→    'requires_sector': False,
+   286→    'universe': ['equity_us'],
+   287→    'frequency': ['1D'],
+   288→    'decay_horizon': 5,
+   289→    'min_warmup_bars': 67,
+   290→    'notes': '',
+   291→}
+   292→
+   293→
+   294→def compute_alpha_007(panel: dict) -> pd.DataFrame:
+   295→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   296→    close = panel["close"]
+   297→    volume = panel["volume"]
+   298→    adv20 = ts_mean(volume, 20)
+   299→
+   300→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   301→    make_one = _make_one
+   302→    where_ternary = _where_ternary
+   303→    d7 = delta(close, 7)
+   304→    expr = (-1.0 * ts_rank(d7.abs(), 60)) * np.sign(d7)
+   305→    out = where_ternary(adv20 < volume, expr, -1.0 * make_one(close))
+   306→    return out
+   307→
+   308→
+   309→__alpha_meta_alpha_008 = {
+   310→    'id': 'alpha101_008',
+   311→    'nickname': 'Kakushadze Alpha #8',
+   312→    'theme': ['reversal'],
+   313→    'formula_latex': '-1 * rank((sum(open,5)*sum(returns,5)) - delay(sum(open,5)*sum(returns,5),10))',
+   314→    'columns_required': ['open', 'close'],
+   315→    'extras_required': [],
+   316→    'requires_sector': False,
+   317→    'universe': ['equity_us'],
+   318→    'frequency': ['1D'],
+   319→    'decay_horizon': 5,
+   320→    'min_warmup_bars': 15,
+   321→    'notes': '',
+   322→}
+   323→
+   324→
+   325→def compute_alpha_008(panel: dict) -> pd.DataFrame:
+   326→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   327→    close = panel["close"]
+   328→    open_ = panel["open"]
+   329→
+   330→    returns = close.pct_change()
+   331→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   332→    rolling_sum = _rolling_sum
+   333→    delay = _delay
+   334→    s = rolling_sum(open_, 5) * rolling_sum(returns, 5)
+   335→    out = -1.0 * rank(s - delay(s, 10))
+   336→    return out
+   337→
+   338→
+   339→__alpha_meta_alpha_009 = {
+   340→    'id': 'alpha101_009',
+   341→    'nickname': 'Kakushadze Alpha #9',
+   342→    'theme': ['momentum'],
+   343→    'formula_latex': '(0<ts_min(delta(close,1),5))?delta(close,1):((ts_max(delta(close,1),5)<0)?delta(close,1):(-1*delta(close,1)))',
+   344→    'columns_required': ['close'],
+   345→    'extras_required': [],
+   346→    'requires_sector': False,
+   347→    'universe': ['equity_us'],
+   348→    'frequency': ['1D'],
+   349→    'decay_horizon': 5,
+   350→    'min_warmup_bars': 6,
+   351→    'notes': '',
+   352→}
+   353→
+   354→
+   355→def compute_alpha_009(panel: dict) -> pd.DataFrame:
+   356→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   357→    close = panel["close"]
+   358→
+   359→
+   360→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   361→    where_ternary = _where_ternary
+   362→    d1 = delta(close, 1)
+   363→    cond1 = ts_min(d1, 5) > 0
+   364→    cond2 = ts_max(d1, 5) < 0
+   365→    out = where_ternary(cond1, d1, where_ternary(cond2, d1, -1.0 * d1))
+   366→    return out
+   367→
+   368→
+   369→__alpha_meta_alpha_010 = {
+   370→    'id': 'alpha101_010',
+   371→    'nickname': 'Kakushadze Alpha #10',
+   372→    'theme': ['momentum'],
+   373→    'formula_latex': 'rank((0<ts_min(delta(close,1),4))?delta(close,1):((ts_max(delta(close,1),4)<0)?delta(close,1):(-1*delta(close,1))))',
+   374→    'columns_required': ['close'],
+   375→    'extras_required': [],
+   376→    'requires_sector': False,
+   377→    'universe': ['equity_us'],
+   378→    'frequency': ['1D'],
+   379→    'decay_horizon': 5,
+   380→    'min_warmup_bars': 5,
+   381→    'notes': '',
+   382→}
+   383→
+   384→
+   385→def compute_alpha_010(panel: dict) -> pd.DataFrame:
+   386→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   387→    close = panel["close"]
+   388→
+   389→
+   390→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   391→    where_ternary = _where_ternary
+   392→    d1 = delta(close, 1)
+   393→    cond1 = ts_min(d1, 4) > 0
+   394→    cond2 = ts_max(d1, 4) < 0
+   395→    inner = where_ternary(cond1, d1, where_ternary(cond2, d1, -1.0 * d1))
+   396→    out = rank(inner)
+   397→    return out
+   398→
+   399→
+   400→__alpha_meta_alpha_011 = {
+   401→    'id': 'alpha101_011',
+   402→    'nickname': 'Kakushadze Alpha #11',
+   403→    'theme': ['volume', 'reversal'],
+   404→    'formula_latex': '(rank(ts_max(vwap-close,3))+rank(ts_min(vwap-close,3)))*rank(delta(volume,3))',
+   405→    'columns_required': ['close', 'volume', 'vwap'],
+   406→    'extras_required': [],
+   407→    'requires_sector': False,
+   408→    'universe': ['equity_us'],
+   409→    'frequency': ['1D'],
+   410→    'decay_horizon': 5,
+   411→    'min_warmup_bars': 5,
+   412→    'notes': '',
+   413→}
+   414→
+   415→
+   416→def compute_alpha_011(panel: dict) -> pd.DataFrame:
+   417→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   418→    close = panel["close"]
+   419→    volume = panel["volume"]
+   420→    vwap = panel["vwap"]
+   421→
+   422→
+   423→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   424→    diff = vwap - close
+   425→    out = (rank(ts_max(diff, 3)) + rank(ts_min(diff, 3))) * rank(delta(volume, 3))
+   426→    return out
+   427→
+   428→
+   429→__alpha_meta_alpha_012 = {
+   430→    'id': 'alpha101_012',
+   431→    'nickname': 'Kakushadze Alpha #12',
+   432→    'theme': ['volume', 'reversal'],
+   433→    'formula_latex': 'sign(delta(volume,1)) * (-1 * delta(close,1))',
+   434→    'columns_required': ['close', 'volume'],
+   435→    'extras_required': [],
+   436→    'requires_sector': False,
+   437→    'universe': ['equity_us'],
+   438→    'frequency': ['1D'],
+   439→    'decay_horizon': 5,
+   440→    'min_warmup_bars': 2,
+   441→    'notes': '',
+   442→}
+   443→
+   444→
+   445→def compute_alpha_012(panel: dict) -> pd.DataFrame:
+   446→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   447→    close = panel["close"]
+   448→    volume = panel["volume"]
+   449→
+   450→
+   451→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   452→    out = np.sign(delta(volume, 1)) * (-1.0 * delta(close, 1))
+   453→    return out
+   454→
+   455→
+   456→__alpha_meta_alpha_013 = {
+   457→    'id': 'alpha101_013',
+   458→    'nickname': 'Kakushadze Alpha #13',
+   459→    'theme': ['volume'],
+   460→    'formula_latex': '-1 * rank(covariance(rank(close), rank(volume), 5))',
+   461→    'columns_required': ['close', 'volume'],
+   462→    'extras_required': [],
+   463→    'requires_sector': False,
+   464→    'universe': ['equity_us'],
+   465→    'frequency': ['1D'],
+   466→    'decay_horizon': 5,
+   467→    'min_warmup_bars': 5,
+   468→    'notes': '',
+   469→}
+   470→
+   471→
+   472→def compute_alpha_013(panel: dict) -> pd.DataFrame:
+   473→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   474→    close = panel["close"]
+   475→    volume = panel["volume"]
+   476→
+   477→
+   478→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   479→    out = -1.0 * rank(ts_cov(rank(close), rank(volume), 5))
+   480→    return out
+   481→
+   482→
+   483→__alpha_meta_alpha_014 = {
+   484→    'id': 'alpha101_014',
+   485→    'nickname': 'Kakushadze Alpha #14',
+   486→    'theme': ['volume', 'momentum'],
+   487→    'formula_latex': '(-1*rank(delta(returns,3))) * correlation(open, volume, 10)',
+   488→    'columns_required': ['open', 'close', 'volume'],
+   489→    'extras_required': [],
+   490→    'requires_sector': False,
+   491→    'universe': ['equity_us'],
+   492→    'frequency': ['1D'],
+   493→    'decay_horizon': 5,
+   494→    'min_warmup_bars': 10,
+   495→    'notes': '',
+   496→}
+   497→
+   498→
+   499→def compute_alpha_014(panel: dict) -> pd.DataFrame:
+   500→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   501→    close = panel["close"]
+   502→    open_ = panel["open"]
+   503→    volume = panel["volume"]
+   504→
+   505→    returns = close.pct_change()
+   506→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   507→    out = (-1.0 * rank(delta(returns, 3))) * ts_corr(open_, volume, 10)
+   508→    return out
+   509→
+   510→
+   511→__alpha_meta_alpha_015 = {
+   512→    'id': 'alpha101_015',
+   513→    'nickname': 'Kakushadze Alpha #15',
+   514→    'theme': ['volume'],
+   515→    'formula_latex': '-1 * sum(rank(correlation(rank(high), rank(volume), 3)), 3)',
+   516→    'columns_required': ['high', 'volume', 'close'],
+   517→    'extras_required': [],
+   518→    'requires_sector': False,
+   519→    'universe': ['equity_us'],
+   520→    'frequency': ['1D'],
+   521→    'decay_horizon': 5,
+   522→    'min_warmup_bars': 6,
+   523→    'notes': '',
+   524→}
+   525→
+   526→
+   527→def compute_alpha_015(panel: dict) -> pd.DataFrame:
+   528→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   529→    high = panel["high"]
+   530→    volume = panel["volume"]
+   531→
+   532→
+   533→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   534→    rolling_sum = _rolling_sum
+   535→    out = -1.0 * rolling_sum(rank(ts_corr(rank(high), rank(volume), 3)), 3)
+   536→    return out
+   537→
+   538→
+   539→__alpha_meta_alpha_016 = {
+   540→    'id': 'alpha101_016',
+   541→    'nickname': 'Kakushadze Alpha #16',
+   542→    'theme': ['volume'],
+   543→    'formula_latex': '-1 * rank(covariance(rank(high), rank(volume), 5))',
+   544→    'columns_required': ['high', 'volume', 'close'],
+   545→    'extras_required': [],
+   546→    'requires_sector': False,
+   547→    'universe': ['equity_us'],
+   548→    'frequency': ['1D'],
+   549→    'decay_horizon': 5,
+   550→    'min_warmup_bars': 5,
+   551→    'notes': '',
+   552→}
+   553→
+   554→
+   555→def compute_alpha_016(panel: dict) -> pd.DataFrame:
+   556→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   557→    high = panel["high"]
+   558→    volume = panel["volume"]
+   559→
+   560→
+   561→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   562→    out = -1.0 * rank(ts_cov(rank(high), rank(volume), 5))
+   563→    return out
+   564→
+   565→
+   566→__alpha_meta_alpha_017 = {
+   567→    'id': 'alpha101_017',
+   568→    'nickname': 'Kakushadze Alpha #17',
+   569→    'theme': ['volume', 'reversal'],
+   570→    'formula_latex': '((-1*rank(ts_rank(close,10)))*rank(delta(delta(close,1),1)))*rank(ts_rank(volume/adv20,5))',
+   571→    'columns_required': ['close', 'volume'],
+   572→    'extras_required': [],
+   573→    'requires_sector': False,
+   574→    'universe': ['equity_us'],
+   575→    'frequency': ['1D'],
+   576→    'decay_horizon': 5,
+   577→    'min_warmup_bars': 25,
+   578→    'notes': '',
+   579→}
+   580→
+   581→
+   582→def compute_alpha_017(panel: dict) -> pd.DataFrame:
+   583→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   584→    close = panel["close"]
+   585→    volume = panel["volume"]
+   586→    adv20 = ts_mean(volume, 20)
+   587→
+   588→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   589→    out = (-1.0 * rank(ts_rank(close, 10))) * rank(delta(delta(close, 1), 1)) * rank(ts_rank(safe_div(volume, adv20), 5))
+   590→    return out
+   591→
+   592→
+   593→__alpha_meta_alpha_018 = {
+   594→    'id': 'alpha101_018',
+   595→    'nickname': 'Kakushadze Alpha #18',
+   596→    'theme': ['volatility'],
+   597→    'formula_latex': '-1 * rank(stddev(abs(close-open),5) + (close-open) + correlation(close,open,10))',
+   598→    'columns_required': ['open', 'close'],
+   599→    'extras_required': [],
+   600→    'requires_sector': False,
+   601→    'universe': ['equity_us'],
+   602→    'frequency': ['1D'],
+   603→    'decay_horizon': 5,
+   604→    'min_warmup_bars': 10,
+   605→    'notes': '',
+   606→}
+   607→
+   608→
+   609→def compute_alpha_018(panel: dict) -> pd.DataFrame:
+   610→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   611→    close = panel["close"]
+   612→    open_ = panel["open"]
+   613→
+   614→
+   615→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   616→    diff = (close - open_)
+   617→    out = -1.0 * rank(ts_std(diff.abs(), 5) + diff + ts_corr(close, open_, 10))
+   618→    return out
+   619→
+   620→
+   621→__alpha_meta_alpha_019 = {
+   622→    'id': 'alpha101_019',
+   623→    'nickname': 'Kakushadze Alpha #19',
+   624→    'theme': ['momentum'],
+   625→    'formula_latex': '(-1*sign((close-delay(close,7))+delta(close,7))) * (1+rank(1+sum(returns,250)))',
+   626→    'columns_required': ['close'],
+   627→    'extras_required': [],
+   628→    'requires_sector': False,
+   629→    'universe': ['equity_us'],
+   630→    'frequency': ['1D'],
+   631→    'decay_horizon': 5,
+   632→    'min_warmup_bars': 250,
+   633→    'notes': 'Very long lookback (>= ~100 bars); produces NaN warmup on short panels which may trigger the >95% NaN registry guard.',
+   634→}
+   635→
+   636→
+   637→def compute_alpha_019(panel: dict) -> pd.DataFrame:
+   638→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   639→    close = panel["close"]
+   640→
+   641→
+   642→    returns = close.pct_change()
+   643→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   644→    rolling_sum = _rolling_sum
+   645→    delay = _delay
+   646→    out = (-1.0 * np.sign((close - delay(close, 7)) + delta(close, 7))) * (1.0 + rank(1.0 + rolling_sum(returns, 250)))
+   647→    return out
+   648→
+   649→
+   650→__alpha_meta_alpha_020 = {
+   651→    'id': 'alpha101_020',
+   652→    'nickname': 'Kakushadze Alpha #20',
+   653→    'theme': ['reversal'],
+   654→    'formula_latex': '(((-1*rank(open-delay(high,1)))*rank(open-delay(close,1)))*rank(open-delay(low,1)))',
+   655→    'columns_required': ['open', 'high', 'low', 'close'],
+   656→    'extras_required': [],
+   657→    'requires_sector': False,
+   658→    'universe': ['equity_us'],
+   659→    'frequency': ['1D'],
+   660→    'decay_horizon': 5,
+   661→    'min_warmup_bars': 2,
+   662→    'notes': '',
+   663→}
+   664→
+   665→
+   666→def compute_alpha_020(panel: dict) -> pd.DataFrame:
+   667→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   668→    close = panel["close"]
+   669→    open_ = panel["open"]
+   670→    high = panel["high"]
+   671→    low = panel["low"]
+   672→
+   673→
+   674→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   675→    delay = _delay
+   676→    out = ((-1.0 * rank(open_ - delay(high, 1))) * rank(open_ - delay(close, 1))) * rank(open_ - delay(low, 1))
+   677→    return out
+   678→
+   679→
+   680→__alpha_meta_alpha_021 = {
+   681→    'id': 'alpha101_021',
+   682→    'nickname': 'Kakushadze Alpha #21',
+   683→    'theme': ['momentum', 'volatility'],
+   684→    'formula_latex': 'complex piecewise; see paper',
+   685→    'columns_required': ['close', 'volume'],
+   686→    'extras_required': [],
+   687→    'requires_sector': False,
+   688→    'universe': ['equity_us'],
+   689→    'frequency': ['1D'],
+   690→    'decay_horizon': 5,
+   691→    'min_warmup_bars': 20,
+   692→    'notes': '',
+   693→}
+   694→
+   695→
+   696→def compute_alpha_021(panel: dict) -> pd.DataFrame:
+   697→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   698→    close = panel["close"]
+   699→    volume = panel["volume"]
+   700→    adv20 = ts_mean(volume, 20)
+   701→
+   702→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   703→    rolling_sum = _rolling_sum
+   704→    make_one = _make_one
+   705→    where_ternary = _where_ternary
+   706→    m8 = rolling_sum(close, 8) / 8.0
+   707→    s8 = ts_std(close, 8)
+   708→    m2 = rolling_sum(close, 2) / 2.0
+   709→    v_adv = safe_div(volume, adv20)
+   710→    cond_a = (m8 + s8) < m2
+   711→    cond_b = m2 < (m8 - s8)
+   712→    cond_c = (v_adv >= 1.0)
+   713→    one = make_one(close)
+   714→    out = where_ternary(cond_a, -1.0 * one, where_ternary(cond_b, one, where_ternary(cond_c, one, -1.0 * one)))
+   715→    return out
+   716→
+   717→
+   718→__alpha_meta_alpha_022 = {
+   719→    'id': 'alpha101_022',
+   720→    'nickname': 'Kakushadze Alpha #22',
+   721→    'theme': ['volume', 'volatility'],
+   722→    'formula_latex': '-1 * (delta(correlation(high,volume,5),5) * rank(stddev(close,20)))',
+   723→    'columns_required': ['high', 'close', 'volume'],
+   724→    'extras_required': [],
+   725→    'requires_sector': False,
+   726→    'universe': ['equity_us'],
+   727→    'frequency': ['1D'],
+   728→    'decay_horizon': 5,
+   729→    'min_warmup_bars': 25,
+   730→    'notes': '',
+   731→}
+   732→
+   733→
+   734→def compute_alpha_022(panel: dict) -> pd.DataFrame:
+   735→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   736→    close = panel["close"]
+   737→    high = panel["high"]
+   738→    volume = panel["volume"]
+   739→
+   740→
+   741→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   742→    out = -1.0 * (delta(ts_corr(high, volume, 5), 5) * rank(ts_std(close, 20)))
+   743→    return out
+   744→
+   745→
+   746→__alpha_meta_alpha_023 = {
+   747→    'id': 'alpha101_023',
+   748→    'nickname': 'Kakushadze Alpha #23',
+   749→    'theme': ['momentum'],
+   750→    'formula_latex': '((sum(high,20)/20) < high) ? (-1*delta(high,2)) : 0',
+   751→    'columns_required': ['high', 'close'],
+   752→    'extras_required': [],
+   753→    'requires_sector': False,
+   754→    'universe': ['equity_us'],
+   755→    'frequency': ['1D'],
+   756→    'decay_horizon': 5,
+   757→    'min_warmup_bars': 20,
+   758→    'notes': '',
+   759→}
+   760→
+   761→
+   762→def compute_alpha_023(panel: dict) -> pd.DataFrame:
+   763→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   764→    close = panel["close"]
+   765→    high = panel["high"]
+   766→
+   767→
+   768→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   769→    rolling_sum = _rolling_sum
+   770→    where_ternary = _where_ternary
+   771→    mh = rolling_sum(high, 20) / 20.0
+   772→    out = where_ternary(mh < high, -1.0 * delta(high, 2), 0.0 * close)
+   773→    return out
+   774→
+   775→
+   776→__alpha_meta_alpha_024 = {
+   777→    'id': 'alpha101_024',
+   778→    'nickname': 'Kakushadze Alpha #24',
+   779→    'theme': ['momentum'],
+   780→    'formula_latex': 'complex piecewise; see paper',
+   781→    'columns_required': ['close'],
+   782→    'extras_required': [],
+   783→    'requires_sector': False,
+   784→    'universe': ['equity_us'],
+   785→    'frequency': ['1D'],
+   786→    'decay_horizon': 5,
+   787→    'min_warmup_bars': 200,
+   788→    'notes': 'Very long lookback (>= ~100 bars); produces NaN warmup on short panels which may trigger the >95% NaN registry guard.',
+   789→}
+   790→
+   791→
+   792→def compute_alpha_024(panel: dict) -> pd.DataFrame:
+   793→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   794→    close = panel["close"]
+   795→
+   796→
+   797→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   798→    rolling_sum = _rolling_sum
+   799→    delay = _delay
+   800→    where_ternary = _where_ternary
+   801→    m100 = rolling_sum(close, 100) / 100.0
+   802→    x = safe_div(delta(m100, 100), delay(close, 100))
+   803→    cond = x <= 0.05
+   804→    left = -1.0 * (close - ts_min(close, 100))
+   805→    right = -1.0 * delta(close, 3)
+   806→    out = where_ternary(cond, left, right)
+   807→    return out
+   808→
+   809→
+   810→__alpha_meta_alpha_025 = {
+   811→    'id': 'alpha101_025',
+   812→    'nickname': 'Kakushadze Alpha #25',
+   813→    'theme': ['momentum', 'volume'],
+   814→    'formula_latex': 'rank((((-1*returns)*adv20)*vwap)*(high-close))',
+   815→    'columns_required': ['high', 'close', 'volume', 'vwap'],
+   816→    'extras_required': [],
+   817→    'requires_sector': False,
+   818→    'universe': ['equity_us'],
+   819→    'frequency': ['1D'],
+   820→    'decay_horizon': 5,
+   821→    'min_warmup_bars': 21,
+   822→    'notes': '',
+   823→}
+   824→
+   825→
+   826→def compute_alpha_025(panel: dict) -> pd.DataFrame:
+   827→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   828→    close = panel["close"]
+   829→    high = panel["high"]
+   830→    volume = panel["volume"]
+   831→    vwap = panel["vwap"]
+   832→    adv20 = ts_mean(volume, 20)
+   833→    returns = close.pct_change()
+   834→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   835→    out = rank(((-1.0 * returns) * adv20) * vwap * (high - close))
+   836→    return out
+   837→
+   838→
+   839→__alpha_meta_alpha_026 = {
+   840→    'id': 'alpha101_026',
+   841→    'nickname': 'Kakushadze Alpha #26',
+   842→    'theme': ['volume'],
+   843→    'formula_latex': '-1 * ts_max(correlation(ts_rank(volume,5),ts_rank(high,5),5),3)',
+   844→    'columns_required': ['high', 'volume', 'close'],
+   845→    'extras_required': [],
+   846→    'requires_sector': False,
+   847→    'universe': ['equity_us'],
+   848→    'frequency': ['1D'],
+   849→    'decay_horizon': 5,
+   850→    'min_warmup_bars': 13,
+   851→    'notes': '',
+   852→}
+   853→
+   854→
+   855→def compute_alpha_026(panel: dict) -> pd.DataFrame:
+   856→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   857→    high = panel["high"]
+   858→    volume = panel["volume"]
+   859→
+   860→
+   861→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   862→    out = -1.0 * ts_max(ts_corr(ts_rank(volume, 5), ts_rank(high, 5), 5), 3)
+   863→    return out
+   864→
+   865→
+   866→__alpha_meta_alpha_027 = {
+   867→    'id': 'alpha101_027',
+   868→    'nickname': 'Kakushadze Alpha #27',
+   869→    'theme': ['volume'],
+   870→    'formula_latex': '(0.5<rank((sum(correlation(rank(volume),rank(vwap),6),2)/2.0)))?(-1):1',
+   871→    'columns_required': ['volume', 'vwap', 'close'],
+   872→    'extras_required': [],
+   873→    'requires_sector': False,
+   874→    'universe': ['equity_us'],
+   875→    'frequency': ['1D'],
+   876→    'decay_horizon': 5,
+   877→    'min_warmup_bars': 10,
+   878→    'notes': '',
+   879→}
+   880→
+   881→
+   882→def compute_alpha_027(panel: dict) -> pd.DataFrame:
+   883→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   884→    close = panel["close"]
+   885→    volume = panel["volume"]
+   886→    vwap = panel["vwap"]
+   887→
+   888→
+   889→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   890→    rolling_sum = _rolling_sum
+   891→    make_one = _make_one
+   892→    where_ternary = _where_ternary
+   893→    x = rank(rolling_sum(ts_corr(rank(volume), rank(vwap), 6), 2) / 2.0)
+   894→    out = where_ternary(x > 0.5, -1.0 * make_one(close), make_one(close))
+   895→    return out
+   896→
+   897→
+   898→__alpha_meta_alpha_028 = {
+   899→    'id': 'alpha101_028',
+   900→    'nickname': 'Kakushadze Alpha #28',
+   901→    'theme': ['volume'],
+   902→    'formula_latex': 'scale((correlation(adv20,low,5) + (high+low)/2) - close)',
+   903→    'columns_required': ['high', 'low', 'close', 'volume'],
+   904→    'extras_required': [],
+   905→    'requires_sector': False,
+   906→    'universe': ['equity_us'],
+   907→    'frequency': ['1D'],
+   908→    'decay_horizon': 5,
+   909→    'min_warmup_bars': 25,
+   910→    'notes': '',
+   911→}
+   912→
+   913→
+   914→def compute_alpha_028(panel: dict) -> pd.DataFrame:
+   915→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   916→    close = panel["close"]
+   917→    high = panel["high"]
+   918→    low = panel["low"]
+   919→    volume = panel["volume"]
+   920→    adv20 = ts_mean(volume, 20)
+   921→
+   922→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   923→    out = scale(ts_corr(adv20, low, 5) + (high + low) / 2.0 - close)
+   924→    return out
+   925→
+   926→
+   927→__alpha_meta_alpha_029 = {
+   928→    'id': 'alpha101_029',
+   929→    'nickname': 'Kakushadze Alpha #29',
+   930→    'theme': ['reversal', 'volume'],
+   931→    'formula_latex': 'min(product(rank(rank(scale(log(sum(ts_min(rank(rank(-1*rank(delta(close-1,5)))),2),1))))),1),5) + ts_rank(delay(-1*returns,6),5)',
+   932→    'columns_required': ['close', 'volume'],
+   933→    'extras_required': [],
+   934→    'requires_sector': False,
+   935→    'universe': ['equity_us'],
+   936→    'frequency': ['1D'],
+   937→    'decay_horizon': 5,
+   938→    'min_warmup_bars': 12,
+   939→    'notes': '',
+   940→}
+   941→
+   942→
+   943→def compute_alpha_029(panel: dict) -> pd.DataFrame:
+   944→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   945→    close = panel["close"]
+   946→    returns = close.pct_change()
+   947→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   948→    rolling_sum = _rolling_sum
+   949→    rolling_prod = _rolling_prod
+   950→    delay = _delay
+   951→    inner = rank(rank(-1.0 * rank(delta(close - 1.0, 5))))
+   952→    inner = ts_min(inner, 2)
+   953→    inner = rolling_sum(inner, 1)
+   954→    inner = np.log(inner.where(inner > 0))
+   955→    inner = scale(inner)
+   956→    inner = rank(rank(inner))
+   957→    inner = rolling_prod(inner, 1)
+   958→    term1 = ts_min(inner, 5)
+   959→    term2 = ts_rank(delay(-1.0 * returns, 6), 5)
+   960→    out = term1 + term2
+   961→    return out
+   962→
+   963→
+   964→__alpha_meta_alpha_030 = {
+   965→    'id': 'alpha101_030',
+   966→    'nickname': 'Kakushadze Alpha #30',
+   967→    'theme': ['momentum', 'volume'],
+   968→    'formula_latex': '((1-rank(sign(d1)+sign(d2)+sign(d3))) * sum(volume,5)) / sum(volume,20)',
+   969→    'columns_required': ['close', 'volume'],
+   970→    'extras_required': [],
+   971→    'requires_sector': False,
+   972→    'universe': ['equity_us'],
+   973→    'frequency': ['1D'],
+   974→    'decay_horizon': 5,
+   975→    'min_warmup_bars': 20,
+   976→    'notes': '',
+   977→}
+   978→
+   979→
+   980→def compute_alpha_030(panel: dict) -> pd.DataFrame:
+   981→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+   982→    close = panel["close"]
+   983→    volume = panel["volume"]
+   984→
+   985→
+   986→    # Helper aliases (local closures keep the file standalone & purity-safe).
+   987→    rolling_sum = _rolling_sum
+   988→    delay = _delay
+   989→    s = np.sign(close - delay(close, 1)) + np.sign(delay(close, 1) - delay(close, 2)) + np.sign(delay(close, 2) - delay(close, 3))
+   990→    out = safe_div((1.0 - rank(s)) * rolling_sum(volume, 5), rolling_sum(volume, 20))
+   991→    return out
+   992→
+   993→
+   994→__alpha_meta_alpha_031 = {
+   995→    'id': 'alpha101_031',
+   996→    'nickname': 'Kakushadze Alpha #31',
+   997→    'theme': ['momentum'],
+   998→    'formula_latex': 'rank(rank(rank(decay_linear(-1*rank(rank(delta(close,10))),10)))) + rank(-1*delta(close,3)) + sign(scale(correlation(adv20,low,12)))',
+   999→    'columns_required': ['low', 'close', 'volume'],
+  1000→    'extras_required': [],
+  1001→    'requires_sector': False,
+  1002→    'universe': ['equity_us'],
+  1003→    'frequency': ['1D'],
+  1004→    'decay_horizon': 5,
+  1005→    'min_warmup_bars': 25,
+  1006→    'notes': '',
+  1007→}
+  1008→
+  1009→
+  1010→def compute_alpha_031(panel: dict) -> pd.DataFrame:
+  1011→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1012→    close = panel["close"]
+  1013→    low = panel["low"]
+  1014→    volume = panel["volume"]
+  1015→    adv20 = ts_mean(volume, 20)
+  1016→
+  1017→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1018→    t1 = rank(rank(rank(decay_linear(-1.0 * rank(rank(delta(close, 10))), 10))))
+  1019→    t2 = rank(-1.0 * delta(close, 3))
+  1020→    t3 = pd.DataFrame(np.sign(scale(ts_corr(adv20, low, 12)).to_numpy(dtype=np.float64, na_value=np.nan)), index=close.index, columns=close.columns)
+  1021→    out = t1 + t2 + t3
+  1022→    return out
+  1023→
+  1024→
+  1025→__alpha_meta_alpha_032 = {
+  1026→    'id': 'alpha101_032',
+  1027→    'nickname': 'Kakushadze Alpha #32',
+  1028→    'theme': ['momentum'],
+  1029→    'formula_latex': 'scale(sum(close,7)/7 - close) + 20*scale(correlation(vwap, delay(close,5), 230))',
+  1030→    'columns_required': ['close', 'vwap'],
+  1031→    'extras_required': [],
+  1032→    'requires_sector': False,
+  1033→    'universe': ['equity_us'],
+  1034→    'frequency': ['1D'],
+  1035→    'decay_horizon': 5,
+  1036→    'min_warmup_bars': 235,
+  1037→    'notes': 'Very long lookback (>= ~100 bars); produces NaN warmup on short panels which may trigger the >95% NaN registry guard.',
+  1038→}
+  1039→
+  1040→
+  1041→def compute_alpha_032(panel: dict) -> pd.DataFrame:
+  1042→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1043→    close = panel["close"]
+  1044→    vwap = panel["vwap"]
+  1045→
+  1046→
+  1047→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1048→    rolling_sum = _rolling_sum
+  1049→    delay = _delay
+  1050→    out = scale(rolling_sum(close, 7) / 7.0 - close) + 20.0 * scale(ts_corr(vwap, delay(close, 5), 230))
+  1051→    return out
+  1052→
+  1053→
+  1054→__alpha_meta_alpha_033 = {
+  1055→    'id': 'alpha101_033',
+  1056→    'nickname': 'Kakushadze Alpha #33',
+  1057→    'theme': ['reversal'],
+  1058→    'formula_latex': 'rank(-1*(1-open/close))',
+  1059→    'columns_required': ['open', 'close'],
+  1060→    'extras_required': [],
+  1061→    'requires_sector': False,
+  1062→    'universe': ['equity_us'],
+  1063→    'frequency': ['1D'],
+  1064→    'decay_horizon': 5,
+  1065→    'min_warmup_bars': 1,
+  1066→    'notes': '',
+  1067→}
+  1068→
+  1069→
+  1070→def compute_alpha_033(panel: dict) -> pd.DataFrame:
+  1071→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1072→    close = panel["close"]
+  1073→    open_ = panel["open"]
+  1074→
+  1075→
+  1076→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1077→    out = rank(-1.0 * (1.0 - safe_div(open_, close)))
+  1078→    return out
+  1079→
+  1080→
+  1081→__alpha_meta_alpha_034 = {
+  1082→    'id': 'alpha101_034',
+  1083→    'nickname': 'Kakushadze Alpha #34',
+  1084→    'theme': ['volatility'],
+  1085→    'formula_latex': 'rank((1-rank(stddev(returns,2)/stddev(returns,5))) + (1-rank(delta(close,1))))',
+  1086→    'columns_required': ['close'],
+  1087→    'extras_required': [],
+  1088→    'requires_sector': False,
+  1089→    'universe': ['equity_us'],
+  1090→    'frequency': ['1D'],
+  1091→    'decay_horizon': 5,
+  1092→    'min_warmup_bars': 6,
+  1093→    'notes': '',
+  1094→}
+  1095→
+  1096→
+  1097→def compute_alpha_034(panel: dict) -> pd.DataFrame:
+  1098→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1099→    close = panel["close"]
+  1100→
+  1101→
+  1102→    returns = close.pct_change()
+  1103→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1104→    out = rank((1.0 - rank(safe_div(ts_std(returns, 2), ts_std(returns, 5)))) + (1.0 - rank(delta(close, 1))))
+  1105→    return out
+  1106→
+  1107→
+  1108→__alpha_meta_alpha_035 = {
+  1109→    'id': 'alpha101_035',
+  1110→    'nickname': 'Kakushadze Alpha #35',
+  1111→    'theme': ['volume', 'momentum'],
+  1112→    'formula_latex': 'ts_rank(volume,32) * (1 - ts_rank((close+high-low),16)) * (1 - ts_rank(returns,32))',
+  1113→    'columns_required': ['high', 'low', 'close', 'volume'],
+  1114→    'extras_required': [],
+  1115→    'requires_sector': False,
+  1116→    'universe': ['equity_us'],
+  1117→    'frequency': ['1D'],
+  1118→    'decay_horizon': 5,
+  1119→    'min_warmup_bars': 33,
+  1120→    'notes': '',
+  1121→}
+  1122→
+  1123→
+  1124→def compute_alpha_035(panel: dict) -> pd.DataFrame:
+  1125→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1126→    close = panel["close"]
+  1127→    high = panel["high"]
+  1128→    low = panel["low"]
+  1129→    volume = panel["volume"]
+  1130→
+  1131→    returns = close.pct_change()
+  1132→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1133→    out = ts_rank(volume, 32) * (1.0 - ts_rank((close + high - low), 16)) * (1.0 - ts_rank(returns, 32))
+  1134→    return out
+  1135→
+  1136→
+  1137→__alpha_meta_alpha_036 = {
+  1138→    'id': 'alpha101_036',
+  1139→    'nickname': 'Kakushadze Alpha #36',
+  1140→    'theme': ['momentum', 'volume'],
+  1141→    'formula_latex': 'weighted sum; see paper',
+  1142→    'columns_required': ['open', 'close', 'volume', 'vwap'],
+  1143→    'extras_required': [],
+  1144→    'requires_sector': False,
+  1145→    'universe': ['equity_us'],
+  1146→    'frequency': ['1D'],
+  1147→    'decay_horizon': 5,
+  1148→    'min_warmup_bars': 200,
+  1149→    'notes': 'Very long lookback (>= ~100 bars); produces NaN warmup on short panels which may trigger the >95% NaN registry guard.',
+  1150→}
+  1151→
+  1152→
+  1153→def compute_alpha_036(panel: dict) -> pd.DataFrame:
+  1154→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1155→    close = panel["close"]
+  1156→    open_ = panel["open"]
+  1157→    volume = panel["volume"]
+  1158→    vwap = panel["vwap"]
+  1159→    adv20 = ts_mean(volume, 20)
+  1160→    returns = close.pct_change()
+  1161→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1162→    rolling_sum = _rolling_sum
+  1163→    delay = _delay
+  1164→    t1 = 2.21 * rank(ts_corr((close - open_), delay(volume, 1), 15))
+  1165→    t2 = 0.7 * rank(open_ - close)
+  1166→    t3 = 0.73 * rank(ts_rank(delay(-1.0 * returns, 6), 5))
+  1167→    t4 = rank(ts_corr(vwap, adv20, 6).abs())
+  1168→    t5 = 0.6 * rank((rolling_sum(close, 200) / 200.0 - open_) * (close - open_))
+  1169→    out = t1 + t2 + t3 + t4 + t5
+  1170→    return out
+  1171→
+  1172→
+  1173→__alpha_meta_alpha_037 = {
+  1174→    'id': 'alpha101_037',
+  1175→    'nickname': 'Kakushadze Alpha #37',
+  1176→    'theme': ['momentum'],
+  1177→    'formula_latex': 'rank(correlation(delay(open-close,1),close,200)) + rank(open-close)',
+  1178→    'columns_required': ['open', 'close'],
+  1179→    'extras_required': [],
+  1180→    'requires_sector': False,
+  1181→    'universe': ['equity_us'],
+  1182→    'frequency': ['1D'],
+  1183→    'decay_horizon': 5,
+  1184→    'min_warmup_bars': 201,
+  1185→    'notes': 'Very long lookback (>= ~100 bars); produces NaN warmup on short panels which may trigger the >95% NaN registry guard.',
+  1186→}
+  1187→
+  1188→
+  1189→def compute_alpha_037(panel: dict) -> pd.DataFrame:
+  1190→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1191→    close = panel["close"]
+  1192→    open_ = panel["open"]
+  1193→
+  1194→
+  1195→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1196→    delay = _delay
+  1197→    out = rank(ts_corr(delay(open_ - close, 1), close, 200)) + rank(open_ - close)
+  1198→    return out
+  1199→
+  1200→
+  1201→__alpha_meta_alpha_038 = {
+  1202→    'id': 'alpha101_038',
+  1203→    'nickname': 'Kakushadze Alpha #38',
+  1204→    'theme': ['reversal'],
+  1205→    'formula_latex': '(-1*rank(ts_rank(close,10))) * rank(close/open)',
+  1206→    'columns_required': ['open', 'close'],
+  1207→    'extras_required': [],
+  1208→    'requires_sector': False,
+  1209→    'universe': ['equity_us'],
+  1210→    'frequency': ['1D'],
+  1211→    'decay_horizon': 5,
+  1212→    'min_warmup_bars': 10,
+  1213→    'notes': '',
+  1214→}
+  1215→
+  1216→
+  1217→def compute_alpha_038(panel: dict) -> pd.DataFrame:
+  1218→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1219→    close = panel["close"]
+  1220→    open_ = panel["open"]
+  1221→
+  1222→
+  1223→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1224→    out = (-1.0 * rank(ts_rank(close, 10))) * rank(safe_div(close, open_))
+  1225→    return out
+  1226→
+  1227→
+  1228→__alpha_meta_alpha_039 = {
+  1229→    'id': 'alpha101_039',
+  1230→    'nickname': 'Kakushadze Alpha #39',
+  1231→    'theme': ['momentum', 'volume'],
+  1232→    'formula_latex': '(-1*rank(delta(close,7)*(1-rank(decay_linear(volume/adv20,9))))) * (1+rank(sum(returns,250)))',
+  1233→    'columns_required': ['close', 'volume'],
+  1234→    'extras_required': [],
+  1235→    'requires_sector': False,
+  1236→    'universe': ['equity_us'],
+  1237→    'frequency': ['1D'],
+  1238→    'decay_horizon': 5,
+  1239→    'min_warmup_bars': 250,
+  1240→    'notes': 'Very long lookback (>= ~100 bars); produces NaN warmup on short panels which may trigger the >95% NaN registry guard.',
+  1241→}
+  1242→
+  1243→
+  1244→def compute_alpha_039(panel: dict) -> pd.DataFrame:
+  1245→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1246→    close = panel["close"]
+  1247→    volume = panel["volume"]
+  1248→    adv20 = ts_mean(volume, 20)
+  1249→    returns = close.pct_change()
+  1250→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1251→    rolling_sum = _rolling_sum
+  1252→    out = (-1.0 * rank(delta(close, 7) * (1.0 - rank(decay_linear(safe_div(volume, adv20), 9))))) * (1.0 + rank(rolling_sum(returns, 250)))
+  1253→    return out
+  1254→
+  1255→
+  1256→__alpha_meta_alpha_040 = {
+  1257→    'id': 'alpha101_040',
+  1258→    'nickname': 'Kakushadze Alpha #40',
+  1259→    'theme': ['volatility', 'volume'],
+  1260→    'formula_latex': '(-1*rank(stddev(high,10))) * correlation(high,volume,10)',
+  1261→    'columns_required': ['high', 'volume', 'close'],
+  1262→    'extras_required': [],
+  1263→    'requires_sector': False,
+  1264→    'universe': ['equity_us'],
+  1265→    'frequency': ['1D'],
+  1266→    'decay_horizon': 5,
+  1267→    'min_warmup_bars': 10,
+  1268→    'notes': '',
+  1269→}
+  1270→
+  1271→
+  1272→def compute_alpha_040(panel: dict) -> pd.DataFrame:
+  1273→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1274→    high = panel["high"]
+  1275→    volume = panel["volume"]
+  1276→
+  1277→
+  1278→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1279→    out = (-1.0 * rank(ts_std(high, 10))) * ts_corr(high, volume, 10)
+  1280→    return out
+  1281→
+  1282→
+  1283→__alpha_meta_alpha_041 = {
+  1284→    'id': 'alpha101_041',
+  1285→    'nickname': 'Kakushadze Alpha #41',
+  1286→    'theme': ['reversal'],
+  1287→    'formula_latex': '(high*low)^0.5 - vwap',
+  1288→    'columns_required': ['high', 'low', 'vwap', 'close'],
+  1289→    'extras_required': [],
+  1290→    'requires_sector': False,
+  1291→    'universe': ['equity_us'],
+  1292→    'frequency': ['1D'],
+  1293→    'decay_horizon': 5,
+  1294→    'min_warmup_bars': 1,
+  1295→    'notes': '',
+  1296→}
+  1297→
+  1298→
+  1299→def compute_alpha_041(panel: dict) -> pd.DataFrame:
+  1300→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1301→    high = panel["high"]
+  1302→    low = panel["low"]
+  1303→    vwap = panel["vwap"]
+  1304→
+  1305→
+  1306→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1307→    out = (high * low).pow(0.5) - vwap
+  1308→    return out
+  1309→
+  1310→
+  1311→__alpha_meta_alpha_042 = {
+  1312→    'id': 'alpha101_042',
+  1313→    'nickname': 'Kakushadze Alpha #42',
+  1314→    'theme': ['reversal'],
+  1315→    'formula_latex': 'rank(vwap-close) / rank(vwap+close)',
+  1316→    'columns_required': ['close', 'vwap'],
+  1317→    'extras_required': [],
+  1318→    'requires_sector': False,
+  1319→    'universe': ['equity_us'],
+  1320→    'frequency': ['1D'],
+  1321→    'decay_horizon': 5,
+  1322→    'min_warmup_bars': 1,
+  1323→    'notes': '',
+  1324→}
+  1325→
+  1326→
+  1327→def compute_alpha_042(panel: dict) -> pd.DataFrame:
+  1328→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1329→    close = panel["close"]
+  1330→    vwap = panel["vwap"]
+  1331→
+  1332→
+  1333→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1334→    out = safe_div(rank(vwap - close), rank(vwap + close))
+  1335→    return out
+  1336→
+  1337→
+  1338→__alpha_meta_alpha_043 = {
+  1339→    'id': 'alpha101_043',
+  1340→    'nickname': 'Kakushadze Alpha #43',
+  1341→    'theme': ['volume', 'momentum'],
+  1342→    'formula_latex': 'ts_rank(volume/adv20,20) * ts_rank(-1*delta(close,7),8)',
+  1343→    'columns_required': ['close', 'volume'],
+  1344→    'extras_required': [],
+  1345→    'requires_sector': False,
+  1346→    'universe': ['equity_us'],
+  1347→    'frequency': ['1D'],
+  1348→    'decay_horizon': 5,
+  1349→    'min_warmup_bars': 39,
+  1350→    'notes': '',
+  1351→}
+  1352→
+  1353→
+  1354→def compute_alpha_043(panel: dict) -> pd.DataFrame:
+  1355→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1356→    close = panel["close"]
+  1357→    volume = panel["volume"]
+  1358→    adv20 = ts_mean(volume, 20)
+  1359→
+  1360→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1361→    out = ts_rank(safe_div(volume, adv20), 20) * ts_rank(-1.0 * delta(close, 7), 8)
+  1362→    return out
+  1363→
+  1364→
+  1365→__alpha_meta_alpha_044 = {
+  1366→    'id': 'alpha101_044',
+  1367→    'nickname': 'Kakushadze Alpha #44',
+  1368→    'theme': ['volume'],
+  1369→    'formula_latex': '-1 * correlation(high, rank(volume), 5)',
+  1370→    'columns_required': ['high', 'volume', 'close'],
+  1371→    'extras_required': [],
+  1372→    'requires_sector': False,
+  1373→    'universe': ['equity_us'],
+  1374→    'frequency': ['1D'],
+  1375→    'decay_horizon': 5,
+  1376→    'min_warmup_bars': 5,
+  1377→    'notes': '',
+  1378→}
+  1379→
+  1380→
+  1381→def compute_alpha_044(panel: dict) -> pd.DataFrame:
+  1382→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1383→    high = panel["high"]
+  1384→    volume = panel["volume"]
+  1385→
+  1386→
+  1387→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1388→    out = -1.0 * ts_corr(high, rank(volume), 5)
+  1389→    return out
+  1390→
+  1391→
+  1392→__alpha_meta_alpha_045 = {
+  1393→    'id': 'alpha101_045',
+  1394→    'nickname': 'Kakushadze Alpha #45',
+  1395→    'theme': ['momentum', 'volume'],
+  1396→    'formula_latex': '-1 * (rank(sum(delay(close,5),20)/20)*correlation(close,volume,2)*rank(correlation(sum(close,5),sum(close,20),2)))',
+  1397→    'columns_required': ['close', 'volume'],
+  1398→    'extras_required': [],
+  1399→    'requires_sector': False,
+  1400→    'universe': ['equity_us'],
+  1401→    'frequency': ['1D'],
+  1402→    'decay_horizon': 5,
+  1403→    'min_warmup_bars': 25,
+  1404→    'notes': '',
+  1405→}
+  1406→
+  1407→
+  1408→def compute_alpha_045(panel: dict) -> pd.DataFrame:
+  1409→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1410→    close = panel["close"]
+  1411→    volume = panel["volume"]
+  1412→
+  1413→
+  1414→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1415→    rolling_sum = _rolling_sum
+  1416→    delay = _delay
+  1417→    out = -1.0 * (rank(rolling_sum(delay(close, 5), 20) / 20.0) * ts_corr(close, volume, 2) * rank(ts_corr(rolling_sum(close, 5), rolling_sum(close, 20), 2)))
+  1418→    return out
+  1419→
+  1420→
+  1421→__alpha_meta_alpha_046 = {
+  1422→    'id': 'alpha101_046',
+  1423→    'nickname': 'Kakushadze Alpha #46',
+  1424→    'theme': ['momentum'],
+  1425→    'formula_latex': 'complex piecewise; see paper',
+  1426→    'columns_required': ['close'],
+  1427→    'extras_required': [],
+  1428→    'requires_sector': False,
+  1429→    'universe': ['equity_us'],
+  1430→    'frequency': ['1D'],
+  1431→    'decay_horizon': 5,
+  1432→    'min_warmup_bars': 21,
+  1433→    'notes': '',
+  1434→}
+  1435→
+  1436→
+  1437→def compute_alpha_046(panel: dict) -> pd.DataFrame:
+  1438→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1439→    close = panel["close"]
+  1440→
+  1441→
+  1442→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1443→    delay = _delay
+  1444→    make_one = _make_one
+  1445→    where_ternary = _where_ternary
+  1446→    x = ((delay(close, 20) - delay(close, 10)) / 10.0) - ((delay(close, 10) - close) / 10.0)
+  1447→    one = make_one(close)
+  1448→    out = where_ternary(0.25 < x, -1.0 * one, where_ternary(x < 0.0, one, -1.0 * (close - delay(close, 1))))
+  1449→    return out
+  1450→
+  1451→
+  1452→__alpha_meta_alpha_047 = {
+  1453→    'id': 'alpha101_047',
+  1454→    'nickname': 'Kakushadze Alpha #47',
+  1455→    'theme': ['volume', 'momentum'],
+  1456→    'formula_latex': '((rank(1/close)*volume/adv20) * (high*rank(high-close)/(sum(high,5)/5))) - rank(vwap-delay(vwap,5))',
+  1457→    'columns_required': ['high', 'close', 'volume', 'vwap'],
+  1458→    'extras_required': [],
+  1459→    'requires_sector': False,
+  1460→    'universe': ['equity_us'],
+  1461→    'frequency': ['1D'],
+  1462→    'decay_horizon': 5,
+  1463→    'min_warmup_bars': 25,
+  1464→    'notes': '',
+  1465→}
+  1466→
+  1467→
+  1468→def compute_alpha_047(panel: dict) -> pd.DataFrame:
+  1469→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1470→    close = panel["close"]
+  1471→    high = panel["high"]
+  1472→    volume = panel["volume"]
+  1473→    vwap = panel["vwap"]
+  1474→    adv20 = ts_mean(volume, 20)
+  1475→
+  1476→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1477→    rolling_sum = _rolling_sum
+  1478→    delay = _delay
+  1479→    make_one = _make_one
+  1480→    t1 = safe_div(rank(safe_div(make_one(close), close)) * volume, adv20)
+  1481→    t2 = safe_div(high * rank(high - close), rolling_sum(high, 5) / 5.0)
+  1482→    out = t1 * t2 - rank(vwap - delay(vwap, 5))
+  1483→    return out
+  1484→
+  1485→
+  1486→__alpha_meta_alpha_048 = {
+  1487→    'id': 'alpha101_048',
+  1488→    'nickname': 'Kakushadze Alpha #48',
+  1489→    'theme': ['momentum', 'volatility'],
+  1490→    'formula_latex': 'indneutralize(...subindustry...) / sum((delta(close,1)/delay(close,1))^2, 250)',
+  1491→    'columns_required': ['close'],
+  1492→    'extras_required': [],
+  1493→    'requires_sector': True,
+  1494→    'universe': ['equity_us'],
+  1495→    'frequency': ['1D'],
+  1496→    'decay_horizon': 5,
+  1497→    'min_warmup_bars': 251,
+  1498→    'notes': "Industry neutralization implemented via per-row sector group demean (panel['sector'] required). When sector tag is absent the registry rejects via SkipAlpha; the compute() also has a degraded global demean fallback. This is a partial approximation of the paper's IndClass.industry/subindustry/sector neutralization.",
+  1499→}
+  1500→
+  1501→
+  1502→def compute_alpha_048(panel: dict) -> pd.DataFrame:
+  1503→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1504→    close = panel["close"]
+  1505→
+  1506→
+  1507→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1508→    rolling_sum = _rolling_sum
+  1509→    delay = _delay
+  1510→    ind_neutralize = _ind_neutralize
+  1511→    num = (ts_corr(delta(close, 1), delta(delay(close, 1), 1), 250) * delta(close, 1)) / close
+  1512→    num = ind_neutralize(num, panel)
+  1513→    denom = rolling_sum(safe_div(delta(close, 1), delay(close, 1)).pow(2), 250)
+  1514→    out = safe_div(num, denom)
+  1515→    return out
+  1516→
+  1517→
+  1518→__alpha_meta_alpha_049 = {
+  1519→    'id': 'alpha101_049',
+  1520→    'nickname': 'Kakushadze Alpha #49',
+  1521→    'theme': ['momentum'],
+  1522→    'formula_latex': '(((delay(close,20)-delay(close,10))/10 - (delay(close,10)-close)/10) < -0.1) ? 1 : -1*(close-delay(close,1))',
+  1523→    'columns_required': ['close'],
+  1524→    'extras_required': [],
+  1525→    'requires_sector': False,
+  1526→    'universe': ['equity_us'],
+  1527→    'frequency': ['1D'],
+  1528→    'decay_horizon': 5,
+  1529→    'min_warmup_bars': 21,
+  1530→    'notes': '',
+  1531→}
+  1532→
+  1533→
+  1534→def compute_alpha_049(panel: dict) -> pd.DataFrame:
+  1535→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1536→    close = panel["close"]
+  1537→
+  1538→
+  1539→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1540→    delay = _delay
+  1541→    make_one = _make_one
+  1542→    where_ternary = _where_ternary
+  1543→    x = ((delay(close, 20) - delay(close, 10)) / 10.0) - ((delay(close, 10) - close) / 10.0)
+  1544→    one = make_one(close)
+  1545→    out = where_ternary(x < -0.1, one, -1.0 * (close - delay(close, 1)))
+  1546→    return out
+  1547→
+  1548→
+  1549→__alpha_meta_alpha_050 = {
+  1550→    'id': 'alpha101_050',
+  1551→    'nickname': 'Kakushadze Alpha #50',
+  1552→    'theme': ['volume'],
+  1553→    'formula_latex': '-1 * ts_max(rank(correlation(rank(volume), rank(vwap), 5)), 5)',
+  1554→    'columns_required': ['volume', 'vwap', 'close'],
+  1555→    'extras_required': [],
+  1556→    'requires_sector': False,
+  1557→    'universe': ['equity_us'],
+  1558→    'frequency': ['1D'],
+  1559→    'decay_horizon': 5,
+  1560→    'min_warmup_bars': 10,
+  1561→    'notes': '',
+  1562→}
+  1563→
+  1564→
+  1565→def compute_alpha_050(panel: dict) -> pd.DataFrame:
+  1566→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1567→    volume = panel["volume"]
+  1568→    vwap = panel["vwap"]
+  1569→
+  1570→
+  1571→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1572→    out = -1.0 * ts_max(rank(ts_corr(rank(volume), rank(vwap), 5)), 5)
+  1573→    return out
+  1574→
+  1575→
+  1576→__alpha_meta_alpha_051 = {
+  1577→    'id': 'alpha101_051',
+  1578→    'nickname': 'Kakushadze Alpha #51',
+  1579→    'theme': ['momentum'],
+  1580→    'formula_latex': '(...< -0.05) ? 1 : -1*(close-delay(close,1))',
+  1581→    'columns_required': ['close'],
+  1582→    'extras_required': [],
+  1583→    'requires_sector': False,
+  1584→    'universe': ['equity_us'],
+  1585→    'frequency': ['1D'],
+  1586→    'decay_horizon': 5,
+  1587→    'min_warmup_bars': 21,
+  1588→    'notes': '',
+  1589→}
+  1590→
+  1591→
+  1592→def compute_alpha_051(panel: dict) -> pd.DataFrame:
+  1593→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1594→    close = panel["close"]
+  1595→
+  1596→
+  1597→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1598→    delay = _delay
+  1599→    make_one = _make_one
+  1600→    where_ternary = _where_ternary
+  1601→    x = ((delay(close, 20) - delay(close, 10)) / 10.0) - ((delay(close, 10) - close) / 10.0)
+  1602→    one = make_one(close)
+  1603→    out = where_ternary(x < -0.05, one, -1.0 * (close - delay(close, 1)))
+  1604→    return out
+  1605→
+  1606→
+  1607→__alpha_meta_alpha_052 = {
+  1608→    'id': 'alpha101_052',
+  1609→    'nickname': 'Kakushadze Alpha #52',
+  1610→    'theme': ['momentum'],
+  1611→    'formula_latex': '((-1*ts_min(low,5)+delay(ts_min(low,5),5)) * rank((sum(returns,240)-sum(returns,20))/220)) * ts_rank(volume,5)',
+  1612→    'columns_required': ['low', 'close', 'volume'],
+  1613→    'extras_required': [],
+  1614→    'requires_sector': False,
+  1615→    'universe': ['equity_us'],
+  1616→    'frequency': ['1D'],
+  1617→    'decay_horizon': 5,
+  1618→    'min_warmup_bars': 240,
+  1619→    'notes': 'Very long lookback (>= ~100 bars); produces NaN warmup on short panels which may trigger the >95% NaN registry guard.',
+  1620→}
+  1621→
+  1622→
+  1623→def compute_alpha_052(panel: dict) -> pd.DataFrame:
+  1624→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1625→    close = panel["close"]
+  1626→    low = panel["low"]
+  1627→    volume = panel["volume"]
+  1628→
+  1629→    returns = close.pct_change()
+  1630→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1631→    rolling_sum = _rolling_sum
+  1632→    delay = _delay
+  1633→    out = ((-1.0 * ts_min(low, 5)) + delay(ts_min(low, 5), 5)) * rank((rolling_sum(returns, 240) - rolling_sum(returns, 20)) / 220.0) * ts_rank(volume, 5)
+  1634→    return out
+  1635→
+  1636→
+  1637→__alpha_meta_alpha_053 = {
+  1638→    'id': 'alpha101_053',
+  1639→    'nickname': 'Kakushadze Alpha #53',
+  1640→    'theme': ['reversal'],
+  1641→    'formula_latex': '-1 * delta(((close-low) - (high-close))/(close-low), 9)',
+  1642→    'columns_required': ['high', 'low', 'close'],
+  1643→    'extras_required': [],
+  1644→    'requires_sector': False,
+  1645→    'universe': ['equity_us'],
+  1646→    'frequency': ['1D'],
+  1647→    'decay_horizon': 5,
+  1648→    'min_warmup_bars': 10,
+  1649→    'notes': '',
+  1650→}
+  1651→
+  1652→
+  1653→def compute_alpha_053(panel: dict) -> pd.DataFrame:
+  1654→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1655→    close = panel["close"]
+  1656→    high = panel["high"]
+  1657→    low = panel["low"]
+  1658→
+  1659→
+  1660→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1661→    x = safe_div(((close - low) - (high - close)), (close - low))
+  1662→    out = -1.0 * delta(x, 9)
+  1663→    return out
+  1664→
+  1665→
+  1666→__alpha_meta_alpha_054 = {
+  1667→    'id': 'alpha101_054',
+  1668→    'nickname': 'Kakushadze Alpha #54',
+  1669→    'theme': ['reversal'],
+  1670→    'formula_latex': '-1 * ((low-close)*(open^5)) / ((low-high)*(close^5))',
+  1671→    'columns_required': ['open', 'high', 'low', 'close'],
+  1672→    'extras_required': [],
+  1673→    'requires_sector': False,
+  1674→    'universe': ['equity_us'],
+  1675→    'frequency': ['1D'],
+  1676→    'decay_horizon': 5,
+  1677→    'min_warmup_bars': 1,
+  1678→    'notes': '',
+  1679→}
+  1680→
+  1681→
+  1682→def compute_alpha_054(panel: dict) -> pd.DataFrame:
+  1683→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1684→    close = panel["close"]
+  1685→    open_ = panel["open"]
+  1686→    high = panel["high"]
+  1687→    low = panel["low"]
+  1688→
+  1689→
+  1690→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1691→    num = (low - close) * open_.pow(5)
+  1692→    denom = (low - high) * close.pow(5)
+  1693→    out = -1.0 * safe_div(num, denom)
+  1694→    return out
+  1695→
+  1696→
+  1697→__alpha_meta_alpha_055 = {
+  1698→    'id': 'alpha101_055',
+  1699→    'nickname': 'Kakushadze Alpha #55',
+  1700→    'theme': ['volume', 'reversal'],
+  1701→    'formula_latex': '-1 * correlation(rank((close-ts_min(low,12))/(ts_max(high,12)-ts_min(low,12))), rank(volume), 6)',
+  1702→    'columns_required': ['high', 'low', 'close', 'volume'],
+  1703→    'extras_required': [],
+  1704→    'requires_sector': False,
+  1705→    'universe': ['equity_us'],
+  1706→    'frequency': ['1D'],
+  1707→    'decay_horizon': 5,
+  1708→    'min_warmup_bars': 17,
+  1709→    'notes': '',
+  1710→}
+  1711→
+  1712→
+  1713→def compute_alpha_055(panel: dict) -> pd.DataFrame:
+  1714→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1715→    close = panel["close"]
+  1716→    high = panel["high"]
+  1717→    low = panel["low"]
+  1718→    volume = panel["volume"]
+  1719→
+  1720→
+  1721→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1722→    x = safe_div(close - ts_min(low, 12), ts_max(high, 12) - ts_min(low, 12))
+  1723→    out = -1.0 * ts_corr(rank(x), rank(volume), 6)
+  1724→    return out
+  1725→
+  1726→
+  1727→__alpha_meta_alpha_056 = {
+  1728→    'id': 'alpha101_056',
+  1729→    'nickname': 'Kakushadze Alpha #56',
+  1730→    'theme': ['momentum'],
+  1731→    'formula_latex': '0 - 1*(rank(sum(returns,10)/sum(sum(returns,2),3)) * rank((returns * cap)))  [cap unavailable -> 1]',
+  1732→    'columns_required': ['close'],
+  1733→    'extras_required': [],
+  1734→    'requires_sector': True,
+  1735→    'universe': ['equity_us'],
+  1736→    'frequency': ['1D'],
+  1737→    'decay_horizon': 5,
+  1738→    'min_warmup_bars': 10,
+  1739→    'notes': "Industry neutralization implemented via per-row sector group demean (panel['sector'] required). When sector tag is absent the registry rejects via SkipAlpha; the compute() also has a degraded global demean fallback. This is a partial approximation of the paper's IndClass.industry/subindustry/sector neutralization. Paper formula uses market 'cap' which is not part of the standard OHLCV panel; substituted by a constant 1.0 DataFrame. Result remains a valid factor but loses the cap-weighting term.",
+  1740→}
+  1741→
+  1742→
+  1743→def compute_alpha_056(panel: dict) -> pd.DataFrame:
+  1744→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1745→    close = panel["close"]
+  1746→
+  1747→
+  1748→    returns = close.pct_change()
+  1749→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1750→    rolling_sum = _rolling_sum
+  1751→    make_one = _make_one
+  1752→    # 'cap' (market cap) is not part of the standard panel; degrade to 1.0
+  1753→    cap = make_one(close)
+  1754→    num = rolling_sum(returns, 10)
+  1755→    denom = rolling_sum(rolling_sum(returns, 2), 3)
+  1756→    out = 0.0 - (rank(safe_div(num, denom)) * rank(returns * cap))
+  1757→    return out
+  1758→
+  1759→
+  1760→__alpha_meta_alpha_057 = {
+  1761→    'id': 'alpha101_057',
+  1762→    'nickname': 'Kakushadze Alpha #57',
+  1763→    'theme': ['reversal'],
+  1764→    'formula_latex': '0 - 1 * ((close-vwap) / decay_linear(rank(ts_argmax(close,30)), 2))',
+  1765→    'columns_required': ['close', 'vwap'],
+  1766→    'extras_required': [],
+  1767→    'requires_sector': False,
+  1768→    'universe': ['equity_us'],
+  1769→    'frequency': ['1D'],
+  1770→    'decay_horizon': 5,
+  1771→    'min_warmup_bars': 32,
+  1772→    'notes': '',
+  1773→}
+  1774→
+  1775→
+  1776→def compute_alpha_057(panel: dict) -> pd.DataFrame:
+  1777→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1778→    close = panel["close"]
+  1779→    vwap = panel["vwap"]
+  1780→
+  1781→
+  1782→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1783→    out = 0.0 - safe_div((close - vwap), decay_linear(rank(ts_argmax(close, 30)), 2))
+  1784→    return out
+  1785→
+  1786→
+  1787→__alpha_meta_alpha_058 = {
+  1788→    'id': 'alpha101_058',
+  1789→    'nickname': 'Kakushadze Alpha #58',
+  1790→    'theme': ['volume'],
+  1791→    'formula_latex': '-1 * Ts_Rank(decay_linear(correlation(IndNeutralize(vwap, sector), volume, 4), 8), 6)',
+  1792→    'columns_required': ['volume', 'vwap', 'close'],
+  1793→    'extras_required': [],
+  1794→    'requires_sector': True,
+  1795→    'universe': ['equity_us'],
+  1796→    'frequency': ['1D'],
+  1797→    'decay_horizon': 5,
+  1798→    'min_warmup_bars': 25,
+  1799→    'notes': "Industry neutralization implemented via per-row sector group demean (panel['sector'] required). When sector tag is absent the registry rejects via SkipAlpha; the compute() also has a degraded global demean fallback. This is a partial approximation of the paper's IndClass.industry/subindustry/sector neutralization.",
+  1800→}
+  1801→
+  1802→
+  1803→def compute_alpha_058(panel: dict) -> pd.DataFrame:
+  1804→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1805→    volume = panel["volume"]
+  1806→    vwap = panel["vwap"]
+  1807→
+  1808→
+  1809→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1810→    ind_neutralize = _ind_neutralize
+  1811→    out = -1.0 * ts_rank(decay_linear(ts_corr(ind_neutralize(vwap, panel), volume, 4), 8), 6)
+  1812→    return out
+  1813→
+  1814→
+  1815→__alpha_meta_alpha_059 = {
+  1816→    'id': 'alpha101_059',
+  1817→    'nickname': 'Kakushadze Alpha #59',
+  1818→    'theme': ['volume'],
+  1819→    'formula_latex': '-1 * Ts_Rank(decay_linear(correlation(IndNeutralize(vwap*0.728+vwap*0.272, industry), volume, 4), 16), 8)',
+  1820→    'columns_required': ['volume', 'vwap', 'close'],
+  1821→    'extras_required': [],
+  1822→    'requires_sector': True,
+  1823→    'universe': ['equity_us'],
+  1824→    'frequency': ['1D'],
+  1825→    'decay_horizon': 5,
+  1826→    'min_warmup_bars': 30,
+  1827→    'notes': "Industry neutralization implemented via per-row sector group demean (panel['sector'] required). When sector tag is absent the registry rejects via SkipAlpha; the compute() also has a degraded global demean fallback. This is a partial approximation of the paper's IndClass.industry/subindustry/sector neutralization.",
+  1828→}
+  1829→
+  1830→
+  1831→def compute_alpha_059(panel: dict) -> pd.DataFrame:
+  1832→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1833→    volume = panel["volume"]
+  1834→    vwap = panel["vwap"]
+  1835→
+  1836→
+  1837→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1838→    ind_neutralize = _ind_neutralize
+  1839→    x = vwap * 0.728317 + vwap * (1.0 - 0.728317)
+  1840→    out = -1.0 * ts_rank(decay_linear(ts_corr(ind_neutralize(x, panel), volume, 4), 16), 8)
+  1841→    return out
+  1842→
+  1843→
+  1844→__alpha_meta_alpha_060 = {
+  1845→    'id': 'alpha101_060',
+  1846→    'nickname': 'Kakushadze Alpha #60',
+  1847→    'theme': ['volume'],
+  1848→    'formula_latex': '0 - (2*scale(rank((((close-low)-(high-close))/(high-low))*volume)) - scale(rank(ts_argmax(close,10))))',
+  1849→    'columns_required': ['high', 'low', 'close', 'volume'],
+  1850→    'extras_required': [],
+  1851→    'requires_sector': False,
+  1852→    'universe': ['equity_us'],
+  1853→    'frequency': ['1D'],
+  1854→    'decay_horizon': 5,
+  1855→    'min_warmup_bars': 10,
+  1856→    'notes': '',
+  1857→}
+  1858→
+  1859→
+  1860→def compute_alpha_060(panel: dict) -> pd.DataFrame:
+  1861→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1862→    close = panel["close"]
+  1863→    high = panel["high"]
+  1864→    low = panel["low"]
+  1865→    volume = panel["volume"]
+  1866→
+  1867→
+  1868→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1869→    x = safe_div(((close - low) - (high - close)), (high - low)) * volume
+  1870→    out = 0.0 - (2.0 * scale(rank(x)) - scale(rank(ts_argmax(close, 10))))
+  1871→    return out
+  1872→
+  1873→
+  1874→__alpha_meta_alpha_061 = {
+  1875→    'id': 'alpha101_061',
+  1876→    'nickname': 'Kakushadze Alpha #61',
+  1877→    'theme': ['volume'],
+  1878→    'formula_latex': 'rank(vwap - ts_min(vwap,16)) < rank(correlation(vwap, adv180, 18))',
+  1879→    'columns_required': ['volume', 'vwap', 'close'],
+  1880→    'extras_required': [],
+  1881→    'requires_sector': False,
+  1882→    'universe': ['equity_us'],
+  1883→    'frequency': ['1D'],
+  1884→    'decay_horizon': 5,
+  1885→    'min_warmup_bars': 197,
+  1886→    'notes': '',
+  1887→}
+  1888→
+  1889→
+  1890→def compute_alpha_061(panel: dict) -> pd.DataFrame:
+  1891→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1892→    volume = panel["volume"]
+  1893→    vwap = panel["vwap"]
+  1894→    adv180 = ts_mean(volume, 180)
+  1895→
+  1896→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1897→    lhs = rank(vwap - ts_min(vwap, 16))
+  1898→    rhs = rank(ts_corr(vwap, adv180, 18))
+  1899→    out = (lhs < rhs).astype(float)
+  1900→    return out
+  1901→
+  1902→
+  1903→__alpha_meta_alpha_062 = {
+  1904→    'id': 'alpha101_062',
+  1905→    'nickname': 'Kakushadze Alpha #62',
+  1906→    'theme': ['volume'],
+  1907→    'formula_latex': '(rank(correlation(vwap, sum(adv20,22), 10)) < rank(((rank(open)+rank(open)) < (rank((high+low)/2)+rank(high))))) * -1',
+  1908→    'columns_required': ['open', 'high', 'low', 'volume', 'vwap', 'close'],
+  1909→    'extras_required': [],
+  1910→    'requires_sector': False,
+  1911→    'universe': ['equity_us'],
+  1912→    'frequency': ['1D'],
+  1913→    'decay_horizon': 5,
+  1914→    'min_warmup_bars': 35,
+  1915→    'notes': '',
+  1916→}
+  1917→
+  1918→
+  1919→def compute_alpha_062(panel: dict) -> pd.DataFrame:
+  1920→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1921→    open_ = panel["open"]
+  1922→    high = panel["high"]
+  1923→    low = panel["low"]
+  1924→    volume = panel["volume"]
+  1925→    vwap = panel["vwap"]
+  1926→    adv20 = ts_mean(volume, 20)
+  1927→
+  1928→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1929→    rolling_sum = _rolling_sum
+  1930→    lhs = rank(ts_corr(vwap, rolling_sum(adv20, 22), 10))
+  1931→    inner = ((rank(open_) + rank(open_)) < (rank((high + low) / 2.0) + rank(high))).astype(float)
+  1932→    rhs = rank(inner)
+  1933→    out = (lhs < rhs).astype(float) * -1.0
+  1934→    return out
+  1935→
+  1936→
+  1937→__alpha_meta_alpha_063 = {
+  1938→    'id': 'alpha101_063',
+  1939→    'nickname': 'Kakushadze Alpha #63',
+  1940→    'theme': ['volume', 'momentum'],
+  1941→    'formula_latex': '(rank(decay_linear(delta(IndNeutralize(close, industry), 2), 8)) - rank(decay_linear(correlation(0.318*vwap+0.682*open, sum(adv180,37), 14), 12))) * -1',
+  1942→    'columns_required': ['open', 'close', 'volume', 'vwap'],
+  1943→    'extras_required': [],
+  1944→    'requires_sector': True,
+  1945→    'universe': ['equity_us'],
+  1946→    'frequency': ['1D'],
+  1947→    'decay_horizon': 5,
+  1948→    'min_warmup_bars': 204,
+  1949→    'notes': "Industry neutralization implemented via per-row sector group demean (panel['sector'] required). When sector tag is absent the registry rejects via SkipAlpha; the compute() also has a degraded global demean fallback. This is a partial approximation of the paper's IndClass.industry/subindustry/sector neutralization.",
+  1950→}
+  1951→
+  1952→
+  1953→def compute_alpha_063(panel: dict) -> pd.DataFrame:
+  1954→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1955→    close = panel["close"]
+  1956→    open_ = panel["open"]
+  1957→    volume = panel["volume"]
+  1958→    vwap = panel["vwap"]
+  1959→    adv180 = ts_mean(volume, 180)
+  1960→
+  1961→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1962→    rolling_sum = _rolling_sum
+  1963→    ind_neutralize = _ind_neutralize
+  1964→    left = rank(decay_linear(delta(ind_neutralize(close, panel), 2), 8))
+  1965→    mix = vwap * 0.318108 + open_ * (1.0 - 0.318108)
+  1966→    right = rank(decay_linear(ts_corr(mix, rolling_sum(adv180, 37), 14), 12))
+  1967→    out = (left - right) * -1.0
+  1968→    return out
+  1969→
+  1970→
+  1971→__alpha_meta_alpha_064 = {
+  1972→    'id': 'alpha101_064',
+  1973→    'nickname': 'Kakushadze Alpha #64',
+  1974→    'theme': ['volume'],
+  1975→    'formula_latex': '(rank(correlation(sum(0.178*open+0.822*low,13), sum(adv120,13), 17)) < rank(delta(0.178*((high+low)/2)+0.822*vwap, 4))) * -1',
+  1976→    'columns_required': ['open', 'high', 'low', 'volume', 'vwap', 'close'],
+  1977→    'extras_required': [],
+  1978→    'requires_sector': False,
+  1979→    'universe': ['equity_us'],
+  1980→    'frequency': ['1D'],
+  1981→    'decay_horizon': 5,
+  1982→    'min_warmup_bars': 136,
+  1983→    'notes': '',
+  1984→}
+  1985→
+  1986→
+  1987→def compute_alpha_064(panel: dict) -> pd.DataFrame:
+  1988→    """Compute the alpha on the OHLCV+ panel and return a wide DataFrame."""
+  1989→    open_ = panel["open"]
+  1990→    high = panel["high"]
+  1991→    low = panel["low"]
+  1992→    volume = panel["volume"]
+  1993→    vwap = panel["vwap"]
+  1994→    adv120 = ts_mean(volume, 120)
+  1995→
+  1996→    # Helper aliases (local closures keep the file standalone & purity-safe).
+  1997→    rolling_sum = _rolling_sum
+  1998→    a = open_ * 0.178404 + low * (1.0 - 0.178404)
+  1999→    b = ((high + low) / 2.0) * 0.178404 + vwap * (1.0 - 0.178404)
+  2000→    lhs = rank(ts_corr(rolling_sum(a, 13), rolling_sum(adv120, 13), 17))
+
+[showing lines 1-2000 of 3318; use offset=2001 with limit to continue reading]

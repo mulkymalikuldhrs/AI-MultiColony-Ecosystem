@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://github.com/microsoft/qlib/issues/1930",
+    "name": "Backtest results stay the same regardless of model used · Issue #1930",
+    "snippet": "Bug Report I noticed that when I switch between different models (e.g., LGBModel, XGBModel, DNNModel), the backtest results remain exactly ...",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://qlib.readthedocs.io",
+    "name": "Qlib Documentation — QLib 0.9.8.dev11 documentation",
+    "snippet": "Qlib is an AI-oriented quantitative investment platform, which aims to realize the potential, empower the research, and create the value of AI technologies.",
+    "host_name": "qlib.readthedocs.io",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/@tentenco/openclaw-driven-quant-strategy-breaking-down-the-59-backtest-return-e7c296e323a2",
+    "name": "OpenClaw-Driven Quant Strategy: Breaking Down the 59% Backtest",
+    "snippet": "Qlib provides a production-grade backtesting framework that sidesteps the most common DIY mistakes. RD-Agent systematizes factor exploration, ...",
+    "host_name": "medium.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=z6a4mQTkMwg",
+    "name": "Qlib: Machine Learning for stock prediction and forecasting (THE",
+    "snippet": "(Dec 2020) This video focuses on running Qlib, Microsoft Research's all-in-one quantitative investing library, and running our first LSTM model.",
+    "host_name": "www.youtube.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://kitemetric.com/blogs/mastering-qlib-a-comprehensive-guide-to-building-ai-driven-quant-strategies",
+    "name": "Master Qlib: AI-Driven Quant Strategies - Kite Metric",
+    "snippet": "Qlib streamlines the entire quantitative investment process, encompassing data processing, model training, strategy development, and backtesting. The ...",
+    "host_name": "kitemetric.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://vadim.blog/qlib-mlflow-integration",
+    "name": "Leveraging Qlib and MLflow for Unified Experiment Tracking",
+    "snippet": "Below is a high-level view of Qlib's architecture—how data flows from raw sources into Qlib's data handlers, transforms into features, and ...",
+    "host_name": "vadim.blog",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.microsoft.com/en-us/research/publication/qlib-an-ai-oriented-quantitative-investment-platform",
+    "name": "Qlib: An AI-oriented Quantitative Investment Platform. - Microsoft",
+    "snippet": "Qlib is an AI-oriented quantitative investment platform, which aims to realize the potential, empower the research, and create the value of AI ...",
+    "host_name": "www.microsoft.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "http://tianpan.co/forum/t/microsoft-qlib-a-panoramic-assessment-for-quantitative-trading-infrastructure/167",
+    "name": "Microsoft Qlib: A panoramic assessment for quantitative trading",
+    "snippet": "Qlib's design philosophy prioritizes AI-first quantitative research over production trading. The architecture comprises four layers: ...",
+    "host_name": "tianpan.co",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://forum.numer.ai/t/microsoft-qlib-ai-quant-workflow-and-backtesting/1315",
+    "name": "Microsoft Qlib: AI Quant workflow and backtesting - Numerai Forum",
+    "snippet": "Qlib is an AI-oriented quantitative investment platform that aims to realize the potential, empower research, and create value using AI technologies.",
+    "host_name": "forum.numer.ai",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/microsoft/qlib",
+    "name": "microsoft/qlib: Qlib is an AI-oriented Quant investment  - GitHub",
+    "snippet": "Qlib provides a tool named qrun to run the whole workflow automatically (including building dataset, training models, backtest and evaluation). You can start an ...",
+    "host_name": "github.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

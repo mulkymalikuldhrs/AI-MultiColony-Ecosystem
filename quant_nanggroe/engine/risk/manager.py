@@ -63,6 +63,7 @@ class RiskState:
     active_positions: List[str] = field(default_factory=list)
     peak_equity: float = 0.0
     current_equity: float = 0.0
+    initial_equity: float = 0.0  # Starting equity — used as denominator for loss %
     last_reset_date: Optional[date] = None
 
 
@@ -86,6 +87,7 @@ class RiskManager:
         self.state = RiskState(
             peak_equity=initial_equity,
             current_equity=initial_equity,
+            initial_equity=initial_equity,
             last_reset_date=datetime.now().date(),
         )
         self.check_gate = RiskCheckGate()
@@ -293,8 +295,14 @@ class RiskManager:
         """Get current risk status."""
         self._reset_daily_if_needed()
 
-        daily_loss_pct = abs(min(0, self.state.daily_pnl)) / self.state.peak_equity if self.state.peak_equity > 0 else 0
-        weekly_loss_pct = abs(min(0, self.state.weekly_pnl)) / self.state.peak_equity if self.state.peak_equity > 0 else 0
+        # Design Decision: Use initial_equity as the denominator for daily/weekly
+        # loss percentage instead of peak_equity. Using peak_equity understates the
+        # loss % during drawdowns (peak > current → smaller ratio). Using
+        # initial_equity gives a consistent, conservative measure that aligns
+        # with the constitutional limits defined as % of starting capital.
+        equity_base = self.state.initial_equity if self.state.initial_equity > 0 else self.state.peak_equity
+        daily_loss_pct = abs(min(0, self.state.daily_pnl)) / equity_base if equity_base > 0 else 0
+        weekly_loss_pct = abs(min(0, self.state.weekly_pnl)) / equity_base if equity_base > 0 else 0
 
         daily_status = "OK" if daily_loss_pct < MAX_DAILY_LOSS else "LIMIT_REACHED"
         weekly_status = "OK" if weekly_loss_pct < MAX_WEEKLY_LOSS else "LIMIT_REACHED"
@@ -517,8 +525,10 @@ class RiskManager:
 
     def _auto_check_kill_switch(self) -> None:
         """Auto-check if kill switch should activate based on risk limits."""
-        daily_loss_pct = abs(min(0, self.state.daily_pnl)) / self.state.peak_equity if self.state.peak_equity > 0 else 0
-        weekly_loss_pct = abs(min(0, self.state.weekly_pnl)) / self.state.peak_equity if self.state.peak_equity > 0 else 0
+        # Use initial_equity as denominator (same rationale as status() method)
+        equity_base = self.state.initial_equity if self.state.initial_equity > 0 else self.state.peak_equity
+        daily_loss_pct = abs(min(0, self.state.daily_pnl)) / equity_base if equity_base > 0 else 0
+        weekly_loss_pct = abs(min(0, self.state.weekly_pnl)) / equity_base if equity_base > 0 else 0
 
         if daily_loss_pct >= MAX_DAILY_LOSS:
             self.kill_switch.activate("AUTO_DAILY_LIMIT")

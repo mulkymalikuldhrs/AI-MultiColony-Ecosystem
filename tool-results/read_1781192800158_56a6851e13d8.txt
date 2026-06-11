@@ -1,0 +1,730 @@
+     1→"""Core Backtesting Engine.
+     2→
+     3→Implements the main backtest loop with realistic execution simulation,
+     4→supporting multiple markets and strategy types.
+     5→
+     6→Features:
+     7→- Single and multi-strategy backtesting
+     8→- Parameter sensitivity analysis
+     9→- Benchmark comparison
+    10→- Trade-level analytics
+    11→- Custom execution models
+    12→
+    13→Extracted from Vibe-Trading's BaseEngine with enhancements from ai-hedge-fund.
+    14→"""
+    15→
+    16→from __future__ import annotations
+    17→
+    18→import logging
+    19→from dataclasses import dataclass, field
+    20→from enum import Enum
+    21→from typing import Any, Dict, List, Optional, Callable
+    22→
+    23→import numpy as np
+    24→import pandas as pd
+    25→
+    26→from quant_nanggroe.engine.backtest.portfolio import Portfolio, Position, TradeRecord
+    27→from quant_nanggroe.engine.backtest.execution import ExecutionSimulator, ExecutionConfig
+    28→from quant_nanggroe.engine.backtest.metrics import PerformanceMetrics
+    29→
+    30→logger = logging.getLogger(__name__)
+    31→
+    32→
+    33→class MarketType(str, Enum):
+    34→    """Supported market types for backtesting."""
+    35→
+    36→    EQUITY = "equity"
+    37→    CRYPTO = "crypto"
+    38→    FOREX = "forex"
+    39→    FUTURES = "futures"
+    40→
+    41→
+    42→class StrategyType(str, Enum):
+    43→    """Supported strategy types."""
+    44→
+    45→    SIGNAL_BASED = "signal_based"
+    46→    FACTOR_BASED = "factor_based"
+    47→    ML_BASED = "ml_based"
+    48→
+    49→
+    50→@dataclass
+    51→class BacktestConfig:
+    52→    """Configuration for a backtest run.
+    53→
+    54→    Attributes:
+    55→        initial_capital: Starting capital.
+    56→        market: Market type (affects execution rules).
+    57→        strategy_type: Type of strategy being tested.
+    58→        commission_rate: Commission rate as decimal (e.g. 0.001 = 0.1%).
+    59→        slippage_bps: Slippage in basis points (e.g. 5 = 0.05%).
+    60→        leverage: Maximum leverage allowed.
+    61→        risk_per_trade: Maximum risk per trade as fraction of capital.
+    62→        max_positions: Maximum number of simultaneous positions.
+    63→        bars_per_year: Number of bars per year for annualisation.
+    64→        benchmark: Benchmark ticker for comparison.
+    65→        short_enabled: Whether short selling is allowed.
+    66→    """
+    67→
+    68→    initial_capital: float = 1_000_000.0
+    69→    market: MarketType = MarketType.EQUITY
+    70→    strategy_type: StrategyType = StrategyType.SIGNAL_BASED
+    71→    commission_rate: float = 0.001
+    72→    slippage_bps: float = 5.0
+    73→    leverage: float = 1.0
+    74→    risk_per_trade: float = 0.005
+    75→    max_positions: int = 10
+    76→    bars_per_year: int = 252
+    77→    benchmark: Optional[str] = None
+    78→    short_enabled: bool = False
+    79→
+    80→
+    81→class BacktestEngine:
+    82→    """Core backtesting engine with realistic execution simulation.
+    83→
+    84→    Supports:
+    85→    - Multiple markets (equity, crypto, forex, futures)
+    86→    - Realistic execution with slippage and commission
+    87→    - Multiple strategy types
+    88→    - Position sizing and risk management
+    89→    - Performance metrics calculation
+    90→    - Multi-strategy backtesting
+    91→    - Parameter sensitivity analysis
+    92→    - Benchmark comparison
+    93→    - Trade-level analytics
+    94→    - Custom execution models
+    95→
+    96→    Usage:
+    97→        engine = BacktestEngine(BacktestConfig())
+    98→        results = engine.run(prices_df, signals_df)
+    99→    """
+   100→
+   101→    def __init__(self, config: Optional[BacktestConfig] = None) -> None:
+   102→        self.config = config or BacktestConfig()
+   103→        self.execution = ExecutionSimulator(
+   104→            ExecutionConfig(
+   105→                commission_rate=self.config.commission_rate,
+   106→                slippage_bps=self.config.slippage_bps,
+   107→                market=self.config.market.value,
+   108→            )
+   109→        )
+   110→        self.metrics_calculator = PerformanceMetrics(
+   111→            bars_per_year=self.config.bars_per_year
+   112→        )
+   113→
+   114→    def run(
+   115→        self,
+   116→        prices: pd.DataFrame,
+   117→        signals: pd.DataFrame,
+   118→        position_sizer: Optional[Callable] = None,
+   119→        execution_model: Optional[Callable] = None,
+   120→    ) -> Dict[str, Any]:
+   121→        """Run a backtest on price data with trading signals.
+   122→
+   123→        Args:
+   124→            prices: DataFrame with DatetimeIndex and columns for each symbol.
+   125→                     Values are close prices.
+   126→            signals: DataFrame with same index/columns as prices.
+   127→                     Values are target position weights (-1 to 1).
+   128→            position_sizer: Optional callable for custom position sizing.
+   129→                Signature: (signal, capital, price) -> size
+   130→            execution_model: Optional callable for custom execution simulation.
+   131→                Signature: (price, direction, size, timestamp) -> fill_price
+   132→
+   133→        Returns:
+   134→            Dict with performance metrics, equity curve, and trade records.
+   135→        """
+   136→        portfolio = Portfolio(
+   137→            initial_capital=self.config.initial_capital,
+   138→            max_positions=self.config.max_positions,
+   139→        )
+   140→
+   141→        equity_curve: List[float] = []
+   142→        timestamps: List[pd.Timestamp] = []
+   143→        all_trades: List[TradeRecord] = []
+   144→
+   145→        # Shift signals by 1 bar (next-bar-open semantics)
+   146→        shifted_signals = signals.shift(1).fillna(0.0)
+   147→
+   148→        symbols = list(prices.columns)
+   149→
+   150→        for i, (timestamp, price_row) in enumerate(prices.iterrows()):
+   151→            if timestamp not in shifted_signals.index:
+   152→                continue
+   153→
+   154→            signal_row = shifted_signals.loc[timestamp]
+   155→
+   156→            # 1. Mark-to-market existing positions
+   157→            portfolio.mark_to_market(price_row)
+   158→
+   159→            # 2. Execute trades based on signals
+   160→            for symbol in symbols:
+   161→                price = price_row.get(symbol, np.nan)
+   162→                if pd.isna(price) or price <= 0:
+   163→                    continue
+   164→
+   165→                target_weight = signal_row.get(symbol, 0.0)
+   166→                current_pos = portfolio.get_position(symbol)
+   167→
+   168→                # Determine target action
+   169→                target_direction = 1 if target_weight > 0.01 else (-1 if target_weight < -0.01 else 0)
+   170→
+   171→                # Close existing position if direction changed
+   172→                if current_pos is not None:
+   173→                    if target_direction == 0 or (current_pos.direction != target_direction and target_direction != 0):
+   174→                        if not self.config.short_enabled and current_pos.direction == -1:
+   175→                            pass  # Can't close short if shorts disabled (shouldn't happen)
+   176→                        close_price = self._get_fill_price(
+   177→                            execution_model, price, -current_pos.direction,
+   178→                            abs(current_pos.size), timestamp
+   179→                        )
+   180→                        trade = portfolio.close_position(
+   181→                            symbol, close_price, timestamp, "signal"
+   182→                        )
+   183→                        if trade is not None:
+   184→                            commission = self.execution.calc_commission(
+   185→                                abs(trade.size), close_price, is_closing=True
+   186→                            )
+   187→                            portfolio._apply_commission(symbol, commission)
+   188→                            all_trades.append(trade)
+   189→
+   190→                # Open new position if target non-zero
+   191→                if target_direction != 0 and portfolio.get_position(symbol) is None:
+   192→                    if not self.config.short_enabled and target_direction == -1:
+   193→                        continue
+   194→
+   195→                    equity = portfolio.equity
+   196→                    target_notional = abs(target_weight) * equity * self.config.leverage
+   197→
+   198→                    if position_sizer:
+   199→                        size = position_sizer(target_weight, equity, price)
+   200→                    else:
+   201→                        size = target_notional / price
+   202→
+   203→                    # Apply risk limit
+   204→                    max_risk_amount = equity * self.config.risk_per_trade
+   205→                    if abs(size * price) > max_risk_amount * 20:  # 20:1 R:R threshold
+   206→                        size = max_risk_amount * 20 / price
+   207→
+   208→                    exec_price = self._get_fill_price(
+   209→                        execution_model, price, target_direction, size, timestamp
+   210→                    )
+   211→                    open_commission = self.execution.calc_commission(
+   212→                        abs(size), exec_price, is_closing=False
+   213→                    )
+   214→
+   215→                    if portfolio.can_open_position(exec_price, size, open_commission):
+   216→                        trade = portfolio.open_position(
+   217→                            symbol=symbol,
+   218→                            direction=target_direction,
+   219→                            size=size,
+   220→                            price=exec_price,
+   221→                            timestamp=timestamp,
+   222→                            commission=open_commission,
+   223→                        )
+   224→                        if trade is not None:
+   225→                            all_trades.append(trade)
+   226→
+   227→            # Record equity
+   228→            equity_curve.append(portfolio.equity)
+   229→            timestamps.append(timestamp)
+   230→
+   231→        # Force close all remaining positions
+   232→        if len(prices) > 0:
+   233→            last_ts = prices.index[-1]
+   234→            last_prices = prices.iloc[-1]
+   235→            for symbol in list(portfolio.positions.keys()):
+   236→                pos = portfolio.get_position(symbol)
+   237→                if pos is not None:
+   238→                    close_price = last_prices.get(symbol, pos.entry_price)
+   239→                    trade = portfolio.close_position(symbol, close_price, last_ts, "end_of_backtest")
+   240→                    if trade is not None:
+   241→                        all_trades.append(trade)
+   242→
+   243→        # Build equity curve series
+   244→        equity_series = pd.Series(equity_curve, index=timestamps)
+   245→
+   246→        # Calculate performance metrics
+   247→        metrics = self.metrics_calculator.calculate(
+   248→            equity_series=equity_series,
+   249→            trades=all_trades,
+   250→            initial_capital=self.config.initial_capital,
+   251→        )
+   252→
+   253→        # Add trade-level analytics
+   254→        trade_analytics = self._compute_trade_analytics(all_trades)
+   255→
+   256→        return {
+   257→            "metrics": metrics,
+   258→            "equity_curve": equity_series,
+   259→            "trades": all_trades,
+   260→            "final_equity": portfolio.equity,
+   261→            "total_trades": len(all_trades),
+   262→            "trade_analytics": trade_analytics,
+   263→        }
+   264→
+   265→    def run_multi_strategy(
+   266→        self,
+   267→        prices: pd.DataFrame,
+   268→        strategy_signals: Dict[str, pd.DataFrame],
+   269→        strategy_weights: Optional[Dict[str, float]] = None,
+   270→        position_sizer: Optional[Callable] = None,
+   271→    ) -> Dict[str, Any]:
+   272→        """Run a multi-strategy backtest with portfolio-level aggregation.
+   273→
+   274→        Each strategy produces its own signals, which are combined using
+   275→        the specified weights. The combined signal is then executed.
+   276→
+   277→        Args:
+   278→            prices: Price data DataFrame.
+   279→            strategy_signals: Dict mapping strategy name to signal DataFrame.
+   280→            strategy_weights: Optional dict mapping strategy name to weight.
+   281→                            Defaults to equal weight for all strategies.
+   282→            position_sizer: Optional position sizer callable.
+   283→
+   284→        Returns:
+   285→            Dict with:
+   286→                - combined: Combined backtest result
+   287→                - per_strategy: Dict of per-strategy backtest results
+   288→                - strategy_correlation: Correlation matrix of strategy returns
+   289→        """
+   290→        if not strategy_signals:
+   291→            raise ValueError("At least one strategy must be provided")
+   292→
+   293→        n_strategies = len(strategy_signals)
+   294→
+   295→        # Default to equal weights
+   296→        if strategy_weights is None:
+   297→            strategy_weights = {name: 1.0 / n_strategies for name in strategy_signals}
+   298→        else:
+   299→            # Normalize weights
+   300→            total_weight = sum(strategy_weights.values())
+   301→            if total_weight <= 0:
+   302→                raise ValueError("Strategy weights must sum to a positive value")
+   303→            strategy_weights = {
+   304→                name: w / total_weight
+   305→                for name, w in strategy_weights.items()
+   306→            }
+   307→
+   308→        # Run individual strategy backtests
+   309→        per_strategy: Dict[str, Dict[str, Any]] = {}
+   310→        strategy_equity_curves: Dict[str, pd.Series] = {}
+   311→
+   312→        for name, signals_df in strategy_signals.items():
+   313→            try:
+   314→                result = self.run(prices, signals_df, position_sizer)
+   315→                per_strategy[name] = result
+   316→                if "equity_curve" in result:
+   317→                    strategy_equity_curves[name] = result["equity_curve"]
+   318→            except Exception as e:
+   319→                logger.error(f"Strategy '{name}' backtest failed: {e}")
+   320→                per_strategy[name] = {"error": str(e), "metrics": {}}
+   321→
+   322→        # Combine signals using weights
+   323→        combined_signal = pd.DataFrame(0.0, index=prices.index, columns=prices.columns)
+   324→        for name, signals_df in strategy_signals.items():
+   325→            weight = strategy_weights.get(name, 0.0)
+   326→            # Align indices
+   327→            aligned = signals_df.reindex(prices.index).fillna(0.0)
+   328→            for col in combined_signal.columns:
+   329→                if col in aligned.columns:
+   330→                    combined_signal[col] += aligned[col] * weight
+   331→
+   332→        # Run combined backtest
+   333→        combined_result = self.run(prices, combined_signal, position_sizer)
+   334→
+   335→        # Calculate strategy correlation matrix
+   336→        strategy_correlation = self._compute_strategy_correlation(strategy_equity_curves)
+   337→
+   338→        # Benchmark comparison
+   339→        benchmark_comparison = {}
+   340→        if self.config.benchmark and len(prices.columns) > 0:
+   341→            benchmark_prices = prices.iloc[:, 0]  # Use first column as proxy
+   342→            benchmark_returns = benchmark_prices.pct_change().fillna(0.0)
+   343→            strategy_returns = combined_result.get("equity_curve", pd.Series()).pct_change().fillna(0.0)
+   344→
+   345→            from quant_nanggroe.engine.backtest.benchmarks import BenchmarkManager
+   346→            benchmark_comparison = BenchmarkManager.compare(
+   347→                strategy_returns, benchmark_returns,
+   348→                bars_per_year=self.config.bars_per_year,
+   349→            )
+   350→
+   351→        return {
+   352→            "combined": combined_result,
+   353→            "per_strategy": per_strategy,
+   354→            "strategy_correlation": strategy_correlation,
+   355→            "strategy_weights": strategy_weights,
+   356→            "benchmark_comparison": benchmark_comparison,
+   357→        }
+   358→
+   359→    def run_sensitivity_analysis(
+   360→        self,
+   361→        prices: pd.DataFrame,
+   362→        signals: pd.DataFrame,
+   363→        param_name: str,
+   364→        param_values: List[Any],
+   365→        param_applier: Optional[Callable] = None,
+   366→        position_sizer: Optional[Callable] = None,
+   367→    ) -> Dict[str, Any]:
+   368→        """Run parameter sensitivity analysis.
+   369→
+   370→        Tests how backtest results change as a parameter varies.
+   371→
+   372→        Args:
+   373→            prices: Price data.
+   374→            signals: Signal data.
+   375→            param_name: Name of the parameter to vary.
+   376→            param_values: List of parameter values to test.
+   377→            param_applier: Optional callable that takes (config, param_name, param_value)
+   378→                          and returns a modified BacktestConfig.
+   379→            position_sizer: Optional position sizer.
+   380→
+   381→        Returns:
+   382→            Dict with:
+   383→                - results: Dict mapping param_value to backtest result
+   384→                - metrics_summary: DataFrame of key metrics across parameter values
+   385→                - optimal: Dict with optimal parameter value and metrics
+   386→        """
+   387→        results: Dict[str, Dict[str, Any]] = {}
+   388→
+   389→        for value in param_values:
+   390→            # Create modified config
+   391→            if param_applier:
+   392→                config = param_applier(self.config, param_name, value)
+   393→            else:
+   394→                config = self._apply_param(self.config, param_name, value)
+   395→
+   396→            # Create engine with modified config
+   397→            engine = BacktestEngine(config)
+   398→
+   399→            try:
+   400→                result = engine.run(prices, signals, position_sizer)
+   401→                results[str(value)] = result
+   402→            except Exception as e:
+   403→                logger.error(f"Sensitivity analysis failed for {param_name}={value}: {e}")
+   404→                results[str(value)] = {"error": str(e), "metrics": {}}
+   405→
+   406→        # Build metrics summary
+   407→        metrics_summary = self._build_sensitivity_summary(results, param_name)
+   408→
+   409→        # Find optimal parameter value
+   410→        optimal = self._find_optimal_param(results, param_name)
+   411→
+   412→        return {
+   413→            "param_name": param_name,
+   414→            "results": results,
+   415→            "metrics_summary": metrics_summary,
+   416→            "optimal": optimal,
+   417→        }
+   418→
+   419→    def run_with_benchmark(
+   420→        self,
+   421→        prices: pd.DataFrame,
+   422→        signals: pd.DataFrame,
+   423→        benchmark_prices: Optional[pd.Series] = None,
+   424→        position_sizer: Optional[Callable] = None,
+   425→    ) -> Dict[str, Any]:
+   426→        """Run backtest with benchmark comparison.
+   427→
+   428→        Args:
+   429→            prices: Price data.
+   430→            signals: Signal data.
+   431→            benchmark_prices: Optional benchmark price series. If not provided,
+   432→                            the first column of prices is used.
+   433→            position_sizer: Optional position sizer.
+   434→
+   435→        Returns:
+   436→            Dict with backtest results and benchmark comparison.
+   437→        """
+   438→        result = self.run(prices, signals, position_sizer)
+   439→
+   440→        # Determine benchmark
+   441→        if benchmark_prices is None:
+   442→            if self.config.benchmark and self.config.benchmark in prices.columns:
+   443→                benchmark_prices = prices[self.config.benchmark]
+   444→            elif len(prices.columns) > 0:
+   445→                benchmark_prices = prices.iloc[:, 0]
+   446→
+   447→        # Add benchmark comparison
+   448→        if benchmark_prices is not None and len(benchmark_prices) > 0:
+   449→            from quant_nanggroe.engine.backtest.benchmarks import BenchmarkManager
+   450→
+   451→            strategy_returns = result["equity_curve"].pct_change().fillna(0.0)
+   452→            benchmark_returns = benchmark_prices.pct_change().fillna(0.0)
+   453→
+   454→            benchmark_comparison = BenchmarkManager.compare(
+   455→                strategy_returns, benchmark_returns,
+   456→                bars_per_year=self.config.bars_per_year,
+   457→            )
+   458→            result["benchmark_comparison"] = benchmark_comparison
+   459→
+   460→            # Re-calculate metrics with benchmark
+   461→            metrics = self.metrics_calculator.calculate(
+   462→                equity_series=result["equity_curve"],
+   463→                trades=result["trades"],
+   464→                initial_capital=self.config.initial_capital,
+   465→                benchmark_returns=benchmark_returns,
+   466→            )
+   467→            result["metrics"] = metrics
+   468→
+   469→        return result
+   470→
+   471→    def run_walk_forward(
+   472→        self,
+   473→        prices: pd.DataFrame,
+   474→        signals: pd.DataFrame,
+   475→        train_window: int = 252,
+   476→        test_window: int = 63,
+   477→        **kwargs: Any,
+   478→    ) -> Dict[str, Any]:
+   479→        """Run walk-forward analysis.
+   480→
+   481→        Args:
+   482→            prices: Price data.
+   483→            signals: Signal data.
+   484→            train_window: Training window in bars.
+   485→            test_window: Test window in bars.
+   486→
+   487→        Returns:
+   488→            Walk-forward analysis results.
+   489→        """
+   490→        from quant_nanggroe.engine.backtest.walk_forward import WalkForwardAnalyzer
+   491→
+   492→        analyzer = WalkForwardAnalyzer(
+   493→            engine=self,
+   494→            train_window=train_window,
+   495→            test_window=test_window,
+   496→        )
+   497→        return analyzer.analyze(prices, signals, **kwargs)
+   498→
+   499→    # ── Private helpers ───────────────────────────────────────────────
+   500→
+   501→    def _get_fill_price(
+   502→        self,
+   503→        execution_model: Optional[Callable],
+   504→        price: float,
+   505→        direction: int,
+   506→        size: float,
+   507→        timestamp: pd.Timestamp,
+   508→    ) -> float:
+   509→        """Get execution fill price, using custom model or default slippage."""
+   510→        if execution_model is not None:
+   511→            try:
+   512→                fill = execution_model(price, direction, size, timestamp)
+   513→                if fill is not None and fill > 0:
+   514→                    return float(fill)
+   515→            except Exception as e:
+   516→                logger.warning(f"Custom execution model failed: {e}, using default")
+   517→
+   518→        return self.execution.apply_slippage(price, direction)
+   519→
+   520→    @staticmethod
+   521→    def _apply_param(
+   522→        config: BacktestConfig,
+   523→        param_name: str,
+   524→        param_value: Any,
+   525→    ) -> BacktestConfig:
+   526→        """Apply a parameter value to a BacktestConfig.
+   527→
+   528→        Args:
+   529→            config: Original config.
+   530→            param_name: Parameter name.
+   531→            param_value: New value.
+   532→
+   533→        Returns:
+   534→            Modified BacktestConfig.
+   535→        """
+   536→        config_dict = {
+   537→            "initial_capital": config.initial_capital,
+   538→            "market": config.market,
+   539→            "strategy_type": config.strategy_type,
+   540→            "commission_rate": config.commission_rate,
+   541→            "slippage_bps": config.slippage_bps,
+   542→            "leverage": config.leverage,
+   543→            "risk_per_trade": config.risk_per_trade,
+   544→            "max_positions": config.max_positions,
+   545→            "bars_per_year": config.bars_per_year,
+   546→            "benchmark": config.benchmark,
+   547→            "short_enabled": config.short_enabled,
+   548→        }
+   549→
+   550→        if param_name in config_dict:
+   551→            config_dict[param_name] = param_value
+   552→
+   553→        return BacktestConfig(**config_dict)
+   554→
+   555→    @staticmethod
+   556→    def _build_sensitivity_summary(
+   557→        results: Dict[str, Dict[str, Any]],
+   558→        param_name: str,
+   559→    ) -> pd.DataFrame:
+   560→        """Build a summary DataFrame of metrics across parameter values."""
+   561→        rows = []
+   562→        for param_value, result in results.items():
+   563→            metrics = result.get("metrics", {})
+   564→            row = {param_name: param_value}
+   565→            for key in [
+   566→                "total_return", "annual_return", "sharpe_ratio",
+   567→                "sortino_ratio", "max_drawdown", "win_rate",
+   568→                "profit_factor", "total_trades",
+   569→            ]:
+   570→                row[key] = metrics.get(key, None)
+   571→            rows.append(row)
+   572→
+   573→        if not rows:
+   574→            return pd.DataFrame()
+   575→
+   576→        df = pd.DataFrame(rows)
+   577→        df = df.set_index(param_name)
+   578→        return df
+   579→
+   580→    @staticmethod
+   581→    def _find_optimal_param(
+   582→        results: Dict[str, Dict[str, Any]],
+   583→        param_name: str,
+   584→        metric: str = "sharpe_ratio",
+   585→    ) -> Dict[str, Any]:
+   586→        """Find the optimal parameter value based on a given metric.
+   587→
+   588→        Args:
+   589→            results: Dict mapping param_value to backtest result.
+   590→            param_name: Parameter name.
+   591→            metric: Metric to optimize (higher is better).
+   592→
+   593→        Returns:
+   594→            Dict with optimal param value and associated metrics.
+   595→        """
+   596→        best_value = None
+   597→        best_metric = float("-inf")
+   598→        best_metrics = {}
+   599→
+   600→        for param_value, result in results.items():
+   601→            metrics = result.get("metrics", {})
+   602→            m = metrics.get(metric, float("-inf"))
+   603→            if isinstance(m, (int, float)) and m > best_metric:
+   604→                best_metric = m
+   605→                best_value = param_value
+   606→                best_metrics = metrics
+   607→
+   608→        return {
+   609→            "param_name": param_name,
+   610→            "optimal_value": best_value,
+   611→            "optimal_metric": best_metric,
+   612→            "metric_name": metric,
+   613→            "metrics": best_metrics,
+   614→        }
+   615→
+   616→    @staticmethod
+   617→    def _compute_trade_analytics(trades: List[TradeRecord]) -> Dict[str, Any]:
+   618→        """Compute trade-level analytics.
+   619→
+   620→        Args:
+   621→            trades: List of completed trade records.
+   622→
+   623→        Returns:
+   624→            Dict of trade analytics.
+   625→        """
+   626→        if not trades:
+   627→            return {
+   628→                "by_symbol": {},
+   629→                "by_direction": {"long": {}, "short": {}},
+   630→                "by_exit_reason": {},
+   631→                "time_analysis": {},
+   632→            }
+   633→
+   634→        # By symbol
+   635→        by_symbol: Dict[str, List[TradeRecord]] = {}
+   636→        for t in trades:
+   637→            by_symbol.setdefault(t.symbol, []).append(t)
+   638→
+   639→        symbol_analytics = {}
+   640→        for symbol, symbol_trades in by_symbol.items():
+   641→            pnls = [t.pnl for t in symbol_trades]
+   642→            wins = [p for p in pnls if p > 0]
+   643→            losses = [p for p in pnls if p < 0]
+   644→            symbol_analytics[symbol] = {
+   645→                "trade_count": len(symbol_trades),
+   646→                "total_pnl": round(sum(pnls), 4),
+   647→                "win_rate": round(len(wins) / len(pnls), 4) if pnls else 0.0,
+   648→                "avg_pnl": round(float(np.mean(pnls)), 4) if pnls else 0.0,
+   649→                "avg_win": round(float(np.mean(wins)), 4) if wins else 0.0,
+   650→                "avg_loss": round(float(np.mean(losses)), 4) if losses else 0.0,
+   651→                "max_win": round(max(pnls), 4) if pnls else 0.0,
+   652→                "max_loss": round(min(pnls), 4) if pnls else 0.0,
+   653→            }
+   654→
+   655→        # By direction
+   656→        long_trades = [t for t in trades if t.direction == 1]
+   657→        short_trades = [t for t in trades if t.direction == -1]
+   658→
+   659→        def _direction_stats(trade_list: List[TradeRecord]) -> Dict[str, Any]:
+   660→            if not trade_list:
+   661→                return {"count": 0, "total_pnl": 0.0, "win_rate": 0.0, "avg_pnl": 0.0}
+   662→            pnls = [t.pnl for t in trade_list]
+   663→            wins = [p for p in pnls if p > 0]
+   664→            return {
+   665→                "count": len(trade_list),
+   666→                "total_pnl": round(sum(pnls), 4),
+   667→                "win_rate": round(len(wins) / len(pnls), 4) if pnls else 0.0,
+   668→                "avg_pnl": round(float(np.mean(pnls)), 4) if pnls else 0.0,
+   669→            }
+   670→
+   671→        # By exit reason
+   672→        by_reason: Dict[str, List[TradeRecord]] = {}
+   673→        for t in trades:
+   674→            by_reason.setdefault(t.exit_reason, []).append(t)
+   675→
+   676→        reason_analytics = {}
+   677→        for reason, reason_trades in by_reason.items():
+   678→            pnls = [t.pnl for t in reason_trades]
+   679→            reason_analytics[reason] = {
+   680→                "count": len(reason_trades),
+   681→                "total_pnl": round(sum(pnls), 4),
+   682→                "avg_pnl": round(float(np.mean(pnls)), 4) if pnls else 0.0,
+   683→            }
+   684→
+   685→        # Time analysis
+   686→        holding_bars = [t.holding_bars for t in trades if t.holding_bars > 0]
+   687→        time_analysis = {
+   688→            "avg_holding_bars": round(float(np.mean(holding_bars)), 1) if holding_bars else 0.0,
+   689→            "median_holding_bars": round(float(np.median(holding_bars)), 1) if holding_bars else 0.0,
+   690→            "max_holding_bars": max(holding_bars) if holding_bars else 0,
+   691→            "min_holding_bars": min(holding_bars) if holding_bars else 0,
+   692→        }
+   693→
+   694→        return {
+   695→            "by_symbol": symbol_analytics,
+   696→            "by_direction": {
+   697→                "long": _direction_stats(long_trades),
+   698→                "short": _direction_stats(short_trades),
+   699→            },
+   700→            "by_exit_reason": reason_analytics,
+   701→            "time_analysis": time_analysis,
+   702→        }
+   703→
+   704→    @staticmethod
+   705→    def _compute_strategy_correlation(
+   706→        equity_curves: Dict[str, pd.Series],
+   707→    ) -> pd.DataFrame:
+   708→        """Compute correlation matrix between strategy equity curves.
+   709→
+   710→        Args:
+   711→            equity_curves: Dict mapping strategy name to equity curve Series.
+   712→
+   713→        Returns:
+   714→            Correlation matrix DataFrame.
+   715→        """
+   716→        if len(equity_curves) < 2:
+   717→            return pd.DataFrame()
+   718→
+   719→        # Convert to returns
+   720→        returns_dict = {}
+   721→        for name, eq in equity_curves.items():
+   722→            if len(eq) > 1:
+   723→                returns_dict[name] = eq.pct_change().fillna(0.0)
+   724→
+   725→        if len(returns_dict) < 2:
+   726→            return pd.DataFrame()
+   727→
+   728→        returns_df = pd.DataFrame(returns_dict)
+   729→        return returns_df.corr()
+   730→

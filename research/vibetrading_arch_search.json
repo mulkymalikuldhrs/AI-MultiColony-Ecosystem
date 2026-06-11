@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://github.com/HKUDS/Vibe-Trading",
+    "name": "\"Vibe-Trading: Your Personal Trading Agent\" · GitHub",
+    "snippet": "The MCP Plugin lets other agents call Vibe-Trading tools. This section lets the built-in Vibe-Trading agent call tools from your external MCP ...",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "Jun 9, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://x.com/huang_chao4969/highlights",
+    "name": "Chao Huang (@huang_chao4969) / Highlights / X - Twitter",
+    "snippet": "Vibe-Trading's growth 29 multi-agent research swarms. -source AI agent for your tools, chats, and workflows.",
+    "host_name": "x.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://pypi.org/project/vibe-trading-ai",
+    "name": "vibe-trading-ai - PyPI",
+    "snippet": "Vibe-Trading is a tool-heavy agent — skills, backtests, memory, and swarms all flow through tool calls. Vibe-Trading exposes 22 MCP tools for any MCP- ...",
+    "host_name": "pypi.org",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://skillsllm.com/skill/vibe-trading",
+    "name": "Vibe-Trading - AI Agents on GitHub (11.3k  ) | SkillsLLM",
+    "snippet": "AI-powered OSINT agent with interactive REPL, MCP server, and CLI. 16 tools. Works with Claude, GPT-4, or local models.",
+    "host_name": "skillsllm.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.linkedin.com/posts/chao-huang-208993177_vibetrading-hkuds-activity-7447599115796082689-jagZ",
+    "name": "Vibe-Trading AI-Powered Trading Agent for Global Markets - LinkedIn",
+    "snippet": "Vibe-Trading integrates AI-powered research automation with multi-agent swarm intelligence, to transform natural language trading ideas into ...",
+    "host_name": "www.linkedin.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=TldLJS47umA",
+    "name": "“Vibe-Trading: Your Personal Trading Agent” - YouTube",
+    "snippet": "https://github.com/HKUDS/Vibe-Trading “Vibe-Trading: Your Personal Trading Agent”. Contribute to HKUDS/Vibe-Trading development by creating ...",
+    "host_name": "www.youtube.com",
+    "rank": 5,
+    "date": "Jun 4, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/HKUDS/Vibe-Trading/issues/81",
+    "name": "[Feature] BuildIn agent can register MCP / config skills #81 - GitHub",
+    "snippet": "This RFC adds a minimal but complete MCP client path to Vibe-Trading. It reuses nanobot's strongest ideas while staying compatible with Vibe- ...",
+    "host_name": "github.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.instagram.com/reel/DXdHEoWjHAn",
+    "name": "autonomous 100 agent trader #ai #agi #agent #github #anthropic",
+    "snippet": "This new Python framework brings multi-agent LLM architecture, popularized by tools like AutoGen, to the high-stakes world of financial trading.",
+    "host_name": "www.instagram.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://x.com/huang_chao4969/status/2041831977565987323",
+    "name": "Chao Huang",
+    "snippet": "Vibe-Trading integrates AI-powered research automation with multi-agent swarm intelligence, to transform natural language trading ideas into ...",
+    "host_name": "x.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://adrianco.medium.com/vibe-coding-is-so-last-month-my-first-agent-swarm-experience-with-claude-flow-414b0bd6f2f2",
+    "name": "Vibe Coding is so “Last Month” — My First Agent Swarm",
+    "snippet": "I'm going to review and iterate on those plans before implementing them and building a much better house simulator to get the core functionality ...",
+    "host_name": "adrianco.medium.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

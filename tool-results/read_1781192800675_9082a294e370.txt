@@ -1,0 +1,755 @@
+     1→"""Monte Carlo Simulation for Backtest Confidence Intervals.
+     2→
+     3→Implements Monte Carlo simulation to estimate confidence intervals
+     4→for backtest results, addressing the randomness in trade sequencing
+     5→and providing robust performance estimates.
+     6→
+     7→Methods:
+     8→- Trade shuffle: Randomly reorder trades to test sequence dependence
+     9→- Bootstrap resampling: Resample returns with replacement (non-parametric)
+    10→- Return resample: Bootstrap resample returns with replacement
+    11→- Parametric simulation: Generate paths from fitted distribution
+    12→- Price path: Generate random price paths from return distribution
+    13→- Regime-aware simulation: Account for market regime changes
+    14→- Confidence intervals for all metrics
+    15→"""
+    16→
+    17→from __future__ import annotations
+    18→
+    19→import logging
+    20→from dataclasses import dataclass, field
+    21→from typing import Any, Dict, List, Optional, Tuple
+    22→
+    23→import numpy as np
+    24→import pandas as pd
+    25→
+    26→logger = logging.getLogger(__name__)
+    27→
+    28→
+    29→@dataclass
+    30→class MonteCarloResult:
+    31→    """Result from Monte Carlo simulation."""
+    32→
+    33→    num_simulations: int
+    34→    metric_name: str
+    35→    original_value: float
+    36→    mean_value: float
+    37→    median_value: float
+    38→    p5: float  # 5th percentile
+    39→    p25: float  # 25th percentile
+    40→    p75: float  # 75th percentile
+    41→    p95: float  # 95th percentile
+    42→    confidence_95: tuple  # (lower, upper) 95% CI
+    43→    probability_of_loss: float  # P(result < 0)
+    44→    all_sim_values: Optional[np.ndarray] = None  # Raw simulation values
+    45→
+    46→
+    47→@dataclass
+    48→class MultiMetricMonteCarloResult:
+    49→    """Monte Carlo results across multiple metrics."""
+    50→
+    51→    metrics: Dict[str, MonteCarloResult]
+    52→    num_simulations: int
+    53→    correlation_matrix: Optional[np.ndarray] = None  # Inter-metric correlations
+    54→
+    55→
+    56→@dataclass
+    57→class RegimeInfo:
+    58→    """Information about a market regime segment."""
+    59→
+    60→    start_index: int
+    61→    end_index: int
+    62→    mean_return: float
+    63→    std_return: float
+    64→    label: str = ""
+    65→
+    66→
+    67→class MonteCarloSimulator:
+    68→    """Monte Carlo simulation for backtest confidence intervals.
+    69→
+    70→    Provides robust estimates of strategy performance by resampling
+    71→    trade returns or equity curve returns thousands of times.
+    72→
+    73→    Supports:
+    74→    - Trade shuffle simulation
+    75→    - Bootstrap resampling (non-parametric)
+    76→    - Parametric simulation (fitted distribution)
+    77→    - Regime-aware simulation
+    78→    - Multi-metric confidence intervals
+    79→    - Price path simulation
+    80→
+    81→    Usage:
+    82→        simulator = MonteCarloSimulator(num_simulations=1000)
+    83→        result = simulator.simulate_trade_shuffle(trades, initial_capital)
+    84→        result = simulator.simulate_bootstrap(returns, initial_capital)
+    85→        result = simulator.simulate_parametric(returns, initial_capital)
+    86→    """
+    87→
+    88→    def __init__(
+    89→        self,
+    90→        num_simulations: int = 1000,
+    91→        random_seed: Optional[int] = None,
+    92→        confidence_levels: Optional[List[float]] = None,
+    93→    ) -> None:
+    94→        """Initialize Monte Carlo simulator.
+    95→
+    96→        Args:
+    97→            num_simulations: Number of Monte Carlo simulations to run.
+    98→            random_seed: Optional seed for reproducibility.
+    99→            confidence_levels: List of confidence levels for CIs (default: [0.90, 0.95, 0.99]).
+   100→        """
+   101→        self.num_simulations = num_simulations
+   102→        self.random_seed = random_seed
+   103→        self.confidence_levels = confidence_levels or [0.90, 0.95, 0.99]
+   104→
+   105→    def simulate_trade_shuffle(
+   106→        self,
+   107→        trades_pnl: List[float],
+   108→        initial_capital: float = 1_000_000.0,
+   109→        metric: str = "total_return",
+   110→    ) -> MonteCarloResult:
+   111→        """Simulate by shuffling trade P&L sequence.
+   112→
+   113→        Tests whether the strategy's performance depends on the
+   114→        specific sequence of trades (it shouldn't for a robust strategy).
+   115→
+   116→        Args:
+   117→            trades_pnl: List of trade P&L values.
+   118→            initial_capital: Starting capital.
+   119→            metric: Metric to compute ('total_return', 'max_drawdown', 'sharpe',
+   120→                   'sortino', 'calmar', 'win_rate').
+   121→
+   122→        Returns:
+   123→            MonteCarloResult with confidence intervals.
+   124→        """
+   125→        if not trades_pnl:
+   126→            return self._empty_result(metric)
+   127→
+   128→        rng = np.random.default_rng(self.random_seed)
+   129→        pnl_array = np.array(trades_pnl, dtype=float)
+   130→
+   131→        # Calculate original metric
+   132→        original_value = self._calc_metric(pnl_array, initial_capital, metric)
+   133→
+   134→        # Run simulations
+   135→        sim_results = np.empty(self.num_simulations)
+   136→        for i in range(self.num_simulations):
+   137→            shuffled = rng.permutation(pnl_array)
+   138→            sim_results[i] = self._calc_metric(shuffled, initial_capital, metric)
+   139→
+   140→        return self._build_result(sim_results, metric, original_value)
+   141→
+   142→    def simulate_bootstrap(
+   143→        self,
+   144→        returns: pd.Series,
+   145→        initial_capital: float = 1_000_000.0,
+   146→        metric: str = "total_return",
+   147→        block_size: Optional[int] = None,
+   148→    ) -> MonteCarloResult:
+   149→        """Simulate using bootstrap resampling (non-parametric).
+   150→
+   151→        Resamples returns with replacement to create alternative
+   152→        equity paths. Supports block bootstrap for autocorrelated returns.
+   153→
+   154→        Args:
+   155→            returns: Series of per-bar returns.
+   156→            initial_capital: Starting capital.
+   157→            metric: Metric to compute.
+   158→            block_size: Optional block size for block bootstrap.
+   159→                       If None, uses standard bootstrap (block_size=1).
+   160→
+   161→        Returns:
+   162→            MonteCarloResult with confidence intervals.
+   163→        """
+   164→        if len(returns) == 0:
+   165→            return self._empty_result(metric)
+   166→
+   167→        rng = np.random.default_rng(self.random_seed)
+   168→        ret_array = returns.values.astype(float)
+   169→        n = len(ret_array)
+   170→
+   171→        # Calculate original metric
+   172→        original_equity = initial_capital * np.cumprod(1 + ret_array)
+   173→        original_value = self._calc_equity_metric(
+   174→            pd.Series(original_equity), initial_capital, metric
+   175→        )
+   176→
+   177→        # Determine block size
+   178→        if block_size is None or block_size <= 1:
+   179→            # Standard bootstrap
+   180→            sim_results = np.empty(self.num_simulations)
+   181→            for i in range(self.num_simulations):
+   182→                indices = rng.integers(0, n, size=n)
+   183→                resampled = ret_array[indices]
+   184→                equity = initial_capital * np.cumprod(1 + resampled)
+   185→                sim_results[i] = self._calc_equity_metric(
+   186→                    pd.Series(equity), initial_capital, metric
+   187→                )
+   188→        else:
+   189→            # Block bootstrap
+   190→            sim_results = np.empty(self.num_simulations)
+   191→            for i in range(self.num_simulations):
+   192→                resampled = self._block_bootstrap(rng, ret_array, block_size, n)
+   193→                equity = initial_capital * np.cumprod(1 + resampled)
+   194→                sim_results[i] = self._calc_equity_metric(
+   195→                    pd.Series(equity), initial_capital, metric
+   196→                )
+   197→
+   198→        return self._build_result(sim_results, metric, original_value)
+   199→
+   200→    def simulate_return_resample(
+   201→        self,
+   202→        returns: pd.Series,
+   203→        initial_capital: float = 1_000_000.0,
+   204→        metric: str = "total_return",
+   205→    ) -> MonteCarloResult:
+   206→        """Simulate by bootstrap resampling returns.
+   207→
+   208→        This is an alias for simulate_bootstrap with block_size=None.
+   209→
+   210→        Args:
+   211→            returns: Series of per-bar returns.
+   212→            initial_capital: Starting capital.
+   213→            metric: Metric to compute.
+   214→
+   215→        Returns:
+   216→            MonteCarloResult with confidence intervals.
+   217→        """
+   218→        return self.simulate_bootstrap(returns, initial_capital, metric, block_size=None)
+   219→
+   220→    def simulate_parametric(
+   221→        self,
+   222→        returns: pd.Series,
+   223→        initial_capital: float = 1_000_000.0,
+   224→        metric: str = "total_return",
+   225→        distribution: str = "normal",
+   226→        n_bars: Optional[int] = None,
+   227→    ) -> MonteCarloResult:
+   228→        """Simulate using parametric distribution fitting.
+   229→
+   230→        Fits a distribution to the returns and generates random paths
+   231→        from the fitted distribution. Supports normal, student-t, and
+   232→        skewed-normal distributions.
+   233→
+   234→        Args:
+   235→            returns: Series of per-bar returns to fit.
+   236→            initial_capital: Starting capital.
+   237→            metric: Metric to compute.
+   238→            distribution: Distribution type ('normal', 'student_t', 'skew_normal').
+   239→            n_bars: Number of bars per simulation. Defaults to length of returns.
+   240→
+   241→        Returns:
+   242→            MonteCarloResult with confidence intervals.
+   243→        """
+   244→        if len(returns) < 2:
+   245→            return self._empty_result(metric)
+   246→
+   247→        rng = np.random.default_rng(self.random_seed)
+   248→        ret_array = returns.values.astype(float)
+   249→        n = n_bars or len(ret_array)
+   250→
+   251→        # Fit distribution parameters
+   252→        mean_ret = float(np.mean(ret_array))
+   253→        std_ret = float(np.std(ret_array, ddof=1))
+   254→
+   255→        # Calculate original metric
+   256→        original_equity = initial_capital * np.cumprod(1 + ret_array)
+   257→        original_value = self._calc_equity_metric(
+   258→            pd.Series(original_equity), initial_capital, metric
+   259→        )
+   260→
+   261→        sim_results = np.empty(self.num_simulations)
+   262→
+   263→        if distribution == "normal":
+   264→            for i in range(self.num_simulations):
+   265→                random_returns = rng.normal(mean_ret, std_ret, size=n)
+   266→                equity = initial_capital * np.cumprod(1 + random_returns)
+   267→                sim_results[i] = self._calc_equity_metric(
+   268→                    pd.Series(equity), initial_capital, metric
+   269→                )
+   270→
+   271→        elif distribution == "student_t":
+   272→            # Fit student-t using method of moments
+   273→            from scipy import stats as sp_stats
+   274→            try:
+   275→                # Fit t-distribution
+   276→                t_df, t_loc, t_scale = sp_stats.t.fit(ret_array)
+   277→                for i in range(self.num_simulations):
+   278→                    random_returns = sp_stats.t.rvs(
+   279→                        df=t_df, loc=t_loc, scale=t_scale,
+   280→                        size=n, random_state=rng
+   281→                    )
+   282→                    equity = initial_capital * np.cumprod(1 + random_returns)
+   283→                    sim_results[i] = self._calc_equity_metric(
+   284→                        pd.Series(equity), initial_capital, metric
+   285→                    )
+   286→            except ImportError:
+   287→                logger.warning("scipy not available, falling back to normal distribution")
+   288→                for i in range(self.num_simulations):
+   289→                    random_returns = rng.normal(mean_ret, std_ret, size=n)
+   290→                    equity = initial_capital * np.cumprod(1 + random_returns)
+   291→                    sim_results[i] = self._calc_equity_metric(
+   292→                        pd.Series(equity), initial_capital, metric
+   293→                    )
+   294→
+   295→        elif distribution == "skew_normal":
+   296→            # Approximate skewed normal using mix of normal and chi-squared
+   297→            try:
+   298→                from scipy import stats as sp_stats
+   299→                skewness = float(sp_stats.skew(ret_array))
+   300→                # Use skewed normal approximation
+   301→                for i in range(self.num_simulations):
+   302→                    # Generate via normal + skew adjustment
+   303→                    random_returns = rng.normal(mean_ret, std_ret, size=n)
+   304→                    if abs(skewness) > 0.1:
+   305→                        # Apply simple skew correction
+   306→                        skew_correction = skewness * std_ret * 0.1
+   307→                        random_returns += skew_correction * (random_returns - mean_ret) / (std_ret + 1e-10)
+   308→                    equity = initial_capital * np.cumprod(1 + random_returns)
+   309→                    sim_results[i] = self._calc_equity_metric(
+   310→                        pd.Series(equity), initial_capital, metric
+   311→                    )
+   312→            except ImportError:
+   313→                logger.warning("scipy not available, falling back to normal distribution")
+   314→                for i in range(self.num_simulations):
+   315→                    random_returns = rng.normal(mean_ret, std_ret, size=n)
+   316→                    equity = initial_capital * np.cumprod(1 + random_returns)
+   317→                    sim_results[i] = self._calc_equity_metric(
+   318→                        pd.Series(equity), initial_capital, metric
+   319→                    )
+   320→        else:
+   321→            raise ValueError(f"Unknown distribution: {distribution}")
+   322→
+   323→        return self._build_result(sim_results, metric, original_value)
+   324→
+   325→    def simulate_regime_aware(
+   326→        self,
+   327→        returns: pd.Series,
+   328→        initial_capital: float = 1_000_000.0,
+   329→        metric: str = "total_return",
+   330→        n_regimes: int = 2,
+   331→        n_bars: Optional[int] = None,
+   332→    ) -> MonteCarloResult:
+   333→        """Simulate with regime-awareness.
+   334→
+   335→        Detects market regimes (e.g., bull/bear, high/low volatility)
+   336→        and generates returns that respect regime transitions.
+   337→
+   338→        Args:
+   339→            returns: Series of per-bar returns.
+   340→            initial_capital: Starting capital.
+   341→            metric: Metric to compute.
+   342→            n_regimes: Number of regimes to detect.
+   343→            n_bars: Number of bars per simulation. Defaults to length of returns.
+   344→
+   345→        Returns:
+   346→            MonteCarloResult with confidence intervals.
+   347→        """
+   348→        if len(returns) < 30:
+   349→            return self._empty_result(metric)
+   350→
+   351→        rng = np.random.default_rng(self.random_seed)
+   352→        ret_array = returns.values.astype(float)
+   353→        n = n_bars or len(ret_array)
+   354→
+   355→        # Detect regimes using simple volatility clustering
+   356→        regimes = self._detect_regimes(ret_array, n_regimes)
+   357→
+   358→        # Calculate original metric
+   359→        original_equity = initial_capital * np.cumprod(1 + ret_array)
+   360→        original_value = self._calc_equity_metric(
+   361→            pd.Series(original_equity), initial_capital, metric
+   362→        )
+   363→
+   364→        # Estimate transition matrix
+   365→        transition_matrix = self._estimate_transition_matrix(regimes, n_regimes)
+   366→
+   367→        # Calculate per-regime statistics
+   368→        regime_stats = []
+   369→        for r in range(n_regimes):
+   370→            mask = regimes == r
+   371→            regime_returns = ret_array[mask]
+   372→            if len(regime_returns) > 1:
+   373→                regime_stats.append({
+   374→                    "mean": float(np.mean(regime_returns)),
+   375→                    "std": float(np.std(regime_returns, ddof=1)),
+   376→                    "prob": float(np.mean(mask)),
+   377→                })
+   378→            else:
+   379→                regime_stats.append({
+   380→                    "mean": float(np.mean(ret_array)),
+   381→                    "std": float(np.std(ret_array, ddof=1)),
+   382→                    "prob": 1.0 / n_regimes,
+   383→                })
+   384→
+   385→        # Generate regime-aware simulations
+   386→        sim_results = np.empty(self.num_simulations)
+   387→
+   388→        for i in range(self.num_simulations):
+   389→            sim_returns = np.empty(n)
+   390→            current_regime = rng.integers(0, n_regimes)
+   391→
+   392→            for j in range(n):
+   393→                stats = regime_stats[current_regime]
+   394→                sim_returns[j] = rng.normal(stats["mean"], stats["std"])
+   395→
+   396→                # Transition to next regime
+   397→                probs = transition_matrix[current_regime]
+   398→                current_regime = rng.choice(n_regimes, p=probs)
+   399→
+   400→            equity = initial_capital * np.cumprod(1 + sim_returns)
+   401→            sim_results[i] = self._calc_equity_metric(
+   402→                pd.Series(equity), initial_capital, metric
+   403→            )
+   404→
+   405→        return self._build_result(sim_results, metric, original_value)
+   406→
+   407→    def simulate_price_path(
+   408→        self,
+   409→        mean_return: float,
+   410→        std_return: float,
+   411→        n_bars: int,
+   412→        initial_capital: float = 1_000_000.0,
+   413→        metric: str = "total_return",
+   414→    ) -> MonteCarloResult:
+   415→        """Simulate by generating random price paths from a normal distribution.
+   416→
+   417→        Args:
+   418→            mean_return: Mean per-bar return.
+   419→            std_return: Std of per-bar returns.
+   420→            n_bars: Number of bars per simulation.
+   421→            initial_capital: Starting capital.
+   422→            metric: Metric to compute.
+   423→
+   424→        Returns:
+   425→            MonteCarloResult with confidence intervals.
+   426→        """
+   427→        rng = np.random.default_rng(self.random_seed)
+   428→
+   429→        sim_results = np.empty(self.num_simulations)
+   430→
+   431→        for i in range(self.num_simulations):
+   432→            random_returns = rng.normal(mean_return, std_return, size=n_bars)
+   433→            equity = initial_capital * np.cumprod(1 + random_returns)
+   434→            sim_results[i] = self._calc_equity_metric(
+   435→                pd.Series(equity), initial_capital, metric
+   436→            )
+   437→
+   438→        return self._build_result(
+   439→            sim_results, metric, original_value=mean_return * n_bars
+   440→        )
+   441→
+   442→    def simulate_multi_metric(
+   443→        self,
+   444→        returns: pd.Series,
+   445→        initial_capital: float = 1_000_000.0,
+   446→        metrics: Optional[List[str]] = None,
+   447→        method: str = "bootstrap",
+   448→    ) -> MultiMetricMonteCarloResult:
+   449→        """Run Monte Carlo simulation for multiple metrics simultaneously.
+   450→
+   451→        Args:
+   452→            returns: Series of per-bar returns.
+   453→            initial_capital: Starting capital.
+   454→            metrics: List of metrics to compute. Defaults to all supported.
+   455→            method: Simulation method ('bootstrap', 'parametric', 'regime_aware').
+   456→
+   457→        Returns:
+   458→            MultiMetricMonteCarloResult with results for each metric.
+   459→        """
+   460→        if metrics is None:
+   461→            metrics = ["total_return", "max_drawdown", "sharpe_ratio", "sortino_ratio"]
+   462→
+   463→        results: Dict[str, MonteCarloResult] = {}
+   464→
+   465→        for metric in metrics:
+   466→            if method == "bootstrap":
+   467→                results[metric] = self.simulate_bootstrap(
+   468→                    returns, initial_capital, metric
+   469→                )
+   470→            elif method == "parametric":
+   471→                results[metric] = self.simulate_parametric(
+   472→                    returns, initial_capital, metric
+   473→                )
+   474→            elif method == "regime_aware":
+   475→                results[metric] = self.simulate_regime_aware(
+   476→                    returns, initial_capital, metric
+   477→                )
+   478→            else:
+   479→                raise ValueError(f"Unknown simulation method: {method}")
+   480→
+   481→        return MultiMetricMonteCarloResult(
+   482→            metrics=results,
+   483→            num_simulations=self.num_simulations,
+   484→        )
+   485→
+   486→    # ── Metric computation ────────────────────────────────────────────
+   487→
+   488→    @staticmethod
+   489→    def _calc_metric(
+   490→        pnl_array: np.ndarray,
+   491→        initial_capital: float,
+   492→        metric: str,
+   493→    ) -> float:
+   494→        """Calculate a metric from a P&L array."""
+   495→        cumulative_pnl = np.cumsum(pnl_array)
+   496→        equity = initial_capital + cumulative_pnl
+   497→
+   498→        if metric == "total_return":
+   499→            return float(equity[-1] / initial_capital - 1)
+   500→        elif metric == "max_drawdown":
+   501→            peak = np.maximum.accumulate(equity)
+   502→            dd = (equity - peak) / np.maximum(peak, 1e-10)
+   503→            return float(np.min(dd))
+   504→        elif metric in ("sharpe", "sharpe_ratio"):
+   505→            returns = np.diff(equity) / np.maximum(equity[:-1], 1e-10)
+   506→            if len(returns) < 2 or np.std(returns) < 1e-10:
+   507→                return 0.0
+   508→            return float(np.mean(returns) / np.std(returns) * np.sqrt(252))
+   509→        elif metric in ("sortino", "sortino_ratio"):
+   510→            returns = np.diff(equity) / np.maximum(equity[:-1], 1e-10)
+   511→            downside = returns[returns < 0]
+   512→            if len(downside) < 2 or np.std(downside) < 1e-10:
+   513→                return 0.0
+   514→            return float(np.mean(returns) / np.std(downside) * np.sqrt(252))
+   515→        elif metric in ("calmar", "calmar_ratio"):
+   516→            total_ret = float(equity[-1] / initial_capital - 1)
+   517→            peak = np.maximum.accumulate(equity)
+   518→            dd = (equity - peak) / np.maximum(peak, 1e-10)
+   519→            max_dd = abs(float(np.min(dd)))
+   520→            if max_dd < 1e-10:
+   521→                return 0.0
+   522→            return total_ret / max_dd
+   523→        elif metric == "win_rate":
+   524→            wins = np.sum(pnl_array > 0)
+   525→            return float(wins / len(pnl_array)) if len(pnl_array) > 0 else 0.0
+   526→        else:
+   527→            return float(equity[-1] / initial_capital - 1)
+   528→
+   529→    @staticmethod
+   530→    def _calc_equity_metric(
+   531→        equity: pd.Series,
+   532→        initial_capital: float,
+   533→        metric: str,
+   534→    ) -> float:
+   535→        """Calculate a metric from an equity curve."""
+   536→        if len(equity) < 2:
+   537→            return 0.0
+   538→
+   539→        if metric == "total_return":
+   540→            return float(equity.iloc[-1] / initial_capital - 1)
+   541→        elif metric == "max_drawdown":
+   542→            peak = equity.cummax()
+   543→            dd = (equity - peak) / np.maximum(peak, 1e-10)
+   544→            return float(dd.min())
+   545→        elif metric in ("sharpe", "sharpe_ratio"):
+   546→            returns = equity.pct_change().dropna()
+   547→            if len(returns) < 2 or returns.std() < 1e-10:
+   548→                return 0.0
+   549→            return float(returns.mean() / returns.std() * np.sqrt(252))
+   550→        elif metric in ("sortino", "sortino_ratio"):
+   551→            returns = equity.pct_change().dropna()
+   552→            downside = returns[returns < 0]
+   553→            if len(downside) < 2 or downside.std() < 1e-10:
+   554→                return 0.0
+   555→            return float(returns.mean() / downside.std() * np.sqrt(252))
+   556→        elif metric in ("calmar", "calmar_ratio"):
+   557→            total_ret = float(equity.iloc[-1] / initial_capital - 1)
+   558→            peak = equity.cummax()
+   559→            dd = (equity - peak) / np.maximum(peak, 1e-10)
+   560→            max_dd = abs(float(dd.min()))
+   561→            if max_dd < 1e-10:
+   562→                return 0.0
+   563→            return total_ret / max_dd
+   564→        elif metric == "win_rate":
+   565→            returns = equity.pct_change().dropna()
+   566→            if len(returns) == 0:
+   567→                return 0.0
+   568→            return float((returns > 0).mean())
+   569→        else:
+   570→            return float(equity.iloc[-1] / initial_capital - 1)
+   571→
+   572→    # ── Confidence intervals ──────────────────────────────────────────
+   573→
+   574→    def compute_confidence_intervals(
+   575→        self,
+   576→        values: np.ndarray,
+   577→    ) -> Dict[float, Tuple[float, float]]:
+   578→        """Compute confidence intervals at specified levels.
+   579→
+   580→        Args:
+   581→            values: Array of simulated metric values.
+   582→
+   583→        Returns:
+   584→            Dict mapping confidence level to (lower, upper) bounds.
+   585→        """
+   586→        result = {}
+   587→        for level in self.confidence_levels:
+   588→            alpha = (1 - level) / 2
+   589→            lower = float(np.percentile(values, alpha * 100))
+   590→            upper = float(np.percentile(values, (1 - alpha) * 100))
+   591→            result[level] = (lower, upper)
+   592→        return result
+   593→
+   594→    # ── Regime detection ──────────────────────────────────────────────
+   595→
+   596→    @staticmethod
+   597→    def _detect_regimes(
+   598→        returns: np.ndarray,
+   599→        n_regimes: int = 2,
+   600→        window: int = 21,
+   601→    ) -> np.ndarray:
+   602→        """Detect market regimes using rolling volatility clustering.
+   603→
+   604→        Uses k-means-like clustering on rolling volatility to identify
+   605→        distinct market regimes.
+   606→
+   607→        Args:
+   608→            returns: Array of per-bar returns.
+   609→            n_regimes: Number of regimes to detect.
+   610→            window: Rolling window for volatility calculation.
+   611→
+   612→        Returns:
+   613→            Array of regime labels (0 to n_regimes-1) for each bar.
+   614→        """
+   615→        n = len(returns)
+   616→        if n < window * 2:
+   617→            # Not enough data for regime detection, return single regime
+   618→            return np.zeros(n, dtype=int)
+   619→
+   620→        # Calculate rolling volatility
+   621→        rolling_vol = np.full(n, np.nan)
+   622→        for i in range(window - 1, n):
+   623→            rolling_vol[i] = np.std(returns[i - window + 1:i + 1], ddof=1)
+   624→
+   625→        # Fill NaN with overall mean
+   626→        valid_vol = rolling_vol[~np.isnan(rolling_vol)]
+   627→        if len(valid_vol) == 0:
+   628→            return np.zeros(n, dtype=int)
+   629→
+   630→        mean_vol = np.mean(valid_vol)
+   631→        rolling_vol = np.where(np.isnan(rolling_vol), mean_vol, rolling_vol)
+   632→
+   633→        # Simple threshold-based clustering for 2 regimes
+   634→        if n_regimes == 2:
+   635→            median_vol = np.median(rolling_vol)
+   636→            regimes = (rolling_vol > median_vol).astype(int)
+   637→        else:
+   638→            # Quantile-based clustering for more regimes
+   639→            quantiles = np.linspace(0, 100, n_regimes + 1)
+   640→            thresholds = np.percentile(rolling_vol, quantiles[1:-1])
+   641→            regimes = np.digitize(rolling_vol, thresholds)
+   642→
+   643→        return regimes
+   644→
+   645→    @staticmethod
+   646→    def _estimate_transition_matrix(
+   647→        regimes: np.ndarray,
+   648→        n_regimes: int,
+   649→    ) -> np.ndarray:
+   650→        """Estimate Markov transition matrix from regime sequence.
+   651→
+   652→        Args:
+   653→            regimes: Array of regime labels.
+   654→            n_regimes: Number of regimes.
+   655→
+   656→        Returns:
+   657→            Transition probability matrix (n_regimes x n_regimes).
+   658→        """
+   659→        transition_counts = np.zeros((n_regimes, n_regimes))
+   660→
+   661→        for i in range(len(regimes) - 1):
+   662→            from_regime = int(regimes[i])
+   663→            to_regime = int(regimes[i + 1])
+   664→            if 0 <= from_regime < n_regimes and 0 <= to_regime < n_regimes:
+   665→                transition_counts[from_regime, to_regime] += 1
+   666→
+   667→        # Normalize rows
+   668→        row_sums = transition_counts.sum(axis=1, keepdims=True)
+   669→        row_sums = np.where(row_sums == 0, 1, row_sums)
+   670→        transition_matrix = transition_counts / row_sums
+   671→
+   672→        # Ensure each row sums to 1
+   673→        for i in range(n_regimes):
+   674→            row_sum = transition_matrix[i].sum()
+   675→            if row_sum < 1e-10:
+   676→                transition_matrix[i] = np.ones(n_regimes) / n_regimes
+   677→
+   678→        return transition_matrix
+   679→
+   680→    @staticmethod
+   681→    def _block_bootstrap(
+   682→        rng: np.random.Generator,
+   683→        data: np.ndarray,
+   684→        block_size: int,
+   685→        total_length: int,
+   686→    ) -> np.ndarray:
+   687→        """Generate a block bootstrap resample.
+   688→
+   689→        Args:
+   690→            rng: Random number generator.
+   691→            data: Original data array.
+   692→            block_size: Size of each block.
+   693→            total_length: Desired length of resample.
+   694→
+   695→        Returns:
+   696→            Resampled array of specified length.
+   697→        """
+   698→        n = len(data)
+   699→        result = []
+   700→        while len(result) < total_length:
+   701→            start = rng.integers(0, n - block_size + 1)
+   702→            block = data[start:start + block_size]
+   703→            result.extend(block.tolist())
+   704→
+   705→        return np.array(result[:total_length])
+   706→
+   707→    # ── Result builders ───────────────────────────────────────────────
+   708→
+   709→    def _build_result(
+   710→        self,
+   711→        sim_results: np.ndarray,
+   712→        metric: str,
+   713→        original_value: float,
+   714→    ) -> MonteCarloResult:
+   715→        """Build MonteCarloResult from simulation results."""
+   716→        # Compute confidence intervals at all specified levels
+   717→        ci = self.compute_confidence_intervals(sim_results)
+   718→
+   719→        # Use 95% CI for the main result
+   720→        confidence_95 = ci.get(0.95, (
+   721→            float(np.percentile(sim_results, 2.5)),
+   722→            float(np.percentile(sim_results, 97.5)),
+   723→        ))
+   724→
+   725→        return MonteCarloResult(
+   726→            num_simulations=self.num_simulations,
+   727→            metric_name=metric,
+   728→            original_value=original_value,
+   729→            mean_value=float(np.mean(sim_results)),
+   730→            median_value=float(np.median(sim_results)),
+   731→            p5=float(np.percentile(sim_results, 5)),
+   732→            p25=float(np.percentile(sim_results, 25)),
+   733→            p75=float(np.percentile(sim_results, 75)),
+   734→            p95=float(np.percentile(sim_results, 95)),
+   735→            confidence_95=confidence_95,
+   736→            probability_of_loss=float(np.mean(sim_results < 0)),
+   737→            all_sim_values=sim_results,
+   738→        )
+   739→
+   740→    def _empty_result(self, metric: str) -> MonteCarloResult:
+   741→        """Return empty MonteCarloResult when no data is available."""
+   742→        return MonteCarloResult(
+   743→            num_simulations=0,
+   744→            metric_name=metric,
+   745→            original_value=0.0,
+   746→            mean_value=0.0,
+   747→            median_value=0.0,
+   748→            p5=0.0,
+   749→            p25=0.0,
+   750→            p75=0.0,
+   751→            p95=0.0,
+   752→            confidence_95=(0.0, 0.0),
+   753→            probability_of_loss=1.0,
+   754→        )
+   755→

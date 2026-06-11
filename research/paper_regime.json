@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://arxiv.org/html/2407.19858v6",
+    "name": "Integrating Hidden Markov Models with Neural Networks - arXiv",
+    "snippet": "This study introduces a refreshing approach that combines Hidden Markov Models (HMM) and neural networks integrated with Black-Litterman ...",
+    "host_name": "arxiv.org",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/hikmah-techstack/market-regime-detection-from-hidden-markov-models-to-wasserstein-clustering-6ba0a09559dc",
+    "name": "Market Regime Detection: From Hidden Markov Models to  - Medium",
+    "snippet": "Detecting when markets transition between regimes can dramatically improve trading strategies, risk management, and model retraining for ...",
+    "host_name": "medium.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.quantstart.com/articles/market-regime-detection-using-hidden-markov-models-in-qstrader",
+    "name": "Market Regime Detection using Hidden Markov Models in QSTrader",
+    "snippet": "In this article the Hidden Markov Model will be utilised within the QSTrader framework as a risk-managing market regime filter.",
+    "host_name": "www.quantstart.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/abs/1212.1778",
+    "name": "Hidden Markov Model Applications in Change-Point Analysis - arXiv",
+    "snippet": "In this tutorial we elaborate on the Hidden Markov Model (HMM) and present two different frameworks for applying HMM to change-point models.",
+    "host_name": "arxiv.org",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.linkedin.com/pulse/market-regime-detection-using-hidden-markov-models-trading-pham-fkkpc",
+    "name": "Market Regime Detection using Hidden Markov Models in  - LinkedIn",
+    "snippet": "The Solution: Hidden Markov Models for Regime Detection. In quantitative finance, we use Hidden Markov Models (HMM) to solve this exact problem.",
+    "host_name": "www.linkedin.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://blog.quantinsti.com/regime-adaptive-trading-python",
+    "name": "Market Regime using Hidden Markov Model - QuantInsti Blog",
+    "snippet": "This project builds a Python-based adaptive trading strategy that: Detects current market regime using a Hidden Markov Model (HMM) standard ...",
+    "host_name": "blog.quantinsti.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://developers.lseg.com/en/article-catalog/article/market-regime-detection",
+    "name": "Market regime detection using Statistical and ML based approaches",
+    "snippet": "We use statistical and ML models to identify normal or crash market regimes for S&P 500 and build an investment strategy around that.",
+    "host_name": "developers.lseg.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.quantconnect.com/research/17900/intraday-application-of-hidden-markov-models",
+    "name": "Intraday Application of Hidden Markov Models - QuantConnect.com",
+    "snippet": "In this micro-study, we implement a 3-component HMM strategy to detect market regimes and generate timely buy signals for liquid stocks on an intraday basis.",
+    "host_name": "www.quantconnect.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.mdpi.com/1911-8074/13/12/311",
+    "name": "Regime-Switching Factor Investing with Hidden Markov Models - MDPI",
+    "snippet": "This study uses the hidden Markov model (HMM) to identify different market regimes in the US stock market and proposes an investment strategy that switches ...",
+    "host_name": "www.mdpi.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/algotrading/comments/zqxvt4/do_you_use_hidden_markov_models_how",
+    "name": "Do you use Hidden Markov Models? How? : r/algotrading - Reddit",
+    "snippet": "Applications of Markov chains in trading. HMM for market regime detection. Markov chain analysis techniques. Market regime detection methods.",
+    "host_name": "www.reddit.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://github.com/tauricresearch/tradingagents",
+    "name": "TradingAgents: Multi-Agents LLM Financial Trading Framework",
+    "snippet": "Through structured debates, they balance potential gains against inherent risks. Trader Agent. Composes reports from the analysts and researchers to make ...",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://tradingagents-ai.github.io",
+    "name": "TradingAgents: Multi-Agents LLM Financial Trading Framework",
+    "snippet": "TradingAgents leverages a multi-agent framework ... This debate ensures balanced analysis, identifying both opportunities and risks to inform trading strategies.",
+    "host_name": "tradingagents-ai.github.io",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/huygiatrng/AlpacaTradingAgent",
+    "name": "AlpacaTradingAgent: Multi-Agents LLM Financial Trading  - GitHub",
+    "snippet": "This project is an independent upgrade inspired by the original TradingAgents framework by Tauric Research, extending it with real-time Alpaca integration, ...",
+    "host_name": "github.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://openreview.net/pdf/bf4d31f6b4162b5b1618ab5db04a32aec0bcbc25.pdf",
+    "name": "[PDF] TradingAgents: Multi-Agents LLM Financial Trading Framework",
+    "snippet": "The framework includes Bull and Bear re- searcher agents assessing market conditions, a risk manage- ment team monitoring exposure, and traders synthesizing in-.",
+    "host_name": "openreview.net",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/pdf/2412.20138",
+    "name": "[PDF] TradingAgents: Multi-Agents LLM Financial Trading Framework - arXiv",
+    "snippet": "Comprised of agents adopting both bullish and bearish perspectives, they engage in multiple rounds of debate to assess the potential risks and ...",
+    "host_name": "arxiv.org",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/illumination/a-multi-agent-code-for-trading-with-prompts-78f00db1df58",
+    "name": "A Multi-Agent Code for Trading with Prompts | by Sips & Scale",
+    "snippet": "Let's deep dive immediately: the most useful thing in TradingAgents is the design choice: split the work into roles, force each role to write ...",
+    "host_name": "medium.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.facebook.com/groups/n8n.dify.nocodb.lowcode.automation/posts/3848203145311250",
+    "name": "Multi-agents LLM financial trading framework - Facebook",
+    "snippet": "In this survey, we provide a comprehensive review of the current research on using LLMs as agents in financial trading. We summarize the common ...",
+    "host_name": "www.facebook.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.digitalocean.com/resources/articles/tradingagents-llm-framework",
+    "name": "Your Guide to the TradingAgents Multi-Agent LLM Framework",
+    "snippet": "Developed by researchers from UCLA and MIT, the TradingAgents multi-agent LLM framework advances AI for financial modeling and simulation.",
+    "host_name": "www.digitalocean.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://x.com/murtuza_merc/status/2035330930294837328",
+    "name": "TradingAgents: Multi-Agents LLM Financial Trading Framework",
+    "snippet": "A pair of researchers, one bullish and one bearish, take those analyst reports and fight it out. They engage in multi round debates to find the ...",
+    "host_name": "x.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/TauricResearch/TradingAgents/issues/486",
+    "name": "Amazing multi-agent trading framework! · Issue #486 - GitHub",
+    "snippet": "This is exactly what the quant community needs. Multi-agent LLM architecture for financial trading is a game-changer.",
+    "host_name": "github.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

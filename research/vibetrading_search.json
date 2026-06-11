@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://github.com/HKUDS/Vibe-Trading",
+    "name": "\"Vibe-Trading: Your Personal Trading Agent\" · GitHub",
+    "snippet": "Multi-agent research reviews for investment, quant, crypto, macro, and risk workflows. Ship usable artifacts, Reports, TradingView Pine Script, ...",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "Jun 9, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://pypi.org/project/vibe-trading-ai",
+    "name": "vibe-trading-ai - PyPI",
+    "snippet": "Vibe-Trading exposes 22 MCP tools for any MCP-compatible client. Runs as a stdio subprocess — no server setup needed. 21 of 22 tools work with zero API keys (HK ...",
+    "host_name": "pypi.org",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://skillsllm.com/skill/vibe-trading",
+    "name": "Vibe-Trading - AI Agents on GitHub (11.3k  ) | SkillsLLM",
+    "snippet": "\"Vibe-Trading: Your Personal Trading Agent\". Open-source AI Agents skill on GitHub with 11.3k☆. Browse on SkillsLLM.",
+    "host_name": "skillsllm.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=TldLJS47umA",
+    "name": "“Vibe-Trading: Your Personal Trading Agent” - YouTube",
+    "snippet": "https://github.com/HKUDS/Vibe-Trading “Vibe-Trading: Your Personal Trading Agent”. Contribute to HKUDS/Vibe-Trading development by creating ...",
+    "host_name": "www.youtube.com",
+    "rank": 3,
+    "date": "Jun 4, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/HKUDS/Vibe-Trading/issues/81",
+    "name": "[Feature] BuildIn agent can register MCP / config skills #81 - GitHub",
+    "snippet": "This RFC adds a minimal but complete MCP client path to Vibe-Trading. It reuses nanobot's strongest ideas while staying compatible with Vibe- ...",
+    "host_name": "github.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://alpaca.markets/learn/vibe-coding-how-to-build-options-trading-algorithms-with-alpacas-mcp-server-cursor-ai",
+    "name": "Vibe Coding: Build Option Algos with Alpaca & Cursor",
+    "snippet": "Learn how to vibe code to build options trading algorithms with Alpaca's MCP Server & Cursor AI in a few easy steps.",
+    "host_name": "alpaca.markets",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/coding-nexus/10-github-repos-that-print-money-while-you-sleep-ca297456862c",
+    "name": "10 GitHub Repos that Print Money While You Sleep - Medium",
+    "snippet": "Vibe-Trading originated from HKUDS research and is based on an intriguing idea: that financial markets are driven by narrative as much as by ...",
+    "host_name": "medium.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.instagram.com/reel/DYaOOTVDiXf",
+    "name": "Discover Vibe-Trading, an impressive open-source project with over",
+    "snippet": "Quick Start Examples• API MCP Roadmap Contribtuting pip install vibe-trading-ai 0 News . README Code of conduct More Shadow Account ...",
+    "host_name": "www.instagram.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://qdrant.tech/blog/webinar-vibe-coding-rag",
+    "name": "Vibe Coding RAG with our MCP server - Qdrant",
+    "snippet": "Check out how the MCP server can give you more control over the quality of vibe coding with AI agents like Cursor, and Claude Code!",
+    "host_name": "qdrant.tech",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://mcpservers.org/servers/Mayank1805/claude_swarm_mcp_agent",
+    "name": "Claude Swarm MCP Server",
+    "snippet": "Claude Swarm MCP Server. A Model Context Protocol (MCP) server that enables multi-agent orchestration using Claude AI through Claude Desktop.",
+    "host_name": "mcpservers.org",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

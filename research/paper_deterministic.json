@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://dl.acm.org/doi/10.1145/3800973.3801029",
+    "name": "Reproducibility in the TradingAgents Framework - ACM Digital Library",
+    "snippet": "Traditional rule-based trading systems are deterministic, producing identical outputs from identical inputs. Financial Trading Framework, arXiv ...\nTraditional rule-based trading systems are deterministic, producing identical outputs from identical inputs. This variability propagates ...",
+    "host_name": "dl.acm.org",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/html/2605.19337v1",
+    "name": "Agentic Trading: When LLM Agents Meet Financial Markets - arXiv",
+    "snippet": "This paper reframes LLM-based trading agents as expert-system decision pipelines and presents an audit-oriented evidence map of 77 included ...",
+    "host_name": "arxiv.org",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/list/q-fin/new",
+    "name": "Quantitative Finance - arXiv",
+    "snippet": "This article presents a targeted topical review and reproducibility audit of execution realism in LLM-based trading research.\nThis paper proposes a Structural Matrix Autoregressive (SMAR) model for the joint analysis of asset returns, realized volatility, and trading volume in a large- ...",
+    "host_name": "arxiv.org",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/html/2505.11065v1",
+    "name": "Going Live with DeepFund for Real-Time Fund Investment  - arXiv",
+    "snippet": "We introduce DeepFund, a live fund benchmark tool designed to rigorously evaluate LLM in real-time market conditions.",
+    "host_name": "arxiv.org",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.ijrai.org/index.php/ijrai/article/view/434",
+    "name": "Deterministic Reproducibility in Financial AI Systems",
+    "snippet": "The paper is a professional architectural plan of deterministic reproducibility of financial artificial intelligence systems which would be ...",
+    "host_name": "www.ijrai.org",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/Tom-roujiang/Awesome-LLM-Quantitative-Trading-Papers",
+    "name": "Tom-roujiang/Awesome-LLM-Quantitative-Trading-Papers - GitHub",
+    "snippet": "A curated collection of papers focusing on LLM-based quantitative trading. 2024) [Arxiv] ContestTrade: A Multi-Agent Trading System Based on Internal Contest ...\nA curated collection of papers focusing on LLM-based <b>quantitative trading</b>. A Multi-Agent Trading System. System for Quantitative Financial Trading",
+    "host_name": "github.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.researchgate.net/publication/400909067_Deterministic_Reproducibility_in_Financial_AI_Systems_A_Formal_Architectural_Model",
+    "name": "Deterministic Reproducibility in Financial AI Systems - ResearchGate",
+    "snippet": "The paper is a professional architectural plan of deterministic reproducibility of financial artificial intelligence systems which would be executed under ...",
+    "host_name": "www.researchgate.net",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://ai4finance.org/research",
+    "name": "Research - AI4Finance Foundation",
+    "snippet": "FinGPT is the first open-source LLM framework providing an end-to-end, deployment-oriented pipeline for financial model construction—from reproducible open- ...",
+    "host_name": "ai4finance.org",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://letsdatascience.com/news/llm-based-trading-research-exposes-reproducibility-gaps-e76503bd",
+    "name": "LLM-Based Trading Research Exposes Reproducibility Gaps",
+    "snippet": "A single arXiv meta-study auditing execution realism and reproducibility across 30 LLM-based trading studies. A useful methodological critique ...",
+    "host_name": "letsdatascience.com",
+    "rank": 8,
+    "date": "Jun 9, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://openreview.net/revisions?id=bra1T57KCc",
+    "name": "Revision History for Trade in Minutes! Rationality-Driven",
+    "snippet": "Title: Trade in Minutes! Rationality-Driven Agentic System for Quantitative Financial Trading. Authors: Zifan Song, Kaitao Song, Guosheng Hu, ...",
+    "host_name": "openreview.net",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

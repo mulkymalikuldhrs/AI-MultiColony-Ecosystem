@@ -45,7 +45,8 @@ class MultiColonyError(Exception):
 class AgentError(MultiColonyError):
     """Agent-related errors."""
 
-    def __init__(self, message: str = "", code: str = "AGENT_ERROR"):
+    def __init__(self, message: str = "", code: str = "AGENT_ERROR", agent_id: str = ""):
+        self.agent_id = agent_id
         super().__init__(message, code)
 
 
@@ -60,15 +61,19 @@ class AgentNotFoundError(AgentError):
 class AgentTimeoutError(AgentError):
     """Agent execution exceeded its time limit."""
 
-    def __init__(self, message: str = "Agent execution timed out", timeout_ms: int = 0):
+    def __init__(self, message: str = "Agent execution timed out", timeout_ms: int = 0, agent_id: str = "", timeout: float = 0.0):
         self.timeout_ms = timeout_ms
+        self.agent_id = agent_id
+        self.timeout = timeout
         super().__init__(message, "AGENT_TIMEOUT")
 
 
 class AgentStateError(AgentError):
     """Invalid agent state transition."""
 
-    def __init__(self, message: str = "Invalid agent state transition"):
+    def __init__(self, message: str = "Invalid agent state transition", agent_id: str = "", current_state: str = ""):
+        self.agent_id = agent_id
+        self.current_state = current_state
         super().__init__(message, "AGENT_STATE")
 
 
@@ -230,3 +235,72 @@ class PermissionDeniedError(SecurityError):
         self.required_level = required_level
         self.current_level = current_level
         super().__init__(message, "PERMISSION_DENIED")
+
+
+# ── LLM Errors ────────────────────────────────────────────────────────────────
+
+
+class LLMError(MultiColonyError):
+    """LLM provider errors."""
+
+    def __init__(self, message: str = "", code: str = "LLM_ERROR", model: str = ""):
+        self.model = model
+        super().__init__(message, code)
+
+
+class LLMRateLimitError(LLMError):
+    """LLM rate limit exceeded."""
+
+    def __init__(self, message: str = "Rate limit exceeded", model: str = ""):
+        super().__init__(message, "LLM_RATE_LIMIT", model=model)
+
+
+class LLMTokensExceededError(LLMError):
+    """LLM token or cost limit exceeded."""
+
+    def __init__(self, message: str = "Token limit exceeded", tokens_used: int = 0, token_limit: int = 0, model: str = ""):
+        self.tokens_used = tokens_used
+        self.token_limit = token_limit
+        super().__init__(message, "LLM_TOKENS_EXCEEDED", model=model)
+
+
+# ── EventBus Errors ───────────────────────────────────────────────────────────
+
+
+class EventBusError(MultiColonyError):
+    """Event bus communication errors."""
+
+    def __init__(self, message: str = "", code: str = "EVENT_BUS_ERROR"):
+        super().__init__(message, code)
+
+
+# ── Channel Errors ────────────────────────────────────────────────────────────
+
+
+class ChannelError(MultiColonyError):
+    """Communication channel errors."""
+
+    def __init__(self, message: str = "", code: str = "CHANNEL_ERROR", channel: str = ""):
+        self.channel = channel
+        super().__init__(message, code)
+
+
+# ── Sandbox Errors ────────────────────────────────────────────────────────────
+
+
+class SandboxError(MultiColonyError):
+    """Sandbox execution errors."""
+
+    def __init__(self, message: str = "", code: str = "SANDBOX_ERROR"):
+        super().__init__(message, code)
+
+
+# ── Tool Execution Errors ─────────────────────────────────────────────────────
+
+
+class ToolExecutionError(ToolError):
+    """Tool execution failure."""
+
+    def __init__(self, tool: str = "", message: str = "Tool execution failed"):
+        self.tool = tool
+        super().__init__(f"Tool {tool}: {message}", "TOOL_EXECUTION")

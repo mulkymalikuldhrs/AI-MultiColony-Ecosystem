@@ -64,20 +64,43 @@ class AuthMiddleware:
     def validate_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Validate a JWT Bearer token.
 
-        In production this would decode and verify the JWT signature.
+        Attempts JWT decoding when the ``PyJWT`` library is available.
+        Falls back to checking the token against registered API keys
+        (useful for testing / simple deployments).
+
         Returns decoded claims or None.
         """
         if token in self._revoked_tokens:
             return None
 
-        # Simplified validation: token must be non-empty and reasonably long
+        # Attempt real JWT validation first
+        try:
+            import jwt
+            payload = jwt.decode(
+                token,
+                self.jwt_secret,
+                algorithms=["HS256"],
+                options={"require": ["exp", "sub"]},
+            )
+            return payload
+        except ImportError:
+            pass  # PyJWT not installed — fall through to key-based check
+        except jwt.InvalidTokenError:
+            return None
+
+        # Fallback: treat the token as an API key when no JWT library
         if not token or len(token) < 10:
             return None
 
-        # Would decode JWT here:
-        # payload = jwt.decode(token, self.jwt_secret, algorithms=["HS256"])
-        # Check expiry, issuer, etc.
-        return {"sub": "agent", "role": "agent", "valid": True}
+        key_info = self._api_keys.get(token)
+        if key_info:
+            return {
+                "sub": key_info.get("agent_id", ""),
+                "role": key_info.get("role", "agent"),
+                "valid": True,
+            }
+
+        return None
 
     def revoke_token(self, token: str) -> None:
         """Revoke a Bearer token."""

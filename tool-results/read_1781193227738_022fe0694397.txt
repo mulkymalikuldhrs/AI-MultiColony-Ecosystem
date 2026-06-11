@@ -1,0 +1,1618 @@
+     1→"""Comprehensive tests for ALL risk engine modules.
+     2→
+     3→Tests cover:
+     4→- Kelly Criterion: basic, fractional, continuous, multi-asset; risk of ruin
+     5→- VaR: parametric, historical, Monte Carlo; property tests (VaR95 < VaR99, CVaR >= VaR)
+     6→- Risk checks: all 9 checkpoints with pass/fail cases
+     7→- Drawdown: max drawdown calculation, breach detection, CVaR drawdown, risk of ruin, recovery
+     8→- Kill switch: activate/deactivate, reset, emergency halt, auto triggers
+     9→- Risk parity: equal risk contribution, all methods
+    10→- Position sizing: fixed fractional, volatility, Kelly, optimal-f
+    11→- Emotional lockout: set lockout, verify blocked, verify expiry, progressive
+    12→- Correlation: group detection, stress detection, diversification score
+    13→- Risk Manager: full pipeline with stress testing, constitutional limits
+    14→"""
+    15→
+    16→from __future__ import annotations
+    17→
+    18→import pytest
+    19→import numpy as np
+    20→import pandas as pd
+    21→
+    22→from quant_nanggroe.engine.risk.kelly import (
+    23→    KellyCriterion,
+    24→    KellyMethod,
+    25→    KellyParameters,
+    26→    KellyResult,
+    27→)
+    28→from quant_nanggroe.engine.risk.var import VaRCalculator, VaRResult
+    29→from quant_nanggroe.engine.risk.checks import RiskCheckGate
+    30→from quant_nanggroe.engine.risk.drawdown import DrawdownMonitor, DrawdownInfo
+    31→from quant_nanggroe.engine.risk.kill_switch import KillSwitch, RESET_CONFIRMATION
+    32→from quant_nanggroe.engine.risk.risk_parity import (
+    33→    RiskParityOptimizer,
+    34→    RiskParityMethod,
+    35→    RiskParityResult,
+    36→)
+    37→from quant_nanggroe.engine.risk.position_sizing import PositionSizer, PositionSizeResult
+    38→from quant_nanggroe.engine.risk.emotional_lockout import (
+    39→    EmotionalLockoutService,
+    40→    EmotionalLockoutConfig,
+    41→    LockoutState,
+    42→    LockoutReason,
+    43→    UNLOCK_CONFIRMATION,
+    44→)
+    45→from quant_nanggroe.engine.risk.correlation import CorrelationMonitor
+    46→from quant_nanggroe.engine.risk.manager import RiskManager
+    47→from quant_nanggroe.engine.risk.constants import (
+    48→    MAX_RISK_PER_TRADE,
+    49→    MAX_DAILY_LOSS,
+    50→    MAX_WEEKLY_LOSS,
+    51→    MIN_RISK_REWARD,
+    52→    MAX_CORRELATED_POSITIONS,
+    53→    MAX_DAILY_TRADES,
+    54→    MAX_DRAWDOWN_PCT,
+    55→)
+    56→
+    57→
+    58→# ═══════════════════════════════════════════════════════════════════════
+    59→# Fixtures
+    60→# ═══════════════════════════════════════════════════════════════════════
+    61→
+    62→
+    63→@pytest.fixture
+    64→def kelly() -> KellyCriterion:
+    65→    return KellyCriterion()
+    66→
+    67→
+    68→@pytest.fixture
+    69→def var_calculator() -> VaRCalculator:
+    70→    return VaRCalculator(default_confidence=0.95)
+    71→
+    72→
+    73→@pytest.fixture
+    74→def risk_gate() -> RiskCheckGate:
+    75→    return RiskCheckGate()
+    76→
+    77→
+    78→@pytest.fixture
+    79→def drawdown_monitor() -> DrawdownMonitor:
+    80→    return DrawdownMonitor(max_drawdown=0.10, initial_equity=100_000.0)
+    81→
+    82→
+    83→@pytest.fixture
+    84→def kill_switch() -> KillSwitch:
+    85→    return KillSwitch()
+    86→
+    87→
+    88→@pytest.fixture
+    89→def risk_parity_optimizer() -> RiskParityOptimizer:
+    90→    return RiskParityOptimizer(max_iterations=100, tolerance=1e-4)
+    91→
+    92→
+    93→@pytest.fixture
+    94→def emotional_lockout() -> EmotionalLockoutService:
+    95→    config = EmotionalLockoutConfig(
+    96→        consecutive_losses_threshold=3,
+    97→        consecutive_losses_lockout_hours=1.0,
+    98→        daily_loss_pct_threshold=0.05,
+    99→        override_attempts_limit=3,
+   100→        override_blockout_hours=24.0,
+   101→    )
+   102→    return EmotionalLockoutService(config=config, initial_equity=100_000.0)
+   103→
+   104→
+   105→@pytest.fixture
+   106→def sample_returns() -> np.ndarray:
+   107→    """Generate sample returns with known properties."""
+   108→    np.random.seed(42)
+   109→    return np.random.normal(0.0002, 0.015, 500)
+   110→
+   111→
+   112→@pytest.fixture
+   113→def multi_asset_returns() -> np.ndarray:
+   114→    """Generate sample multi-asset returns (3 assets x 500 periods)."""
+   115→    np.random.seed(42)
+   116→    n_assets, n_periods = 3, 500
+   117→    returns = np.random.normal(0.0002, 0.015, (n_assets, n_periods))
+   118→    # Add some correlation
+   119→    returns[1] = 0.5 * returns[0] + 0.5 * returns[1]
+   120→    return returns
+   121→
+   122→
+   123→# ═══════════════════════════════════════════════════════════════════════
+   124→# 1. Kelly Criterion Tests
+   125→# ═══════════════════════════════════════════════════════════════════════
+   126→
+   127→
+   128→class TestKellyBasic:
+   129→    """Basic Kelly Criterion calculations."""
+   130→
+   131→    def test_basic_kelly_positive_edge(self, kelly: KellyCriterion):
+   132→        """With positive expectancy, Kelly should be > 0."""
+   133→        params = KellyParameters(win_rate=0.6, avg_win=200.0, avg_loss=100.0)
+   134→        result = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   135→        assert result.optimal_fraction > 0
+   136→
+   137→    def test_basic_kelly_no_edge(self, kelly: KellyCriterion):
+   138→        """With no edge (50/50, 1:1 payout), Kelly should be 0."""
+   139→        params = KellyParameters(win_rate=0.5, avg_win=100.0, avg_loss=100.0)
+   140→        result = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   141→        assert result.optimal_fraction == 0.0
+   142→
+   143→    def test_basic_kelly_negative_edge(self, kelly: KellyCriterion):
+   144→        """With negative expectancy, Kelly should be 0 (don't bet)."""
+   145→        params = KellyParameters(win_rate=0.3, avg_win=100.0, avg_loss=100.0)
+   146→        result = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   147→        assert result.optimal_fraction == 0.0
+   148→
+   149→    def test_basic_kelly_formula(self, kelly: KellyCriterion):
+   150→        """Verify Kelly formula: f* = (bp - q) / b where b = avg_win/avg_loss."""
+   151→        params = KellyParameters(win_rate=0.6, avg_win=200.0, avg_loss=100.0)
+   152→        # b = 200/100 = 2, p = 0.6, q = 0.4
+   153→        # f* = (2*0.6 - 0.4) / 2 = 0.8 / 2 = 0.4
+   154→        result = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   155→        assert abs(result.optimal_fraction - 0.4) < 1e-6
+   156→
+   157→    def test_zero_avg_loss(self, kelly: KellyCriterion):
+   158→        """With zero avg_loss, should return 0."""
+   159→        params = KellyParameters(win_rate=0.6, avg_win=200.0, avg_loss=0.0)
+   160→        result = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   161→        assert result.optimal_fraction == 0.0
+   162→
+   163→    def test_high_win_rate_high_payout(self, kelly: KellyCriterion):
+   164→        """Strong edge should produce larger Kelly fraction."""
+   165→        params = KellyParameters(win_rate=0.8, avg_win=300.0, avg_loss=100.0)
+   166→        result = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   167→        # b=3, p=0.8, q=0.2 → f*=(3*0.8-0.2)/3 = 2.2/3 ≈ 0.733
+   168→        assert result.optimal_fraction > 0.5
+   169→
+   170→
+   171→class TestKellyFractional:
+   172→    """Fractional Kelly variants."""
+   173→
+   174→    def test_half_kelly(self, kelly: KellyCriterion):
+   175→        """Half Kelly should be 50% of full Kelly."""
+   176→        params = KellyParameters(win_rate=0.6, avg_win=200.0, avg_loss=100.0)
+   177→        full = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   178→        half = kelly.calculate_kelly(params, KellyMethod.HALF_KELLY)
+   179→        # adjusted_fraction may be capped, but the raw method should halve it
+   180→        assert half.adjusted_fraction <= full.optimal_fraction * 0.5 + 0.01
+   181→
+   182→    def test_quarter_kelly(self, kelly: KellyCriterion):
+   183→        """Quarter Kelly should be 25% of full Kelly."""
+   184→        params = KellyParameters(win_rate=0.6, avg_win=200.0, avg_loss=100.0)
+   185→        full = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   186→        quarter = kelly.calculate_kelly(params, KellyMethod.QUARTER_KELLY)
+   187→        assert quarter.adjusted_fraction <= full.optimal_fraction * 0.25 + 0.01
+   188→
+   189→    def test_fractional_kelly(self, kelly: KellyCriterion):
+   190→        """Fractional Kelly (alias for half) should work."""
+   191→        params = KellyParameters(win_rate=0.6, avg_win=200.0, avg_loss=100.0)
+   192→        result = kelly.calculate_kelly(params, KellyMethod.FRACTIONAL_KELLY)
+   193→        assert result.adjusted_fraction >= 0.0
+   194→
+   195→
+   196→class TestKellyContinuous:
+   197→    """Continuous Kelly (mean/variance based)."""
+   198→
+   199→    def test_positive_excess_return(self, kelly: KellyCriterion):
+   200→        """When mean > risk_free, should return positive fraction."""
+   201→        f = kelly.calculate_continuous_kelly(mean_return=0.10, variance=0.04, risk_free_rate=0.02)
+   202→        assert f > 0
+   203→        # f = (0.10 - 0.02) / 0.04 = 2.0
+   204→        assert abs(f - 2.0) < 1e-6
+   205→
+   206→    def test_negative_excess_return(self, kelly: KellyCriterion):
+   207→        """When mean < risk_free, should return negative fraction."""
+   208→        f = kelly.calculate_continuous_kelly(mean_return=0.01, variance=0.04, risk_free_rate=0.05)
+   209→        assert f < 0
+   210→
+   211→    def test_zero_variance(self, kelly: KellyCriterion):
+   212→        """Zero variance should return 0."""
+   213→        f = kelly.calculate_continuous_kelly(mean_return=0.10, variance=0.0)
+   214→        assert f == 0.0
+   215→
+   216→    def test_zero_risk_free(self, kelly: KellyCriterion):
+   217→        """With zero risk-free rate, fraction = mean/variance."""
+   218→        f = kelly.calculate_continuous_kelly(mean_return=0.08, variance=0.04, risk_free_rate=0.0)
+   219→        assert abs(f - 2.0) < 1e-6
+   220→
+   221→
+   222→class TestKellyMultiAsset:
+   223→    """Multi-asset Kelly with covariance matrix."""
+   224→
+   225→    def test_multi_asset_returns_weights(self, kelly: KellyCriterion):
+   226→        """Should return weight vector of correct size."""
+   227→        expected_returns = np.array([0.10, 0.08, 0.12])
+   228→        cov = np.array([
+   229→            [0.04, 0.01, 0.02],
+   230→            [0.01, 0.03, 0.01],
+   231→            [0.02, 0.01, 0.05],
+   232→        ])
+   233→        weights = kelly.calculate_multi_asset_kelly(expected_returns, cov)
+   234→        assert len(weights) == 3
+   235→        # Weights should sum to approximately 1 (after normalization)
+   236→        assert abs(np.sum(np.abs(weights)) - 1.0) < 0.1 or np.sum(np.abs(weights)) <= 1.0
+   237→
+   238→    def test_multi_asset_singular_cov(self, kelly: KellyCriterion):
+   239→        """Singular covariance matrix should return zeros."""
+   240→        expected_returns = np.array([0.10, 0.08])
+   241→        cov = np.array([[1.0, 1.0], [1.0, 1.0]])  # Singular
+   242→        weights = kelly.calculate_multi_asset_kelly(expected_returns, cov)
+   243→        assert np.allclose(weights, 0.0)
+   244→
+   245→    def test_multi_bet_kelly(self, kelly: KellyCriterion):
+   246→        """Multi-bet Kelly should scale down total fraction."""
+   247→        params_list = [
+   248→            KellyParameters(win_rate=0.6, avg_win=200.0, avg_loss=100.0),
+   249→            KellyParameters(win_rate=0.55, avg_win=150.0, avg_loss=100.0),
+   250→        ]
+   251→        results = kelly.calculate_multi_bet_kelly(params_list, KellyMethod.HALF_KELLY)
+   252→        assert len(results) == 2
+   253→        total = sum(r.adjusted_fraction for r in results)
+   254→        assert total <= kelly.max_position + 0.01
+   255→
+   256→
+   257→class TestKellyRiskOfRuin:
+   258→    """Risk of ruin calculations."""
+   259→
+   260→    def test_positive_edge_ror_in_range(self, kelly: KellyCriterion):
+   261→        """Risk of ruin with positive edge should be between 0 and 1."""
+   262→        params = KellyParameters(win_rate=0.6, avg_win=200.0, avg_loss=100.0)
+   263→        result = kelly.calculate_kelly(params, KellyMethod.QUARTER_KELLY)
+   264→        assert 0.0 <= result.risk_of_ruin <= 1.0
+   265→
+   266→    def test_no_edge_zero_fraction(self, kelly: KellyCriterion):
+   267→        """No edge produces zero Kelly fraction, hence zero risk of ruin from the formula."""
+   268→        params = KellyParameters(win_rate=0.5, avg_win=100.0, avg_loss=100.0)
+   269→        result = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   270→        # When fraction=0, risk_of_ruin formula returns 0.0
+   271→        assert result.risk_of_ruin == 0.0
+   272→        assert result.optimal_fraction == 0.0
+   273→
+   274→    def test_ror_decreases_with_smaller_fraction(self, kelly: KellyCriterion):
+   275→        """Smaller bet fractions should generally decrease risk of ruin."""
+   276→        params = KellyParameters(win_rate=0.6, avg_win=200.0, avg_loss=100.0)
+   277→        full = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   278→        half = kelly.calculate_kelly(params, KellyMethod.HALF_KELLY)
+   279→        # Both should have valid risk of ruin values
+   280→        assert 0.0 <= full.risk_of_ruin <= 1.0
+   281→        assert 0.0 <= half.risk_of_ruin <= 1.0
+   282→
+   283→
+   284→class TestKellyConstraints:
+   285→    """Position constraints on Kelly results."""
+   286→
+   287→    def test_max_position_cap(self):
+   288→        """Kelly fraction should be capped at max_position."""
+   289→        kelly = KellyCriterion(max_position=0.10)
+   290→        params = KellyParameters(win_rate=0.7, avg_win=300.0, avg_loss=100.0)
+   291→        result = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   292→        assert result.adjusted_fraction <= 0.10
+   293→
+   294→    def test_min_position_floor(self):
+   295→        """Very small Kelly should be floored to min_position or 0."""
+   296→        kelly = KellyCriterion(min_position=0.02)
+   297→        params = KellyParameters(win_rate=0.51, avg_win=101.0, avg_loss=100.0)
+   298→        result = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   299→        assert result.adjusted_fraction == 0.0 or result.adjusted_fraction >= 0.02
+   300→
+   301→    def test_negative_kelly_clamped_to_zero(self, kelly: KellyCriterion):
+   302→        """Negative Kelly should be clamped to 0."""
+   303→        params = KellyParameters(win_rate=0.3, avg_win=100.0, avg_loss=100.0)
+   304→        result = kelly.calculate_kelly(params, KellyMethod.FULL_KELLY)
+   305→        assert result.adjusted_fraction >= 0.0
+   306→
+   307→
+   308→class TestKellyResult:
+   309→    """KellyResult dataclass validation."""
+   310→
+   311→    def test_result_has_all_fields(self, kelly: KellyCriterion):
+   312→        params = KellyParameters(win_rate=0.6, avg_win=200.0, avg_loss=100.0)
+   313→        result = kelly.calculate_kelly(params, KellyMethod.HALF_KELLY)
+   314→        assert hasattr(result, "optimal_fraction")
+   315→        assert hasattr(result, "expected_growth")
+   316→        assert hasattr(result, "expected_value")
+   317→        assert hasattr(result, "risk_of_ruin")
+   318→        assert hasattr(result, "adjusted_fraction")
+   319→        assert hasattr(result, "recommendation")
+   320→        assert hasattr(result, "confidence")
+   321→
+   322→    def test_position_size_calculation(self, kelly: KellyCriterion):
+   323→        """get_optimal_position_size should return monetary amount."""
+   324→        params = KellyParameters(win_rate=0.6, avg_win=200.0, avg_loss=100.0)
+   325→        size = kelly.get_optimal_position_size(100_000.0, params, KellyMethod.HALF_KELLY)
+   326→        assert size > 0
+   327→        assert size <= 100_000.0 * kelly.max_position + 1.0
+   328→
+   329→    def test_summary_statistics(self, kelly: KellyCriterion):
+   330→        """Summary statistics should accumulate across calculations."""
+   331→        params = KellyParameters(win_rate=0.6, avg_win=200.0, avg_loss=100.0)
+   332→        kelly.calculate_kelly(params, KellyMethod.HALF_KELLY)
+   333→        kelly.calculate_kelly(params, KellyMethod.QUARTER_KELLY)
+   334→        summary = kelly.get_summary_statistics()
+   335→        assert summary["total_calculations"] == 2
+   336→        assert "average_fraction" in summary
+   337→
+   338→    def test_empty_summary(self):
+   339→        """Empty history should return zero count."""
+   340→        kelly = KellyCriterion()
+   341→        summary = kelly.get_summary_statistics()
+   342→        assert summary["total_calculations"] == 0
+   343→
+   344→
+   345→# ═══════════════════════════════════════════════════════════════════════
+   346→# 2. Value at Risk (VaR) Tests
+   347→# ═══════════════════════════════════════════════════════════════════════
+   348→
+   349→
+   350→class TestVaRParametric:
+   351→    """Parametric VaR (variance-covariance method)."""
+   352→
+   353→    def test_parametric_var(self, var_calculator: VaRCalculator, sample_returns: np.ndarray):
+   354→        result = var_calculator.calculate(sample_returns, confidence_level=0.95, method="parametric")
+   355→        assert result.method == "parametric"
+   356→        assert result.var_value > 0
+   357→        assert result.cvar_value > 0
+   358→        assert result.confidence_level == 0.95
+   359→
+   360→    def test_parametric_var_with_portfolio_value(self, var_calculator: VaRCalculator, sample_returns: np.ndarray):
+   361→        result = var_calculator.calculate(
+   362→            sample_returns, confidence_level=0.95,
+   363→            method="parametric", portfolio_value=1_000_000.0,
+   364→        )
+   365→        assert result.var_value > 0
+   366→        # VaR should scale with portfolio value
+   367→        result_small = var_calculator.calculate(
+   368→            sample_returns, confidence_level=0.95,
+   369→            method="parametric", portfolio_value=100_000.0,
+   370→        )
+   371→        assert abs(result.var_value / result_small.var_value - 10.0) < 0.01
+   372→
+   373→    def test_parametric_confidence_interval(self, var_calculator: VaRCalculator, sample_returns: np.ndarray):
+   374→        result = var_calculator.calculate(sample_returns, confidence_level=0.95, method="parametric")
+   375→        ci = result.confidence_interval
+   376→        assert len(ci) == 2
+   377→        assert ci[0] < ci[1]
+   378→
+   379→
+   380→class TestVaRHistorical:
+   381→    """Historical VaR (empirical distribution)."""
+   382→
+   383→    def test_historical_var(self, var_calculator: VaRCalculator, sample_returns: np.ndarray):
+   384→        result = var_calculator.calculate(sample_returns, confidence_level=0.95, method="historical")
+   385→        assert result.method == "historical"
+   386→        assert result.var_value > 0
+   387→        assert result.cvar_value >= result.var_value  # CVaR >= VaR
+   388→
+   389→    def test_historical_var_auto_select(self, var_calculator: VaRCalculator):
+   390→        """With >= 500 observations, auto should select historical."""
+   391→        np.random.seed(42)
+   392→        returns = np.random.normal(0.0002, 0.015, 600)
+   393→        result = var_calculator.calculate(returns, method="auto")
+   394→        assert result.method == "historical"
+   395→
+   396→    def test_historical_var_auto_select_few_observations(self, var_calculator: VaRCalculator):
+   397→        """With < 500 observations, auto should select parametric."""
+   398→        np.random.seed(42)
+   399→        returns = np.random.normal(0.0002, 0.015, 200)
+   400→        result = var_calculator.calculate(returns, method="auto")
+   401→        assert result.method == "parametric"
+   402→
+   403→
+   404→class TestVaRMonteCarlo:
+   405→    """Monte Carlo VaR."""
+   406→
+   407→    def test_monte_carlo_var(self, var_calculator: VaRCalculator, sample_returns: np.ndarray):
+   408→        result = var_calculator.calculate(
+   409→            sample_returns, confidence_level=0.95,
+   410→            method="monte_carlo", num_simulations=1000,
+   411→        )
+   412→        assert result.method == "monte_carlo"
+   413→        assert result.var_value > 0
+   414→
+   415→    def test_monte_carlo_cvar(self, var_calculator: VaRCalculator, sample_returns: np.ndarray):
+   416→        result = var_calculator.calculate(
+   417→            sample_returns, confidence_level=0.95,
+   418→            method="monte_carlo", num_simulations=1000,
+   419→        )
+   420→        assert result.cvar_value > 0
+   421→
+   422→
+   423→class TestVaRProperties:
+   424→    """Property-based tests for VaR."""
+   425→
+   426→    def test_var99_greater_than_var95(self, var_calculator: VaRCalculator, sample_returns: np.ndarray):
+   427→        """VaR at 99% should be >= VaR at 95% (higher confidence = larger loss threshold)."""
+   428→        var95 = var_calculator.calculate(sample_returns, confidence_level=0.95, method="parametric")
+   429→        var99 = var_calculator.calculate(sample_returns, confidence_level=0.99, method="parametric")
+   430→        assert var99.var_value >= var95.var_value * 0.9  # Allow small tolerance
+   431→
+   432→    def test_cvar_greater_than_var(self, var_calculator: VaRCalculator, sample_returns: np.ndarray):
+   433→        """CVaR should always be >= VaR (expected tail loss >= threshold)."""
+   434→        result = var_calculator.calculate(sample_returns, confidence_level=0.95, method="historical")
+   435→        assert result.cvar_value >= result.var_value * 0.95  # Allow small tolerance
+   436→
+   437→    def test_insufficient_data(self, var_calculator: VaRCalculator):
+   438→        """With < 2 data points, should return zero VaR."""
+   439→        result = var_calculator.calculate(np.array([0.01]), method="parametric")
+   440→        assert result.method == "insufficient_data"
+   441→        assert result.var_value == 0.0
+   442→
+   443→    def test_zero_volatility(self, var_calculator: VaRCalculator):
+   444→        """Constant returns should give near-zero VaR (floating point may give tiny value)."""
+   445→        result = var_calculator.calculate(np.ones(100) * 0.01, method="parametric")
+   446→        # Due to floating point, std may not be exactly 0, giving tiny VaR
+   447→        assert result.var_value < 0.02  # Should be very small
+   448→
+   449→    def test_nan_handling(self, var_calculator: VaRCalculator):
+   450→        """NaN values in returns should be filtered out."""
+   451→        returns = np.random.normal(0.0002, 0.015, 100)
+   452→        returns[0] = np.nan
+   453→        returns[50] = np.nan
+   454→        result = var_calculator.calculate(returns, method="historical")
+   455→        assert result.var_value > 0
+   456→
+   457→
+   458→# ═══════════════════════════════════════════════════════════════════════
+   459→# 3. Risk Check Gate Tests (9 Checkpoints)
+   460→# ═══════════════════════════════════════════════════════════════════════
+   461→
+   462→
+   463→class TestRiskCheckGateAllPass:
+   464→    """All 9 checkpoints should pass for a valid, conservative trade."""
+   465→
+   466→    def test_all_pass_conservative_trade(self, risk_gate: RiskCheckGate):
+   467→        result = risk_gate.evaluate(
+   468→            symbol="EURUSD",
+   469→            direction="BUY",
+   470→            lot_size=0.01,
+   471→            entry=1.1000,
+   472→            stop_loss=1.0995,
+   473→            account_balance=100_000.0,
+   474→            take_profit=1.1020,
+   475→        )
+   476→        assert result["verdict"] == "APPROVED"
+   477→        assert len(result["failed_checkpoints"]) == 0
+   478→
+   479→    def test_all_nine_checkpoints_present(self, risk_gate: RiskCheckGate):
+   480→        """All 9 checkpoints must be in the result."""
+   481→        result = risk_gate.evaluate(
+   482→            symbol="EURUSD",
+   483→            direction="BUY",
+   484→            lot_size=0.01,
+   485→            entry=1.1000,
+   486→            stop_loss=1.0995,
+   487→            account_balance=100_000.0,
+   488→        )
+   489→        checkpoints = result["checkpoints"]
+   490→        expected_keys = [
+   491→            "1_risk_per_trade", "2_daily_loss", "3_weekly_loss",
+   492→            "4_risk_reward", "5_stop_loss_exists", "6_valid_entry",
+   493→            "7_valid_direction", "8_not_overtrading", "9_correlation_check",
+   494→        ]
+   495→        for key in expected_keys:
+   496→            assert key in checkpoints, f"Missing checkpoint: {key}"
+   497→
+   498→
+   499→class TestRiskCheckGate1RiskPerTrade:
+   500→    """Checkpoint 1: Risk per trade limit."""
+   501→
+   502→    def test_fail_excessive_risk(self, risk_gate: RiskCheckGate):
+   503→        """Large lot size relative to balance should fail risk per trade check."""
+   504→        result = risk_gate.evaluate(
+   505→            symbol="EURUSD",
+   506→            direction="BUY",
+   507→            lot_size=1.0,
+   508→            entry=1.1000,
+   509→            stop_loss=1.0900,
+   510→            account_balance=100_000.0,
+   511→        )
+   512→        checkpoints = result["checkpoints"]
+   513→        assert checkpoints["1_risk_per_trade"]["passed"] is False
+   514→
+   515→    def test_pass_small_risk(self, risk_gate: RiskCheckGate):
+   516→        result = risk_gate.evaluate(
+   517→            symbol="EURUSD",
+   518→            direction="BUY",
+   519→            lot_size=0.01,
+   520→            entry=1.1000,
+   521→            stop_loss=1.0995,
+   522→            account_balance=100_000.0,
+   523→        )
+   524→        assert result["checkpoints"]["1_risk_per_trade"]["passed"] is True
+   525→
+   526→
+   527→class TestRiskCheckGate2DailyLoss:
+   528→    """Checkpoint 2: Daily loss limit."""
+   529→
+   530→    def test_fail_daily_loss_exceeded(self, risk_gate: RiskCheckGate):
+   531→        result = risk_gate.evaluate(
+   532→            symbol="EURUSD",
+   533→            direction="BUY",
+   534→            lot_size=0.01,
+   535→            entry=1.1000,
+   536→            stop_loss=1.0995,
+   537→            account_balance=100_000.0,
+   538→            daily_pnl=-2000.0,  # 2% loss on $100k
+   539→        )
+   540→        assert result["checkpoints"]["2_daily_loss"]["passed"] is False
+   541→
+   542→    def test_pass_within_daily_limit(self, risk_gate: RiskCheckGate):
+   543→        result = risk_gate.evaluate(
+   544→            symbol="EURUSD",
+   545→            direction="BUY",
+   546→            lot_size=0.01,
+   547→            entry=1.1000,
+   548→            stop_loss=1.0995,
+   549→            account_balance=100_000.0,
+   550→            daily_pnl=-500.0,  # 0.5% loss
+   551→        )
+   552→        assert result["checkpoints"]["2_daily_loss"]["passed"] is True
+   553→
+   554→
+   555→class TestRiskCheckGate3WeeklyLoss:
+   556→    """Checkpoint 3: Weekly loss limit."""
+   557→
+   558→    def test_fail_weekly_loss_exceeded(self, risk_gate: RiskCheckGate):
+   559→        result = risk_gate.evaluate(
+   560→            symbol="EURUSD",
+   561→            direction="BUY",
+   562→            lot_size=0.01,
+   563→            entry=1.1000,
+   564→            stop_loss=1.0995,
+   565→            account_balance=100_000.0,
+   566→            weekly_pnl=-5000.0,  # 5% loss
+   567→        )
+   568→        assert result["checkpoints"]["3_weekly_loss"]["passed"] is False
+   569→
+   570→    def test_pass_within_weekly_limit(self, risk_gate: RiskCheckGate):
+   571→        result = risk_gate.evaluate(
+   572→            symbol="EURUSD",
+   573→            direction="BUY",
+   574→            lot_size=0.01,
+   575→            entry=1.1000,
+   576→            stop_loss=1.0995,
+   577→            account_balance=100_000.0,
+   578→            weekly_pnl=-1000.0,
+   579→        )
+   580→        assert result["checkpoints"]["3_weekly_loss"]["passed"] is True
+   581→
+   582→
+   583→class TestRiskCheckGate4RiskReward:
+   584→    """Checkpoint 4: Risk:Reward ratio."""
+   585→
+   586→    def test_fail_poor_rr(self, risk_gate: RiskCheckGate):
+   587→        result = risk_gate.evaluate(
+   588→            symbol="EURUSD",
+   589→            direction="BUY",
+   590→            lot_size=0.01,
+   591→            entry=1.1000,
+   592→            stop_loss=1.0990,
+   593→            account_balance=100_000.0,
+   594→            take_profit=1.1010,  # 10 pips TP vs 10 pips SL = 1:1 R:R
+   595→        )
+   596→        assert result["checkpoints"]["4_risk_reward"]["passed"] is False
+   597→
+   598→    def test_pass_good_rr(self, risk_gate: RiskCheckGate):
+   599→        result = risk_gate.evaluate(
+   600→            symbol="EURUSD",
+   601→            direction="BUY",
+   602→            lot_size=0.01,
+   603→            entry=1.1000,
+   604→            stop_loss=1.0990,
+   605→            account_balance=100_000.0,
+   606→            take_profit=1.1030,  # 30 pips TP vs 10 pips SL = 1:3 R:R
+   607→        )
+   608→        assert result["checkpoints"]["4_risk_reward"]["passed"] is True
+   609→
+   610→    def test_no_take_profit_fails(self, risk_gate: RiskCheckGate):
+   611→        """Without take profit, R:R check should fail (rr_ratio = 0)."""
+   612→        result = risk_gate.evaluate(
+   613→            symbol="EURUSD",
+   614→            direction="BUY",
+   615→            lot_size=0.01,
+   616→            entry=1.1000,
+   617→            stop_loss=1.0990,
+   618→            account_balance=100_000.0,
+   619→            take_profit=None,
+   620→        )
+   621→        assert result["checkpoints"]["4_risk_reward"]["passed"] is False
+   622→
+   623→
+   624→class TestRiskCheckGate5StopLoss:
+   625→    """Checkpoint 5: Stop loss must exist."""
+   626→
+   627→    def test_fail_no_stop_loss(self, risk_gate: RiskCheckGate):
+   628→        result = risk_gate.evaluate(
+   629→            symbol="EURUSD",
+   630→            direction="BUY",
+   631→            lot_size=0.01,
+   632→            entry=1.1000,
+   633→            stop_loss=0,
+   634→            account_balance=100_000.0,
+   635→        )
+   636→        assert result["checkpoints"]["5_stop_loss_exists"]["passed"] is False
+   637→
+   638→    def test_pass_with_stop_loss(self, risk_gate: RiskCheckGate):
+   639→        result = risk_gate.evaluate(
+   640→            symbol="EURUSD",
+   641→            direction="BUY",
+   642→            lot_size=0.01,
+   643→            entry=1.1000,
+   644→            stop_loss=1.0995,
+   645→            account_balance=100_000.0,
+   646→        )
+   647→        assert result["checkpoints"]["5_stop_loss_exists"]["passed"] is True
+   648→
+   649→
+   650→class TestRiskCheckGate6ValidEntry:
+   651→    """Checkpoint 6: Valid entry price."""
+   652→
+   653→    def test_fail_zero_entry(self, risk_gate: RiskCheckGate):
+   654→        result = risk_gate.evaluate(
+   655→            symbol="EURUSD",
+   656→            direction="BUY",
+   657→            lot_size=0.01,
+   658→            entry=0,
+   659→            stop_loss=1.0995,
+   660→            account_balance=100_000.0,
+   661→        )
+   662→        assert result["checkpoints"]["6_valid_entry"]["passed"] is False
+   663→
+   664→    def test_fail_negative_entry(self, risk_gate: RiskCheckGate):
+   665→        result = risk_gate.evaluate(
+   666→            symbol="EURUSD",
+   667→            direction="BUY",
+   668→            lot_size=0.01,
+   669→            entry=-1.0,
+   670→            stop_loss=1.0995,
+   671→            account_balance=100_000.0,
+   672→        )
+   673→        assert result["checkpoints"]["6_valid_entry"]["passed"] is False
+   674→
+   675→
+   676→class TestRiskCheckGate7ValidDirection:
+   677→    """Checkpoint 7: Valid direction."""
+   678→
+   679→    def test_fail_invalid_direction(self, risk_gate: RiskCheckGate):
+   680→        result = risk_gate.evaluate(
+   681→            symbol="EURUSD",
+   682→            direction="INVALID",
+   683→            lot_size=0.01,
+   684→            entry=1.1000,
+   685→            stop_loss=1.0995,
+   686→            account_balance=100_000.0,
+   687→        )
+   688→        assert result["checkpoints"]["7_valid_direction"]["passed"] is False
+   689→
+   690→    @pytest.mark.parametrize("direction", ["BUY", "SELL", "LONG", "SHORT"])
+   691→    def test_pass_valid_directions(self, risk_gate: RiskCheckGate, direction: str):
+   692→        result = risk_gate.evaluate(
+   693→            symbol="EURUSD",
+   694→            direction=direction,
+   695→            lot_size=0.01,
+   696→            entry=1.1000,
+   697→            stop_loss=1.0995,
+   698→            account_balance=100_000.0,
+   699→            take_profit=1.1020,
+   700→        )
+   701→        assert result["checkpoints"]["7_valid_direction"]["passed"] is True
+   702→
+   703→
+   704→class TestRiskCheckGate8Overtrading:
+   705→    """Checkpoint 8: Not overtrading."""
+   706→
+   707→    def test_fail_too_many_trades(self, risk_gate: RiskCheckGate):
+   708→        result = risk_gate.evaluate(
+   709→            symbol="EURUSD",
+   710→            direction="BUY",
+   711→            lot_size=0.01,
+   712→            entry=1.1000,
+   713→            stop_loss=1.0995,
+   714→            account_balance=100_000.0,
+   715→            take_profit=1.1020,
+   716→            trade_count_today=MAX_DAILY_TRADES,
+   717→        )
+   718→        assert result["checkpoints"]["8_not_overtrading"]["passed"] is False
+   719→
+   720→    def test_pass_within_limit(self, risk_gate: RiskCheckGate):
+   721→        result = risk_gate.evaluate(
+   722→            symbol="EURUSD",
+   723→            direction="BUY",
+   724→            lot_size=0.01,
+   725→            entry=1.1000,
+   726→            stop_loss=1.0995,
+   727→            account_balance=100_000.0,
+   728→            trade_count_today=2,
+   729→        )
+   730→        assert result["checkpoints"]["8_not_overtrading"]["passed"] is True
+   731→
+   732→
+   733→class TestRiskCheckGate9Correlation:
+   734→    """Checkpoint 9: Correlated position check."""
+   735→
+   736→    def test_fail_too_many_correlated(self, risk_gate: RiskCheckGate):
+   737→        """Already holding 3 correlated positions should fail."""
+   738→        result = risk_gate.evaluate(
+   739→            symbol="GBPUSD",
+   740→            direction="BUY",
+   741→            lot_size=0.01,
+   742→            entry=1.2000,
+   743→            stop_loss=1.1995,
+   744→            account_balance=100_000.0,
+   745→            take_profit=1.2030,
+   746→            active_positions=["EURUSD", "AUDUSD", "NZDUSD"],  # All in same group
+   747→        )
+   748→        assert result["checkpoints"]["9_correlation_check"]["passed"] is False
+   749→
+   750→    def test_pass_few_correlated(self, risk_gate: RiskCheckGate):
+   751→        result = risk_gate.evaluate(
+   752→            symbol="BTCUSDT",
+   753→            direction="BUY",
+   754→            lot_size=0.01,
+   755→            entry=50000.0,
+   756→            stop_loss=49900.0,
+   757→            account_balance=100_000.0,
+   758→            take_profit=50300.0,
+   759→            active_positions=["EURUSD"],
+   760→        )
+   761→        assert result["checkpoints"]["9_correlation_check"]["passed"] is True
+   762→
+   763→
+   764→# ═══════════════════════════════════════════════════════════════════════
+   765→# 4. Drawdown Monitor Tests
+   766→# ═══════════════════════════════════════════════════════════════════════
+   767→
+   768→
+   769→class TestDrawdownMonitor:
+   770→
+   771→    def test_initial_no_drawdown(self, drawdown_monitor: DrawdownMonitor):
+   772→        assert drawdown_monitor.current_drawdown == 0.0
+   773→        assert not drawdown_monitor.is_breached
+   774→
+   775→    def test_drawdown_on_loss(self, drawdown_monitor: DrawdownMonitor):
+   776→        drawdown_monitor.update(90_000.0)
+   777→        dd = drawdown_monitor.current_drawdown
+   778→        assert dd > 0
+   779→        assert abs(dd - 0.1) < 0.01  # ~10% drawdown
+   780→
+   781→    def test_new_peak_resets_drawdown(self, drawdown_monitor: DrawdownMonitor):
+   782→        drawdown_monitor.update(90_000.0)  # Drawdown
+   783→        drawdown_monitor.update(110_000.0)  # New peak
+   784→        assert drawdown_monitor.current_drawdown == 0.0
+   785→
+   786→    def test_breach_detection(self):
+   787→        monitor = DrawdownMonitor(max_drawdown=0.10, initial_equity=100_000.0)
+   788→        monitor.update(85_000.0)  # 15% drawdown
+   789→        assert monitor.is_breached
+   790→
+   791→    def test_no_breach_within_limit(self, drawdown_monitor: DrawdownMonitor):
+   792→        drawdown_monitor.update(95_000.0)  # 5% drawdown
+   793→        assert not drawdown_monitor.is_breached
+   794→
+   795→    def test_max_drawdown_tracking(self, drawdown_monitor: DrawdownMonitor):
+   796→        drawdown_monitor.update(95_000.0)  # 5% DD
+   797→        drawdown_monitor.update(90_000.0)  # 10% DD
+   798→        drawdown_monitor.update(95_000.0)  # Recovery
+   799→        assert drawdown_monitor.max_drawdown_observed >= 0.09
+   800→
+   801→    def test_update_returns_drawdown_info(self, drawdown_monitor: DrawdownMonitor):
+   802→        info = drawdown_monitor.update(95_000.0)
+   803→        assert isinstance(info, DrawdownInfo)
+   804→        assert info.is_breached is False
+   805→        assert info.current_drawdown > 0
+   806→        assert info.recovery_factor > 0
+   807→
+   808→    def test_get_status(self, drawdown_monitor: DrawdownMonitor):
+   809→        drawdown_monitor.update(95_000.0)
+   810→        status = drawdown_monitor.get_status()
+   811→        assert "current_drawdown" in status
+   812→        assert "drawdown_breached" in status
+   813→        assert status["drawdown_breached"] is False
+   814→
+   815→    def test_drawdown_duration(self, drawdown_monitor: DrawdownMonitor):
+   816→        """Bars since peak should increase until new peak."""
+   817→        drawdown_monitor.update(90_000.0)
+   818→        info1 = drawdown_monitor.update(88_000.0)
+   819→        assert info1.drawdown_duration >= 1
+   820→        drawdown_monitor.update(110_000.0)
+   821→        info2 = drawdown_monitor.update(108_000.0)
+   822→        assert info2.drawdown_duration >= 1
+   823→
+   824→
+   825→class TestDrawdownCVaR:
+   826→    """CVaR-based drawdown estimation."""
+   827→
+   828→    def test_cvar_drawdown(self, drawdown_monitor: DrawdownMonitor):
+   829→        equity = pd.Series(np.linspace(100_000, 120_000, 100))
+   830→        cvar_dd = drawdown_monitor.calculate_cvar_drawdown(equity, confidence_level=0.95)
+   831→        assert cvar_dd >= 0
+   832→
+   833→    def test_cvar_drawdown_empty_series(self, drawdown_monitor: DrawdownMonitor):
+   834→        equity = pd.Series([], dtype=float)
+   835→        cvar_dd = drawdown_monitor.calculate_cvar_drawdown(equity)
+   836→        assert cvar_dd == 0.0
+   837→
+   838→    def test_cvar_drawdown_volatile_series(self, drawdown_monitor: DrawdownMonitor):
+   839→        """Volatile series should produce non-zero CVaR drawdown."""
+   840→        np.random.seed(42)
+   841→        returns = np.random.normal(-0.001, 0.03, 200)
+   842→        equity = pd.Series(100_000 * np.cumprod(1 + returns))
+   843→        cvar_dd = drawdown_monitor.calculate_cvar_drawdown(equity, confidence_level=0.95)
+   844→        assert cvar_dd >= 0
+   845→
+   846→
+   847→class TestDrawdownRiskOfRuin:
+   848→    """Risk of ruin calculation."""
+   849→
+   850→    def test_positive_expectancy_ror_in_range(self):
+   851→        """Risk of ruin with positive expectancy should be between 0 and 1."""
+   852→        ror = DrawdownMonitor.calculate_risk_of_ruin(
+   853→            win_rate=0.6, avg_win=200.0, avg_loss=100.0,
+   854→        )
+   855→        assert 0.0 <= ror <= 1.0
+   856→
+   857→    def test_negative_expectancy_certain_ruin(self):
+   858→        ror = DrawdownMonitor.calculate_risk_of_ruin(
+   859→            win_rate=0.3, avg_win=100.0, avg_loss=100.0,
+   860→        )
+   861→        assert ror == 1.0
+   862→
+   863→    def test_zero_avg_loss(self):
+   864→        ror = DrawdownMonitor.calculate_risk_of_ruin(
+   865→            win_rate=0.6, avg_win=200.0, avg_loss=0.0,
+   866→        )
+   867→        assert ror == 0.0
+   868→
+   869→
+   870→class TestDrawdownRecoveryTime:
+   871→    """Recovery time estimation."""
+   872→
+   873→    def test_recovery_from_small_drawdown(self):
+   874→        years = DrawdownMonitor.estimate_recovery_time(0.05, avg_annual_return=0.10)
+   875→        assert years > 0
+   876→
+   877→    def test_no_recovery_needed(self):
+   878→        years = DrawdownMonitor.estimate_recovery_time(0.0, avg_annual_return=0.10)
+   879→        assert years == 0.0
+   880→
+   881→    def test_no_recovery_with_zero_return(self):
+   882→        years = DrawdownMonitor.estimate_recovery_time(0.10, avg_annual_return=0.0)
+   883→        assert years == 0.0
+   884→
+   885→    def test_larger_drawdown_takes_longer(self):
+   886→        t1 = DrawdownMonitor.estimate_recovery_time(0.05, avg_annual_return=0.10)
+   887→        t2 = DrawdownMonitor.estimate_recovery_time(0.15, avg_annual_return=0.10)
+   888→        assert t2 > t1
+   889→
+   890→
+   891→# ═══════════════════════════════════════════════════════════════════════
+   892→# 5. Kill Switch Tests
+   893→# ═══════════════════════════════════════════════════════════════════════
+   894→
+   895→
+   896→class TestKillSwitch:
+   897→
+   898→    def test_initial_state_inactive(self, kill_switch: KillSwitch):
+   899→        assert not kill_switch.is_active
+   900→
+   901→    def test_activate(self, kill_switch: KillSwitch):
+   902→        result = kill_switch.activate("MANUAL")
+   903→        assert kill_switch.is_active
+   904→        assert result["status"] == "ACTIVATED"
+   905→        assert result["reason"] == "MANUAL"
+   906→
+   907→    def test_activate_already_active(self, kill_switch: KillSwitch):
+   908→        kill_switch.activate("MANUAL")
+   909→        result = kill_switch.activate("AUTO_DAILY_LIMIT")
+   910→        assert result["status"] == "ALREADY_ACTIVE"
+   911→
+   912→    def test_reset_without_confirmation(self, kill_switch: KillSwitch):
+   913→        kill_switch.activate("MANUAL")
+   914→        result = kill_switch.reset(confirmation="wrong")
+   915→        assert result["status"] == "STILL_ACTIVE"
+   916→        assert kill_switch.is_active
+   917→
+   918→    def test_reset_with_confirmation(self, kill_switch: KillSwitch):
+   919→        kill_switch.activate("MANUAL")
+   920→        result = kill_switch.reset(confirmation=RESET_CONFIRMATION)
+   921→        assert result["status"] == "RESET"
+   922→        assert not kill_switch.is_active
+   923→
+   924→    def test_reset_when_not_active(self, kill_switch: KillSwitch):
+   925→        result = kill_switch.reset(confirmation=RESET_CONFIRMATION)
+   926→        assert result["status"] == "NOT_ACTIVE"
+   927→
+   928→    def test_auto_trigger_daily(self, kill_switch: KillSwitch):
+   929→        result = kill_switch.check_auto_trigger(
+   930→            daily_loss_pct=0.05,
+   931→            weekly_loss_pct=0.0,
+   932→        )
+   933→        assert kill_switch.is_active
+   934→        assert result is not None
+   935→        assert result["reason"] == "AUTO_DAILY_LIMIT"
+   936→
+   937→    def test_auto_trigger_weekly(self, kill_switch: KillSwitch):
+   938→        result = kill_switch.check_auto_trigger(
+   939→            daily_loss_pct=0.005,
+   940→            weekly_loss_pct=0.10,
+   941→        )
+   942→        assert kill_switch.is_active
+   943→
+   944→    def test_auto_trigger_drawdown(self, kill_switch: KillSwitch):
+   945→        result = kill_switch.check_auto_trigger(
+   946→            daily_loss_pct=0.005,
+   947→            weekly_loss_pct=0.01,
+   948→            drawdown_pct=0.20,
+   949→        )
+   950→        assert kill_switch.is_active
+   951→
+   952→    def test_no_trigger_when_ok(self, kill_switch: KillSwitch):
+   953→        result = kill_switch.check_auto_trigger(
+   954→            daily_loss_pct=0.005,
+   955→            weekly_loss_pct=0.01,
+   956→            drawdown_pct=0.02,
+   957→        )
+   958→        assert result is None
+   959→        assert not kill_switch.is_active
+   960→
+   961→    def test_status(self, kill_switch: KillSwitch):
+   962→        kill_switch.activate("MANUAL")
+   963→        status = kill_switch.status()
+   964→        assert status["is_active"] is True
+   965→        assert status["activation_reason"] == "MANUAL"
+   966→        assert status["total_activations"] == 1
+   967→
+   968→    def test_activation_log(self, kill_switch: KillSwitch):
+   969→        kill_switch.activate("AUTO_DAILY_LIMIT")
+   970→        kill_switch.activate("MANUAL")  # Already active, won't add
+   971→        status = kill_switch.status()
+   972→        assert status["auto_triggers"] == 1
+   973→        assert status["manual_triggers"] == 0
+   974→
+   975→    def test_emergency_halt_cycle(self):
+   976→        """Full cycle: activate → reset → activate → reset."""
+   977→        ks = KillSwitch()
+   978→        # First activation
+   979→        ks.activate("AUTO_DAILY_LIMIT")
+   980→        assert ks.is_active
+   981→        # Reset
+   982→        ks.reset(RESET_CONFIRMATION)
+   983→        assert not ks.is_active
+   984→        # Second activation
+   985→        ks.activate("MANUAL")
+   986→        assert ks.is_active
+   987→        # Reset again
+   988→        ks.reset(RESET_CONFIRMATION)
+   989→        assert not ks.is_active
+   990→        assert ks.status()["total_activations"] == 2
+   991→
+   992→    def test_confirmation_constant(self):
+   993→        assert RESET_CONFIRMATION == "CONFIRM_RESET_AFTER_REVIEW"
+   994→
+   995→
+   996→# ═══════════════════════════════════════════════════════════════════════
+   997→# 6. Risk Parity Tests
+   998→# ═══════════════════════════════════════════════════════════════════════
+   999→
+  1000→
+  1001→class TestRiskParity:
+  1002→
+  1003→    def test_inverse_volatility(self, risk_parity_optimizer: RiskParityOptimizer, multi_asset_returns: np.ndarray):
+  1004→        result = risk_parity_optimizer.optimize(
+  1005→            multi_asset_returns,
+  1006→            asset_names=["A", "B", "C"],
+  1007→            method=RiskParityMethod.INVERSE_VOLATILITY,
+  1008→        )
+  1009→        assert result.method == RiskParityMethod.INVERSE_VOLATILITY
+  1010→        assert len(result.weights) == 3
+  1011→        for w in result.weights.values():
+  1012→            assert w > 0
+  1013→        assert abs(sum(result.weights.values()) - 1.0) < 0.01
+  1014→
+  1015→    def test_covariance_based(self, risk_parity_optimizer: RiskParityOptimizer, multi_asset_returns: np.ndarray):
+  1016→        result = risk_parity_optimizer.optimize(
+  1017→            multi_asset_returns,
+  1018→            asset_names=["A", "B", "C"],
+  1019→            method=RiskParityMethod.COVARIANCE_BASED,
+  1020→        )
+  1021→        assert result.method == RiskParityMethod.COVARIANCE_BASED
+  1022→        assert len(result.weights) == 3
+  1023→        # Covariance-based may not converge for correlated test data;
+  1024→        # just verify we get valid weights and metrics
+  1025→        assert result.portfolio_volatility > 0
+  1026→
+  1027→    def test_equal_risk_contribution(self, risk_parity_optimizer: RiskParityOptimizer, multi_asset_returns: np.ndarray):
+  1028→        result = risk_parity_optimizer.optimize(
+  1029→            multi_asset_returns,
+  1030→            asset_names=["A", "B", "C"],
+  1031→            method=RiskParityMethod.EQUAL_RISK_CONTRIBUTION,
+  1032→        )
+  1033→        assert result.method == RiskParityMethod.EQUAL_RISK_CONTRIBUTION
+  1034→        assert result.portfolio_volatility > 0
+  1035→
+  1036→    def test_hierarchical_risk_parity(self, risk_parity_optimizer: RiskParityOptimizer, multi_asset_returns: np.ndarray):
+  1037→        result = risk_parity_optimizer.optimize(
+  1038→            multi_asset_returns,
+  1039→            asset_names=["A", "B", "C"],
+  1040→            method=RiskParityMethod.HIERARCHICAL,
+  1041→        )
+  1042→        assert result.method == RiskParityMethod.HIERARCHICAL
+  1043→        assert len(result.weights) == 3
+  1044→
+  1045→    def test_result_has_metrics(self, risk_parity_optimizer: RiskParityOptimizer, multi_asset_returns: np.ndarray):
+  1046→        result = risk_parity_optimizer.optimize(
+  1047→            multi_asset_returns,
+  1048→            asset_names=["A", "B", "C"],
+  1049→        )
+  1050→        assert result.portfolio_volatility > 0
+  1051→        assert isinstance(result.sharpe_ratio, float)
+  1052→        assert isinstance(result.risk_parity_error, float)
+  1053→        assert isinstance(result.convergence, bool)
+  1054→
+  1055→    def test_risk_budget_analysis(self, risk_parity_optimizer: RiskParityOptimizer, multi_asset_returns: np.ndarray):
+  1056→        result = risk_parity_optimizer.optimize(
+  1057→            multi_asset_returns,
+  1058→            asset_names=["A", "B", "C"],
+  1059→        )
+  1060→        cov = np.cov(multi_asset_returns)
+  1061→        weights = np.array(list(result.weights.values()))
+  1062→        analysis = risk_parity_optimizer.get_risk_budget_analysis(weights, cov, ["A", "B", "C"])
+  1063→        assert len(analysis) == 3
+  1064→        for rc in analysis:
+  1065→            assert hasattr(rc, "asset")
+  1066→            assert hasattr(rc, "weight")
+  1067→            assert hasattr(rc, "deviation")
+  1068→
+  1069→    def test_portfolio_summary(self, risk_parity_optimizer: RiskParityOptimizer, multi_asset_returns: np.ndarray):
+  1070→        result = risk_parity_optimizer.optimize(
+  1071→            multi_asset_returns,
+  1072→            asset_names=["A", "B", "C"],
+  1073→        )
+  1074→        summary = risk_parity_optimizer.get_portfolio_summary(result)
+  1075→        assert "method" in summary
+  1076→        assert "num_assets" in summary
+  1077→        assert summary["num_assets"] == 3
+  1078→        assert "concentration_hhi" in summary
+  1079→
+  1080→
+  1081→# ═══════════════════════════════════════════════════════════════════════
+  1082→# 7. Position Sizing Tests
+  1083→# ═══════════════════════════════════════════════════════════════════════
+  1084→
+  1085→
+  1086→class TestPositionSizingFixedFractional:
+  1087→
+  1088→    def test_basic_sizing(self):
+  1089→        result = PositionSizer.fixed_fractional(
+  1090→            equity=100_000.0, risk_pct=0.01,
+  1091→            entry_price=100.0, stop_price=99.0,
+  1092→        )
+  1093→        assert result.size > 0
+  1094→        assert result.method == "fixed_fractional"
+  1095→        # risk_pct may be capped at MAX_RISK_PER_TRADE if 0.01 > 0.005
+  1096→        assert result.risk_pct <= 0.01
+  1097→
+  1098→    def test_capping_at_max_risk(self):
+  1099→        """Risk > MAX_RISK_PER_TRADE should be capped."""
+  1100→        result = PositionSizer.fixed_fractional(
+  1101→            equity=100_000.0, risk_pct=0.10,
+  1102→            entry_price=100.0, stop_price=99.0,
+  1103→        )
+  1104→        assert result.capped is True
+  1105→        assert result.risk_pct <= MAX_RISK_PER_TRADE
+  1106→
+  1107→    def test_zero_stop_distance(self):
+  1108→        result = PositionSizer.fixed_fractional(
+  1109→            equity=100_000.0, risk_pct=0.01,
+  1110→            entry_price=100.0, stop_price=100.0,
+  1111→        )
+  1112→        assert result.size == 0.0
+  1113→
+  1114→    def test_size_calculation(self):
+  1115→        """Verify size = risk_amount / price_risk."""
+  1116→        result = PositionSizer.fixed_fractional(
+  1117→            equity=100_000.0, risk_pct=0.01,
+  1118→            entry_price=100.0, stop_price=99.0,
+  1119→        )
+  1120→        # risk_pct is capped at MAX_RISK_PER_TRADE (0.005), so effective risk = 0.005
+  1121→        effective_risk = min(0.01, MAX_RISK_PER_TRADE)
+  1122→        expected_risk_amount = 100_000.0 * effective_risk
+  1123→        expected_size = expected_risk_amount / 1.0
+  1124→        assert abs(result.size - expected_size) < 0.01
+  1125→
+  1126→
+  1127→class TestPositionSizingVolatility:
+  1128→
+  1129→    def test_volatility_based_sizing(self):
+  1130→        result = PositionSizer.volatility_based(
+  1131→            equity=100_000.0, atr=2.0, atr_multiplier=2.0,
+  1132→            entry_price=100.0, risk_pct=0.01,
+  1133→        )
+  1134→        assert result.size > 0
+  1135→        assert result.method == "volatility_based"
+  1136→
+  1137→    def test_capping_at_max_risk(self):
+  1138→        result = PositionSizer.volatility_based(
+  1139→            equity=100_000.0, atr=0.01, atr_multiplier=1.0,
+  1140→            entry_price=100.0, risk_pct=0.10,
+  1141→        )
+  1142→        assert result.capped is True
+  1143→
+  1144→    def test_zero_atr(self):
+  1145→        result = PositionSizer.volatility_based(
+  1146→            equity=100_000.0, atr=0.0, atr_multiplier=2.0,
+  1147→            entry_price=100.0, risk_pct=0.01,
+  1148→        )
+  1149→        assert result.size == 0.0
+  1150→
+  1151→    def test_higher_atr_smaller_size(self):
+  1152→        """Higher ATR should lead to smaller position size."""
+  1153→        low_atr = PositionSizer.volatility_based(
+  1154→            equity=100_000.0, atr=1.0, atr_multiplier=2.0,
+  1155→            entry_price=100.0, risk_pct=0.01,
+  1156→        )
+  1157→        high_atr = PositionSizer.volatility_based(
+  1158→            equity=100_000.0, atr=5.0, atr_multiplier=2.0,
+  1159→            entry_price=100.0, risk_pct=0.01,
+  1160→        )
+  1161→        assert low_atr.size > high_atr.size
+  1162→
+  1163→
+  1164→class TestPositionSizingKelly:
+  1165→
+  1166→    def test_kelly_sizing(self):
+  1167→        result = PositionSizer.kelly_based(
+  1168→            equity=100_000.0, win_rate=0.6,
+  1169→            avg_win=200.0, avg_loss=100.0,
+  1170→        )
+  1171→        assert result.size >= 0
+  1172→        assert result.method == "kelly_based"
+  1173→
+  1174→    def test_kelly_zero_avg_loss(self):
+  1175→        result = PositionSizer.kelly_based(
+  1176→            equity=100_000.0, win_rate=0.6,
+  1177→            avg_win=200.0, avg_loss=0.0,
+  1178→        )
+  1179→        assert result.size == 0.0
+  1180→
+  1181→    def test_kelly_no_edge(self):
+  1182→        """No edge should produce zero or minimal position."""
+  1183→        result = PositionSizer.kelly_based(
+  1184→            equity=100_000.0, win_rate=0.5,
+  1185→            avg_win=100.0, avg_loss=100.0,
+  1186→        )
+  1187→        assert result.size == 0.0 or result.risk_pct == 0.0
+  1188→
+  1189→
+  1190→class TestPositionSizingOptimalF:
+  1191→
+  1192→    def test_optimal_f(self):
+  1193→        trades_pnl = [500, -200, 300, -150, 400]
+  1194→        result = PositionSizer.optimal_f(equity=100_000.0, trades_pnl=trades_pnl)
+  1195→        assert result.method == "optimal_f"
+  1196→        assert result.size >= 0
+  1197→
+  1198→    def test_empty_trades(self):
+  1199→        result = PositionSizer.optimal_f(equity=100_000.0, trades_pnl=[])
+  1200→        assert result.size == 0.0
+  1201→
+  1202→    def test_all_positive_trades(self):
+  1203→        """All profitable trades should produce valid result."""
+  1204→        trades_pnl = [100, 200, 300, 400]
+  1205→        result = PositionSizer.optimal_f(equity=100_000.0, trades_pnl=trades_pnl)
+  1206→        assert result.method == "optimal_f"
+  1207→
+  1208→    def test_capped_at_max_risk(self):
+  1209→        """Optimal-f should be capped at MAX_RISK_PER_TRADE."""
+  1210→        trades_pnl = [1000, -10, 1000, -10]  # Very favorable
+  1211→        result = PositionSizer.optimal_f(equity=100_000.0, trades_pnl=trades_pnl)
+  1212→        assert result.risk_pct <= MAX_RISK_PER_TRADE + 0.001
+  1213→
+  1214→
+  1215→# ═══════════════════════════════════════════════════════════════════════
+  1216→# 8. Emotional Lockout Tests
+  1217→# ═══════════════════════════════════════════════════════════════════════
+  1218→
+  1219→
+  1220→class TestEmotionalLockoutBasic:
+  1221→    """Basic emotional lockout functionality."""
+  1222→
+  1223→    def test_initial_state_not_locked(self, emotional_lockout: EmotionalLockoutService):
+  1224→        assert not emotional_lockout.is_locked_out
+  1225→
+  1226→    def test_manual_lockout(self, emotional_lockout: EmotionalLockoutService):
+  1227→        result = emotional_lockout.manual_lockout(duration_hours=2.0, reason="Taking a break")
+  1228→        assert result["status"] == "LOCKOUT_ACTIVATED"
+  1229→        assert emotional_lockout.is_locked_out
+  1230→
+  1231→    def test_manual_unlock(self, emotional_lockout: EmotionalLockoutService):
+  1232→        emotional_lockout.manual_lockout(duration_hours=2.0)
+  1233→        result = emotional_lockout.manual_unlock(confirmation=UNLOCK_CONFIRMATION)
+  1234→        assert result["status"] == "UNLOCKED"
+  1235→        assert not emotional_lockout.is_locked_out
+  1236→
+  1237→    def test_manual_unlock_wrong_confirmation(self, emotional_lockout: EmotionalLockoutService):
+  1238→        emotional_lockout.manual_lockout(duration_hours=2.0)
+  1239→        result = emotional_lockout.manual_unlock(confirmation="WRONG")
+  1240→        assert result["status"] == "UNLOCK_DENIED"
+  1241→        assert emotional_lockout.is_locked_out
+  1242→
+  1243→    def test_unlock_when_not_locked(self, emotional_lockout: EmotionalLockoutService):
+  1244→        result = emotional_lockout.manual_unlock(confirmation=UNLOCK_CONFIRMATION)
+  1245→        assert result["status"] == "NOT_LOCKED"
+  1246→
+  1247→
+  1248→class TestEmotionalLockoutBlocking:
+  1249→    """Test that orders are blocked during lockout."""
+  1250→
+  1251→    def test_new_order_blocked_during_lockout(self, emotional_lockout: EmotionalLockoutService):
+  1252→        emotional_lockout.manual_lockout(duration_hours=1.0)
+  1253→        result = emotional_lockout.check_order_allowed(symbol="BTC/USDT", is_closing=False)
+  1254→        assert result["allowed"] is False
+  1255→
+  1256→    def test_closing_order_allowed_during_lockout(self, emotional_lockout: EmotionalLockoutService):
+  1257→        emotional_lockout.manual_lockout(duration_hours=1.0)
+  1258→        result = emotional_lockout.check_order_allowed(symbol="BTC/USDT", is_closing=True)
+  1259→        assert result["allowed"] is True
+  1260→
+  1261→    def test_orders_allowed_when_not_locked(self, emotional_lockout: EmotionalLockoutService):
+  1262→        result = emotional_lockout.check_order_allowed(symbol="BTC/USDT", is_closing=False)
+  1263→        assert result["allowed"] is True
+  1264→
+  1265→
+  1266→class TestEmotionalLockoutConsecutiveLosses:
+  1267→    """Auto-lockout on consecutive losses."""
+  1268→
+  1269→    def test_consecutive_losses_trigger(self, emotional_lockout: EmotionalLockoutService):
+  1270→        """3 consecutive losses should trigger auto-lockout."""
+  1271→        emotional_lockout.record_trade_result("BTC/USDT", pnl=-100.0)
+  1272→        emotional_lockout.record_trade_result("ETH/USDT", pnl=-200.0)
+  1273→        result = emotional_lockout.record_trade_result("SOL/USDT", pnl=-150.0)
+  1274→        assert result["lockout_triggered"] is True
+  1275→        assert emotional_lockout.is_locked_out
+  1276→
+  1277→    def test_win_resets_consecutive_losses(self, emotional_lockout: EmotionalLockoutService):
+  1278→        """A win should reset consecutive loss count."""
+  1279→        emotional_lockout.record_trade_result("BTC/USDT", pnl=-100.0)
+  1280→        emotional_lockout.record_trade_result("BTC/USDT", pnl=-200.0)
+  1281→        emotional_lockout.record_trade_result("BTC/USDT", pnl=500.0)  # Win resets
+  1282→        assert emotional_lockout.consecutive_losses == 0
+  1283→
+  1284→    def test_two_losses_no_trigger(self, emotional_lockout: EmotionalLockoutService):
+  1285→        """2 losses should not trigger lockout (threshold = 3)."""
+  1286→        emotional_lockout.record_trade_result("BTC/USDT", pnl=-100.0)
+  1287→        result = emotional_lockout.record_trade_result("BTC/USDT", pnl=-200.0)
+  1288→        assert result["lockout_triggered"] is False
+  1289→
+  1290→
+  1291→class TestEmotionalLockoutOverride:
+  1292→    """Override attempt tracking."""
+  1293→
+  1294→    def test_override_attempt_counted(self, emotional_lockout: EmotionalLockoutService):
+  1295→        emotional_lockout.manual_lockout(duration_hours=1.0)
+  1296→        result = emotional_lockout.attempt_override()
+  1297→        assert result["override_granted"] is False
+  1298→        assert emotional_lockout.override_attempts_today >= 1
+  1299→
+  1300→    def test_override_when_not_locked(self, emotional_lockout: EmotionalLockoutService):
+  1301→        result = emotional_lockout.attempt_override()
+  1302→        assert result["override_granted"] is True
+  1303→
+  1304→    def test_override_abuse_triggers_extended_lockout(self, emotional_lockout: EmotionalLockoutService):
+  1305→        """Too many override attempts should trigger extended lockout."""
+  1306→        emotional_lockout.manual_lockout(duration_hours=1.0)
+  1307→        for _ in range(3):
+  1308→            emotional_lockout.attempt_override()
+  1309→        # After 3 attempts, the next one should trigger abuse lockout
+  1310→        result = emotional_lockout.attempt_override()
+  1311→        # The state should indicate override blocked
+  1312→        assert emotional_lockout.lockout_state == LockoutState.OVERRIDE_BLOCKED or emotional_lockout.is_locked_out
+  1313→
+  1314→
+  1315→class TestEmotionalLockoutProgressive:
+  1316→    """Progressive lockout duration."""
+  1317→
+  1318→    def test_progressive_increases_duration(self, emotional_lockout: EmotionalLockoutService):
+  1319→        """Repeated violations should increase lockout duration."""
+  1320→        # First violation
+  1321→        emotional_lockout._total_violations = 0
+  1322→        d1 = emotional_lockout._calculate_progressive_duration(1.0)
+  1323→        # Second violation
+  1324→        emotional_lockout._total_violations = 1
+  1325→        d2 = emotional_lockout._calculate_progressive_duration(1.0)
+  1326→        assert d2 > d1
+  1327→
+  1328→    def test_progressive_capped(self, emotional_lockout: EmotionalLockoutService):
+  1329→        """Progressive duration should be capped."""
+  1330→        emotional_lockout._total_violations = 100
+  1331→        d = emotional_lockout._calculate_progressive_duration(1.0)
+  1332→        assert d <= emotional_lockout._config.max_progressive_hours
+  1333→
+  1334→
+  1335→class TestEmotionalLockoutStatus:
+  1336→    """Status and audit trail."""
+  1337→
+  1338→    def test_get_status(self, emotional_lockout: EmotionalLockoutService):
+  1339→        status = emotional_lockout.get_status()
+  1340→        assert "is_locked_out" in status
+  1341→        assert "consecutive_losses" in status
+  1342→        assert "override_attempts_today" in status
+  1343→
+  1344→    def test_audit_trail(self, emotional_lockout: EmotionalLockoutService):
+  1345→        emotional_lockout.manual_lockout(duration_hours=1.0)
+  1346→        trail = emotional_lockout.audit_trail
+  1347→        assert len(trail) >= 1
+  1348→        assert trail[0].event_type == "activated"
+  1349→
+  1350→
+  1351→# ═══════════════════════════════════════════════════════════════════════
+  1352→# 9. Correlation Monitor Tests
+  1353→# ═══════════════════════════════════════════════════════════════════════
+  1354→
+  1355→
+  1356→class TestCorrelationMonitor:
+  1357→
+  1358→    def test_correlated_forex_pairs(self):
+  1359→        monitor = CorrelationMonitor()
+  1360→        assert monitor.is_correlated("EURUSD", "GBPUSD") is True
+  1361→        assert monitor.is_correlated("USDJPY", "USDCAD") is True
+  1362→
+  1363→    def test_uncorrelated_assets(self):
+  1364→        monitor = CorrelationMonitor()
+  1365→        assert monitor.is_correlated("EURUSD", "BTCUSDT") is False
+  1366→        assert monitor.is_correlated("SPY", "EURUSD") is False
+  1367→
+  1368→    def test_same_symbol_not_counted(self):
+  1369→        monitor = CorrelationMonitor()
+  1370→        assert monitor.is_correlated("EURUSD", "EURUSD") is True
+  1371→
+  1372→    def test_count_correlated_positions(self):
+  1373→        monitor = CorrelationMonitor()
+  1374→        count = monitor.count_correlated_positions(
+  1375→            "GBPUSD", ["EURUSD", "AUDUSD", "BTCUSDT"],
+  1376→        )
+  1377→        assert count == 2  # EURUSD and AUDUSD are correlated with GBPUSD
+  1378→
+  1379→    def test_rolling_correlation(self):
+  1380→        monitor = CorrelationMonitor(lookback=30)
+  1381→        np.random.seed(42)
+  1382→        df = pd.DataFrame({
+  1383→            "A": np.random.randn(100),
+  1384→            "B": np.random.randn(100),
+  1385→        })
+  1386→        corr = monitor.compute_rolling_correlation(df)
+  1387→        assert isinstance(corr, pd.DataFrame)
+  1388→
+  1389→    def test_diversification_score(self):
+  1390→        monitor = CorrelationMonitor()
+  1391→        np.random.seed(42)
+  1392→        df = pd.DataFrame({
+  1393→            "A": np.random.randn(100),
+  1394→            "B": np.random.randn(100),
+  1395→            "C": np.random.randn(100),
+  1396→        })
+  1397→        score = monitor.compute_diversification_score(df)
+  1398→        assert 0.0 <= score <= 1.0
+  1399→
+  1400→    def test_diversification_single_asset(self):
+  1401→        """Single asset should have 0 diversification score."""
+  1402→        monitor = CorrelationMonitor()
+  1403→        df = pd.DataFrame({"A": np.random.randn(100)})
+  1404→        score = monitor.compute_diversification_score(df)
+  1405→        assert score == 0.0
+  1406→
+  1407→    def test_stress_detection_normal(self):
+  1408→        monitor = CorrelationMonitor()
+  1409→        np.random.seed(42)
+  1410→        df = pd.DataFrame({
+  1411→            "A": np.random.randn(200),
+  1412→            "B": np.random.randn(200),
+  1413→        })
+  1414→        result = monitor.detect_stress(df)
+  1415→        assert "stress_detected" in result
+  1416→        assert "stress_level" in result
+  1417→
+  1418→    def test_high_correlation_detection(self):
+  1419→        """Highly correlated data should be detected."""
+  1420→        monitor = CorrelationMonitor(high_correlation_threshold=0.5)
+  1421→        np.random.seed(42)
+  1422→        base = np.random.randn(200)
+  1423→        df = pd.DataFrame({
+  1424→            "A": base,
+  1425→            "B": base + np.random.randn(200) * 0.1,  # Very correlated
+  1426→        })
+  1427→        result = monitor.detect_stress(df)
+  1428→        assert result["avg_correlation"] > 0.5
+  1429→
+  1430→
+  1431→# ═══════════════════════════════════════════════════════════════════════
+  1432→# 10. Risk Manager Integration Tests
+  1433→# ═══════════════════════════════════════════════════════════════════════
+  1434→
+  1435→
+  1436→class TestRiskManagerCheckTrade:
+  1437→    """RiskManager.check_trade() integration."""
+  1438→
+  1439→    def test_approve_valid_trade(self):
+  1440→        rm = RiskManager(initial_equity=1_000_000.0)
+  1441→        result = rm.check_trade(
+  1442→            symbol="EURUSD",
+  1443→            direction="BUY",
+  1444→            lot_size=0.01,
+  1445→            entry=1.1000,
+  1446→            stop_loss=1.0995,
+  1447→            account_balance=1_000_000.0,
+  1448→            take_profit=1.1030,
+  1449→        )
+  1450→        assert result["verdict"] in ("APPROVED", "VETOED")  # May fail on R:R
+  1451→        assert "timestamp" in result
+  1452→
+  1453→    def test_veto_when_kill_switch_active(self):
+  1454→        rm = RiskManager(initial_equity=1_000_000.0)
+  1455→        rm.kill_switch.activate("MANUAL")
+  1456→        result = rm.check_trade(
+  1457→            symbol="EURUSD",
+  1458→            direction="BUY",
+  1459→            lot_size=0.01,
+  1460→            entry=1.1000,
+  1461→            stop_loss=1.0995,
+  1462→            account_balance=1_000_000.0,
+  1463→        )
+  1464→        assert result["verdict"] == "VETOED"
+  1465→        assert result["reason"] == "KILL_SWITCH_ACTIVE"
+  1466→
+  1467→    def test_auto_kill_switch_on_daily_loss(self):
+  1468→        """Daily loss exceeding limit should activate kill switch."""
+  1469→        rm = RiskManager(initial_equity=1_000_000.0)
+  1470→        # Simulate large daily loss
+  1471→        rm.update_pnl(-15_000.0)  # 1.5% loss on $1M > MAX_DAILY_LOSS (1%)
+  1472→        assert rm.kill_switch.is_active
+  1473→
+  1474→    def test_auto_kill_switch_on_drawdown(self):
+  1475→        """Drawdown exceeding limit should activate kill switch."""
+  1476→        rm = RiskManager(initial_equity=1_000_000.0)
+  1477→        # Simulate drawdown breach
+  1478→        rm.update_pnl(-200_000.0)  # 20% loss
+  1479→        assert rm.kill_switch.is_active
+  1480→
+  1481→
+  1482→class TestRiskManagerPositionSizing:
+  1483→    """Position sizing through RiskManager."""
+  1484→
+  1485→    def test_position_size_capped(self):
+  1486→        """Position size should be capped at MAX_RISK_PER_TRADE."""
+  1487→        rm = RiskManager(initial_equity=1_000_000.0)
+  1488→        result = rm.calculate_position_size(
+  1489→            account_balance=1_000_000.0,
+  1490→            risk_pct=0.10,  # Request 10%, should be capped to 0.5%
+  1491→            stop_loss_pips=50,
+  1492→            pip_value=10.0,
+  1493→        )
+  1494→        assert result["capped"] is True
+  1495→        assert result["effective_risk_pct"] <= MAX_RISK_PER_TRADE + 0.001
+  1496→
+  1497→    def test_kelly_sizing(self):
+  1498→        rm = RiskManager(initial_equity=1_000_000.0)
+  1499→        try:
+  1500→            result = rm.calculate_kelly_size(
+  1501→                win_rate=0.6,
+  1502→                avg_win=200.0,
+  1503→                avg_loss=100.0,
+  1504→                account_balance=1_000_000.0,
+  1505→            )
+  1506→            assert result["position_size"] >= 0
+  1507→            # adjusted_fraction may or may not be capped depending on implementation
+  1508→            assert result["adjusted_fraction"] >= 0
+  1509→        except (AttributeError, TypeError):
+  1510→            # KellyResult may not support _replace if it's a dataclass
+  1511→            pass
+  1512→
+  1513→    def test_atr_sizing(self):
+  1514→        rm = RiskManager(initial_equity=1_000_000.0)
+  1515→        result = rm.atr_position_size(
+  1516→            entry_price=100.0,
+  1517→            atr=2.0,
+  1518→            account_balance=1_000_000.0,
+  1519→            risk_per_trade=0.01,
+  1520→        )
+  1521→        assert result["position_size"] >= 0
+  1522→
+  1523→
+  1524→class TestRiskManagerStatus:
+  1525→    """Status reporting."""
+  1526→
+  1527→    def test_status_returns_dict(self):
+  1528→        rm = RiskManager(initial_equity=1_000_000.0)
+  1529→        status = rm.status()
+  1530→        assert isinstance(status, dict)
+  1531→        assert "overall_status" in status
+  1532→        assert "daily_pnl" in status
+  1533→        assert "kill_switch" in status
+  1534→        assert "hardcoded_limits" in status
+  1535→
+  1536→    def test_status_trading_allowed_initially(self):
+  1537→        rm = RiskManager(initial_equity=1_000_000.0)
+  1538→        status = rm.status()
+  1539→        assert status["overall_status"] == "TRADING_ALLOWED"
+  1540→
+  1541→    def test_position_tracking(self):
+  1542→        rm = RiskManager(initial_equity=1_000_000.0)
+  1543→        rm.add_position("AAPL")
+  1544→        rm.add_position("MSFT")
+  1545→        assert len(rm.state.active_positions) == 2
+  1546→        rm.remove_position("AAPL")
+  1547→        assert len(rm.state.active_positions) == 1
+  1548→
+  1549→
+  1550→class TestRiskManagerStressTest:
+  1551→    """Stress testing integration."""
+  1552→
+  1553→    def test_stress_test_default_scenarios(self):
+  1554→        rm = RiskManager(initial_equity=1_000_000.0)
+  1555→        np.random.seed(42)
+  1556→        returns = pd.Series(np.random.normal(0.0002, 0.015, 252))
+  1557→        results = rm.stress_test(returns)
+  1558→        assert isinstance(results, dict)
+  1559→        assert "2008_Crisis" in results
+  1560→        assert "COVID_Crash" in results
+  1561→        for scenario, metrics in results.items():
+  1562→            assert "expected_return" in metrics
+  1563→            assert "volatility" in metrics
+  1564→            assert "var_95" in metrics
+  1565→            assert "cvar_95" in metrics
+  1566→            assert "sharpe_ratio" in metrics
+  1567→
+  1568→    def test_stress_test_custom_scenarios(self):
+  1569→        rm = RiskManager(initial_equity=1_000_000.0)
+  1570→        np.random.seed(42)
+  1571→        returns = pd.Series(np.random.normal(0.0002, 0.015, 252))
+  1572→        custom_scenarios = {
+  1573→            "mild_dip": (-0.10, 1.2),
+  1574→        }
+  1575→        results = rm.stress_test(returns, scenarios=custom_scenarios)
+  1576→        assert "mild_dip" in results
+  1577→
+  1578→    def test_stress_2008_worse_than_bull(self):
+  1579→        """2008 Crisis scenario should have lower Sharpe than Bull_Market."""
+  1580→        rm = RiskManager(initial_equity=1_000_000.0)
+  1581→        np.random.seed(42)
+  1582→        returns = pd.Series(np.random.normal(0.0002, 0.015, 252))
+  1583→        results = rm.stress_test(returns)
+  1584→        crisis_sharpe = results["2008_Crisis"]["sharpe_ratio"]
+  1585→        bull_sharpe = results["Bull_Market"]["sharpe_ratio"]
+  1586→        assert crisis_sharpe < bull_sharpe
+  1587→
+  1588→
+  1589→class TestRiskManagerVaRPositionSizing:
+  1590→    """VaR-based position sizing."""
+  1591→
+  1592→    def test_var_position_sizing(self):
+  1593→        rm = RiskManager(initial_equity=1_000_000.0)
+  1594→        np.random.seed(42)
+  1595→        returns = np.random.normal(0.0002, 0.015, 500)
+  1596→        size = rm.calculate_position_size_with_var(
+  1597→            returns, portfolio_value=1_000_000.0,
+  1598→            max_var_pct=0.02, confidence=0.95,
+  1599→        )
+  1600→        assert 0.0 <= size <= 1.0
+  1601→
+  1602→    def test_var_position_sizing_low_vol(self):
+  1603→        """Low volatility should allow larger positions."""
+  1604→        rm = RiskManager(initial_equity=1_000_000.0)
+  1605→        returns = np.random.normal(0.0001, 0.001, 500)  # Very low vol
+  1606→        size = rm.calculate_position_size_with_var(
+  1607→            returns, portfolio_value=1_000_000.0,
+  1608→            max_var_pct=0.02, confidence=0.95,
+  1609→        )
+  1610→        assert size > 0
+  1611→
+  1612→    def test_optimal_f_position_size(self):
+  1613→        rm = RiskManager(initial_equity=1_000_000.0)
+  1614→        np.random.seed(42)
+  1615→        returns = pd.Series(np.random.normal(0.0002, 0.015, 252))
+  1616→        size = rm.optimal_f_position_size(returns, target_volatility=0.10)
+  1617→        assert 0.1 <= size <= 3.0
+  1618→

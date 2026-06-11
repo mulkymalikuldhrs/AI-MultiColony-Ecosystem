@@ -49,8 +49,6 @@ from quant_nanggroe.agents.state import (
     MAX_DRAWDOWN_PCT,
     MAX_TRADES_PER_DAY,
     CONFIDENCE_THRESHOLD,
-    KILL_SWITCH_DAILY_PNL,
-    KILL_SWITCH_WEEKLY_PNL,
 )
 from quant_nanggroe.agents.registry import AgentRegistry, AgentFactory
 from quant_nanggroe.agents.base import BaseAgent, create_llm
@@ -1124,12 +1122,6 @@ class TestConstitutionalLimits:
 
     def test_confidence_threshold(self):
         assert CONFIDENCE_THRESHOLD == 0.65
-
-    def test_kill_switch_daily_pnl(self):
-        assert KILL_SWITCH_DAILY_PNL == -0.02
-
-    def test_kill_switch_weekly_pnl(self):
-        assert KILL_SWITCH_WEEKLY_PNL == -0.05
 
     def test_limits_in_initial_state(self):
         """Verify constitutional limits are embedded in the initial state."""

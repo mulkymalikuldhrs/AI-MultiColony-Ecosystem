@@ -2,6 +2,10 @@
 
 Provides unified access to market data across multiple providers
 with automatic failover, caching, and data normalization.
+
+Includes:
+- Data providers (Yahoo, Alpaca, Binance, etc.)
+- Fallback chains with circuit breakers (from AI-Trader)
 """
 
 from quant_nanggroe.data.providers.base import DataProvider
@@ -17,6 +21,7 @@ from quant_nanggroe.data.providers import (
     TwelveDataProvider,
     YahooFinanceProvider,
 )
+from quant_nanggroe.data.fallback import FallbackChain, ProviderHealth as FallbackProviderHealth
 
 __all__ = [
     "DataProvider",
@@ -30,4 +35,6 @@ __all__ = [
     "SECEdgarProvider",
     "TwelveDataProvider",
     "YahooFinanceProvider",
+    "FallbackChain",
+    "FallbackProviderHealth",
 ]

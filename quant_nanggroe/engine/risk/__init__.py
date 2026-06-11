@@ -17,6 +17,7 @@ Includes:
 - Drawdown monitoring (CVaR as primary metric)
 - Correlation monitoring
 - Kill switch for emergency halt
+- Hierarchical approval chain (from TradingAgents)
 
 Extracted from HermesQuantOS's Risk Officer and ai-hedge-fund's risk modules.
 """
@@ -38,6 +39,11 @@ def __getattr__(name: str):
         "CorrelationMonitor": ".correlation",
         "RiskCheckGate": ".checks",
         "KillSwitch": ".kill_switch",
+        "ApprovalChain": ".approval",
+        "ApprovalTier": ".approval",
+        "ApprovalDecision": ".approval",
+        "ApprovalRecord": ".approval",
+        "ApprovalMode": ".approval",
     }
     if name in _lazy_imports:
         import importlib
@@ -56,4 +62,9 @@ __all__ = [
     "CorrelationMonitor",
     "RiskCheckGate",
     "KillSwitch",
+    "ApprovalChain",
+    "ApprovalTier",
+    "ApprovalDecision",
+    "ApprovalRecord",
+    "ApprovalMode",
 ]

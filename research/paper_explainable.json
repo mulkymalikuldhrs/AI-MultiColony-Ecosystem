@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://arxiv.org/html/2305.02012v3",
+    "name": "A Perspective on Explainable Artificial Intelligence Methods: SHAP",
+    "snippet": "SHAP and LIME are highly affected by the adopted ML model and feature collinearity, raising a note of caution on their usage and interpretation.\nSHapley Additive exPlanations (SHAP) and Local Interpretable Model Agnostic Explanation (LIME) are two widely used XAI methods, particularly with tabular data.",
+    "host_name": "arxiv.org",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/html/2503.24365v1",
+    "name": "Which LIME should I trust? Concepts, Challenges, and Solutions",
+    "snippet": "Explainable AI (XAI) aims to make AI models more interpretable, addressing the challenges posed by opaque decision-making. The concept of ...",
+    "host_name": "arxiv.org",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.mdpi.com/2076-3417/15/13/7329",
+    "name": "A Comparative Study of SHAP and LIME in Intrusion Detection Models",
+    "snippet": "This study presents a comparative analysis of SHapley Additive exPlanations (SHAP) and Local Interpretable Model-Agnostic Explanations (LIME)",
+    "host_name": "www.mdpi.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.diva-portal.org/smash/get/diva2:1886442/FULLTEXT02.pdf",
+    "name": "[PDF] A Comparative Analysis of LIME and SHAP Interpreters With",
+    "snippet": "In this project, we investigate how to generate local and global explanations for a machine-learning model built on a logistic regression architecture.\n• Interpretability Trade-off: Model fidelity is sacrificed for interpretability in both LIME and SHAP. Inter- pretable surrogate models created by LIME roughly.",
+    "host_name": "www.diva-portal.org",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://medium.com/the-modern-scientist/deciphering-model-decisions-a-comparative-analysis-of-shap-and-lime-interpretability-23daf26c67c6",
+    "name": "Deciphering Model Decisions: A Comparative Analysis of SHAP and",
+    "snippet": "SHAP effectively understands overall model behavior and feature importance, while LIME excels in dissecting specific predictions.\nSHAP and LIME offer valuable insights into the model's decision-making process from different perspectives.",
+    "host_name": "medium.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://ideas.repec.org/p/arx/papers/2502.19615.html",
+    "name": "A Method for Evaluating the Interpretability of Machine Learning",
+    "snippet": "Interpretability analysis methods for artificial intelligence models, such as LIME and SHAP, are widely used, though they primarily serve as post-model for ...",
+    "host_name": "ideas.repec.org",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/statistics/comments/mp7qn3/d_has_anyone_ever_used_the_shap_and_lime_models",
+    "name": "[D] Has anyone ever used the SHAP and LIME models in machine",
+    "snippet": "I have been reading about the SHAP and LIME models in machine learning, that are used to break the blackbox of machine learning models, in an attempt to make ...",
+    "host_name": "www.reddit.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.meta-intelligence.tech/en/insight-explainable-ai",
+    "name": "Explainable AI (XAI) Guide: SHAP, LIME & Grad-CAM",
+    "snippet": "Master explainable AI techniques with hands-on labs. Learn SHAP, LIME, and Grad-CAM with Google Colab examples. Essential for EU AI Act ...",
+    "host_name": "www.meta-intelligence.tech",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.linkedin.com/pulse/mapping-model-decisions-lime-shap-all-approach-paul-kinder-3bc3c",
+    "name": "Mapping Model Decisions with LIME and SHAP – All In the Approach",
+    "snippet": "Two of the most widely used tools in XAI are SHAP (SHapley Additive exPlanations) and LIME (Local Interpretable Model-agnostic Explanations).",
+    "host_name": "www.linkedin.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10997568",
+    "name": "Interpreting artificial intelligence models: a systematic review on the",
+    "snippet": "This article provides a systematic review of the application of LIME and SHAP in interpreting the detection of Alzheimer's disease (AD).",
+    "host_name": "pmc.ncbi.nlm.nih.gov",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

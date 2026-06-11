@@ -257,8 +257,8 @@ class ConstitutionalRiskGuard:
                 request.stop_loss_pct = MANDATORY_STOP_LOSS_PCT
 
         # Check 6: Leverage
-        if proposed_risk_pct > portfolio.total_equity * MAX_LEVERAGE:
-            result.warnings.append("Lverage limit check applied")
+        if proposed_risk_pct > MAX_POSITION_SIZE_PCT * MAX_LEVERAGE:
+            result.warnings.append("Leverage limit check applied")
 
         # Determine overall risk level
         if proposed_risk_pct <= MAX_RISK_PER_TRADE_PCT * 0.5:

@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://arxiv.org/html/2511.05523v1",
+    "name": "A Review of the Day-Ahead, Intra-Day, and Balancing Markets - arXiv",
+    "snippet": "This paper presents a review of probabilistic forecasting methods, tracing their evolution from Bayesian and distribution based approaches, through quantile ...",
+    "host_name": "arxiv.org",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/html/2410.16333v2",
+    "name": "Conformal Predictive Portfolio Selection - arXiv",
+    "snippet": "To address this, we propose a framework for portfolio selection via conformal prediction, called Conformal Predictive Portfolio Selection (CPPS) ...",
+    "host_name": "arxiv.org",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://sites.stat.columbia.edu/gelman/research/unpublished/2503.11709.pdf",
+    "name": "[PDF] arXiv:2503.11709v1 [cs.LG] 12 Mar 2025 - Columbia University",
+    "snippet": "We identify ways in which conformal prediction sets and posthoc predictive uncertainty quantification more broadly are in tension with common.",
+    "host_name": "sites.stat.columbia.edu",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.research.ed.ac.uk/files/534125335/O_ConnorEtal2025EAIConformalPrediction.pdf",
+    "name": "[PDF] Conformal prediction for electricity price forecasting in the day",
+    "snippet": "Our financial analysis includes both single- trade and high-frequency trading strategies, examining the impact of probabilistic forecasts on ...",
+    "host_name": "www.research.ed.ac.uk",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.sciencedirect.com/science/article/pii/S0306261925011420",
+    "name": "On-line conformalized neural networks ensembles for probabilistic",
+    "snippet": "Novel probabilistic electricity price forecasting approach. •. Extending neural network based methods through conformal inference. •.",
+    "host_name": "www.sciencedirect.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://openreview.net/forum?id=PNmkjIzHB7",
+    "name": "Conformal Prediction as Bayesian Quadrature - OpenReview",
+    "snippet": "We propose an alternative to conformal prediction based on Bayesian quadrature that produces a distribution over test-time risk.",
+    "host_name": "openreview.net",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/MachineLearning/comments/1fac5u5/d_bayesian_models_vs_conformal_prediction_cp",
+    "name": "[D] Bayesian Models vs Conformal Prediction (CP) - Reddit",
+    "snippet": "The typical guarantee you get from the Bayesian framework is that your estimates/predictions achieve the smallest average loss over the prior.",
+    "host_name": "www.reddit.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://valeman.medium.com/predicting-full-probability-distributions-with-conformal-prediction-1dd4c1f26973",
+    "name": "Predicting Full Probability Distributions with Conformal Prediction",
+    "snippet": "The full probability distribution is no longer just a Bayesian dream; it's available to any predictive model, thanks to conformal prediction.",
+    "host_name": "valeman.medium.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/html/2402.04906v6",
+    "name": "1 Introduction - arXiv",
+    "snippet": "We introduce the conformal convolution T- (CCT) and conformal Monte Carlo (CMC) meta-learners that both start from counterfactual inference.",
+    "host_name": "arxiv.org",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://mcml.ai/publications/jzt+25a",
+    "name": "Optimal Conformal Prediction Under Epistemic Uncertainty - MCML",
+    "snippet": "Conformal prediction (CP) is a popular frequentist framework for representing uncertainty by providing prediction sets that guarantee coverage of the true label ...",
+    "host_name": "mcml.ai",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

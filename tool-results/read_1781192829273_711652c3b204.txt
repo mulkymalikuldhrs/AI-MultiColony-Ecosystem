@@ -1,0 +1,1023 @@
+     1→"""Fama-French 5-Factor Model.
+     2→
+     3→Implements factor analysis using the Fama-French 5-factor model:
+     4→1. Market Risk Premium (Rm - Rf)
+     5→2. SMB (Small Minus Big) - Size factor
+     6→3. HML (High Minus Low) - Value factor
+     7→4. RMW (Robust Minus Weak) - Profitability factor
+     8→5. CMA (Conservative Minus Aggressive) - Investment factor
+     9→
+    10→Plus optional Momentum (UMD/WML) factor for the 6-factor model.
+    11→
+    12→Data Source: Kenneth French Data Library
+    13→https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html
+    14→
+    15→References:
+    16→- Fama & French (2015), "A Five-Factor Asset Pricing Model"
+    17→- Carhart (1997), "On Persistence in Mutual Fund Performance"
+    18→- Fama & French (1993), "Common Risk Factors in the Returns on Stocks and Bonds"
+    19→"""
+    20→
+    21→from __future__ import annotations
+    22→
+    23→import io
+    24→import logging
+    25→import os
+    26→import zipfile
+    27→from dataclasses import dataclass, field
+    28→from pathlib import Path
+    29→from typing import Any, Dict, List, Optional, Tuple, Union
+    30→
+    31→import numpy as np
+    32→import pandas as pd
+    33→from scipy import stats as sp_stats
+    34→
+    35→logger = logging.getLogger(__name__)
+    36→
+    37→# ══════════════════════════════════════════════════════════════════════
+    38→# Kenneth French Data Library URLs
+    39→# ══════════════════════════════════════════════════════════════════════
+    40→
+    41→FRENCH_DATA_BASE = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/"
+    42→
+    43→# US research factor datasets
+    44→FF3_DAILY_URL = FRENCH_DATA_BASE + "F-F_Research_Data_Factors_daily_CSV.zip"
+    45→FF3_MONTHLY_URL = FRENCH_DATA_BASE + "F-F_Research_Data_Factors_CSV.zip"
+    46→FF5_DAILY_URL = FRENCH_DATA_BASE + "F-F_Research_Data_5_Factors_2x3_daily_CSV.zip"
+    47→FF5_MONTHLY_URL = FRENCH_DATA_BASE + "F-F_Research_Data_5_Factors_2x3_CSV.zip"
+    48→MOMENTUM_DAILY_URL = FRENCH_DATA_BASE + "F-F_Momentum_Factor_daily_CSV.zip"
+    49→MOMENTUM_MONTHLY_URL = FRENCH_DATA_BASE + "F-F_Momentum_Factor_CSV.zip"
+    50→
+    51→# Default cache directory
+    52→_DEFAULT_CACHE_DIR = os.path.join(os.path.expanduser("~"), ".cache", "quant_nanggroe", "french_data")
+    53→
+    54→
+    55→# ══════════════════════════════════════════════════════════════════════
+    56→# Data Classes
+    57→# ══════════════════════════════════════════════════════════════════════
+    58→
+    59→
+    60→@dataclass
+    61→class FactorExposure:
+    62→    """Factor exposure (beta) from regression.
+    63→
+    64→    Attributes:
+    65→        factor_name: Name of the factor.
+    66→        beta: Factor loading (coefficient from regression).
+    67→        t_stat: t-statistic for the coefficient.
+    68→        p_value: p-value for the coefficient.
+    69→        std_error: Standard error of the coefficient.
+    70→    """
+    71→
+    72→    factor_name: str
+    73→    beta: float
+    74→    t_stat: float
+    75→    p_value: float
+    76→    std_error: float
+    77→
+    78→
+    79→@dataclass
+    80→class FactorRegressionResult:
+    81→    """Result from factor regression.
+    82→
+    83→    The model estimated is:
+    84→        R_i - R_f = alpha + beta1*MktRF + beta2*SMB + beta3*HML
+    85→                  + beta4*RMW + beta5*CMA + [beta6*UMD] + epsilon
+    86→
+    87→    Attributes:
+    88→        alphas: Intercept (alpha) per regression.
+    89→        exposures: List of FactorExposure objects.
+    90→        r_squared: R-squared of the regression.
+    91→        adj_r_squared: Adjusted R-squared.
+    92→        f_stat: F-statistic for overall significance.
+    93→        f_pvalue: p-value of F-statistic.
+    94→        residuals: Residuals from the regression.
+    95→        n_observations: Number of observations used.
+    96→        factor_names: Names of the factors used in regression.
+    97→    """
+    98→
+    99→    alphas: List[FactorExposure]
+   100→    exposures: List[FactorExposure]
+   101→    r_squared: float
+   102→    adj_r_squared: float
+   103→    f_stat: float
+   104→    f_pvalue: float
+   105→    residuals: np.ndarray
+   106→    n_observations: int
+   107→    factor_names: List[str] = field(default_factory=list)
+   108→
+   109→
+   110→@dataclass
+   111→class FactorAttribution:
+   112→    """Factor attribution decomposition.
+   113→
+   114→    Decomposes portfolio returns:
+   115→        R_p = alpha + sum(beta_i * f_i) + epsilon
+   116→
+   117→    Total return = Alpha + Sum(factor_beta * factor_mean_return) + Specific
+   118→
+   119→    Attributes:
+   120→        total_return: Total portfolio return (annualized).
+   121→        factor_return: Return explained by factors (annualized).
+   122→        specific_return: Return not explained by factors (alpha + residual).
+   123→        alpha: Intercept (skill) component (annualized).
+   124→        factor_contributions: Dict of factor_name -> contribution.
+   125→    """
+   126→
+   127→    total_return: float
+   128→    factor_return: float
+   129→    specific_return: float
+   130→    alpha: float
+   131→    factor_contributions: Dict[str, float]
+   132→
+   133→
+   134→@dataclass
+   135→class AlphaSignificance:
+   136→    """Alpha significance test result.
+   137→
+   138→    Attributes:
+   139→        alpha: Estimated alpha (per-bar).
+   140→        alpha_annual: Annualized alpha.
+   141→        t_stat: t-statistic for alpha.
+   142→        p_value: p-value for alpha (two-tailed).
+   143→        is_significant: Whether alpha is significant at given level.
+   144→        confidence_level: Confidence level used for significance test.
+   145→        information_ratio: Alpha / residual_volatility (annualized).
+   146→    """
+   147→
+   148→    alpha: float
+   149→    alpha_annual: float
+   150→    t_stat: float
+   151→    p_value: float
+   152→    is_significant: bool
+   153→    confidence_level: float
+   154→    information_ratio: float
+   155→
+   156→
+   157→# ══════════════════════════════════════════════════════════════════════
+   158→# Kenneth French Data Downloader
+   159→# ══════════════════════════════════════════════════════════════════════
+   160→
+   161→
+   162→class KennethFrenchDataDownloader:
+   163→    """Download and parse factor data from Kenneth French's Data Library.
+   164→
+   165→    Downloads daily and monthly factor data from French's website,
+   166→    parses the fixed-width format files, and caches data locally.
+   167→
+   168→    Supports:
+   169→    - 3-factor model: Mkt-RF, SMB, HML
+   170→    - 5-factor model: Mkt-RF, SMB, HML, RMW, CMA
+   171→    - Momentum factor: UMD (Up Minus Down)
+   172→
+   173→    Usage:
+   174→        downloader = KennethFrenchDataDownloader()
+   175→        ff5_daily = downloader.download("5_factor", frequency="daily")
+   176→        ff3_monthly = downloader.download("3_factor", frequency="monthly")
+   177→        momentum = downloader.download("momentum", frequency="daily")
+   178→    """
+   179→
+   180→    DATASET_URLS = {
+   181→        "3_factor": {
+   182→            "daily": FF3_DAILY_URL,
+   183→            "monthly": FF3_MONTHLY_URL,
+   184→        },
+   185→        "5_factor": {
+   186→            "daily": FF5_DAILY_URL,
+   187→            "monthly": FF5_MONTHLY_URL,
+   188→        },
+   189→        "momentum": {
+   190→            "daily": MOMENTUM_DAILY_URL,
+   191→            "monthly": MOMENTUM_MONTHLY_URL,
+   192→        },
+   193→    }
+   194→
+   195→    def __init__(
+   196→        self,
+   197→        cache_dir: Optional[str] = None,
+   198→        cache_expiry_days: int = 7,
+   199→    ) -> None:
+   200→        """Initialize the downloader.
+   201→
+   202→        Args:
+   203→            cache_dir: Directory for caching downloaded data.
+   204→                Defaults to ~/.cache/quant_nanggroe/french_data.
+   205→            cache_expiry_days: Number of days before cache expires.
+   206→        """
+   207→        self.cache_dir = cache_dir or _DEFAULT_CACHE_DIR
+   208→        self.cache_expiry_days = cache_expiry_days
+   209→
+   210→    def download(
+   211→        self,
+   212→        dataset: str = "5_factor",
+   213→        frequency: str = "daily",
+   214→    ) -> pd.DataFrame:
+   215→        """Download factor data from Kenneth French's website.
+   216→
+   217→        Tries to load from cache first, then downloads if needed.
+   218→
+   219→        Args:
+   220→            dataset: Dataset type ('3_factor', '5_factor', 'momentum').
+   221→            frequency: 'daily' or 'monthly'.
+   222→
+   223→        Returns:
+   224→            DataFrame with factor returns (decimal form).
+   225→
+   226→        Raises:
+   227→            ValueError: If dataset or frequency is invalid.
+   228→            ConnectionError: If data cannot be downloaded.
+   229→        """
+   230→        if dataset not in self.DATASET_URLS:
+   231→            raise ValueError(
+   232→                f"Unknown dataset '{dataset}'. "
+   233→                f"Choose from: {list(self.DATASET_URLS.keys())}"
+   234→            )
+   235→        if frequency not in ("daily", "monthly"):
+   236→            raise ValueError(
+   237→                f"Invalid frequency '{frequency}'. Choose 'daily' or 'monthly'."
+   238→            )
+   239→
+   240→        # Try cache first
+   241→        cached = self._load_from_cache(dataset, frequency)
+   242→        if cached is not None:
+   243→            return cached
+   244→
+   245→        # Download
+   246→        url = self.DATASET_URLS[dataset][frequency]
+   247→        try:
+   248→            logger.info("Fetching factor data from: %s", url)
+   249→            df = self._download_and_parse(url)
+   250→
+   251→            # Cache the result
+   252→            self._save_to_cache(df, dataset, frequency)
+   253→
+   254→            return df
+   255→        except Exception as e:
+   256→            logger.error("Failed to fetch factor data: %s", e)
+   257→            raise ConnectionError(f"Failed to fetch factor data from {url}: {e}")
+   258→
+   259→    def _download_and_parse(self, url: str) -> pd.DataFrame:
+   260→        """Download a zip file from French's website and parse the CSV."""
+   261→        import urllib.request
+   262→
+   263→        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+   264→        with urllib.request.urlopen(req, timeout=30) as response:
+   265→            zip_data = response.read()
+   266→
+   267→        with zipfile.ZipFile(io.BytesIO(zip_data)) as zf:
+   268→            csv_names = [n for n in zf.namelist() if n.endswith(".csv")]
+   269→            if not csv_names:
+   270→                raise ValueError("No CSV file found in zip archive")
+   271→
+   272→            with zf.open(csv_names[0]) as csv_file:
+   273→                content = csv_file.read().decode("utf-8", errors="replace")
+   274→
+   275→        return self._parse_french_csv(content)
+   276→
+   277→    @staticmethod
+   278→    def _parse_french_csv(content: str) -> pd.DataFrame:
+   279→        """Parse Kenneth French CSV format.
+   280→
+   281→        French data files have a specific format:
+   282→        - Header rows with metadata (skip until we find column names)
+   283→        - Data in CSV format with date as first column
+   284→        - Footer rows with -99.99 or -999 placeholder for missing data
+   285→        - Values typically in percentage form (need conversion)
+   286→        """
+   287→        lines = content.strip().split("\n")
+   288→
+   289→        # Find the header row (contains column names like Mkt-RF, SMB, HML)
+   290→        header_idx = None
+   291→        for i, line in enumerate(lines):
+   292→            if any(keyword in line for keyword in ["Mkt-RF", "SMB", "HML", "Mom"]):
+   293→                header_idx = i
+   294→                break
+   295→
+   296→        if header_idx is None:
+   297→            # Try to parse as regular CSV
+   298→            from io import StringIO
+   299→            return pd.read_csv(StringIO(content), index_col=0, parse_dates=True)
+   300→
+   301→        # Skip to header and parse data rows
+   302→        data_lines = lines[header_idx:]
+   303→        cleaned: List[str] = []
+   304→        for line in data_lines:
+   305→            parts = line.strip().split(",")
+   306→            if len(parts) >= 2:
+   307→                try:
+   308→                    float(parts[1].strip())
+   309→                    cleaned.append(line)
+   310→                except ValueError:
+   311→                    continue
+   312→
+   313→        from io import StringIO
+   314→        csv_content = "\n".join(cleaned)
+   315→        df = pd.read_csv(StringIO(csv_content), index_col=0, parse_dates=True)
+   316→
+   317→        # Clean: remove rows with -99.99 or -999 (French placeholder for missing)
+   318→        for col in df.columns:
+   319→            df[col] = pd.to_numeric(df[col], errors="coerce")
+   320→        df = df.replace(-99.99, np.nan).replace(-999, np.nan).dropna()
+   321→
+   322→        # Convert from percentage to decimal (French data is in %)
+   323→        for col in df.columns:
+   324→            if df[col].abs().mean() > 0.1:
+   325→                df[col] = df[col] / 100.0
+   326→
+   327→        return df
+   328→
+   329→    def _cache_path(self, dataset: str, frequency: str) -> str:
+   330→        """Get the cache file path for a dataset."""
+   331→        return os.path.join(self.cache_dir, f"{dataset}_{frequency}.parquet")
+   332→
+   333→    def _load_from_cache(
+   334→        self, dataset: str, frequency: str
+   335→    ) -> Optional[pd.DataFrame]:
+   336→        """Load data from local cache if available and fresh."""
+   337→        path = self._cache_path(dataset, frequency)
+   338→
+   339→        if not os.path.exists(path):
+   340→            return None
+   341→
+   342→        # Check cache age
+   343→        import time
+   344→        file_age_days = (time.time() - os.path.getmtime(path)) / 86400
+   345→        if file_age_days > self.cache_expiry_days:
+   346→            logger.info("Cache expired for %s/%s (%.1f days old)",
+   347→                        dataset, frequency, file_age_days)
+   348→            return None
+   349→
+   350→        try:
+   351→            df = pd.read_parquet(path)
+   352→            logger.info("Loaded from cache: %s/%s (%d rows)",
+   353→                        dataset, frequency, len(df))
+   354→            return df
+   355→        except Exception as e:
+   356→            logger.warning("Failed to load cache: %s", e)
+   357→            return None
+   358→
+   359→    def _save_to_cache(
+   360→        self, df: pd.DataFrame, dataset: str, frequency: str
+   361→    ) -> None:
+   362→        """Save data to local cache."""
+   363→        try:
+   364→            os.makedirs(self.cache_dir, exist_ok=True)
+   365→            path = self._cache_path(dataset, frequency)
+   366→            df.to_parquet(path)
+   367→            logger.info("Cached %s/%s (%d rows)", dataset, frequency, len(df))
+   368→        except Exception as e:
+   369→            logger.warning("Failed to save cache: %s", e)
+   370→
+   371→
+   372→# ══════════════════════════════════════════════════════════════════════
+   373→# Fama-French 5-Factor Model
+   374→# ══════════════════════════════════════════════════════════════════════
+   375→
+   376→
+   377→class FF5FactorModel:
+   378→    """Fama-French 5-Factor Model with optional momentum.
+   379→
+   380→    Implements the factor regression:
+   381→        R_i - R_f = alpha + beta1*MktRF + beta2*SMB + beta3*HML
+   382→                  + beta4*RMW + beta5*CMA + [beta6*UMD] + epsilon
+   383→
+   384→    Supports:
+   385→    - 3-factor model (Fama & French, 1993): Mkt-RF, SMB, HML
+   386→    - 5-factor model (Fama & French, 2015): Mkt-RF, SMB, HML, RMW, CMA
+   387→    - 6-factor model (Carhart, 1997 + FF5): FF5 + UMD momentum
+   388→
+   389→    Usage:
+   390→        model = FF5FactorModel()
+   391→        # Load factor data
+   392→        model.load_factor_data(ff_data_df)
+   393→        # Run 5-factor regression
+   394→        result = model.regress(portfolio_returns, n_factors=5)
+   395→        # Run 3-factor regression
+   396→        result = model.regress(portfolio_returns, n_factors=3)
+   397→        # Factor attribution
+   398→        attribution = model.factor_attribution(portfolio_returns, factor_data)
+   399→        # Alpha significance test
+   400→        sig = model.alpha_significance(result)
+   401→        # Information ratio
+   402→        ir = model.information_ratio(result)
+   403→    """
+   404→
+   405→    # Standard factor name sets
+   406→    FACTOR_NAMES_3 = ["Mkt-RF", "SMB", "HML"]
+   407→    FACTOR_NAMES_5 = ["Mkt-RF", "SMB", "HML", "RMW", "CMA"]
+   408→    FACTOR_NAMES_6 = ["Mkt-RF", "SMB", "HML", "RMW", "CMA", "UMD"]
+   409→
+   410→    def __init__(
+   411→        self,
+   412→        risk_free_rate: float = 0.02,
+   413→        bars_per_year: int = 252,
+   414→    ) -> None:
+   415→        """Initialize Fama-French model.
+   416→
+   417→        Args:
+   418→            risk_free_rate: Annual risk-free rate (used when FF data not available).
+   419→            bars_per_year: Bars per year for annualization.
+   420→        """
+   421→        self.risk_free_rate = risk_free_rate
+   422→        self.bars_per_year = bars_per_year
+   423→        self._factor_data: Optional[pd.DataFrame] = None
+   424→        self._downloader = KennethFrenchDataDownloader()
+   425→
+   426→    @property
+   427→    def factor_data(self) -> Optional[pd.DataFrame]:
+   428→        """Get loaded factor data."""
+   429→        return self._factor_data
+   430→
+   431→    @property
+   432→    def has_factor_data(self) -> bool:
+   433→        """Check if factor data is loaded."""
+   434→        return self._factor_data is not None and len(self._factor_data) > 0
+   435→
+   436→    # ══════════════════════════════════════════════════════════════════
+   437→    # Data Loading
+   438→    # ══════════════════════════════════════════════════════════════════
+   439→
+   440→    def load_factor_data(
+   441→        self,
+   442→        factor_df: pd.DataFrame,
+   443→        date_column: str = "Date",
+   444→    ) -> None:
+   445→        """Load factor data from a DataFrame.
+   446→
+   447→        Expected columns: Mkt-RF, SMB, HML, RMW, CMA, RF
+   448→        Optional columns: UMD (momentum)
+   449→
+   450→        Args:
+   451→            factor_df: DataFrame with factor returns.
+   452→            date_column: Name of the date column.
+   453→        """
+   454→        df = factor_df.copy()
+   455→
+   456→        # Ensure date index
+   457→        if date_column in df.columns:
+   458→            df[date_column] = pd.to_datetime(df[date_column])
+   459→            df = df.set_index(date_column)
+   460→
+   461→        # Convert percentage returns to decimal
+   462→        for col in df.columns:
+   463→            if df[col].dtype in (np.float64, np.int64, float, int):
+   464→                if df[col].abs().mean() > 0.1:  # Likely percentage
+   465→                    df[col] = df[col] / 100.0
+   466→
+   467→        self._factor_data = df
+   468→        logger.info("Loaded factor data: %d rows, columns: %s", len(df), list(df.columns))
+   469→
+   470→    def fetch_factor_data(
+   471→        self,
+   472→        n_factors: int = 5,
+   473→        frequency: str = "daily",
+   474→        include_momentum: bool = False,
+   475→    ) -> pd.DataFrame:
+   476→        """Fetch factor data from Kenneth French's data library.
+   477→
+   478→        Downloads the Fama-French factor data from the Kenneth French
+   479→        Data Library and optionally merges momentum data.
+   480→
+   481→        Args:
+   482→            n_factors: Number of factors (3 or 5).
+   483→            frequency: 'daily' or 'monthly'.
+   484→            include_momentum: Whether to include the UMD momentum factor.
+   485→
+   486→        Returns:
+   487→            DataFrame with factor returns (decimal form).
+   488→
+   489→        Raises:
+   490→            ConnectionError: If data cannot be fetched.
+   491→        """
+   492→        dataset = "3_factor" if n_factors == 3 else "5_factor"
+   493→
+   494→        ff_data = self._downloader.download(dataset, frequency)
+   495→
+   496→        if include_momentum:
+   497→            try:
+   498→                mom_data = self._downloader.download("momentum", frequency)
+   499→                # Align on common dates
+   500→                common_idx = ff_data.index.intersection(mom_data.index)
+   501→                if len(common_idx) > 0:
+   502→                    ff_data = ff_data.loc[common_idx].join(
+   503→                        mom_data.loc[common_idx], how="left"
+   504→                    )
+   505→                else:
+   506→                    logger.warning("No overlapping dates for momentum data")
+   507→            except Exception as e:
+   508→                logger.warning("Could not fetch momentum data: %s", e)
+   509→
+   510→        self._factor_data = ff_data
+   511→        return ff_data
+   512→
+   513→    # ══════════════════════════════════════════════════════════════════
+   514→    # Factor Regression
+   515→    # ══════════════════════════════════════════════════════════════════
+   516→
+   517→    def regress(
+   518→        self,
+   519→        returns: pd.Series,
+   520→        factor_data: Optional[pd.DataFrame] = None,
+   521→        n_factors: int = 5,
+   522→        include_momentum: bool = False,
+   523→    ) -> FactorRegressionResult:
+   524→        """Run Fama-French factor regression.
+   525→
+   526→        Regresses portfolio excess returns on factor returns:
+   527→            R_p - R_f = alpha + beta1*MktRF + beta2*SMB + beta3*HML
+   528→                      + beta4*RMW + beta5*CMA + [beta6*UMD] + epsilon
+   529→
+   530→        Uses OLS regression via numpy: beta = (X'X)^(-1) X'y
+   531→
+   532→        Args:
+   533→            returns: Series of portfolio returns.
+   534→            factor_data: Factor data DataFrame. Uses loaded data if None.
+   535→            n_factors: Number of factors (3 or 5).
+   536→            include_momentum: Include UMD momentum factor.
+   537→
+   538→        Returns:
+   539→            FactorRegressionResult with all regression statistics.
+   540→        """
+   541→        ff_data = factor_data if factor_data is not None else self._factor_data
+   542→
+   543→        if ff_data is None:
+   544→            return self._simple_regression(returns)
+   545→
+   546→        # Determine factor names based on model type
+   547→        if n_factors == 3:
+   548→            factor_names = list(self.FACTOR_NAMES_3)
+   549→        elif n_factors == 5:
+   550→            factor_names = list(self.FACTOR_NAMES_5)
+   551→        else:
+   552→            factor_names = list(self.FACTOR_NAMES_5)
+   553→
+   554→        if include_momentum:
+   555→            if "UMD" not in factor_names:
+   556→                factor_names.append("UMD")
+   557→
+   558→        # Align dates
+   559→        common_idx = returns.index.intersection(ff_data.index)
+   560→        if len(common_idx) < 20:
+   561→            logger.warning(
+   562→                "Insufficient overlapping data: %d observations", len(common_idx)
+   563→            )
+   564→            return self._simple_regression(returns)
+   565→
+   566→        port_ret = returns.reindex(common_idx).fillna(0.0)
+   567→        ff = ff_data.reindex(common_idx).fillna(0.0)
+   568→
+   569→        # Get risk-free rate
+   570→        if "RF" in ff.columns:
+   571→            rf = ff["RF"]
+   572→        else:
+   573→            rf = pd.Series(self.risk_free_rate / self.bars_per_year, index=common_idx)
+   574→
+   575→        # Excess returns: R_p - R_f
+   576→        excess_returns = port_ret - rf
+   577→
+   578→        # Build factor matrix using only available factors
+   579→        available_factor_names: List[str] = []
+   580→        factor_cols: List[np.ndarray] = []
+   581→
+   582→        for name in factor_names:
+   583→            if name in ff.columns:
+   584→                available_factor_names.append(name)
+   585→                factor_cols.append(ff[name].values)
+   586→
+   587→        if not factor_cols:
+   588→            return self._simple_regression(returns)
+   589→
+   590→        # Design matrix: [ones, factor1, factor2, ...]
+   591→        n = len(common_idx)
+   592→        X = np.column_stack([np.ones(n)] + factor_cols)
+   593→        y = excess_returns.values
+   594→
+   595→        result = self._ols_regression(X, y, ["Alpha"] + available_factor_names)
+   596→        result.factor_names = available_factor_names
+   597→
+   598→        return result
+   599→
+   600→    def rolling_regression(
+   601→        self,
+   602→        returns: pd.Series,
+   603→        factor_data: Optional[pd.DataFrame] = None,
+   604→        window: int = 60,
+   605→        n_factors: int = 5,
+   606→        include_momentum: bool = False,
+   607→    ) -> pd.DataFrame:
+   608→        """Rolling factor exposure estimation.
+   609→
+   610→        Runs factor regression on a rolling window to track how
+   611→        factor exposures change over time.
+   612→
+   613→        Args:
+   614→            returns: Series of portfolio returns.
+   615→            factor_data: Factor data DataFrame.
+   616→            window: Rolling window size in bars.
+   617→            n_factors: Number of factors (3 or 5).
+   618→            include_momentum: Include momentum factor.
+   619→
+   620→        Returns:
+   621→            DataFrame with rolling factor betas (index=timestamp, columns=factors).
+   622→        """
+   623→        ff_data = factor_data if factor_data is not None else self._factor_data
+   624→
+   625→        if ff_data is None:
+   626→            logger.warning("No factor data available for rolling regression")
+   627→            return pd.DataFrame()
+   628→
+   629→        common_idx = returns.index.intersection(ff_data.index)
+   630→        if len(common_idx) < window:
+   631→            logger.warning(
+   632→                "Insufficient data for rolling regression: %d < %d",
+   633→                len(common_idx), window,
+   634→            )
+   635→            return pd.DataFrame()
+   636→
+   637→        port_ret = returns.reindex(common_idx)
+   638→        ff = ff_data.reindex(common_idx)
+   639→
+   640→        # Get risk-free rate
+   641→        if "RF" in ff.columns:
+   642→            rf = ff["RF"]
+   643→        else:
+   644→            rf = pd.Series(self.risk_free_rate / self.bars_per_year, index=common_idx)
+   645→
+   646→        excess_returns = port_ret - rf
+   647→
+   648→        # Determine factor names
+   649→        if n_factors == 3:
+   650→            base_names = list(self.FACTOR_NAMES_3)
+   651→        else:
+   652→            base_names = list(self.FACTOR_NAMES_5)
+   653→
+   654→        factor_names = [n for n in base_names if n in ff.columns]
+   655→        if include_momentum and "UMD" in ff.columns:
+   656→            factor_names.append("UMD")
+   657→
+   658→        if not factor_names:
+   659→            return pd.DataFrame()
+   660→
+   661→        # Rolling regression
+   662→        results: Dict[str, List[float]] = {f: [] for f in ["Alpha"] + factor_names}
+   663→        timestamps: List[pd.Timestamp] = []
+   664→
+   665→        for i in range(window, len(common_idx)):
+   666→            window_excess = excess_returns.iloc[i - window : i].values
+   667→            window_factors = np.column_stack(
+   668→                [np.ones(window)]
+   669→                + [ff[name].iloc[i - window : i].values for name in factor_names]
+   670→            )
+   671→
+   672→            try:
+   673→                betas = np.linalg.lstsq(window_factors, window_excess, rcond=None)[0]
+   674→                results["Alpha"].append(float(betas[0]))
+   675→                for j, name in enumerate(factor_names):
+   676→                    results[name].append(float(betas[j + 1]))
+   677→                timestamps.append(common_idx[i])
+   678→            except np.linalg.LinAlgError:
+   679→                continue
+   680→
+   681→        if not timestamps:
+   682→            return pd.DataFrame()
+   683→
+   684→        return pd.DataFrame(results, index=timestamps)
+   685→
+   686→    # ══════════════════════════════════════════════════════════════════
+   687→    # Factor Attribution
+   688→    # ══════════════════════════════════════════════════════════════════
+   689→
+   690→    def factor_attribution(
+   691→        self,
+   692→        returns: pd.Series,
+   693→        factor_data: Optional[pd.DataFrame] = None,
+   694→        n_factors: int = 5,
+   695→        include_momentum: bool = False,
+   696→    ) -> FactorAttribution:
+   697→        """Decompose returns into factor contributions.
+   698→
+   699→        Runs the factor regression first, then decomposes the total
+   700→        return into contributions from each factor:
+   701→
+   702→            R_p = alpha + sum(beta_i * mean(f_i)) + epsilon
+   703→
+   704→        Total return = Alpha + Factor contributions + Specific return
+   705→
+   706→        Args:
+   707→            returns: Series of portfolio returns.
+   708→            factor_data: Factor data DataFrame.
+   709→            n_factors: Number of factors (3 or 5).
+   710→            include_momentum: Include momentum factor.
+   711→
+   712→        Returns:
+   713→            FactorAttribution with decomposition.
+   714→        """
+   715→        ff_data = factor_data if factor_data is not None else self._factor_data
+   716→
+   717→        if ff_data is None:
+   718→            total_return = float(returns.mean()) * self.bars_per_year
+   719→            return FactorAttribution(
+   720→                total_return=round(total_return, 6),
+   721→                factor_return=0.0,
+   722→                specific_return=round(total_return, 6),
+   723→                alpha=round(total_return, 6),
+   724→                factor_contributions={},
+   725→            )
+   726→
+   727→        # Run regression
+   728→        reg_result = self.regress(
+   729→            returns, factor_data=ff_data,
+   730→            n_factors=n_factors, include_momentum=include_momentum,
+   731→        )
+   732→
+   733→        # Align dates for factor means
+   734→        common_idx = returns.index.intersection(ff_data.index)
+   735→        if len(common_idx) == 0:
+   736→            total_return = float(returns.mean()) * self.bars_per_year
+   737→            return FactorAttribution(
+   738→                total_return=round(total_return, 6),
+   739→                factor_return=0.0,
+   740→                specific_return=round(total_return, 6),
+   741→                alpha=round(total_return, 6),
+   742→                factor_contributions={},
+   743→            )
+   744→
+   745→        ff_aligned = ff_data.reindex(common_idx)
+   746→
+   747→        total_return = float(returns.reindex(common_idx).mean()) * self.bars_per_year
+   748→
+   749→        alpha = reg_result.alphas[0].beta if reg_result.alphas else 0.0
+   750→        alpha_annual = alpha * self.bars_per_year
+   751→
+   752→        # Factor contributions: beta_i * mean(f_i) * bars_per_year
+   753→        factor_contributions: Dict[str, float] = {}
+   754→        factor_return = 0.0
+   755→
+   756→        for exposure in reg_result.exposures:
+   757→            if exposure.factor_name in ff_aligned.columns:
+   758→                factor_mean = float(ff_aligned[exposure.factor_name].mean())
+   759→            else:
+   760→                factor_mean = 0.0
+   761→
+   762→            contribution = exposure.beta * factor_mean * self.bars_per_year
+   763→            factor_contributions[exposure.factor_name] = round(contribution, 6)
+   764→            factor_return += contribution
+   765→
+   766→        specific_return = total_return - factor_return
+   767→
+   768→        return FactorAttribution(
+   769→            total_return=round(total_return, 6),
+   770→            factor_return=round(factor_return, 6),
+   771→            specific_return=round(specific_return, 6),
+   772→            alpha=round(alpha_annual, 6),
+   773→            factor_contributions=factor_contributions,
+   774→        )
+   775→
+   776→    # ══════════════════════════════════════════════════════════════════
+   777→    # Alpha Significance and Information Ratio
+   778→    # ══════════════════════════════════════════════════════════════════
+   779→
+   780→    def alpha_significance(
+   781→        self,
+   782→        regression_result: FactorRegressionResult,
+   783→        confidence_level: float = 0.05,
+   784→    ) -> AlphaSignificance:
+   785→        """Test if alpha is statistically significant.
+   786→
+   787→        Uses the t-statistic from the regression to test:
+   788→            H0: alpha = 0
+   789→            H1: alpha != 0
+   790→
+   791→        Args:
+   792→            regression_result: Result from factor regression.
+   793→            confidence_level: Significance level (e.g., 0.05 for 5%).
+   794→
+   795→        Returns:
+   796→            AlphaSignificance with test results.
+   797→        """
+   798→        if not regression_result.alphas:
+   799→            return AlphaSignificance(
+   800→                alpha=0.0,
+   801→                alpha_annual=0.0,
+   802→                t_stat=0.0,
+   803→                p_value=1.0,
+   804→                is_significant=False,
+   805→                confidence_level=confidence_level,
+   806→                information_ratio=0.0,
+   807→            )
+   808→
+   809→        alpha_exp = regression_result.alphas[0]
+   810→        alpha_per_bar = alpha_exp.beta
+   811→        alpha_annual = alpha_per_bar * self.bars_per_year
+   812→        t_stat = alpha_exp.t_stat
+   813→        p_value = alpha_exp.p_value
+   814→
+   815→        # Compute information ratio: alpha / residual volatility (annualized)
+   816→        residuals = regression_result.residuals
+   817→        if len(residuals) > 1 and np.std(residuals, ddof=1) > 1e-10:
+   818→            residual_vol = float(np.std(residuals, ddof=1)) * np.sqrt(self.bars_per_year)
+   819→            information_ratio = alpha_annual / residual_vol
+   820→        else:
+   821→            information_ratio = 0.0
+   822→
+   823→        return AlphaSignificance(
+   824→            alpha=round(alpha_per_bar, 8),
+   825→            alpha_annual=round(alpha_annual, 6),
+   826→            t_stat=round(t_stat, 4),
+   827→            p_value=round(p_value, 6),
+   828→            is_significant=p_value < confidence_level,
+   829→            confidence_level=confidence_level,
+   830→            information_ratio=round(information_ratio, 4),
+   831→        )
+   832→
+   833→    def information_ratio(
+   834→        self,
+   835→        regression_result: FactorRegressionResult,
+   836→    ) -> float:
+   837→        """Calculate the Information Ratio from factor regression.
+   838→
+   839→        IR = alpha / residual_volatility (annualized)
+   840→
+   841→        The information ratio measures the excess return per unit of
+   842→        idiosyncratic risk. A higher IR indicates better risk-adjusted
+   843→        performance relative to the factor model.
+   844→
+   845→        Args:
+   846→            regression_result: Result from factor regression.
+   847→
+   848→        Returns:
+   849→            Information ratio (annualized).
+   850→        """
+   851→        if not regression_result.alphas:
+   852→            return 0.0
+   853→
+   854→        alpha_per_bar = regression_result.alphas[0].beta
+   855→        alpha_annual = alpha_per_bar * self.bars_per_year
+   856→
+   857→        residuals = regression_result.residuals
+   858→        if len(residuals) > 1 and np.std(residuals, ddof=1) > 1e-10:
+   859→            residual_vol = float(np.std(residuals, ddof=1)) * np.sqrt(self.bars_per_year)
+   860→            return round(alpha_annual / residual_vol, 4)
+   861→        else:
+   862→            return 0.0
+   863→
+   864→    # ══════════════════════════════════════════════════════════════════
+   865→    # Internal Methods
+   866→    # ══════════════════════════════════════════════════════════════════
+   867→
+   868→    def _simple_regression(
+   869→        self,
+   870→        returns: pd.Series,
+   871→    ) -> FactorRegressionResult:
+   872→        """Simple market-model regression when factor data unavailable.
+   873→
+   874→        Uses a single market factor estimated from the returns themselves.
+   875→        """
+   876→        n = len(returns)
+   877→        if n < 20:
+   878→            return FactorRegressionResult(
+   879→                alphas=[], exposures=[],
+   880→                r_squared=0.0, adj_r_squared=0.0,
+   881→                f_stat=0.0, f_pvalue=1.0,
+   882→                residuals=np.array([]), n_observations=n,
+   883→                factor_names=[],
+   884→            )
+   885→
+   886→        # Use excess returns over risk-free rate
+   887→        rf_per_bar = self.risk_free_rate / self.bars_per_year
+   888→        excess = returns - rf_per_bar
+   889→
+   890→        # Simple: just estimate alpha and residual
+   891→        alpha = float(excess.mean())
+   892→        residuals = excess.values - alpha
+   893→        std_err = float(np.std(residuals, ddof=1) / np.sqrt(n))
+   894→        t_stat = alpha / std_err if std_err > 1e-10 else 0.0
+   895→        p_value = 2 * (1 - sp_stats.t.cdf(abs(t_stat), df=n - 1))
+   896→
+   897→        alpha_exposure = FactorExposure(
+   898→            factor_name="Alpha",
+   899→            beta=round(alpha, 6),
+   900→            t_stat=round(t_stat, 4),
+   901→            p_value=round(p_value, 6),
+   902→            std_error=round(std_err, 6),
+   903→        )
+   904→
+   905→        return FactorRegressionResult(
+   906→            alphas=[alpha_exposure],
+   907→            exposures=[],
+   908→            r_squared=0.0,
+   909→            adj_r_squared=0.0,
+   910→            f_stat=t_stat ** 2,
+   911→            f_pvalue=p_value,
+   912→            residuals=residuals,
+   913→            n_observations=n,
+   914→            factor_names=[],
+   915→        )
+   916→
+   917→    @staticmethod
+   918→    def _ols_regression(
+   919→        X: np.ndarray,
+   920→        y: np.ndarray,
+   921→        var_names: List[str],
+   922→    ) -> FactorRegressionResult:
+   923→        """OLS regression using numpy: beta = (X'X)^(-1) X'y.
+   924→
+   925→        Computes:
+   926→        - Coefficients (betas): beta = (X'X)^(-1) X'y
+   927→        - Standard errors: se(beta_j) = sqrt(sigma^2 * [(X'X)^(-1)]_{jj})
+   928→        - t-statistics: t_j = beta_j / se(beta_j)
+   929→        - p-values: two-tailed t-test with n-k degrees of freedom
+   930→        - R-squared: 1 - RSS/TSS
+   931→        - Adjusted R-squared: 1 - (1 - R^2)(n-1)/(n-k)
+   932→        - F-statistic: ((TSS - RSS)/(k-1)) / (RSS/(n-k))
+   933→
+   934→        Args:
+   935→            X: Design matrix (n x k) with intercept column.
+   936→            y: Dependent variable (n,).
+   937→            var_names: Names of variables (including intercept).
+   938→
+   939→        Returns:
+   940→            FactorRegressionResult with all statistics.
+   941→        """
+   942→        n, k = X.shape
+   943→
+   944→        # OLS: beta = (X'X)^(-1) X'y
+   945→        betas, _, rank, _ = np.linalg.lstsq(X, y, rcond=None)
+   946→
+   947→        # Residuals: e = y - X*beta
+   948→        y_hat = X @ betas
+   949→        residuals = y - y_hat
+   950→
+   951→        # Residual sum of squares: RSS = e'e
+   952→        rss = float(np.sum(residuals ** 2))
+   953→
+   954→        # Total sum of squares: TSS = (y - y_bar)'(y - y_bar)
+   955→        tss = float(np.sum((y - np.mean(y)) ** 2))
+   956→
+   957→        # R-squared: R^2 = 1 - RSS/TSS
+   958→        r_squared = 1 - rss / tss if tss > 0 else 0.0
+   959→
+   960→        # Adjusted R-squared: 1 - (1-R^2)(n-1)/(n-k)
+   961→        adj_r_squared = 1 - (1 - r_squared) * (n - 1) / (n - k) if n > k else 0.0
+   962→
+   963→        # Variance-covariance matrix: Var(beta) = sigma^2 * (X'X)^(-1)
+   964→        # sigma^2 = RSS / (n - k)
+   965→        sigma2 = rss / (n - k) if n > k else rss
+   966→
+   967→        try:
+   968→            xtx_inv = np.linalg.inv(X.T @ X)
+   969→        except np.linalg.LinAlgError:
+   970→            xtx_inv = np.linalg.pinv(X.T @ X)
+   971→
+   972→        var_betas = sigma2 * xtx_inv
+   973→        std_errors = np.sqrt(np.diag(var_betas))
+   974→
+   975→        # t-statistics: t_j = beta_j / se(beta_j)
+   976→        t_stats = betas / std_errors
+   977→
+   978→        # p-values (two-tailed): P(|T| > |t_j|)
+   979→        p_values = 2 * (1 - sp_stats.t.cdf(np.abs(t_stats), df=n - k))
+   980→
+   981→        # F-statistic for overall significance
+   982→        if k > 1 and rss > 0:
+   983→            f_stat = ((tss - rss) / (k - 1)) / (rss / (n - k))
+   984→            f_pvalue = 1 - sp_stats.f.cdf(f_stat, k - 1, n - k)
+   985→        else:
+   986→            f_stat = 0.0
+   987→            f_pvalue = 1.0
+   988→
+   989→        # Build exposure objects
+   990→        alphas: List[FactorExposure] = []
+   991→        exposures: List[FactorExposure] = []
+   992→
+   993→        for i, name in enumerate(var_names):
+   994→            exposure = FactorExposure(
+   995→                factor_name=name,
+   996→                beta=round(float(betas[i]), 6),
+   997→                t_stat=round(float(t_stats[i]), 4),
+   998→                p_value=round(float(p_values[i]), 6),
+   999→                std_error=round(float(std_errors[i]), 6),
+  1000→            )
+  1001→            if name == "Alpha":
+  1002→                alphas.append(exposure)
+  1003→            else:
+  1004→                exposures.append(exposure)
+  1005→
+  1006→        return FactorRegressionResult(
+  1007→            alphas=alphas,
+  1008→            exposures=exposures,
+  1009→            r_squared=round(float(r_squared), 6),
+  1010→            adj_r_squared=round(float(adj_r_squared), 6),
+  1011→            f_stat=round(float(f_stat), 4),
+  1012→            f_pvalue=round(float(f_pvalue), 6),
+  1013→            residuals=residuals,
+  1014→            n_observations=n,
+  1015→        )
+  1016→
+  1017→
+  1018→# ══════════════════════════════════════════════════════════════════════
+  1019→# Backward Compatibility Alias
+  1020→# ══════════════════════════════════════════════════════════════════════
+  1021→
+  1022→FamaFrenchModel = FF5FactorModel
+  1023→

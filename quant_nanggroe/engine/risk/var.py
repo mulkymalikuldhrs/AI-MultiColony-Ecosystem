@@ -65,6 +65,10 @@ class VaRCalculator:
     def __init__(self, default_confidence: float = 0.95) -> None:
         self.default_confidence = default_confidence
 
+    # Default seed for reproducibility in backtests; set to None for
+    # production where non-determinism is acceptable.
+    DEFAULT_MC_SEED: int = 42
+
     def calculate(
         self,
         returns: np.ndarray,
@@ -72,6 +76,7 @@ class VaRCalculator:
         method: str = "auto",
         portfolio_value: float = 1.0,
         num_simulations: int = 10000,
+        random_seed: Optional[int] = None,
     ) -> VaRResult:
         """Calculate VaR and CVaR.
 
@@ -81,10 +86,15 @@ class VaRCalculator:
             method: 'auto', 'parametric', 'historical', 'monte_carlo'.
             portfolio_value: Portfolio value for monetary VaR.
             num_simulations: Simulations for Monte Carlo method.
+            random_seed: Seed for reproducibility. If None, uses DEFAULT_MC_SEED (42)
+                for deterministic backtest behaviour. Pass ``-1`` to disable seeding.
 
         Returns:
             VaRResult with VaR and CVaR values.
         """
+        # Resolve seed: explicit None → use default; -1 → no seeding.
+        if random_seed is None:
+            random_seed = self.DEFAULT_MC_SEED
         returns = np.asarray(returns, dtype=np.float64)
         returns = returns[~np.isnan(returns)]
 
@@ -100,14 +110,16 @@ class VaRCalculator:
         if method == "auto":
             method = self._select_method(len(returns))
 
+        seed_for_mc = None if random_seed == -1 else random_seed
+
         if method == "parametric":
             return self._parametric_var(returns, confidence_level, portfolio_value)
         elif method == "historical":
-            return self._historical_var(returns, confidence_level, portfolio_value)
+            return self._historical_var(returns, confidence_level, portfolio_value, random_seed=seed_for_mc)
         elif method == "monte_carlo":
-            return self._monte_carlo_var(returns, confidence_level, portfolio_value, num_simulations)
+            return self._monte_carlo_var(returns, confidence_level, portfolio_value, num_simulations, random_seed=seed_for_mc)
         else:
-            return self._historical_var(returns, confidence_level, portfolio_value)
+            return self._historical_var(returns, confidence_level, portfolio_value, random_seed=seed_for_mc)
 
     @staticmethod
     def _select_method(n_observations: int) -> str:
@@ -197,6 +209,7 @@ class VaRCalculator:
         returns: np.ndarray,
         confidence_level: float,
         portfolio_value: float,
+        random_seed: Optional[int] = None,
     ) -> VaRResult:
         """Historical VaR using empirical distribution.
 
@@ -223,7 +236,7 @@ class VaRCalculator:
             cvar_value = var_value
 
         # Bootstrap confidence interval
-        ci = self._bootstrap_ci(returns, alpha, portfolio_value)
+        ci = self._bootstrap_ci(returns, alpha, portfolio_value, random_seed=random_seed)
 
         return VaRResult("historical", confidence_level, var_value, cvar_value, ci)
 
@@ -233,13 +246,25 @@ class VaRCalculator:
         confidence_level: float,
         portfolio_value: float,
         num_simulations: int,
+        random_seed: Optional[int] = None,
     ) -> VaRResult:
         """Monte Carlo VaR through simulation.
 
         Generates random scenarios from the fitted distribution
         and computes VaR/CVaR from the simulated distribution.
+
+        Args:
+            returns: Historical returns array.
+            confidence_level: Confidence level (e.g. 0.95).
+            portfolio_value: Portfolio value for monetary VaR.
+            num_simulations: Number of Monte Carlo simulations.
+            random_seed: If provided, seeds np.random for reproducibility.
         """
         from scipy import stats
+
+        # Seed RNG for reproducibility if requested
+        if random_seed is not None:
+            np.random.seed(random_seed)
 
         mean = np.mean(returns)
         std = np.std(returns, ddof=1)
@@ -248,7 +273,7 @@ class VaRCalculator:
         # Fit t-distribution for better tail modeling
         try:
             df_t, loc_t, scale_t = stats.t.fit(returns)
-            simulated = stats.t.rvs(df_t, loc=loc_t, scale=scale_t, size=num_simulations)
+            simulated = stats.t.rvs(df_t, loc=loc_t, scale=scale_t, size=num_simulations, random_state=random_seed)
         except Exception:
             simulated = np.random.normal(mean, std, size=num_simulations)
 
@@ -262,11 +287,14 @@ class VaRCalculator:
         else:
             cvar_value = var_value
 
-        # Confidence interval using percentiles of the simulated distribution
-        ci = (
-            abs(np.percentile(simulated, alpha * 100 + 1.96) * portfolio_value),
-            abs(np.percentile(simulated, alpha * 100 - 1.96) * portfolio_value),
-        )
+        # Confidence interval using correct percentile method:
+        # Previous code used alpha*100 ± 1.96 as percentile indices, which is
+        # mathematically wrong (±1.96 is a z-score, not a percentile offset).
+        #
+        # Correct approach: bootstrap the simulated returns to get a CI for
+        # the VaR estimate, just like the historical method does. This gives
+        # a proper (lower, upper) CI where lower < upper.
+        ci = self._bootstrap_ci(simulated, alpha, portfolio_value, random_seed=random_seed)
 
         return VaRResult("monte_carlo", confidence_level, var_value, cvar_value, ci)
 
@@ -276,15 +304,29 @@ class VaRCalculator:
         alpha: float,
         portfolio_value: float,
         n_bootstrap: int = 1000,
+        random_seed: Optional[int] = None,
     ) -> Tuple[float, float]:
-        """Bootstrap confidence interval for VaR."""
+        """Bootstrap confidence interval for VaR.
+
+        Args:
+            returns: Historical returns array.
+            alpha: 1 - confidence_level.
+            portfolio_value: Portfolio value for monetary scaling.
+            n_bootstrap: Number of bootstrap resamples.
+            random_seed: If provided, seeds np.random for reproducibility.
+        """
+        if random_seed is not None:
+            np.random.seed(random_seed)
         var_samples = []
         n = len(returns)
         for _ in range(n_bootstrap):
             sample = np.random.choice(returns, size=n, replace=True)
             var_samples.append(np.percentile(sample, alpha * 100))
 
-        return (
-            abs(np.percentile(var_samples, 2.5)) * portfolio_value,
-            abs(np.percentile(var_samples, 97.5)) * portfolio_value,
-        )
+        # var_samples are percentiles of returns at the alpha level — typically
+        # negative numbers.  The 2.5th percentile of var_samples is the most
+        # negative (largest loss), and the 97.5th is the least negative (smallest
+        # loss).  After abs(), lower VaR bound = abs(97.5th), upper = abs(2.5th).
+        lower = abs(np.percentile(var_samples, 97.5)) * portfolio_value
+        upper = abs(np.percentile(var_samples, 2.5)) * portfolio_value
+        return (min(lower, upper), max(lower, upper))

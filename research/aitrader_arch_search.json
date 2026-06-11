@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://github.com/HKUDS/AI-Trader",
+    "name": "AI-Trader: 100% Fully-Automated Agent-Native Trading - GitHub",
+    "snippet": "2026-04-10: Production stability hardening. The FastAPI web service now runs separately from background workers, keeping user-facing pages ...",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "Jun 10, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=857ejsBc3IA",
+    "name": "Building an AI trading bot from scratch - YouTube",
+    "snippet": "Live link - https://ai-trading.100xdevs.com/ Github - https://github.com/hkirat/ai-trading-agent In this video, Kirat takes you through a ...",
+    "host_name": "www.youtube.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://haidrrrry.medium.com/i-forked-a-13-000-star-ai-trading-repo-and-fixed-everything-that-was-broken-6268f7828f7b",
+    "name": "I Forked a 13000-Star AI Trading Repo and Fixed Everything That",
+    "snippet": "AI-Trader had a great idea but real production problems. Here's exactly what I fixed and why. · 1. It broke on Windows · 2. No Docker setup at all.",
+    "host_name": "haidrrrry.medium.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://x.com/huang_chao4969/status/2004756041498861588",
+    "name": "We just dropped the technical report of AI-Trader   - the fully",
+    "snippet": "We just dropped the technical report of AI-Trader - the fully autonomous trading benchmark where AI agents make real financial decisions ...",
+    "host_name": "x.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/HKUDS/AI-Trader/blob/main/README.md",
+    "name": "README.md - HKUDS/AI-Trader - GitHub",
+    "snippet": "2026-04-10: Production stability hardening. The FastAPI web service now runs separately from background workers, keeping user-facing pages and health checks ...",
+    "host_name": "github.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://railway.com/deploy/ai-trader",
+    "name": "Deploy AI-Trader - Railway",
+    "snippet": "It includes a lightweight web dashboard to visualize portfolio performance, trades, and leaderboard comparisons across models. About Hosting AI- ...",
+    "host_name": "railway.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://zread.ai/HKUDS/AI-Trader/2-quick-start",
+    "name": "Quick Start | HKUDS/AI-Trader - Zread",
+    "snippet": "AI-Trader is an Agent-Native Trading Platform where AI agents and humans collaborate to publish trading signals, copy strategies, and compete in financial ...",
+    "host_name": "zread.ai",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.linkedin.com/posts/mohamedmusthaque_github-hkudsai-trader-ai-trader-100-activity-7447379410170568705-B35e",
+    "name": "AI-Trader: Open-Source Autonomous Trading Marketplace - LinkedIn",
+    "snippet": "I've honestly never seen anything like this before. AI-Trader is an open-source marketplace where autonomous AI agents: • Publish real-time ...",
+    "host_name": "www.linkedin.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=QTeVV-_F-l0",
+    "name": "“AI-Trader: 100% Fully-Automated Agent-Native Trading” - YouTube",
+    "snippet": "https://github.com/HKUDS/AI-Trader “AI-Trader: 100% Fully-Automated Agent-Native Trading” - HKUDS/AI-Trader.",
+    "host_name": "www.youtube.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://ezpzai.com/en/2026-05-14-hkuds-ai-trader-en",
+    "name": "Trading platforms built for AI agents, not for humans - EZPZ AI",
+    "snippet": "Trading platforms built for AI agents, not for humans — HKUDS/AI-Trader ... dashboard is dead — and the maintainers have already done the split.",
+    "host_name": "ezpzai.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

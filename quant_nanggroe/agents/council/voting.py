@@ -8,6 +8,7 @@ on the aggregate weighted votes.
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from datetime import datetime
@@ -261,6 +262,11 @@ class CouncilVoting:
         """
         Extract a vote from an agent's output.
 
+        Extraction strategy (in priority order):
+        1. Try to parse the content as JSON (structured output from LLM).
+        2. Fall back to regex pattern matching on the text.
+        3. If neither works, default to HOLD.
+
         Args:
             agent_name: Name of the voting agent
             output: Agent output dictionary
@@ -272,30 +278,22 @@ class CouncilVoting:
         content = output.get("content", "")
         confidence = output.get("confidence", 0.5)
 
-        # Extract vote from content
-        vote = TradeAction.HOLD
+        # ── Step 1: Try structured JSON parsing ────────────────────────
+        vote = self._try_json_vote(content)
 
-        # Check for explicit action mentions
-        action_patterns = [
-            (r"\bBUY\b", TradeAction.BUY),
-            (r"\bSELL\b", TradeAction.SELL),
-            (r"\bHOLD\b", TradeAction.HOLD),
-            (r"\bCLOSE\b", TradeAction.CLOSE),
-            (r"\bEMERGENCY_EXIT\b", TradeAction.EMERGENCY_EXIT),
-            (r"FINAL TRANSACTION PROPOSAL:\s*\*\*(\w+)\*\*", None),
-        ]
+        # ── Step 2: Regex fallback ─────────────────────────────────────
+        if vote is None:
+            vote = self._try_regex_vote(content)
 
-        for pattern, action in action_patterns:
-            match = re.search(pattern, content, re.IGNORECASE)
-            if match:
-                if action:
-                    vote = action
-                else:
-                    try:
-                        vote = TradeAction(match.group(1).upper())
-                    except ValueError:
-                        vote = TradeAction.HOLD
-                break
+        # ── Step 3: Default to HOLD if nothing matched ─────────────────
+        if vote is None:
+            vote = TradeAction.HOLD
+            logger.warning(
+                "Vote extraction: no JSON or regex match for agent '%s', "
+                "defaulting to HOLD. Content preview: %.100s",
+                agent_name,
+                content,
+            )
 
         # Special handling for risk agent
         if agent_name == "risk":
@@ -318,6 +316,76 @@ class CouncilVoting:
         reasoning = content[:200] if content else f"Vote based on {agent_name} analysis"
 
         return vote, confidence, reasoning
+
+    # ── Vote extraction helpers ────────────────────────────────────────
+
+    @staticmethod
+    def _try_json_vote(content: str) -> Optional[TradeAction]:
+        """Attempt to extract a vote from JSON-structured LLM output.
+
+        Looks for keys like 'vote', 'action', or 'decision' in the
+        parsed JSON and maps the value to a TradeAction enum member.
+
+        Returns None if content is not valid JSON or no recognised key found.
+        """
+        # Quick check: if the content doesn't look like JSON at all, skip.
+        stripped = content.strip()
+        if not stripped.startswith(("{", "[")):
+            return None
+
+        try:
+            data = json.loads(stripped)
+        except (json.JSONDecodeError, TypeError):
+            # The LLM may wrap JSON in markdown — try to extract it.
+            json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", stripped, re.DOTALL)
+            if json_match:
+                try:
+                    data = json.loads(json_match.group(1))
+                except (json.JSONDecodeError, TypeError):
+                    return None
+            else:
+                return None
+
+        if not isinstance(data, dict):
+            return None
+
+        # Check common key names for the vote/action
+        for key in ("vote", "action", "decision", "trade_action"):
+            value = data.get(key)
+            if value is not None:
+                try:
+                    return TradeAction(str(value).upper())
+                except ValueError:
+                    continue
+        return None
+
+    @staticmethod
+    def _try_regex_vote(content: str) -> Optional[TradeAction]:
+        """Attempt to extract a vote using regex pattern matching.
+
+        Returns None if no pattern matches.
+        """
+        action_patterns = [
+            (r"\bBUY\b", TradeAction.BUY),
+            (r"\bSELL\b", TradeAction.SELL),
+            (r"\bHOLD\b", TradeAction.HOLD),
+            (r"\bCLOSE\b", TradeAction.CLOSE),
+            (r"\bEMERGENCY_EXIT\b", TradeAction.EMERGENCY_EXIT),
+            (r"FINAL TRANSACTION PROPOSAL:\s*\*\*(\w+)\*\*", None),
+        ]
+
+        for pattern, action in action_patterns:
+            match = re.search(pattern, content, re.IGNORECASE)
+            if match:
+                if action:
+                    return action
+                else:
+                    try:
+                        return TradeAction(match.group(1).upper())
+                    except ValueError:
+                        return TradeAction.HOLD
+
+        return None
 
     def _summarize_debate(self, debate_state: Dict[str, Any]) -> str:
         """

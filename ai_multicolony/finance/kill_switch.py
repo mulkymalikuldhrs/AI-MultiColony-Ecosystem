@@ -187,13 +187,21 @@ class KillSwitch:
 
         return event
 
-    def deactivate(self, reason: str = "Manual deactivation") -> Optional[KillSwitchEvent]:
+    def deactivate(self, reason: str = "Manual deactivation", approved: bool = False) -> Optional[KillSwitchEvent]:
         """Deactivate the kill switch.
+
+        Parameters
+        ----------
+        reason:
+            Reason for deactivation.
+        approved:
+            Explicit approval for deactivation. Required when Level 3
+            is active and ``level_3_requires_approval`` is True.
 
         Returns
         -------
         KillSwitchEvent or None
-            Deactivation record, or None if not active.
+            Deactivation record, or None if not active or not allowed.
         """
         if self._status != KillSwitchStatus.ACTIVE:
             return None
@@ -215,7 +223,11 @@ class KillSwitch:
 
         # Level 3 requires approval
         if self._current_level == KillSwitchLevel.LEVEL_3 and self._config.level_3_requires_approval:
-            logger.warning("Level 3 deactivation requires explicit approval")
+            if not approved:
+                logger.warning(
+                    "Level 3 deactivation requires explicit approval — deactivation denied"
+                )
+                return None
 
         previous_level = self._current_level
         self._current_level = KillSwitchLevel.NONE

@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://arxiv.org/html/2405.10706v1",
+    "name": "Challenging the Human-in-the-loop in Algorithmic Decision-making",
+    "snippet": "We discuss the role of humans in algorithmic decision-making ( ADM ) for socially relevant problems from a technical and philosophical perspective.",
+    "host_name": "arxiv.org",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/html/2412.14232v1",
+    "name": "Human-in-the-loop or AI-in-the-loop? Automate or Collaborate? - arXiv",
+    "snippet": "Human-in-the-loop (HIL) systems have emerged as a promising approach for combining the strengths of data-driven machine learning models\nHuman-in-the-loop (HIL) systems have emerged as a promising approach for combining the strengths of data-driven machine learning models with the contextual ...",
+    "host_name": "arxiv.org",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://knightcolumbia.org/content/ai-as-normal-technology",
+    "name": "AI as Normal Technology - | Knight First Amendment Institute",
+    "snippet": "As we discussed above, there are many new models being proposed for how to have effective human oversight without having a human in the loop in ...\n... AI systems will operate autonomously, making high-stakes decisions without human oversight. ... human in the loop in every decision. It ...",
+    "host_name": "knightcolumbia.org",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://link.springer.com/rwe/10.1007/978-981-97-8440-0_75-1",
+    "name": "Human-in/on-the-Loop Design for Human Controllability",
+    "snippet": "This chapter examines human-in-the-loop (HITL) and human-on-the-loop (HOTL) frameworks in artificial intelligence (AI) systems, focusing on design principles",
+    "host_name": "link.springer.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arroma.uiowa.edu/docs/publication/paper_pdf/2025/xiao_et_al_2025.pdf",
+    "name": "[PDF] Implementation of Human-AI Interaction in Reinforcement Learning",
+    "snippet": "ABSTRACT: The integration of human factors into artificial intelligence (AI) systems has emerged as a critical research.",
+    "host_name": "arroma.uiowa.edu",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/html/2503.12687v1",
+    "name": "AI Agents: Evolution, Architecture, and Real-World Applications - arXiv",
+    "snippet": "Decision support systems powered by AI agents assist human decision-makers by gathering and analyzing relevant information, identifying options ...",
+    "host_name": "arxiv.org",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://hai-production.s3.amazonaws.com/files/hai_ai_index_report_2025.pdf",
+    "name": "[PDF] Artificial Intelligence Index Report 2025 - AWS",
+    "snippet": "78% of organizations reported using AI in 2024, up from 55% the year before. AI boosts productivity. HumanEval shrank",
+    "host_name": "hai-production.s3.amazonaws.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm/5452734.pdf?abstractid=5452734&mirid=1&type=2",
+    "name": "[PDF] Deterrence, Escalation, and Strategic Ambiguity in the Algorithmic Age",
+    "snippet": "This article examines how autonomous weapons and algorithmic decision-making challenge traditional deterrence theory, destabilize escalation pathways, and ...",
+    "host_name": "papers.ssrn.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11854726",
+    "name": "A Quantum Probability Approach to Improving Human–AI Decision",
+    "snippet": "This perspective paper explores how QPT may be applied to human–AI interactions and contributes by integrating these concepts into human-in-the-loop decision ...",
+    "host_name": "pmc.ncbi.nlm.nih.gov",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.oecd.org/content/dam/oecd/en/publications/reports/2026/02/exploring-possible-ai-trajectories-through-2030_b6fb75d9/cb41117a-en.pdf",
+    "name": "[PDF] Exploring possible AI trajectories through 2030 - OECD",
+    "snippet": "This paper decomposes plausible AI capability progress in each scenario in line with the OECD's beta AI capability indicators, exploring plausible capability ...",
+    "host_name": "www.oecd.org",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

@@ -25,6 +25,7 @@ Usage:
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional
 
@@ -73,11 +74,26 @@ class FactorPipeline:
             self._factor_ids = factor_ids
         else:
             self._factor_ids = self._registry.list()
+        self._as_of_date: Optional[datetime] = None
 
     @property
     def factor_ids(self) -> List[str]:
         """List of factor IDs in this pipeline."""
         return list(self._factor_ids)
+
+    @property
+    def as_of_date(self) -> Optional[datetime]:
+        """Current point-in-time date for the pipeline.
+
+        When set, factors can only access data up to this date.
+        This prevents look-ahead bias in backtesting.
+        """
+        return self._as_of_date
+
+    @as_of_date.setter
+    def as_of_date(self, value: Optional[datetime]) -> None:
+        """Set the point-in-time date."""
+        self._as_of_date = value
 
     @staticmethod
     def _df_to_panel(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
@@ -93,7 +109,59 @@ class FactorPipeline:
             panel[col].columns = [col]
         return panel
 
-    def compute(self, df: pd.DataFrame) -> Dict[str, pd.Series]:
+    def _filter_to_as_of_date_df(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Filter a DataFrame to only include data up to as_of_date.
+
+        Logs a warning when future data rows are excluded.
+
+        Args:
+            df: Input DataFrame with DatetimeIndex.
+
+        Returns:
+            Filtered DataFrame with only rows up to as_of_date.
+        """
+        if self._as_of_date is None:
+            return df
+        if not isinstance(df.index, pd.DatetimeIndex):
+            logger.warning(
+                "as_of_date is set but DataFrame index is not DatetimeIndex; "
+                "cannot filter for point-in-time compliance"
+            )
+            return df
+        original_len = len(df)
+        filtered = df[df.index <= pd.Timestamp(self._as_of_date)]
+        excluded = original_len - len(filtered)
+        if excluded > 0:
+            logger.warning(
+                "Point-in-time filter: excluding %d rows after as_of_date=%s "
+                "(original=%d, remaining=%d)",
+                excluded,
+                self._as_of_date.isoformat(),
+                original_len,
+                len(filtered),
+            )
+        return filtered
+
+    def _filter_to_as_of_date_panel(
+        self, panel: dict[str, pd.DataFrame]
+    ) -> dict[str, pd.DataFrame]:
+        """Filter a panel dict to only include data up to as_of_date.
+
+        Args:
+            panel: Dict mapping column names to wide DataFrames.
+
+        Returns:
+            Filtered panel dict.
+        """
+        if self._as_of_date is None:
+            return panel
+        return {key: self._filter_to_as_of_date_df(df) for key, df in panel.items()}
+
+    def compute(
+        self,
+        df: pd.DataFrame,
+        as_of_date: Optional[datetime] = None,
+    ) -> Dict[str, pd.Series]:
         """Compute all pipeline factors on the given DataFrame.
 
         Legacy method for backward compatibility with class-based factors.
@@ -102,10 +170,19 @@ class FactorPipeline:
 
         Args:
             df: Input DataFrame with OHLCV data.
+            as_of_date: Point-in-time cutoff date. When set, only data
+                up to this date is used for computation, preventing
+                look-ahead bias. Overrides the instance-level as_of_date
+                if provided.
 
         Returns:
             Dict mapping factor_id -> pd.Series of computed values.
         """
+        # Apply point-in-time filter
+        if as_of_date is not None:
+            self._as_of_date = as_of_date
+        df = self._filter_to_as_of_date_df(df)
+
         results: Dict[str, pd.Series] = {}
 
         for fid in self._factor_ids:
@@ -142,7 +219,11 @@ class FactorPipeline:
 
         return results
 
-    def compute_panel(self, panel: dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]:
+    def compute_panel(
+        self,
+        panel: dict[str, pd.DataFrame],
+        as_of_date: Optional[datetime] = None,
+    ) -> Dict[str, pd.DataFrame]:
         """Compute all pipeline factors on the given panel dict.
 
         This is the preferred method for function-based factors that use
@@ -151,10 +232,19 @@ class FactorPipeline:
         Args:
             panel: Dict mapping column names to wide DataFrames
                    (index=dates, columns=instruments).
+            as_of_date: Point-in-time cutoff date. When set, only data
+                up to this date is used for computation, preventing
+                look-ahead bias. Overrides the instance-level as_of_date
+                if provided.
 
         Returns:
             Dict mapping factor_id -> pd.DataFrame of computed values.
         """
+        # Apply point-in-time filter
+        if as_of_date is not None:
+            self._as_of_date = as_of_date
+        panel = self._filter_to_as_of_date_panel(panel)
+
         results: Dict[str, pd.DataFrame] = {}
 
         for fid in self._factor_ids:
@@ -168,16 +258,23 @@ class FactorPipeline:
 
         return results
 
-    def compute_as_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+    def compute_as_dataframe(
+        self,
+        df: pd.DataFrame,
+        as_of_date: Optional[datetime] = None,
+    ) -> pd.DataFrame:
         """Compute all pipeline factors and return as a single DataFrame.
 
         Args:
             df: Input DataFrame with OHLCV data.
+            as_of_date: Point-in-time cutoff date. When set, only data
+                up to this date is used for computation, preventing
+                look-ahead bias.
 
         Returns:
             DataFrame where each column is a factor's computed values.
         """
-        results = self.compute(df)
+        results = self.compute(df, as_of_date=as_of_date)
         if not results:
             return pd.DataFrame(index=df.index)
 

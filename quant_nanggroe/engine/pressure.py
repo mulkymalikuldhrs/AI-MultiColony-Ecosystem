@@ -50,7 +50,7 @@ class PressureResult(BaseModel):
     buy_pressure: float = Field(ge=0.0, le=1.0)
     sell_pressure: float = Field(ge=0.0, le=1.0)
     confidence: float = Field(ge=0.0, le=1.0)
-    verdict: str  # STRONG_BUY, BUY, NEUTRAL, SELL, STRONG_SELL
+    verdict: str  # STRONG_BUY, BUY, NEUTRAL, SELL, STRONG_SELL, CONFLICTED
     raw_buy: float = 0.0
     raw_sell: float = 0.0
     sensor_inputs: dict[str, Any] = Field(default_factory=dict)
@@ -151,7 +151,27 @@ class PressureNormalizationEngine:
             confidence = 0.0
 
         # ── Determine verdict ───────────────────────────────────────
-        if buy_pressure > 0.70:
+        #
+        # Design Decision: When both buy and sell pressure exceed the
+        # CONFLICT_THRESHOLD (0.55), the signal is contradictory — liquidity
+        # sweeps and high-uncertainty news can inflate both sides. Rather than
+        # producing a misleading STRONG_BUY or STRONG_SELL, we emit a
+        # "CONFLICTED" verdict so downstream consumers know to treat the
+        # signal as unreliable. The weaker side is reduced proportionally to
+        # reflect the disambiguation, but the verdict remains CONFLICTED.
+        #
+        CONFLICT_THRESHOLD = 0.55
+
+        if buy_pressure > CONFLICT_THRESHOLD and sell_pressure > CONFLICT_THRESHOLD:
+            # Both sides are high — signal is contradictory
+            verdict = "CONFLICTED"
+            # Reduce the weaker side to reflect net direction, but don't
+            # change the verdict — the conflict is the important information.
+            if buy > sell:
+                sell_pressure *= sell / buy  # proportional reduction
+            elif sell > buy:
+                buy_pressure *= buy / sell
+        elif buy_pressure > 0.70:
             verdict = "STRONG_BUY"
         elif buy_pressure > 0.55:
             verdict = "BUY"

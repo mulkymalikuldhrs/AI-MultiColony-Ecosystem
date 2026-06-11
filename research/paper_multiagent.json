@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://arxiv.org/abs/2412.20138",
+    "name": "TradingAgents: Multi-Agents LLM Financial Trading Framework - arXiv",
+    "snippet": "TradingAgents proposes a novel stock trading framework inspired by trading firms, featuring LLM-powered agents in specialized roles.",
+    "host_name": "arxiv.org",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/html/2509.17395v1",
+    "name": "FinDebate: Multi-Agent Collaborative Intelligence for Financial",
+    "snippet": "Experimental results, based on both LLM-based and human evaluations, demonstrate the framework's efficacy in producing high-quality analysis ...\nWe introduce FinDebate, a multi-agent framework for financial analysis, integrating collaborative debate with domain-specific Retrieval- ...",
+    "host_name": "arxiv.org",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/pdf/2412.20138",
+    "name": "[PDF] TradingAgents: Multi-Agents LLM Financial Trading Framework - arXiv",
+    "snippet": "Significant progress has been made in automated problem-solving using societies of agents pow- ered by large language models (LLMs).\nFincon: A synthesized llm multi-agent system with conceptual verbal reinforcement for enhanced financial decision making. arXiv preprint ...",
+    "host_name": "arxiv.org",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://sparai.org/projects/sp26/recSNZVp0TujGh8p4",
+    "name": "Evaluating multi-agent deliberation for ethical decision-making in",
+    "snippet": "We evaluate whether multi-agent deliberation reduces unethical behavior in LLM agents in goal-driven text-based social environments.\nThis project investigates how multi-agent deliberation affects ethical decision-making in LLM agents operating in complex, goal-driven social environments. The ...",
+    "host_name": "sparai.org",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.researchgate.net/publication/396360100_FinDebate_A_Retrieval-Augmented_Multi-Agent_LLM_for_Financial_Advisory_Consensus_with_Explainable_Reasoning",
+    "name": "FinDebate: A Retrieval-Augmented Multi-Agent LLM for Financial",
+    "snippet": "FinDebate outperforms robust baselines in decision accuracy and factual fidelity, slashing error rates by up to 18%.",
+    "host_name": "www.researchgate.net",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://proceedings.neurips.cc/paper_files/paper/2024/file/f7ae4fe91d96f50abc2211f09b6a7e49-Paper-Conference.pdf",
+    "name": "[PDF] FINCON: A Synthesized LLM Multi-Agent System with Conceptual",
+    "snippet": "In this paper, we present FINCON, a novel LLM-based multi-agent framework for financial decision- making tasks, including single stock trading and portfolio ...",
+    "host_name": "proceedings.neurips.cc",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://scholar.google.com/citations?user=nNRYTJAAAAAJ",
+    "name": "‪Xiangyu Li‬ - ‪Google Scholar‬",
+    "snippet": "A balanced-aware multi-agent financial trading system X Li, Proceedings of the ACM on Web Conference 2025, 296-305, 2025 2024, 319-327, LLM-based Financial ...",
+    "host_name": "scholar.google.com",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.linkedin.com/posts/sebowen_another-arxiv-paper-this-week-calling-chained-activity-7448014687847223296-VX_9",
+    "name": "Sebastian Owen's Post - LinkedIn",
+    "snippet": "arXiv paper this week calling chained LLM agents the future of AI-native investing. multi-agent architecture handling market decision, fully ...\nAnother arXiv paper this week calling chained LLM agents the future of AI-native investing. The branding is modern. The terminology is sharp ...",
+    "host_name": "www.linkedin.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/html/2412.20138v1",
+    "name": "TradingAgents: Multi-Agents LLM Financial Trading Framework - arXiv",
+    "snippet": "TradingAgents proposes a novel stock trading framework inspired by trading firms, featuring LLM-powered agents in specialized roles.",
+    "host_name": "arxiv.org",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/pdf/2510.11695",
+    "name": "[PDF] Live Multi-Market Trading Benchmark for LLM Agents - arXiv",
+    "snippet": "2024. Fincon: A synthesized llm multi-agent system with conceptual verbal reinforcement for enhanced financial decision making. Advances in Neural ...\nFincon: A synthesized llm multi-agent system with conceptual verbal reinforcement for enhanced financial decision making. Advances in Neural Information ...",
+    "host_name": "arxiv.org",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]
