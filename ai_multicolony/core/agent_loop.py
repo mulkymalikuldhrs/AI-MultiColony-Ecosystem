@@ -268,8 +268,8 @@ class AgentLoop:
             if len(self._messages) > 20:
                 condensed = self._messages[:2] + self._messages[-10:]
                 llm_messages = [m.to_dict() for m in condensed]
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Memory condensation failed: %s", exc)
 
         # Get available tools
         tools = self._tool_registry.get_openai_schemas()

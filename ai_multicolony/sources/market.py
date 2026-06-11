@@ -106,8 +106,20 @@ FOREX_DATA: Dict[str, Dict[str, Any]] = {
 }
 
 
+STALE_DATA_WARNING = (
+    "MarketSource is returning STATIC/HARDCODED data. "
+    "This is a development-mode stub and does NOT reflect live market prices. "
+    "Do NOT use this data for production trading decisions."
+)
+
+
 class MarketSource(SourceProvider):
     """Market data feed provider.
+
+    .. warning::
+        This provider currently returns **hardcoded static data** for
+        development and testing.  It is NOT suitable for production use.
+        Check ``source.is_live`` before relying on any data.
 
     Fetches equity quotes, cryptocurrency prices, and forex rates.
 
@@ -131,6 +143,14 @@ class MarketSource(SourceProvider):
         )
         self._segments = segments or ["equities", "crypto", "forex"]
 
+    @property
+    def is_live(self) -> bool:
+        """Whether this source returns live market data.
+
+        Returns ``False`` because all data is hardcoded / static.
+        """
+        return False
+
     async def fetch(self, query: str, max_items: int = 50, **kwargs: Any) -> SourceResult:
         """Fetch market data matching a query.
 
@@ -148,6 +168,7 @@ class MarketSource(SourceProvider):
         """
         start = time.monotonic()
         self._record_fetch()
+        logger.warning(STALE_DATA_WARNING)
         items: List[SourceItem] = []
         errors: List[str] = []
         query_lower = query.lower()
@@ -187,6 +208,7 @@ class MarketSource(SourceProvider):
         """
         start = time.monotonic()
         self._record_scan()
+        logger.warning(STALE_DATA_WARNING)
         items: List[SourceItem] = []
         errors: List[str] = []
 

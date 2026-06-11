@@ -13,6 +13,7 @@ Kill switch levels:
 from __future__ import annotations
 
 import logging
+import os
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
@@ -187,7 +188,13 @@ class KillSwitch:
 
         return event
 
-    LEVEL_3_APPROVAL_CODE = "CONFIRM_LEVEL3_DEACTIVATION_AFTER_REVIEW"
+    @staticmethod
+    def _get_level3_approval_code() -> Optional[str]:
+        """Retrieve the Level 3 approval code from the environment.
+
+        Returns None if the environment variable is not configured.
+        """
+        return os.environ.get("MULTICOLONY_LEVEL3_APPROVAL_CODE")
 
     def deactivate(self, reason: str = "Manual deactivation", approval_code: str = "") -> Optional[KillSwitchEvent]:
         """Deactivate the kill switch.
@@ -217,11 +224,17 @@ class KillSwitch:
 
         # Level 3 requires explicit approval — BLOCK deactivation without it
         if self._current_level == KillSwitchLevel.LEVEL_3 and self._config.level_3_requires_approval:
-            if approval_code != self.LEVEL_3_APPROVAL_CODE:
+            expected_code = self._get_level3_approval_code()
+            if expected_code is None:
+                logger.error(
+                    "BLOCKED: Level 3 deactivation requires the environment variable "
+                    "MULTICOLONY_LEVEL3_APPROVAL_CODE to be configured. It is not set."
+                )
+                return None
+            if approval_code != expected_code:
                 logger.critical(
                     "BLOCKED: Level 3 kill switch deactivation requires explicit approval. "
-                    "Provide approval_code='%s' to override.",
-                    self.LEVEL_3_APPROVAL_CODE,
+                    "The provided approval code is incorrect."
                 )
                 return None
 

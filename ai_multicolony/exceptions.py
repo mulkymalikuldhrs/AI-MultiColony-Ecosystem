@@ -15,13 +15,26 @@ Hierarchy::
     │   └── ColonyFullError
     ├── ToolError
     │   ├── ToolNotFoundError
-    │   └── ToolPermissionError
+    │   ├── ToolPermissionError
+    │   ├── ToolExecutionError
+    │   ├── ToolTimeoutError
+    │   ├── ToolRateLimitError
+    │   └── ToolUnavailableError
     ├── MemoryError
     │   └── MemoryCompactionError
     ├── MCPError
     │   └── MCPProtocolError
-    └── SecurityError
-        └── PermissionDeniedError
+    ├── SecurityError
+    │   ├── AuthenticationError
+    │   └── PermissionDeniedError
+    ├── LLMError
+    │   ├── LLMRateLimitError
+    │   └── LLMTokensExceededError
+    ├── ChannelError
+    ├── SandboxError
+    └── EventBusError
+        ├── EventBusNotRunningError
+        └── EventBusTimeoutError
 """
 
 from __future__ import annotations
@@ -60,15 +73,19 @@ class AgentNotFoundError(AgentError):
 class AgentTimeoutError(AgentError):
     """Agent execution exceeded its time limit."""
 
-    def __init__(self, message: str = "Agent execution timed out", timeout_ms: int = 0):
+    def __init__(self, message: str = "Agent execution timed out", timeout_ms: int = 0, agent_id: str = "", timeout: float = 0):
         self.timeout_ms = timeout_ms
+        self.agent_id = agent_id
+        self.timeout = timeout
         super().__init__(message, "AGENT_TIMEOUT")
 
 
 class AgentStateError(AgentError):
     """Invalid agent state transition."""
 
-    def __init__(self, message: str = "Invalid agent state transition"):
+    def __init__(self, message: str = "Invalid agent state transition", agent_id: str = "", current_state: str = ""):
+        self.agent_id = agent_id
+        self.current_state = current_state
         super().__init__(message, "AGENT_STATE")
 
 
@@ -230,3 +247,87 @@ class PermissionDeniedError(SecurityError):
         self.required_level = required_level
         self.current_level = current_level
         super().__init__(message, "PERMISSION_DENIED")
+
+
+# ── LLM Errors ─────────────────────────────────────────────────────────────
+
+
+class LLMError(MultiColonyError):
+    """LLM provider errors."""
+
+    def __init__(self, message: str = "", code: str = "LLM_ERROR"):
+        super().__init__(message, code)
+
+
+class LLMRateLimitError(LLMError):
+    """LLM API rate limit exceeded."""
+
+    def __init__(self, message: str = "LLM rate limit exceeded", retry_after: float = 0):
+        self.retry_after = retry_after
+        super().__init__(message, "LLM_RATE_LIMIT")
+
+
+class LLMTokensExceededError(LLMError):
+    """LLM token limit exceeded."""
+
+    def __init__(self, message: str = "Token limit exceeded", tokens_used: int = 0, tokens_limit: int = 0):
+        self.tokens_used = tokens_used
+        self.tokens_limit = tokens_limit
+        super().__init__(message, "LLM_TOKENS_EXCEEDED")
+
+
+# ── Channel Errors ──────────────────────────────────────────────────────────
+
+
+class ChannelError(MultiColonyError):
+    """Channel communication errors (Telegram, WhatsApp, Discord, Slack)."""
+
+    def __init__(self, message: str = "", code: str = "CHANNEL_ERROR"):
+        super().__init__(message, code)
+
+
+# ── Sandbox Errors ──────────────────────────────────────────────────────────
+
+
+class SandboxError(MultiColonyError):
+    """Sandbox execution errors (Docker, WASM)."""
+
+    def __init__(self, message: str = "", code: str = "SANDBOX_ERROR"):
+        super().__init__(message, code)
+
+
+# ── Tool Execution Errors ──────────────────────────────────────────────────
+
+
+class ToolExecutionError(ToolError):
+    """Tool execution failed."""
+
+    def __init__(self, tool: str = "", message: str = "", original_error: str = ""):
+        self.tool = tool
+        self.original_error = original_error
+        super().__init__(message or f"Tool {tool} execution failed", "TOOL_EXECUTION")
+
+
+# ── Event Bus Errors ────────────────────────────────────────────────────────
+
+
+class EventBusError(MultiColonyError):
+    """Event bus communication errors."""
+
+    def __init__(self, message: str = "", code: str = "EVENT_BUS_ERROR"):
+        super().__init__(message, code)
+
+
+class EventBusNotRunningError(EventBusError):
+    """Attempted to use event bus when it is not running."""
+
+    def __init__(self, message: str = "Event bus is not running"):
+        super().__init__(message, "EVENT_BUS_NOT_RUNNING")
+
+
+class EventBusTimeoutError(EventBusError):
+    """Event bus operation timed out."""
+
+    def __init__(self, message: str = "Event bus operation timed out", timeout_ms: int = 0):
+        self.timeout_ms = timeout_ms
+        super().__init__(message, "EVENT_BUS_TIMEOUT")

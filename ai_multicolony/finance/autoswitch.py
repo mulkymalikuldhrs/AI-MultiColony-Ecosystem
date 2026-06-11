@@ -222,6 +222,7 @@ class AutoSwitcher:
         self._switches: List[StrategySwitch] = []
         self._cooldown_remaining: int = 0
         self._switches_today: int = 0
+        self._last_switch_date: str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     def evaluate_and_switch(
         self,
@@ -247,6 +248,12 @@ class AutoSwitcher:
         """
         if not self._config.enable_auto_switch and not force:
             return self._current_strategy
+
+        # Reset daily counter if the date has changed
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        if today != self._last_switch_date:
+            self._switches_today = 0
+            self._last_switch_date = today
 
         # Check confidence threshold
         if confidence < self._config.min_regime_confidence and not force:

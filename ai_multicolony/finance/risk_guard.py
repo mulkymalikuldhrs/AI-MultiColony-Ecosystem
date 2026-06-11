@@ -185,6 +185,9 @@ class ConstitutionalRiskGuard:
         self._check_count += 1
         result = RiskCheckResult()
 
+        # Work on a copy to avoid mutating the caller's request
+        request = request.model_copy(deep=True)
+
         # Calculate proposed risk
         if portfolio.total_equity > 0 and request.notional_value > 0:
             proposed_risk_pct = (request.notional_value / portfolio.total_equity) * 100

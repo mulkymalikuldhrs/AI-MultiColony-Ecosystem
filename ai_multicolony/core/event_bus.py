@@ -126,7 +126,8 @@ class EventBus:
         Args:
             event: The event to publish.
         """
-        self._event_count += 1
+        async with self._lock:
+            self._event_count += 1
 
         if not self._running:
             logger.warning("event_bus_not_running", event_id=event.id)
@@ -246,7 +247,8 @@ class EventBus:
         Args:
             message: The message to send.
         """
-        self._message_count += 1
+        async with self._lock:
+            self._message_count += 1
 
         if not self._running:
             logger.warning("event_bus_not_running_message", message_id=message.id)

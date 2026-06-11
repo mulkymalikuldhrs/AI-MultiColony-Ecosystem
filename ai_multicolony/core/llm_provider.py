@@ -10,6 +10,7 @@ import asyncio
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Optional
 
 from ai_multicolony.config.logging_config import get_logger
@@ -103,7 +104,7 @@ class CostTracker:
             usage: Token usage.
             cost: The calculated cost.
         """
-        today = time.strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         self.daily_costs[today] += cost
         self.per_model_costs[model] += cost
         self.per_model_tokens[model] = self.per_model_tokens.get(model, LLMUsage()) + usage
@@ -111,7 +112,7 @@ class CostTracker:
 
     def get_daily_cost(self) -> float:
         """Get today's total cost."""
-        today = time.strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         return self.daily_costs.get(today, 0.0)
 
 
@@ -152,7 +153,7 @@ class LLMProvider:
             raise LLMTokensExceededError(
                 f"Daily cost limit exceeded: ${daily_cost:.2f} >= ${self.cost_limit_daily:.2f}",
                 tokens_used=int(daily_cost * 1000),
-                token_limit=int(self.cost_limit_daily * 1000),
+                tokens_limit=int(self.cost_limit_daily * 1000),
             )
 
     def _count_tokens(self, messages: list[dict[str, Any]], model: Optional[str] = None) -> int:

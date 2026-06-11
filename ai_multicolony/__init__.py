@@ -231,6 +231,9 @@ from .exceptions import (
     MCPProtocolError,
     SecurityError,
     PermissionDeniedError,
+    EventBusError,
+    EventBusNotRunningError,
+    EventBusTimeoutError,
 )
 
 __all__ = [
@@ -411,6 +414,9 @@ __all__ = [
     "MCPProtocolError",
     "SecurityError",
     "PermissionDeniedError",
+    "EventBusError",
+    "EventBusNotRunningError",
+    "EventBusTimeoutError",
 ]
 
 # ── New subpackages (v0.2.0) ────────────────────────────────────────────────

@@ -70,10 +70,13 @@ class MemoryAuditStorage:
         pass  # no-op for memory storage
 
 
+_DEFAULT_AUDIT_PATH = os.path.expanduser("~/.multicolony/audit/audit.jsonl")
+
+
 class FileAuditStorage:
     """File-based audit storage (JSONL format)."""
 
-    def __init__(self, file_path: str = "/var/log/multicolony/audit.jsonl"):
+    def __init__(self, file_path: str = _DEFAULT_AUDIT_PATH):
         self.file_path = Path(file_path)
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
         self._entries: List[AuditEntry] = []
@@ -161,7 +164,7 @@ class AuditTrail:
         self,
         level: AuditLevel = AuditLevel.FULL,
         storage: str = "memory",
-        file_path: str = "/var/log/multicolony/audit.jsonl",
+        file_path: str = _DEFAULT_AUDIT_PATH,
         retention_days: int = 90,
     ):
         self.level = level
