@@ -1,6 +1,6 @@
 {
   "name": "agentic-ai-system",
-  "version": "2.1.0",
+  "version": "0.4.0",
   "description": "Autonomous Multi-Agent Intelligence System with Voice Interaction and PWA Support",
   "main": "main.py",
   "author": "Mulky Malikul Dhaher <mulkymalikuldhr@mail.com>",

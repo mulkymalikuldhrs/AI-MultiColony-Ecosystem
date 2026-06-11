@@ -19,5 +19,5 @@ Modules:
     memory: Hot/cold memory manager for sweep history
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __original__ = "JavaScript/TypeScript — contrib/crucix/"

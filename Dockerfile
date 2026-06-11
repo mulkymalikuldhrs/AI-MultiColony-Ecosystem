@@ -1,5 +1,5 @@
 # =============================================================================
-# Agentic AI System - Production Dockerfile
+# AI-MultiColony-Ecosystem - Production Dockerfile
 # Multi-stage build for optimized production deployment
 # =============================================================================
 
@@ -7,17 +7,17 @@
 FROM python:3.12-slim AS builder
 
 ARG BUILD_DATE
-ARG VERSION=2.0.0
+ARG VERSION=0.4.0
 ARG COMMIT_SHA
 
 LABEL maintainer="Mulky Malikul Dhaher <mulkymalikul@gmail.com>"
-LABEL description="Agentic AI System - Autonomous Multi-Agent Intelligence Platform"
+LABEL description="AI-MultiColony-Ecosystem - Autonomous Multi-Agent Intelligence Platform"
 LABEL version=${VERSION}
 LABEL build-date=${BUILD_DATE}
 LABEL commit-sha=${COMMIT_SHA}
-LABEL org.opencontainers.image.title="Agentic AI System"
+LABEL org.opencontainers.image.title="AI-MultiColony-Ecosystem"
 LABEL org.opencontainers.image.description="Autonomous Multi-Agent Intelligence Platform"
-LABEL org.opencontainers.image.source="https://github.com/jakForever/Agentic-AI-Ecosystem"
+LABEL org.opencontainers.image.source="https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -31,6 +31,26 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /tmp/requirements.txt
+
+# --- Development stage ---
+FROM python:3.12-slim AS development
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+WORKDIR /app
+
+ENV PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1 \
+    FLASK_ENV=development
+
+CMD ["/bin/bash"]
 
 # --- Production stage ---
 FROM python:3.12-slim AS production

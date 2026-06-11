@@ -194,7 +194,7 @@ def get_system_status():
             'total_agents': len(agent_registry),
             'loaded_agents': list(agent_registry.keys()),
             'last_update': datetime.now().isoformat(),
-            'version': '0.3.0',
+            'version': '0.4.0',
             'components': {
                 'memory_bus': memory_bus is not None,
                 'llm_gateway': llm_gateway is not None,
@@ -573,7 +573,7 @@ def handle_connect():
         'status': 'connected',
         'message': 'Connected to Agentic AI System',
         'timestamp': datetime.now().isoformat(),
-        'system_version': '0.3.0'
+        'system_version': '0.4.0'
     })
 
 
