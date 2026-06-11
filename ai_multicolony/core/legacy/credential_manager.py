@@ -16,6 +16,9 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import base64
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 class SecureCredentialManager:
     """Secure credential storage and management"""
@@ -139,7 +142,7 @@ class SecureCredentialManager:
             return True
             
         except Exception as e:
-            print(f"Error storing credential: {e}")
+            logger.error("Error storing credential", error=str(e))
             return False
     
     def get_credential(self, website_name: str = None, 
@@ -196,7 +199,7 @@ class SecureCredentialManager:
                 return credential
                 
         except Exception as e:
-            print(f"Error retrieving credential: {e}")
+            logger.error("Error retrieving credential", error=str(e))
             return None
     
     def list_credentials(self) -> List[Dict]:
@@ -227,7 +230,7 @@ class SecureCredentialManager:
                 return credentials
                 
         except Exception as e:
-            print(f"Error listing credentials: {e}")
+            logger.error("Error listing credentials", error=str(e))
             return []
     
     def update_credential(self, credential_id: int, **updates) -> bool:
@@ -271,7 +274,7 @@ class SecureCredentialManager:
             return True
             
         except Exception as e:
-            print(f"Error updating credential: {e}")
+            logger.error("Error updating credential", error=str(e))
             return False
     
     def delete_credential(self, credential_id: int) -> bool:
@@ -282,7 +285,7 @@ class SecureCredentialManager:
                 return cursor.rowcount > 0
                 
         except Exception as e:
-            print(f"Error deleting credential: {e}")
+            logger.error("Error deleting credential", error=str(e))
             return False
     
     def _update_usage_stats(self, credential_id: int):
@@ -296,7 +299,7 @@ class SecureCredentialManager:
                 """, (credential_id,))
                 
         except Exception as e:
-            print(f"Error updating usage stats: {e}")
+            logger.warning("Error updating usage stats", error=str(e))
     
     def log_usage(self, credential_id: int, website_url: str, 
                   action_type: str, success: bool, error_message: str = None):
@@ -310,7 +313,7 @@ class SecureCredentialManager:
                 """, (credential_id, website_url, action_type, success, error_message))
                 
         except Exception as e:
-            print(f"Error logging usage: {e}")
+            logger.error("Error logging usage", error=str(e))
     
     def get_usage_history(self, credential_id: int = None, limit: int = 50) -> List[Dict]:
         """Get usage history"""
@@ -348,7 +351,7 @@ class SecureCredentialManager:
                 return history
                 
         except Exception as e:
-            print(f"Error getting usage history: {e}")
+            logger.error("Error getting usage history", error=str(e))
             return []
     
     def search_credentials(self, query: str) -> List[Dict]:
@@ -381,7 +384,7 @@ class SecureCredentialManager:
                 return results
                 
         except Exception as e:
-            print(f"Error searching credentials: {e}")
+            logger.error("Error searching credentials", error=str(e))
             return []
     
     def export_credentials(self, include_passwords: bool = False) -> Dict:
@@ -427,7 +430,7 @@ class SecureCredentialManager:
             }
             
         except Exception as e:
-            print(f"Error exporting credentials: {e}")
+            logger.error("Error exporting credentials", error=str(e))
             return {}
 
 # Lazy-loaded global credential manager instance

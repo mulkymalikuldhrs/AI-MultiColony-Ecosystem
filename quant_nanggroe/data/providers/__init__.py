@@ -17,7 +17,7 @@ Provider priority order (lower = higher priority):
 """
 
 from quant_nanggroe.data.providers.binance import BinanceProvider
-from quant_nanggroe.data.providers.coin_gecko import CoinGeckoProvider
+from quant_nanggroe.data.providers.coingecko import CoinGeckoProvider
 from quant_nanggroe.data.providers.yahoo import YahooFinanceProvider
 from quant_nanggroe.data.providers.twelvedata import TwelveDataProvider
 from quant_nanggroe.data.providers.finnhub import FinnhubProvider

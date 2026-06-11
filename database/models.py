@@ -6,12 +6,13 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 """
 
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, JSON, Float, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import DeclarativeBase, sessionmaker, relationship, Mapped, mapped_column
 from datetime import datetime, timezone
 import os
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    """SQLAlchemy 2.0 declarative base class."""
+    pass
 
 class Agent(Base):
     """Agent model for storing agent information"""
@@ -202,11 +203,35 @@ class APILog(Base):
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///data/agentic.db')
 
-# Create engine
-engine = create_engine(DATABASE_URL, echo=False)
+# Lazy engine creation – avoids connecting at import time
+_engine = None
 
-# Create session factory
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def _get_engine():
+    """Create (once) and return the database engine."""
+    global _engine
+    if _engine is None:
+        _engine = create_engine(DATABASE_URL, echo=False)
+    return _engine
+
+
+# Create session factory (bound lazily via property-like wrapper)
+class _SessionFactory(sessionmaker):
+    """Session factory that lazily initialises the engine on first use."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._bound = False
+
+    @property
+    def bind(self):
+        if not self._bound:
+            self.configure(bind=_get_engine())
+            self._bound = True
+        return super().bind
+
+
+SessionLocal = _SessionFactory(autocommit=False, autoflush=False)
 
 def get_db_session():
     """Get database session"""
@@ -218,8 +243,8 @@ def get_db_session():
 
 def create_tables():
     """Create all tables"""
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=_get_engine())
 
 def drop_tables():
     """Drop all tables (use with caution)"""
-    Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=_get_engine())

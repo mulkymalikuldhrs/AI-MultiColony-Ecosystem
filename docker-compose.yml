@@ -19,7 +19,7 @@ services:
         required: false
     environment:
       - APP_ENV=${APP_ENV:-production}
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-qna}:${POSTGRES_PASSWORD:-qna_dev_password}@postgres:5432/${POSTGRES_DB:-quant_nanggroe}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-qna}:${POSTGRES_PASSWORD:-changeme_in_production}@postgres:5432/${POSTGRES_DB:-quant_nanggroe}
       - REDIS_URL=redis://redis:6379/0
       - QUESTDB_URL=http://questdb:9000
     depends_on:
@@ -52,7 +52,7 @@ services:
         required: false
     environment:
       - APP_ENV=${APP_ENV:-production}
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-qna}:${POSTGRES_PASSWORD:-qna_dev_password}@postgres:5432/${POSTGRES_DB:-quant_nanggroe}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-qna}:${POSTGRES_PASSWORD:-changeme_in_production}@postgres:5432/${POSTGRES_DB:-quant_nanggroe}
       - REDIS_URL=redis://redis:6379/0
       - QUESTDB_URL=http://questdb:9000
     depends_on:
@@ -75,7 +75,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-quant_nanggroe}
       POSTGRES_USER: ${POSTGRES_USER:-qna}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qna_dev_password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_in_production}
     ports:
       - "5432:5432"
     volumes:

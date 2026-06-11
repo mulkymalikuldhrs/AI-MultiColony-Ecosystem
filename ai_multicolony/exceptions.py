@@ -319,6 +319,32 @@ class LLMTokensExceededError(LLMError):
         super().__init__(msg, "LLM_TOKENS_EXCEEDED")
 
 
+class ProviderError(LLMError):
+    """LLM provider operational error."""
+
+    def __init__(self, provider: str = "", message: str = ""):
+        self.provider = provider
+        msg = message or f"Provider {provider} error"
+        super().__init__(msg, "PROVIDER_ERROR")
+
+
+class ProviderUnavailableError(LLMError):
+    """All LLM providers are unavailable."""
+
+    def __init__(self, message: str = "All LLM providers unavailable"):
+        super().__init__(message, "PROVIDER_UNAVAILABLE")
+
+
+class CircuitOpenError(LLMError):
+    """Circuit breaker is open — provider temporarily disabled."""
+
+    def __init__(self, provider: str = "", recovery_timeout: float = 0):
+        self.provider = provider
+        self.recovery_timeout = recovery_timeout
+        msg = f"Circuit breaker open for provider {provider}"
+        super().__init__(msg, "CIRCUIT_OPEN")
+
+
 # ── Legacy Compatibility Errors ──────────────────────────────────────────────
 
 
