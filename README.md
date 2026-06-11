@@ -232,6 +232,9 @@ The final layer combines the normalized pressure vector with portfolio state and
 # Clone the repository
 
 <!-- AUTO-PACKAGE-BADGES:START -->
+<!-- Auto-generated package badges -->
+
+![PyPI version](https://img.shields.io/pypi/v/quant-nanggroe-ai?style=flat-square&logo=pypi&color=green) ![PyPI downloads](https://img.shields.io/pypi/dm/quant-nanggroe-ai?style=flat-square&color=brightgreen) ![PyPI license](https://img.shields.io/pypi/l/quant-nanggroe-ai?style=flat-square) [![Deployed](https://img.shields.io/badge/deployed-0.2.0-blue?style=flat-square)](https://pypi.org/project/quant-nanggroe-ai)
 
 <!-- AUTO-PACKAGE-BADGES:END -->
 git clone https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI.git
