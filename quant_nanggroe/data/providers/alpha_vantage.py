@@ -118,14 +118,14 @@ class AlphaVantageProvider(DataProvider):
     def __init__(
         self,
         api_key: Optional[str] = None,
-        priority: int = 25,
+        priority: int = 18,
         **kwargs,
     ):
         """Initialize Alpha Vantage provider.
 
         Args:
             api_key: Alpha Vantage API key. Falls back to QNAI_ALPHA_VANTAGE_API_KEY env var.
-            priority: Failover priority (lower = higher priority). Default 25.
+            priority: Failover priority (lower = higher priority). Default 18.
         """
         super().__init__(name="alpha_vantage", priority=priority, **kwargs)
         self._api_key = api_key
