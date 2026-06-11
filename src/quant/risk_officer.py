@@ -51,9 +51,10 @@ class RiskOfficerTool:
         {"BTCUSDT", "ETHUSDT", "SHIB", "TRX"},
     ]
 
-    def __init__(self) -> None:
-        self.daily_pnl = 0.0
-        self.weekly_pnl = 0.0
+    def __init__(self, account_balance: float = 10000.0) -> None:
+        self.account_balance = account_balance
+        self.daily_pnl = 0.0  # Track as fraction of account balance
+        self.weekly_pnl = 0.0  # Track as fraction of account balance
         self.trade_count_today = 0
         self.trade_count_week = 0
         self.active_positions: list[str] = []
@@ -225,11 +226,24 @@ class RiskOfficerTool:
             "lot_size": lot_size,
         }
 
-    def update_pnl(self, trade_pnl: float) -> None:
-        """Update daily and weekly PnL tracking."""
+    def update_pnl(self, trade_pnl: float, account_balance: Optional[float] = None) -> None:
+        """Update daily and weekly PnL tracking.
+        
+        Args:
+            trade_pnl: Absolute PnL from the trade (e.g., +50.0 or -200.0)
+            account_balance: Current account balance. If provided, updates the stored balance
+                             and tracks PnL as a fraction for percentage-based comparisons.
+        """
         self._reset_daily_if_needed()
-        self.daily_pnl += trade_pnl
-        self.weekly_pnl += trade_pnl
+        if account_balance is not None:
+            self.account_balance = account_balance
+        # Convert absolute PnL to fraction of account balance for percentage comparison
+        if self.account_balance > 0:
+            pnl_fraction = trade_pnl / self.account_balance
+        else:
+            pnl_fraction = 0.0
+        self.daily_pnl += pnl_fraction
+        self.weekly_pnl += pnl_fraction
         self.trade_count_today += 1
         self.trade_count_week += 1
 

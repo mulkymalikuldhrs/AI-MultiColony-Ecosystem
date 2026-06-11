@@ -7,15 +7,17 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 
 import json
 import sqlite3
-import requests
+import aiohttp
 import asyncio
+import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 import hashlib
-import pickle
 import threading
 from dataclasses import dataclass, asdict
+
+logger = logging.getLogger("ecosystem.core.memory_manager")
 
 @dataclass
 class MemoryEntry:
@@ -136,7 +138,7 @@ class MemoryManager:
                     
             return True
         except Exception as e:
-            print(f"Error storing memory: {e}")
+            logger.error(f"Error storing memory: {e}")
             return False
     
     def retrieve_memories(self, agent_id: Optional[str] = None, 
@@ -179,7 +181,7 @@ class MemoryManager:
                 return memories
                 
         except Exception as e:
-            print(f"Error retrieving memories: {e}")
+            logger.error(f"Error retrieving memories: {e}")
             return []
     
     def search_memories(self, query: str, agent_id: Optional[str] = None) -> List[MemoryEntry]:
@@ -218,7 +220,7 @@ class MemoryManager:
                 return memories
                 
         except Exception as e:
-            print(f"Error searching memories: {e}")
+            logger.error(f"Error searching memories: {e}")
             return []
     
     def store_agent_interaction(self, from_agent: str, to_agent: str, 
@@ -248,7 +250,7 @@ class MemoryManager:
             
             return True
         except Exception as e:
-            print(f"Error storing interaction: {e}")
+            logger.error(f"Error storing interaction: {e}")
             return False
     
     def get_agent_interactions(self, agent_id: str, limit: int = 50) -> List[Dict]:
@@ -276,7 +278,7 @@ class MemoryManager:
                 return interactions
                 
         except Exception as e:
-            print(f"Error getting interactions: {e}")
+            logger.error(f"Error getting interactions: {e}")
             return []
 
 class ExternalKnowledgeAPI:
@@ -291,29 +293,28 @@ class ExternalKnowledgeAPI:
             # Search for the topic
             search_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{topic}"
             
-            async with requests.Session() as session:
-                response = requests.get(search_url, headers={
+            async with aiohttp.ClientSession() as session:
+                async with session.get(search_url, headers={
                     'User-Agent': 'Agentic-AI-System/1.0 (Indonesia)'
-                })
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    
-                    knowledge = {
-                        'topic': topic,
-                        'content': data.get('extract', ''),
-                        'source': 'Wikipedia',
-                        'source_url': data.get('content_urls', {}).get('desktop', {}).get('page', ''),
-                        'last_updated': datetime.now().isoformat()
-                    }
-                    
-                    # Store in knowledge base
-                    self._store_knowledge(knowledge)
-                    
-                    return knowledge
+                }) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        
+                        knowledge = {
+                            'topic': topic,
+                            'content': data.get('extract', ''),
+                            'source': 'Wikipedia',
+                            'source_url': data.get('content_urls', {}).get('desktop', {}).get('page', ''),
+                            'last_updated': datetime.now().isoformat()
+                        }
+                        
+                        # Store in knowledge base
+                        self._store_knowledge(knowledge)
+                        
+                        return knowledge
                     
         except Exception as e:
-            print(f"Error fetching Wikipedia knowledge: {e}")
+            logger.error(f"Error fetching Wikipedia knowledge: {e}")
             
         return None
     
@@ -329,28 +330,28 @@ class ExternalKnowledgeAPI:
                 'language': 'en'
             }
             
-            response = requests.get(url, params=params)
-            
-            if response.status_code == 200:
-                data = response.json()
-                news_items = []
-                
-                for article in data.get('articles', []):
-                    knowledge = {
-                        'topic': query,
-                        'content': f"{article.get('title', '')} - {article.get('description', '')}",
-                        'source': 'News API',
-                        'source_url': article.get('url', ''),
-                        'last_updated': datetime.now().isoformat()
-                    }
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, params=params) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        news_items = []
+                        
+                        for article in data.get('articles', []):
+                            knowledge = {
+                                'topic': query,
+                                'content': f"{article.get('title', '')} - {article.get('description', '')}",
+                                'source': 'News API',
+                                'source_url': article.get('url', ''),
+                                'last_updated': datetime.now().isoformat()
+                            }
+                            
+                            news_items.append(knowledge)
+                            self._store_knowledge(knowledge)
+                        
+                        return news_items
                     
-                    news_items.append(knowledge)
-                    self._store_knowledge(knowledge)
-                
-                return news_items
-                
         except Exception as e:
-            print(f"Error fetching news: {e}")
+            logger.error(f"Error fetching news: {e}")
             
         return []
     
@@ -359,24 +360,24 @@ class ExternalKnowledgeAPI:
         try:
             url = "https://uselessfacts.jsph.pl/random.json?language=en"
             
-            response = requests.get(url)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                knowledge = {
-                    'topic': 'Random Fact',
-                    'content': data.get('text', ''),
-                    'source': 'Useless Facts API',
-                    'source_url': data.get('permalink', ''),
-                    'last_updated': datetime.now().isoformat()
-                }
-                
-                self._store_knowledge(knowledge)
-                return knowledge
-                
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        
+                        knowledge = {
+                            'topic': 'Random Fact',
+                            'content': data.get('text', ''),
+                            'source': 'Useless Facts API',
+                            'source_url': data.get('permalink', ''),
+                            'last_updated': datetime.now().isoformat()
+                        }
+                        
+                        self._store_knowledge(knowledge)
+                        return knowledge
+                    
         except Exception as e:
-            print(f"Error fetching facts: {e}")
+            logger.error(f"Error fetching facts: {e}")
             
         return None
     
@@ -389,24 +390,24 @@ class ExternalKnowledgeAPI:
             if topic:
                 params['tags'] = topic
                 
-            response = requests.get(url, params=params)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                knowledge = {
-                    'topic': f"Quote - {topic or 'General'}",
-                    'content': f'"{data.get("content", "")}" - {data.get("author", "")}',
-                    'source': 'Quotable API',
-                    'source_url': 'https://quotable.io',
-                    'last_updated': datetime.now().isoformat()
-                }
-                
-                self._store_knowledge(knowledge)
-                return knowledge
-                
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, params=params) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        
+                        knowledge = {
+                            'topic': f"Quote - {topic or 'General'}",
+                            'content': f'"{data.get("content", "")}" - {data.get("author", "")}',
+                            'source': 'Quotable API',
+                            'source_url': 'https://quotable.io',
+                            'last_updated': datetime.now().isoformat()
+                        }
+                        
+                        self._store_knowledge(knowledge)
+                        return knowledge
+                    
         except Exception as e:
-            print(f"Error fetching quotes: {e}")
+            logger.error(f"Error fetching quotes: {e}")
             
         return None
     
@@ -432,7 +433,7 @@ class ExternalKnowledgeAPI:
                 ))
                 
         except Exception as e:
-            print(f"Error storing knowledge: {e}")
+            logger.error(f"Error storing knowledge: {e}")
 
 class AgentMemoryInterface:
     """Interface for agents to interact with memory system"""
@@ -509,7 +510,7 @@ class AgentMemoryInterface:
                     knowledge_sources['quotes'] = quote_knowledge
                     
         except Exception as e:
-            print(f"Error enriching knowledge: {e}")
+            logger.error(f"Error enriching knowledge: {e}")
         
         return knowledge_sources
     
@@ -551,7 +552,49 @@ class AgentMemoryInterface:
             'most_recent_activity': memories[0].timestamp if memories else None
         }
 
-# Global memory system instance
-memory_manager = MemoryManager()
-external_knowledge_api = ExternalKnowledgeAPI(memory_manager)
-agent_memory_interface = AgentMemoryInterface(memory_manager, external_knowledge_api)
+# Lazy-loaded global instances to avoid side effects at import time
+_memory_manager: Optional[MemoryManager] = None
+_external_knowledge_api: Optional[ExternalKnowledgeAPI] = None
+_agent_memory_interface: Optional[AgentMemoryInterface] = None
+
+
+def get_memory_manager() -> MemoryManager:
+    """Get or create the global MemoryManager instance."""
+    global _memory_manager
+    if _memory_manager is None:
+        _memory_manager = MemoryManager()
+    return _memory_manager
+
+
+def get_external_knowledge_api() -> ExternalKnowledgeAPI:
+    """Get or create the global ExternalKnowledgeAPI instance."""
+    global _external_knowledge_api
+    if _external_knowledge_api is None:
+        _external_knowledge_api = ExternalKnowledgeAPI(get_memory_manager())
+    return _external_knowledge_api
+
+
+def get_agent_memory_interface() -> AgentMemoryInterface:
+    """Get or create the global AgentMemoryInterface instance."""
+    global _agent_memory_interface
+    if _agent_memory_interface is None:
+        _agent_memory_interface = AgentMemoryInterface(get_memory_manager(), get_external_knowledge_api())
+    return _agent_memory_interface
+
+
+# Backward-compatible aliases (lazy-evaluated)
+class _MemoryManagerProxy:
+    def __getattr__(self, name):
+        return getattr(get_memory_manager(), name)
+
+class _ExternalKnowledgeAPIProxy:
+    def __getattr__(self, name):
+        return getattr(get_external_knowledge_api(), name)
+
+class _AgentMemoryInterfaceProxy:
+    def __getattr__(self, name):
+        return getattr(get_agent_memory_interface(), name)
+
+memory_manager = _MemoryManagerProxy()
+external_knowledge_api = _ExternalKnowledgeAPIProxy()
+agent_memory_interface = _AgentMemoryInterfaceProxy()

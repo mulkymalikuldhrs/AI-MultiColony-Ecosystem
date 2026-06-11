@@ -4,11 +4,18 @@ Agent Manager - Orchestrates all agents in the system
 
 import asyncio
 import logging
+import yaml
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 import json
+from collections import deque
 
 from .base_agent import BaseAgent
+
+
+class AgentNotFoundError(Exception):
+    """Raised when a requested agent is not found in the registry."""
+    pass
 
 class AgentManager:
     """Manages and coordinates all agents in the system"""
@@ -17,7 +24,7 @@ class AgentManager:
         self.config_path = config_path
         self.agents = {}
         self.active_workflows = {}
-        self.communication_log = []
+        self.communication_log: deque = deque(maxlen=1000)
         
         # Initialize logging
         self.logger = logging.getLogger("agentic.manager")
@@ -51,7 +58,6 @@ class AgentManager:
     def load_workflow_templates(self):
         """Load workflow templates from config"""
         try:
-            import yaml
             with open(self.config_path, 'r', encoding='utf-8') as f:
                 config = yaml.safe_load(f)
             
@@ -117,7 +123,7 @@ class AgentManager:
                 agent = self.get_agent(agent_id)
                 
                 if not agent:
-                    raise Exception(f"Agent '{agent_id}' not found")
+                    raise AgentNotFoundError(f"Agent '{agent_id}' not found")
                 
                 # Prepare task for agent
                 task = {
@@ -159,8 +165,8 @@ class AgentManager:
             # Update agent status
             agent.update_status("processing", task)
             
-            # Process the task
-            result = agent.process_task(task)
+            # Process the task (run sync method in thread pool to avoid blocking event loop)
+            result = await asyncio.to_thread(agent.process_task, task)
             
             # Log the communication
             self._log_communication(agent.agent_id, task, result)
@@ -184,10 +190,6 @@ class AgentManager:
         }
         
         self.communication_log.append(log_entry)
-        
-        # Keep only recent entries to manage memory
-        if len(self.communication_log) > 1000:
-            self.communication_log = self.communication_log[-500:]
     
     def get_system_status(self) -> Dict[str, Any]:
         """Get overall system status"""

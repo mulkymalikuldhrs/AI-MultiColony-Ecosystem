@@ -94,6 +94,13 @@ OPENCODE_API_BASE = os.getenv("OPENCODE_API_BASE", "https://api.opencode.ai/v1")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
+
+def _mask_token(url: str) -> str:
+    """Mask the bot token in URLs for safe logging."""
+    if TELEGRAM_BOT_TOKEN and TELEGRAM_BOT_TOKEN in url:
+        return url.replace(TELEGRAM_BOT_TOKEN, "BOT_TOKEN")
+    return url
+
 MODEL_NAME = os.getenv("MODEL_NAME", "meta/llama-3.1-nemotron-70b-instruct")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 
@@ -139,8 +146,8 @@ AGENTS_SYSTEM_PROMPT = f"""Kamu adalah HERMES QUANT OPERATING SYSTEM - sistem tr
 - **Deployment Stage:** Research Lab (Stage 1 - paper trading only)
 
 ## WALLET TARGETS (SEMUA DANA DIKUMPULKAN DI SINI)
-- **Tron (PRIORITAS):** {os.getenv("WALLET_TRON", "NOT_CONFIGURED")}
-- **Shiba Inu:** {os.getenv("WALLET_SHIBA", "NOT_CONFIGURED")}
+- **Tron (PRIORITAS):** WALLET_CONFIGURED
+- **Shiba Inu:** WALLET_CONFIGURED
 
 ## RISK RULES (HARDCODED, TIDAK BOLEH DILANGGAR)
 - Max risk per trade: 0.5%
@@ -510,7 +517,7 @@ class HermesQuantOS:
                         data = await response.json()
                         return data.get("result", [])
         except Exception as e:
-            logger.debug(f"Telegram poll: {e}")
+            logger.debug(f"Telegram poll: {_mask_token(str(e))}")
         return []
 
     async def process_telegram_update(self, update):
@@ -898,7 +905,7 @@ class HermesQuantOS:
                     async with aiohttp.ClientSession() as session:
                         await session.post(url, json=data)
                 except Exception as e:
-                    logger.error(f"Send error: {e}")
+                    logger.error(f"Send error: {_mask_token(str(e))}")
             return True
 
         data = {**data_base, "text": text}
@@ -907,7 +914,7 @@ class HermesQuantOS:
                 async with session.post(url, json=data) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        logger.warning(f"Telegram HTML parse failed, falling back to plain: {error_text[:100]}")
+                        logger.warning(f"Telegram HTML parse failed, falling back to plain: {_mask_token(error_text[:100])}")
                         # Fallback: strip HTML and resend as plain text
                         clean_text = re.sub(r'<[^>]+>', '', text)
                         fallback_data = {"chat_id": TELEGRAM_CHAT_ID, "text": clean_text}
@@ -916,7 +923,7 @@ class HermesQuantOS:
                                 return response2.status == 200
                     return True
         except Exception as e:
-            logger.error(f"Send telegram error: {e}")
+            logger.error(f"Send telegram error: {_mask_token(str(e))}")
         return False
 
     async def handle_crash(self, error: Exception) -> None:

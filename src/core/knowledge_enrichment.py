@@ -7,12 +7,14 @@ Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
 
 import asyncio
 import aiohttp
-import requests
 import json
+import logging
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 import hashlib
 from dataclasses import dataclass
+
+logger = logging.getLogger("ecosystem.core.knowledge_enrichment")
 
 @dataclass
 class KnowledgeSource:
@@ -119,7 +121,7 @@ class FreeAPIConnector:
                             'timestamp': datetime.now().isoformat()
                         }
         except Exception as e:
-            print(f"Error fetching Wikipedia data: {e}")
+            logger.error(f"Error fetching Wikipedia data: {e}")
             
         return None
     
@@ -144,7 +146,7 @@ class FreeAPIConnector:
                             'timestamp': datetime.now().isoformat()
                         }
         except Exception as e:
-            print(f"Error fetching quotes: {e}")
+            logger.error(f"Error fetching quotes: {e}")
             
         return None
     
@@ -164,7 +166,7 @@ class FreeAPIConnector:
                             'timestamp': datetime.now().isoformat()
                         }
         except Exception as e:
-            print(f"Error fetching random fact: {e}")
+            logger.error(f"Error fetching random fact: {e}")
             
         return None
     
@@ -185,7 +187,7 @@ class FreeAPIConnector:
                             'timestamp': datetime.now().isoformat()
                         }
         except Exception as e:
-            print(f"Error fetching advice: {e}")
+            logger.error(f"Error fetching advice: {e}")
             
         return None
     
@@ -218,7 +220,7 @@ class FreeAPIConnector:
                             'timestamp': datetime.now().isoformat()
                         }
         except Exception as e:
-            print(f"Error fetching joke: {e}")
+            logger.error(f"Error fetching joke: {e}")
             
         return None
     
@@ -241,7 +243,7 @@ class FreeAPIConnector:
                             'timestamp': datetime.now().isoformat()
                         }
         except Exception as e:
-            print(f"Error fetching number fact: {e}")
+            logger.error(f"Error fetching number fact: {e}")
             
         return None
     
@@ -261,7 +263,7 @@ class FreeAPIConnector:
                             'timestamp': datetime.now().isoformat()
                         }
         except Exception as e:
-            print(f"Error fetching cat fact: {e}")
+            logger.error(f"Error fetching cat fact: {e}")
             
         return None
 
@@ -270,7 +272,8 @@ class IntelligentKnowledgeOrchestrator:
     
     def __init__(self, free_api_connector: FreeAPIConnector):
         self.connector = free_api_connector
-        self.knowledge_cache = {}
+        self.knowledge_cache: Dict[str, Any] = {}
+        self._cache_max_size = 500
         
     async def gather_contextual_knowledge(self, topic: str, context: str = 'general') -> Dict[str, Any]:
         """Gather knowledge based on topic and context"""
@@ -314,7 +317,8 @@ class IntelligentKnowledgeOrchestrator:
                 number_fact = await self.connector.fetch_number_fact(number)
                 if number_fact:
                     knowledge_result['sources']['numbers'] = number_fact
-            except:
+            except Exception as e:
+                logger.warning(f"Failed to extract number from topic: {e}")
                 # Fallback to random number fact
                 number_fact = await self.connector.fetch_number_fact()
                 if number_fact:
@@ -414,6 +418,34 @@ class IntelligentKnowledgeOrchestrator:
             
         return base_insight
 
-# Global knowledge orchestrator instance
-free_api_connector = FreeAPIConnector()
-knowledge_orchestrator = IntelligentKnowledgeOrchestrator(free_api_connector)
+# Lazy-loaded global instances
+_free_api_connector: Optional[FreeAPIConnector] = None
+_knowledge_orchestrator: Optional[IntelligentKnowledgeOrchestrator] = None
+
+
+def get_free_api_connector() -> FreeAPIConnector:
+    """Get or create the global FreeAPIConnector instance."""
+    global _free_api_connector
+    if _free_api_connector is None:
+        _free_api_connector = FreeAPIConnector()
+    return _free_api_connector
+
+
+def get_knowledge_orchestrator() -> IntelligentKnowledgeOrchestrator:
+    """Get or create the global IntelligentKnowledgeOrchestrator instance."""
+    global _knowledge_orchestrator
+    if _knowledge_orchestrator is None:
+        _knowledge_orchestrator = IntelligentKnowledgeOrchestrator(get_free_api_connector())
+    return _knowledge_orchestrator
+
+
+class _FreeAPIConnectorProxy:
+    def __getattr__(self, name):
+        return getattr(get_free_api_connector(), name)
+
+class _KnowledgeOrchestratorProxy:
+    def __getattr__(self, name):
+        return getattr(get_knowledge_orchestrator(), name)
+
+free_api_connector = _FreeAPIConnectorProxy()
+knowledge_orchestrator = _KnowledgeOrchestratorProxy()

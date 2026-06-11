@@ -9,6 +9,7 @@ import os
 import json
 import hashlib
 import sqlite3
+import logging
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Any, Optional
@@ -16,6 +17,8 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import base64
+
+logger = logging.getLogger("ecosystem.core.credential_manager")
 
 class SecureCredentialManager:
     """Secure credential storage and management"""
@@ -111,9 +114,9 @@ class SecureCredentialManager:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_website_url ON credentials(website_url)")
     
     def store_credential(self, website_name: str, website_url: str, 
-                        username: str = None, email: str = None, 
-                        password: str = None, additional_fields: Dict = None,
-                        notes: str = None) -> bool:
+                        username: Optional[str] = None, email: Optional[str] = None, 
+                        password: Optional[str] = None, additional_fields: Optional[Dict] = None,
+                        notes: Optional[str] = None) -> bool:
         """Store encrypted credentials"""
         try:
             if not password:
@@ -139,12 +142,12 @@ class SecureCredentialManager:
             return True
             
         except Exception as e:
-            print(f"Error storing credential: {e}")
+            logger.error(f"Error storing credential: {e}")
             return False
     
-    def get_credential(self, website_name: str = None, 
-                      website_url: str = None, 
-                      credential_id: int = None) -> Optional[Dict]:
+    def get_credential(self, website_name: Optional[str] = None, 
+                      website_url: Optional[str] = None, 
+                      credential_id: Optional[int] = None) -> Optional[Dict]:
         """Retrieve and decrypt credentials"""
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -196,7 +199,7 @@ class SecureCredentialManager:
                 return credential
                 
         except Exception as e:
-            print(f"Error retrieving credential: {e}")
+            logger.error(f"Error retrieving credential: {e}")
             return None
     
     def list_credentials(self) -> List[Dict]:
@@ -227,7 +230,7 @@ class SecureCredentialManager:
                 return credentials
                 
         except Exception as e:
-            print(f"Error listing credentials: {e}")
+            logger.error(f"Error listing credentials: {e}")
             return []
     
     def update_credential(self, credential_id: int, **updates) -> bool:
@@ -271,7 +274,7 @@ class SecureCredentialManager:
             return True
             
         except Exception as e:
-            print(f"Error updating credential: {e}")
+            logger.error(f"Error updating credential: {e}")
             return False
     
     def delete_credential(self, credential_id: int) -> bool:
@@ -282,7 +285,7 @@ class SecureCredentialManager:
                 return cursor.rowcount > 0
                 
         except Exception as e:
-            print(f"Error deleting credential: {e}")
+            logger.error(f"Error deleting credential: {e}")
             return False
     
     def _update_usage_stats(self, credential_id: int):
@@ -296,10 +299,10 @@ class SecureCredentialManager:
                 """, (credential_id,))
                 
         except Exception as e:
-            print(f"Error updating usage stats: {e}")
+            logger.error(f"Error updating usage stats: {e}")
     
     def log_usage(self, credential_id: int, website_url: str, 
-                  action_type: str, success: bool, error_message: str = None):
+                  action_type: str, success: bool, error_message: Optional[str] = None):
         """Log credential usage"""
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -310,9 +313,9 @@ class SecureCredentialManager:
                 """, (credential_id, website_url, action_type, success, error_message))
                 
         except Exception as e:
-            print(f"Error logging usage: {e}")
+            logger.error(f"Error logging usage: {e}")
     
-    def get_usage_history(self, credential_id: int = None, limit: int = 50) -> List[Dict]:
+    def get_usage_history(self, credential_id: Optional[int] = None, limit: int = 50) -> List[Dict]:
         """Get usage history"""
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -348,7 +351,7 @@ class SecureCredentialManager:
                 return history
                 
         except Exception as e:
-            print(f"Error getting usage history: {e}")
+            logger.error(f"Error getting usage history: {e}")
             return []
     
     def search_credentials(self, query: str) -> List[Dict]:
@@ -381,7 +384,7 @@ class SecureCredentialManager:
                 return results
                 
         except Exception as e:
-            print(f"Error searching credentials: {e}")
+            logger.error(f"Error searching credentials: {e}")
             return []
     
     def export_credentials(self, include_passwords: bool = False) -> Dict:
@@ -427,7 +430,7 @@ class SecureCredentialManager:
             }
             
         except Exception as e:
-            print(f"Error exporting credentials: {e}")
+            logger.error(f"Error exporting credentials: {e}")
             return {}
 
 # Lazy-loaded global credential manager instance

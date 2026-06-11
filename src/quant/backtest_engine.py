@@ -9,10 +9,13 @@ from __future__ import annotations
 
 import math
 import random
+import logging
 from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger("ecosystem.quant.backtest_engine")
 
 
 class Trade(BaseModel):
@@ -194,8 +197,6 @@ class BacktestEngine:
         volatility: str = "NORMAL",
     ) -> BacktestResult:
         """Run full backtest on OHLCV data using a signal function."""
-        from src.quant.math_engine import MathEngine
-
         closes = [d["close"] for d in data]
         highs = [d["high"] for d in data]
         lows = [d["low"] for d in data]
@@ -249,8 +250,8 @@ class BacktestEngine:
                     )
                     if trade:
                         open_trades.append(trade)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error(f"Signal function error: {e}")
 
         for trade in open_trades:
             self.close_trade(trade, closes[-1], exit_reason="END")

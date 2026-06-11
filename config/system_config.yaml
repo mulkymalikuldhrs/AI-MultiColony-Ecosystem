@@ -5,7 +5,7 @@
 # System Information
 system:
   name: "Agentic AI System"
-  version: "0.3.0"
+  version: "0.4.0"
   description: "Autonomous Multi-Agent Intelligence Platform"
   author: "Mulky Malikul Dhaher"
   country: "Indonesia 🇮🇩"
@@ -220,7 +220,7 @@ database:
   primary:
     type: "sqlite"
     url: "sqlite:///data/agentic.db"
-    pool_size: 10
+    pool_size: 1  # SQLite does not support connection pooling; use 1
     echo: false
     
   # Cache database
@@ -255,7 +255,7 @@ web_interface:
   # WebSocket settings
   websocket:
     enabled: true
-    cors_origins: "*"
+    cors_origins: "http://localhost:3000,http://localhost:8000"  # Customize for your deployment
     ping_interval: 25
     ping_timeout: 60
     
@@ -327,13 +327,13 @@ security:
       burst_limit: 20
     
     authentication:
-      enabled: false  # Disabled for development
+      enabled: true  # Authentication MUST be enabled in production
       type: "jwt"
       token_expiry: 3600
     
     cors:
       enabled: true
-      origins: "*"
+      origins: "http://localhost:3000,http://localhost:8000"  # Customize for your deployment
       methods: ["GET", "POST", "PUT", "DELETE"]
       headers: ["Content-Type", "Authorization"]
   
@@ -347,11 +347,11 @@ security:
   encryption:
     enabled: true
     algorithm: "AES-256"
-    key_rotation: false
+    key_rotation: true
 
 # Development Configuration
 development:
-  debug: true
+  debug: false
   hot_reload: true
   auto_restart: true
   

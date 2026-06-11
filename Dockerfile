@@ -4,7 +4,7 @@
 # =============================================================================
 
 # --- Build stage ---
-FROM python:3.11-slim AS builder
+FROM python:3.12-slim AS builder
 
 ARG BUILD_DATE
 ARG VERSION=2.0.0
@@ -30,11 +30,10 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r /tmp/requirements.txt && \
-    pip install --no-cache-dir gunicorn gevent gevent-websocket
+    pip install --no-cache-dir -r /tmp/requirements.txt
 
 # --- Production stage ---
-FROM python:3.11-slim AS production
+FROM python:3.12-slim AS production
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
@@ -77,7 +76,7 @@ VOLUME ["/app/data", "/app/logs"]
 # Production: gunicorn with gevent workers
 CMD ["gunicorn", \
      "--worker-class", "geventwebsocket.gunicorn.workers.GeventWebSocketWorker", \
-     "--workers", "1", \
+     "--workers", "4", \
      "--bind", "0.0.0.0:5000", \
      "--timeout", "120", \
      "--graceful-timeout", "30", \

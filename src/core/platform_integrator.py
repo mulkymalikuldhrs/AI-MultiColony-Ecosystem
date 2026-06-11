@@ -9,10 +9,12 @@ import os
 import json
 import asyncio
 import aiohttp
-import requests
+import logging
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 from pathlib import Path
+
+logger = logging.getLogger("ecosystem.core.platform_integrator")
 
 class PlatformIntegrator:
     """Manages platform integrations and external service connections"""
@@ -38,9 +40,9 @@ class PlatformIntegrator:
                 await integration.initialize()
                 if integration.is_connected():
                     self.status['active_connections'] += 1
-                print(f"✅ {name} integration: {'connected' if integration.is_connected() else 'available'}")
+                logger.info(f"{name} integration: {'connected' if integration.is_connected() else 'available'}")
             except Exception as e:
-                print(f"⚠️  {name} integration failed: {e}")
+                logger.error(f"{name} integration failed: {e}")
     
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check on all integrations"""
@@ -78,9 +80,9 @@ class GitHubIntegration:
                         if resp.status == 200:
                             self.connected = True
                             user_data = await resp.json()
-                            print(f"🐙 GitHub connected as: {user_data.get('login')}")
+                            logger.info(f"GitHub connected as: {user_data.get('login')}")
             except Exception as e:
-                print(f"GitHub connection failed: {e}")
+                logger.error(f"GitHub connection failed: {e}")
     
     def is_connected(self) -> bool:
         return self.connected
@@ -159,11 +161,11 @@ class GoogleServicesIntegration:
                 # Here you would initialize Google API client
                 # For now, we'll simulate the connection
                 self.connected = True
-                print("🔍 Google Services: Credentials found (implementation pending)")
+                logger.warning("Google Services: Credentials found but integration is a placeholder - implementation pending")
             except Exception as e:
-                print(f"Google Services initialization failed: {e}")
+                logger.error(f"Google Services initialization failed: {e}")
         else:
-            print("🔍 Google Services: No credentials found")
+            logger.info("Google Services: No credentials found")
     
     def is_connected(self) -> bool:
         return self.connected
@@ -205,7 +207,8 @@ class ExternalAPIManager:
                 async with aiohttp.ClientSession() as session:
                     async with session.get(url, timeout=5) as resp:
                         self.status[name] = 'available' if resp.status < 400 else 'limited'
-            except:
+            except Exception as e:
+                logger.error(f"External API '{name}' unavailable: {e}")
                 self.status[name] = 'unavailable'
     
     def is_connected(self) -> bool:
@@ -287,15 +290,15 @@ class AIPlatformManager:
                 try:
                     if await self._test_platform_connection(name, config):
                         config['status'] = 'connected'
-                        print(f"🤖 {name.title()} AI: Connected")
+                        logger.info(f"{name.title()} AI: Connected")
                     else:
                         config['status'] = 'error'
                 except Exception as e:
                     config['status'] = 'error'
-                    print(f"🤖 {name.title()} AI: Connection failed - {e}")
+                    logger.error(f"{name.title()} AI: Connection failed - {e}")
             else:
                 config['status'] = 'not_configured'
-                print(f"🤖 {name.title()} AI: No API key provided")
+                logger.info(f"{name.title()} AI: No API key provided")
     
     async def _test_platform_connection(self, platform: str, config: Dict) -> bool:
         """Test connection to AI platform"""
@@ -315,7 +318,8 @@ class AIPlatformManager:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers, timeout=10) as resp:
                     return resp.status == 200
-        except:
+        except Exception as e:
+            logger.error(f"AI platform connection test failed for {platform}: {e}")
             return False
     
     def is_connected(self) -> bool:
