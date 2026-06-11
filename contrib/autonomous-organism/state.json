@@ -1,0 +1,18 @@
+{
+  "started": "2026-02-22T17:02:12.397Z",
+  "products": [
+    {
+      "id": "PROD_1771779732427",
+      "name": "EasySolution",
+      "problem": "Butuh auto post sosmed",
+      "status": "DEPLOYED",
+      "revenue": 130,
+      "created": "2026-02-22T17:02:12.427Z",
+      "url": "https://easysolution.vercel.app"
+    }
+  ],
+  "revenue": 130,
+  "agents": [],
+  "status": "ALIVE",
+  "cycles": 1
+}

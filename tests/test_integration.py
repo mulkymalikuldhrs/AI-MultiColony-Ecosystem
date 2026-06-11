@@ -410,7 +410,7 @@ class TestConfig:
         from src.config import get_settings, reset_settings
         reset_settings()
         settings = get_settings()
-        assert settings.version == "0.1.0"
+        assert settings.version == "0.2.0"
         reset_settings()
 
     def test_custom_settings(self):

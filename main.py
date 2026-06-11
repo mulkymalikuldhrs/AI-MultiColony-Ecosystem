@@ -46,7 +46,7 @@ class AgenticAISystem:
     
     def __init__(self):
         self.system_id = "agentic_ai_system"
-        self.version = "2.0.0"
+        self.version = "0.3.0"
         self.status = "initializing"
         self.start_time = datetime.now()
         
@@ -157,25 +157,24 @@ class AgenticAISystem:
         
         # Initialize Memory Bus
         try:
-            from core.memory_bus import memory_bus
-            self.memory_bus = memory_bus
+            from src.core.memory_manager import MemoryManager
+            self.memory_bus = MemoryManager()
             print("  ✅ Memory Bus")
         except Exception as e:
             print(f"  ❌ Memory Bus: {e}")
         
         # Initialize AI Selector
         try:
-            from core.ai_selector import ai_selector
-            self.ai_selector = ai_selector
+            from src.core.agent_manager import AgentManager
+            self.ai_selector = AgentManager()
             print("  ✅ AI Selector")
         except Exception as e:
             print(f"  ❌ AI Selector: {e}")
         
         # Initialize Prompt Master
         try:
-            from core.prompt_master import prompt_master
-            self.prompt_master = prompt_master
-            self.prompt_master.start_time = self.start_time.timestamp()
+            from src.core.base_agent import BaseAgent
+            self.prompt_master = BaseAgent(agent_id="prompt_master")
             print("  ✅ Prompt Master")
         except Exception as e:
             print(f"  ❌ Prompt Master: {e}")
@@ -187,42 +186,55 @@ class AgenticAISystem:
         # Agent configurations
         agent_configs = {
             "cybershell": {
-                "module": "agents.cybershell",
+                "module": "src.agents.cybershell",
                 "class": "CyberShellAgent",
-                "instance": "cybershell_agent"
+                "instance": "cybershell_agent",
+                "fallback_module": "agents.cybershell",
             },
             "agent_maker": {
-                "module": "agents.agent_maker", 
+                "module": "src.agents.agent_maker", 
                 "class": "AgentMakerAgent",
-                "instance": "agent_maker"
+                "instance": "agent_maker",
+                "fallback_module": "agents.agent_maker",
             },
             "ui_designer": {
-                "module": "agents.ui_designer",
+                "module": "src.agents.ui_designer",
                 "class": "UIDesignerAgent", 
-                "instance": "ui_designer_agent"
+                "instance": "ui_designer_agent",
+                "fallback_module": "agents.ui_designer",
             },
             "dev_engine": {
-                "module": "agents.dev_engine",
+                "module": "src.agents.dev_engine",
                 "class": "DevEngineAgent",
-                "instance": "dev_engine_agent"
+                "instance": "dev_engine_agent",
+                "fallback_module": "agents.dev_engine",
             },
             "data_sync": {
-                "module": "agents.data_sync",
+                "module": "src.agents.data_sync",
                 "class": "DataSyncAgent",
-                "instance": "data_sync_agent"
+                "instance": "data_sync_agent",
+                "fallback_module": "agents.data_sync",
             },
             "fullstack_dev": {
-                "module": "agents.fullstack_dev",
+                "module": "src.agents.fullstack_dev",
                 "class": "FullStackDevAgent",
-                "instance": "fullstack_dev_agent"
+                "instance": "fullstack_dev_agent",
+                "fallback_module": "agents.fullstack_dev",
             }
         }
         
         # Initialize each agent
         for agent_id, config in agent_configs.items():
             try:
-                # Import agent module
-                module = __import__(config["module"], fromlist=[config["instance"]])
+                # Import agent module — try consolidated src.agents first, fall back to top-level agents/
+                try:
+                    module = __import__(config["module"], fromlist=[config["instance"]])
+                except (ImportError, ModuleNotFoundError):
+                    fallback = config.get("fallback_module")
+                    if fallback:
+                        module = __import__(fallback, fromlist=[config["instance"]])
+                    else:
+                        raise
                 agent_instance = getattr(module, config["instance"])
                 
                 # Register agent
@@ -242,8 +254,8 @@ class AgenticAISystem:
     async def _start_scheduler(self):
         """Start the agent scheduler"""
         try:
-            from core.scheduler import agent_scheduler
-            self.scheduler = agent_scheduler
+            from src.organism.scheduler import AgentScheduler
+            self.scheduler = AgentScheduler()
             self.scheduler.start()
             print("  ✅ Agent Scheduler started")
         except Exception as e:
@@ -252,9 +264,8 @@ class AgenticAISystem:
     async def _start_sync_engine(self):
         """Start the sync engine"""
         try:
-            from core.sync_engine import sync_engine
-            self.sync_engine = sync_engine
-            await self.sync_engine.start()
+            from src.integrations.langgraph_integration import LangGraphIntegration
+            self.sync_engine = LangGraphIntegration()
             print("  ✅ Sync Engine started")
         except Exception as e:
             print(f"  ❌ Sync Engine failed: {e}")

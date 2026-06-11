@@ -2,9 +2,22 @@
 🤖 Agentic AI System - Agents Module
 Centralized agent imports and registry
 Made with ❤️ by Mulky Malikul Dhaher in Indonesia 🇮🇩
+
+.. deprecated::
+    This module is deprecated. Use ``src.agents`` instead.
+    The top-level ``agents/`` package will be removed in a future release.
 """
 
-__version__ = "2.0.0"
+import warnings
+
+warnings.warn(
+    "The top-level 'agents' package is deprecated. Import from 'src.agents' instead. "
+    "The 'agents/' directory will be removed in a future release.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+__version__ = "0.3.0"
 __author__ = "Mulky Malikul Dhaher"
 __description__ = "Autonomous Multi-Agent Intelligence System"
 

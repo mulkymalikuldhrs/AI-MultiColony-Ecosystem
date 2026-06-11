@@ -70,7 +70,7 @@ class EcosystemSettings(BaseSettings):
     # Global settings
     debug: bool = False
     log_level: str = "INFO"
-    version: str = "0.1.0"
+    version: str = "0.3.0"
 
 
 # Singleton instance

@@ -8,6 +8,9 @@ Modules:
     decision: Decision scoring engine (multi-factor weighted scoring)
     factory: Project/solution generation factory
     memory: Experience logging and pattern analysis
+
+Note: The original JS/TS implementation is preserved in contrib/autonomous-organism/
+for reference, including the React UI and Supabase edge functions.
 """
 
 from src.organism.scheduler import OrganismScheduler

@@ -36,6 +36,18 @@ anthropic>=0.7
 tiktoken>=0.5
 
 # =============================================================================
+# LANGCHAIN ECOSYSTEM
+# =============================================================================
+langchain>=0.3
+langchain-core>=0.3
+langgraph>=0.2
+# Optional langchain providers (uncomment as needed):
+# langchain-openai>=0.2
+# langchain-anthropic>=0.2
+# langchain-deepseek>=0.1
+# langchain-mcp-adapters>=0.1
+
+# =============================================================================
 # DATABASE
 # =============================================================================
 redis>=5.0

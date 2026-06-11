@@ -4,19 +4,76 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-multicolony-ecosystem"
-version = "0.1.0"
+version = "0.3.0"
 description = "AI-MultiColony-Ecosystem: Multi-agent operating system with autonomous agent colonies"
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.0,<3",
     "pydantic-settings>=2.0,<3",
     "structlog>=24.0",
+    # Web framework
+    "flask>=3.0",
+    "flask-socketio>=5.3",
+    "werkzeug>=3.0",
+    "jinja2>=3.1",
+    # Async and HTTP
+    "aiohttp>=3.9",
+    "httpx>=0.27",
+    "requests>=2.31",
+    # AI and ML
+    "openai>=1.3",
+    "tiktoken>=0.5",
+    # Langchain ecosystem (required by guardrails, subagents, llm_models, df_tools)
+    "langchain>=0.3",
+    "langchain-core>=0.3",
+    "langgraph>=0.2",
+    # Database
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    # Data processing
+    "numpy>=1.25",
+    "pandas>=2.1",
+    # System and security
+    "python-dotenv>=1.0",
+    "cryptography>=42.0",
+    "psutil>=5.9",
+    # Data utilities
+    "pyyaml>=6.0",
+    "python-dateutil>=2.8",
+    "python-multipart>=0.0",
+    # Monitoring and logging
+    "rich>=13.7",
+    # JSON and config
+    "jsonschema>=4.20",
+    "toml>=0.10",
+    # Memory and caching
+    "cachetools>=5.3",
+    "diskcache>=5.6",
+    # File handling
+    "watchdog>=4.0",
+    "pathspec>=0.12",
+    "pillow>=10.1",
+    # Text processing
+    "textdistance>=4.6",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
+]
+quant = [
+    "ta>=0.11",
+    "yfinance>=0.2",
+]
+mcp = [
+    "langchain-mcp-adapters>=0.1",
+    "mcp>=1.0",
+]
+all-providers = [
+    "langchain-openai>=0.2",
+    "langchain-anthropic>=0.2",
+    "langchain-deepseek>=0.1",
 ]
 
 [tool.pytest.ini_options]

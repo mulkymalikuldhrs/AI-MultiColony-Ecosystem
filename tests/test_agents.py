@@ -177,6 +177,14 @@ class TestDevEngineAgent:
     @pytest.mark.asyncio
     async def test_project_scaffolding(self):
         """Test project structure creation"""
+        import shutil
+        from pathlib import Path
+        
+        # Clean up any previous test project to avoid "already exists" errors
+        test_project_path = Path("projects/test_project")
+        if test_project_path.exists():
+            shutil.rmtree(test_project_path, ignore_errors=True)
+        
         task = {
             "action": "create_project",
             "project_type": "fullstack_web",
@@ -193,6 +201,10 @@ class TestDevEngineAgent:
         assert result["success"] is True
         assert "project_structure" in result
         assert "package.json" in str(result["project_structure"])
+        
+        # Clean up after test
+        if test_project_path.exists():
+            shutil.rmtree(test_project_path, ignore_errors=True)
     
     @pytest.mark.asyncio
     async def test_dependency_management(self):

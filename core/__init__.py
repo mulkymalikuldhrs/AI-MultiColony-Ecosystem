@@ -3,7 +3,20 @@ Agentic AI System - Core Module
 Central Intelligence and Coordination System
 
 Made with love by Mulky Malikul Dhaher in Indonesia
+
+.. deprecated::
+    This module is deprecated. Use ``src.core`` instead.
+    The top-level ``core/`` package will be removed in a future release.
 """
+
+import warnings
+
+warnings.warn(
+    "The top-level 'core' package is deprecated. Import from 'src.core' instead. "
+    "The 'core/' directory will be removed in a future release.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 from .ai_selector import AISelector
 
