@@ -11,7 +11,7 @@ import asyncio
 import copy
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
@@ -58,7 +58,7 @@ class GraphCheckpoint(BaseModel):
     node_statuses: Dict[str, NodeStatus] = Field(default_factory=dict)
     state: Dict[str, Any] = Field(default_factory=dict)
     current_node: Optional[str] = None
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     step_count: int = 0
 
 
@@ -356,7 +356,7 @@ class AgentGraph:
                 "node": current_node_name,
                 "status": "running",
                 "step": step_count,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             })
 
             try:

@@ -10,7 +10,7 @@ Supports two factor patterns:
    (ported from Vibe-Trading zoo modules)
 
 Design contract:
-    FactorRegistry.list(zoo=None, theme=None, universe=None) -> list[str]
+    FactorRegistry.list(zoo = None; theme = None; universe=None) -> list[str]
     FactorRegistry.get(factor_id) -> FactorHandle
     FactorRegistry.compute(factor_id, panel) -> pd.DataFrame
     FactorRegistry.health() -> dict

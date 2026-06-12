@@ -12,13 +12,40 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Sequence, Type
 
-from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
-from langchain_core.tools import BaseTool
-from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langgraph.prebuilt import ToolNode
+try:
+    from langchain_core.language_models import BaseChatModel
+except ImportError:
+    BaseChatModel = None
+
+try:
+    from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
+except ImportError:
+    AIMessage = BaseMessage = HumanMessage = SystemMessage = None
+
+try:
+    from langchain_core.tools import BaseTool
+except ImportError:
+    BaseTool = None
+
+try:
+    from langchain_openai import ChatOpenAI
+except ImportError:
+    ChatOpenAI = None
+
+try:
+    from langchain_anthropic import ChatAnthropic
+except ImportError:
+    ChatAnthropic = None
+
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+except ImportError:
+    ChatGoogleGenerativeAI = None
+
+try:
+    from langgraph.prebuilt import ToolNode
+except ImportError:
+    ToolNode = None
 
 from quant_nanggroe.agents.state import AgentOutput, AgentRole, AgentState
 

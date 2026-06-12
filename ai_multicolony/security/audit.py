@@ -97,6 +97,7 @@ class FileAuditStorage:
                         if "chain_hash" in data:
                             self._hash_chain.append(data["chain_hash"])
                     except Exception:
+                        logger.warning("Failed to parse audit log entry, skipping")
                         continue
         except Exception as exc:
             logger.warning("Failed to load audit log: %s", exc)

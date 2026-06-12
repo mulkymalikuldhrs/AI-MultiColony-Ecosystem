@@ -9,7 +9,9 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, List, Optional
 
-from pydantic import Field, field_validator
+import logging as _logging
+
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -70,9 +72,9 @@ class APISettings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     workers: int = 4
-    cors_origins: List[str] = Field(default_factory=lambda: ["*"])
-    cors_methods: List[str] = Field(default_factory=lambda: ["*"])
-    cors_headers: List[str] = Field(default_factory=lambda: ["*"])
+    cors_origins: List[str] = Field(default_factory=lambda: ["http://localhost:3000", "http://localhost:8000", "http://localhost:8080"])
+    cors_methods: List[str] = Field(default_factory=lambda: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"])
+    cors_headers: List[str] = Field(default_factory=lambda: ["Authorization", "Content-Type", "X-API-Key", "X-Request-ID"])
     api_key_enabled: bool = True
     jwt_secret: str = ""  # MUST be set via MULTICOLONY_API_JWT_SECRET env var
     jwt_expiry_hours: int = 24
@@ -83,6 +85,19 @@ class APISettings(BaseSettings):
     ws_max_connections: int = 100
 
     model_config = {"env_prefix": "MULTICOLONY_API_"}
+
+    @model_validator(mode="after")
+    def _warn_wildcard_cors_in_production(self):
+        """Warn (but do NOT reject) if CORS origins is wildcard in production mode."""
+        if self.cors_origins == ["*"]:
+            debug_env = os.getenv("MULTICOLONY_DEBUG", "false").lower() in ("1", "true", "yes")
+            if not debug_env:
+                _logging.getLogger(__name__).warning(
+                    "SECURITY WARNING: cors_origins is set to wildcard ['*'] in production mode. "
+                    "This allows any origin to access the API. "
+                    "Set MULTICOLONY_API_CORS_ORIGINS to restrict allowed origins."
+                )
+        return self
 
     @field_validator("jwt_secret")
     @classmethod

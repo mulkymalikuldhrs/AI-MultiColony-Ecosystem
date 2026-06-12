@@ -451,7 +451,10 @@ class LLMRouter:
     ) -> tuple[str, int, int]:
         """Call OpenAI API."""
         try:
-            from langchain_openai import ChatOpenAI
+            try:
+                from langchain_openai import ChatOpenAI
+            except ImportError:
+                ChatOpenAI=None
 
             llm = ChatOpenAI(
                 model=model,
@@ -460,7 +463,10 @@ class LLMRouter:
                 max_tokens=max_tokens or 4096,
                 temperature=temperature,
             )
-            from langchain_core.messages import HumanMessage, SystemMessage
+            try:
+                from langchain_core.messages import HumanMessage, SystemMessage
+            except ImportError:
+                HumanMessage = None; SystemMessage=None
 
             lc_messages = []
             for m in messages:
@@ -487,7 +493,10 @@ class LLMRouter:
     ) -> tuple[str, int, int]:
         """Call Anthropic API."""
         try:
-            from langchain_anthropic import ChatAnthropic
+            try:
+                from langchain_anthropic import ChatAnthropic
+            except ImportError:
+                ChatAnthropic=None
 
             llm = ChatAnthropic(
                 model=model,
@@ -495,7 +504,10 @@ class LLMRouter:
                 max_tokens=max_tokens or 4096,
                 temperature=temperature,
             )
-            from langchain_core.messages import HumanMessage, SystemMessage
+            try:
+                from langchain_core.messages import HumanMessage, SystemMessage
+            except ImportError:
+                HumanMessage = None; SystemMessage=None
 
             lc_messages = []
             for m in messages:
@@ -522,7 +534,10 @@ class LLMRouter:
     ) -> tuple[str, int, int]:
         """Call Google GenAI API."""
         try:
-            from langchain_google_genai import ChatGoogleGenerativeAI
+            try:
+                from langchain_google_genai import ChatGoogleGenerativeAI
+            except ImportError:
+                ChatGoogleGenerativeAI=None
 
             llm = ChatGoogleGenerativeAI(
                 model=model,
@@ -530,7 +545,10 @@ class LLMRouter:
                 max_output_tokens=max_tokens or 4096,
                 temperature=temperature,
             )
-            from langchain_core.messages import HumanMessage, SystemMessage
+            try:
+                from langchain_core.messages import HumanMessage, SystemMessage
+            except ImportError:
+                HumanMessage = None; SystemMessage=None
 
             lc_messages = []
             for m in messages:
@@ -559,7 +577,10 @@ class LLMRouter:
         ChatOpenAI with a custom base_url pointing to the NIM API.
         """
         try:
-            from langchain_openai import ChatOpenAI
+            try:
+                from langchain_openai import ChatOpenAI
+            except ImportError:
+                ChatOpenAI=None
 
             base_url = config.base_url or "https://integrate.api.nvidia.com/v1"
             llm = ChatOpenAI(
@@ -569,7 +590,10 @@ class LLMRouter:
                 max_tokens=max_tokens or 4096,
                 temperature=temperature,
             )
-            from langchain_core.messages import HumanMessage, SystemMessage
+            try:
+                from langchain_core.messages import HumanMessage, SystemMessage
+            except ImportError:
+                HumanMessage = None; SystemMessage=None
 
             lc_messages = []
             for m in messages:

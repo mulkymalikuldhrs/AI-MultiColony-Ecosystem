@@ -7,7 +7,10 @@ import logging
 from datetime import datetime
 from typing import Optional
 
-from langchain_core.tools import tool
+try:
+    from langchain_core.tools import tool
+except ImportError:
+    tool=lambda f: f  # fallback when langchain_core unavailable
 
 
 logger = logging.getLogger(__name__)

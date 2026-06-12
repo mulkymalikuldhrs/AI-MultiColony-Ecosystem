@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as exc:
         logger.warning(
             "startup_services_unavailable",
-            extra={"error": str(exc), "msg": "Services not available — running without persistence"},
+            extra={"error": str(exc), "detail": "Services not available — running without persistence"},
         )
 
     logger.info("startup_complete", extra={"app": settings.app_name, "env": "development"})

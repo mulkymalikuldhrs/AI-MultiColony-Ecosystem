@@ -306,6 +306,7 @@ class SecurityAnalyzer:
                         return False
             return True
         except Exception:
+            logger.exception("Failed to parse version spec, assuming affected")
             return True  # if we can't parse, assume affected
 
     # ── Secret / credential leak detection ─────────────────────────────────

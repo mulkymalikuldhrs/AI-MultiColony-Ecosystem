@@ -307,9 +307,9 @@ class TradingWorker:
                 self._kill_switch_active = False  # Default: not active
 
                 if self._kill_switch_active and not was_active:
-                    logger.warning("kill_switch_activated", extra={"msg": "All trading halted"})
+                    logger.warning("kill_switch_activated", extra={"detail": "All trading halted"})
                 elif not self._kill_switch_active and was_active:
-                    logger.info("kill_switch_deactivated", extra={"msg": "Trading resumed"})
+                    logger.info("kill_switch_deactivated", extra={"detail": "Trading resumed"})
 
                 await asyncio.sleep(self.config.kill_switch_check_interval)
 

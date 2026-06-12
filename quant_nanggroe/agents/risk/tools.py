@@ -14,7 +14,10 @@ import math
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from langchain_core.tools import tool
+try:
+    from langchain_core.tools import tool
+except ImportError:
+    tool=lambda f: f  # fallback when langchain_core unavailable
 
 from quant_nanggroe.agents.state import (
     MAX_CORRELATED_POSITIONS,

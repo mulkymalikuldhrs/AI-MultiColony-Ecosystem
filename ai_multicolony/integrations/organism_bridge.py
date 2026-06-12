@@ -3,6 +3,9 @@ Organism Bridge — Client for the Autonomous Organism service.
 
 Communicates with the Autonomous Organism via Supabase Edge Functions
 to trigger organ engine cycles and retrieve status data.
+
+All external Supabase calls are protected by a :class:`CircuitBreaker`.
+When the circuit is OPEN, unavailable/fallback responses are returned.
 """
 
 from __future__ import annotations
@@ -12,6 +15,8 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 from pydantic import BaseModel, Field
+
+from ..core.circuit_breaker import CircuitBreaker
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +53,10 @@ class EngineRunResult(BaseModel):
 class OrganismBridge:
     """Async client for the Autonomous Organism service via Supabase.
 
+    All external Supabase calls are protected by a :class:`CircuitBreaker`.
+    When the circuit is OPEN, each method returns an unavailable/fallback
+    response instead of attempting the network call.
+
     Usage::
 
         bridge = OrganismBridge(
@@ -63,11 +72,26 @@ class OrganismBridge:
         supabase_url: str = "",
         supabase_anon_key: str = "",
         timeout: float = 30.0,
+        circuit_breaker_failure_threshold: int = 5,
+        circuit_breaker_timeout_seconds: float = 60.0,
     ) -> None:
         self.supabase_url = supabase_url or ""
         self.supabase_anon_key = supabase_anon_key or ""
         self.timeout = timeout
+
+        # Circuit breaker guarding all Organism/Supabase calls
+        self._circuit_breaker = CircuitBreaker(
+            name="organism",
+            failure_threshold=circuit_breaker_failure_threshold,
+            timeout_seconds=circuit_breaker_timeout_seconds,
+        )
+
         self._client: Optional[httpx.AsyncClient] = None
+
+    @property
+    def circuit_breaker(self) -> CircuitBreaker:
+        """Expose the circuit breaker for introspection or manual reset."""
+        return self._circuit_breaker
 
     async def _get_client(self) -> httpx.AsyncClient:
         if self._client is None or self._client.is_closed:
@@ -90,11 +114,33 @@ class OrganismBridge:
         return f"/functions/v1/{function_name}"
 
     # -----------------------------------------------------------------------
+    # Internal: circuit-breaker check
+    # -----------------------------------------------------------------------
+
+    def _check_circuit(self) -> bool:
+        """Return True if the circuit allows execution; log warning otherwise."""
+        if not self._circuit_breaker.can_execute():
+            logger.warning(
+                "CircuitBreaker[organism]: circuit OPEN — returning fallback"
+            )
+            return False
+        return True
+
+    # -----------------------------------------------------------------------
     # Trigger organ engines
     # -----------------------------------------------------------------------
 
     async def trigger_sense(self, org_id: str) -> EngineRunResult:
-        """Trigger the Sense Engine to ingest problems from sources."""
+        """Trigger the Sense Engine to ingest problems from sources.
+
+        Returns a failed :class:`EngineRunResult` when the circuit is open.
+        """
+        if not self._check_circuit():
+            return EngineRunResult(
+                success=False,
+                engine="sense",
+                error="Circuit breaker open — Organism service unavailable",
+            )
         try:
             client = await self._get_client()
             resp = await client.post(
@@ -103,13 +149,24 @@ class OrganismBridge:
             )
             resp.raise_for_status()
             data = resp.json()
+            self._circuit_breaker.record_success()
             return EngineRunResult(success=True, engine="sense", output=data)
         except Exception as exc:
             logger.error("Organism trigger_sense error: %s", exc)
+            self._circuit_breaker.record_failure()
             return EngineRunResult(success=False, engine="sense", error=str(exc))
 
     async def trigger_decision(self, org_id: str) -> EngineRunResult:
-        """Trigger the Decision Core to score and rank problems."""
+        """Trigger the Decision Core to score and rank problems.
+
+        Returns a failed :class:`EngineRunResult` when the circuit is open.
+        """
+        if not self._check_circuit():
+            return EngineRunResult(
+                success=False,
+                engine="decision",
+                error="Circuit breaker open — Organism service unavailable",
+            )
         try:
             client = await self._get_client()
             resp = await client.post(
@@ -118,13 +175,24 @@ class OrganismBridge:
             )
             resp.raise_for_status()
             data = resp.json()
+            self._circuit_breaker.record_success()
             return EngineRunResult(success=True, engine="decision", output=data)
         except Exception as exc:
             logger.error("Organism trigger_decision error: %s", exc)
+            self._circuit_breaker.record_failure()
             return EngineRunResult(success=False, engine="decision", error=str(exc))
 
     async def trigger_factory(self, org_id: str) -> EngineRunResult:
-        """Trigger the SaaS Factory to generate project templates."""
+        """Trigger the SaaS Factory to generate project templates.
+
+        Returns a failed :class:`EngineRunResult` when the circuit is open.
+        """
+        if not self._check_circuit():
+            return EngineRunResult(
+                success=False,
+                engine="factory",
+                error="Circuit breaker open — Organism service unavailable",
+            )
         try:
             client = await self._get_client()
             resp = await client.post(
@@ -133,13 +201,24 @@ class OrganismBridge:
             )
             resp.raise_for_status()
             data = resp.json()
+            self._circuit_breaker.record_success()
             return EngineRunResult(success=True, engine="factory", output=data)
         except Exception as exc:
             logger.error("Organism trigger_factory error: %s", exc)
+            self._circuit_breaker.record_failure()
             return EngineRunResult(success=False, engine="factory", error=str(exc))
 
     async def trigger_growth(self, org_id: str) -> EngineRunResult:
-        """Trigger the Growth Engine to generate marketing campaigns."""
+        """Trigger the Growth Engine to generate marketing campaigns.
+
+        Returns a failed :class:`EngineRunResult` when the circuit is open.
+        """
+        if not self._check_circuit():
+            return EngineRunResult(
+                success=False,
+                engine="growth",
+                error="Circuit breaker open — Organism service unavailable",
+            )
         try:
             client = await self._get_client()
             resp = await client.post(
@@ -148,9 +227,11 @@ class OrganismBridge:
             )
             resp.raise_for_status()
             data = resp.json()
+            self._circuit_breaker.record_success()
             return EngineRunResult(success=True, engine="growth", output=data)
         except Exception as exc:
             logger.error("Organism trigger_growth error: %s", exc)
+            self._circuit_breaker.record_failure()
             return EngineRunResult(success=False, engine="growth", error=str(exc))
 
     # -----------------------------------------------------------------------
@@ -158,7 +239,13 @@ class OrganismBridge:
     # -----------------------------------------------------------------------
 
     async def get_organism_status(self, org_id: str) -> OrganismStatus:
-        """Get the current status of an organism."""
+        """Get the current status of an organism.
+
+        Returns a default :class:`OrganismStatus` with ``status="unknown"``
+        when the circuit is open.
+        """
+        if not self._check_circuit():
+            return OrganismStatus(org_id=org_id, status="unavailable")
         try:
             client = await self._get_client()
             # Query the organizations table
@@ -170,19 +257,28 @@ class OrganismBridge:
             data = resp.json()
             if data:
                 org = data[0]
+                self._circuit_breaker.record_success()
                 return OrganismStatus(
                     org_id=org.get("id", org_id),
                     name=org.get("name", ""),
                     generation=org.get("generation", 0),
                     status=org.get("status", "unknown"),
                 )
+            self._circuit_breaker.record_success()
         except Exception as exc:
             logger.error("Organism get_organism_status error: %s", exc)
+            self._circuit_breaker.record_failure()
 
         return OrganismStatus(org_id=org_id)
 
     async def is_available(self) -> bool:
-        """Check if the Organism service is reachable."""
+        """Check if the Organism service is reachable.
+
+        Returns False when the circuit breaker is open.
+        """
+        if self._circuit_breaker.is_open:
+            logger.warning("CircuitBreaker[organism]: circuit OPEN — reporting unavailable")
+            return False
         if not self.supabase_url:
             return False
         try:
@@ -190,4 +286,5 @@ class OrganismBridge:
             resp = await client.get("/rest/v1/", timeout=5.0)
             return resp.status_code in (200, 401)  # 401 = reachable but needs auth
         except Exception:
+            logger.exception("Organism availability check failed")
             return False

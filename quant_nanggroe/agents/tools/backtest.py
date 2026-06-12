@@ -25,7 +25,10 @@ from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
-from langchain_core.tools import tool
+try:
+    from langchain_core.tools import tool
+except ImportError:
+    tool=lambda f: f  # fallback when langchain_core unavailable
 
 from quant_nanggroe.config.settings import get_settings
 from quant_nanggroe.exceptions import DataError, EngineError, InsufficientDataError

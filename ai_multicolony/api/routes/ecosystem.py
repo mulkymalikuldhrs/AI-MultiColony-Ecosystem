@@ -185,6 +185,7 @@ def create_router() -> APIRouter:
                 "health": health.status,
             }
         except Exception:
+            logger.exception("Failed to get Crucix data for overview")
             overview["crucix"] = {"status": "unavailable"}
 
         # HermesQuant data
@@ -195,6 +196,7 @@ def create_router() -> APIRouter:
             portfolio = await bridge.get_portfolio_status()
             overview["hermes_quant"] = portfolio
         except Exception:
+            logger.exception("Failed to get HermesQuant data for overview")
             overview["hermes_quant"] = {"status": "unavailable"}
 
         # Organism data
@@ -210,6 +212,7 @@ def create_router() -> APIRouter:
             overview["autonomous_organism"] = {"available": available}
             await bridge.close()
         except Exception:
+            logger.exception("Failed to get Organism data for overview")
             overview["autonomous_organism"] = {"status": "unavailable"}
 
         return overview

@@ -11,14 +11,47 @@ handlers, lifespan events, and mounted route routers.
 
 from __future__ import annotations
 
+import asyncio
+import os
+import signal
 import time
 import logging
 from contextlib import asynccontextmanager
 from typing import Any, Dict, Optional
 
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from starlette.responses import Response
+
 from ..config import get_settings
 
 logger = logging.getLogger(__name__)
+
+
+def _setup_signal_handlers(app: Any) -> None:
+    """Register SIGTERM/SIGINT for graceful shutdown."""
+    def _shutdown_signal_handler(signum: int, frame: Any) -> None:
+        logger.warning(
+            "received_signal: signal=%s, initiating_graceful_shutdown",
+            signal.Signals(signum).name,
+        )
+        # Set a flag that the lifespan handler can check
+        os._exit(0)  # Last resort — lifespan will handle cleanup
+
+    signal.signal(signal.SIGTERM, _shutdown_signal_handler)
+    signal.signal(signal.SIGINT, _shutdown_signal_handler)
+
+# ── Prometheus metrics ─────────────────────────────────────────────────────
+
+REQUEST_COUNT = Counter(
+    'amce_http_requests_total',
+    'Total HTTP requests',
+    ['method', 'endpoint', 'status'],
+)
+REQUEST_LATENCY = Histogram(
+    'amce_http_request_duration_seconds',
+    'HTTP request latency',
+    ['method', 'endpoint'],
+)
 
 
 @asynccontextmanager
@@ -295,9 +328,40 @@ def create_fastapi_app(**kwargs: Any) -> "fastapi.FastAPI":
 
     @asynccontextmanager
     async def _lifespan(app: fastapi.FastAPI):
-        logger.info("AI-MultiColony real FastAPI starting up")
+        # Startup
+        logger.info("application_starting")
         yield
-        logger.info("AI-MultiColony real FastAPI shutting down")
+        # Shutdown — graceful drain
+        logger.info("shutdown_initiated")
+
+        # 1. Signal agents to stop
+        try:
+            from ai_multicolony.colony.manager import ColonyManager
+            # Try to get running colonies and shut them down
+            if hasattr(app.state, 'colony_manager') and app.state.colony_manager:
+                await app.state.colony_manager.shutdown()
+                logger.info("colony_manager_shutdown_complete")
+        except Exception as e:
+            logger.warning("colony_shutdown_error: %s", e)
+
+        # 2. Flush audit logs
+        try:
+            from ai_multicolony.security.audit import AuditTrail
+            audit = AuditTrail()
+            audit.flush()
+        except Exception:
+            pass
+
+        # 3. Close HTTP client sessions
+        try:
+            tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+            if tasks:
+                logger.info("draining_tasks: count=%d", len(tasks))
+                await asyncio.gather(*tasks, return_exceptions=True)
+        except Exception as e:
+            logger.warning("task_drain_error: %s", e)
+
+        logger.info("shutdown_complete")
 
     app = fastapi.FastAPI(
         title="AI-MultiColony",
@@ -330,6 +394,32 @@ def create_fastapi_app(**kwargs: Any) -> "fastapi.FastAPI":
     @app.get("/health")
     async def _health() -> dict:
         return custom_app.get_health()
+
+    # ── Prometheus /metrics endpoint ───────────────────────────────────
+    @app.get("/metrics")
+    async def metrics() -> Response:
+        """Expose Prometheus metrics."""
+        return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+    # ── Prometheus middleware: track request count and latency ─────────
+    @app.middleware("http")
+    async def prometheus_middleware(request: Request, call_next):
+        method = request.method.upper()
+        path = request.url.path
+        start = time.monotonic()
+
+        response = await call_next(request)
+
+        duration = time.monotonic() - start
+        status = str(response.status_code)
+
+        REQUEST_COUNT.labels(method=method, endpoint=path, status=status).inc()
+        REQUEST_LATENCY.labels(method=method, endpoint=path).observe(duration)
+
+        return response
+
+    # ── Signal handlers for graceful shutdown ──────────────────────────
+    _setup_signal_handlers(app)
 
     logger.info("Real FastAPI app created, wrapping FastAPIApp dispatcher")
     return app

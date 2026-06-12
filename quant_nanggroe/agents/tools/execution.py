@@ -23,7 +23,10 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from langchain_core.tools import tool
+try:
+    from langchain_core.tools import tool
+except ImportError:
+    tool=lambda f: f  # fallback when langchain_core unavailable
 
 from quant_nanggroe.config.settings import get_settings
 from quant_nanggroe.exceptions import (

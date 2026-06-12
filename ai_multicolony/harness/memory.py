@@ -258,6 +258,7 @@ class SQLiteMemoryStore:
                 expires_at=datetime.fromisoformat(row[9]) if row[9] else None,
             )
         except (json.JSONDecodeError, ValueError):
+            logger.exception("Failed to parse memory entry by key")
             return None
 
     def delete(self, entry_id: str) -> bool:
@@ -318,6 +319,7 @@ class SQLiteMemoryStore:
                 created_at=datetime.fromisoformat(row[5]),
             )
         except (json.JSONDecodeError, ValueError):
+            logger.exception("Failed to parse checkpoint entry")
             return None
 
     def list_checkpoints(self, graph_id: Optional[str] = None) -> List[CheckpointEntry]:
@@ -350,6 +352,7 @@ class SQLiteMemoryStore:
                     created_at=datetime.fromisoformat(row[5]),
                 ))
             except (json.JSONDecodeError, ValueError):
+                logger.exception("Failed to parse checkpoint entry in list")
                 continue
         return entries
 
@@ -518,6 +521,7 @@ class HarnessMemory:
             self._ensure_init()
             return self._long_term.get_by_key(key)
         except Exception:
+            logger.exception("Failed to get memory entry by key from long-term store")
             return None
 
     def delete(self, key: str) -> bool:
@@ -528,7 +532,7 @@ class HarnessMemory:
                 self._ensure_init()
                 self._long_term.delete(entry.entry_id)
             except Exception:
-                pass
+                logger.exception("Failed to delete entry from long-term store")
             return True
 
         # Try long-term
@@ -538,7 +542,7 @@ class HarnessMemory:
             if lt_entry:
                 return self._long_term.delete(lt_entry.entry_id)
         except Exception:
-            pass
+            logger.exception("Failed to delete entry from long-term store (key lookup)")
         return False
 
     def save_checkpoint(
@@ -568,6 +572,7 @@ class HarnessMemory:
             self._ensure_init()
             return self._long_term.load_checkpoint(checkpoint_id)
         except Exception:
+            logger.exception("Failed to get memory entry by key from long-term store")
             return None
 
     def list_checkpoints(self, graph_id: Optional[str] = None) -> List[CheckpointEntry]:
@@ -576,6 +581,7 @@ class HarnessMemory:
             self._ensure_init()
             return self._long_term.list_checkpoints(graph_id)
         except Exception:
+            logger.exception("Failed to list checkpoints")
             return []
 
     @property
@@ -586,5 +592,5 @@ class HarnessMemory:
             self._ensure_init()
             stats.update(self._long_term.get_stats())
         except Exception:
-            pass
+            logger.exception("Failed to get long-term memory stats")
         return stats

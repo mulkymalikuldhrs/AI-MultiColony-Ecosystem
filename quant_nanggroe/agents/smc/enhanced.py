@@ -16,8 +16,14 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from langchain_core.language_models import BaseChatModel
-from langchain_core.tools import tool
+try:
+    from langchain_core.language_models import BaseChatModel
+except ImportError:
+    BaseChatModel=None
+try:
+    from langchain_core.tools import tool
+except ImportError:
+    tool=lambda f: f  # fallback when langchain_core unavailable
 
 from quant_nanggroe.agents.base import BaseAgent
 from quant_nanggroe.agents.registry import AgentRegistry

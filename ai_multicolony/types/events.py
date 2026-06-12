@@ -198,7 +198,9 @@ class EventStream:
             try:
                 await handler(event)
             except Exception:
-                pass  # Subscriber errors should not break the stream
+                import logging as _logging
+                _logging.getLogger(__name__).exception("Subscriber handler error in EventStream.publish")
+                # Subscriber errors should not break the stream
 
     async def receive(self, timeout: Optional[float] = None) -> Event:
         """Receive the next event from the stream.

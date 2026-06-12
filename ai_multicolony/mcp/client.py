@@ -8,7 +8,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from .protocol import (
@@ -199,7 +199,7 @@ class MCPClient:
                         "tool": tool_name,
                         "status": "success",
                         "attempt": attempt,
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                     })
                     return data if isinstance(data, dict) else {"result": data}
 
@@ -258,7 +258,7 @@ class MCPClient:
             "tool": tool_name,
             "status": "failed",
             "attempts": self.max_retries,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         })
 
         from ..exceptions import ToolError
